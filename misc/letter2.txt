@@ -1,0 +1,90 @@
+On Mon, 14 Jul 2008, Julia wrote:
+> On Mon, 14 Jul 2008, Rasmus Jensen wrote:
+> > The topic will be to make a scripting language
+> > which works across the heterogeneous platforms of
+> > embedded/mobile devices and script-enabled web browsers.
+[...]
+> This indeed looks like an interesting project.  
+> What is your background in the area? 
+
+    General computer science studies. I have not really specialised 
+within programming languages, but I know the basic theory from spare 
+time reading, hacking, and following some lectures, etc.
+
+> Do you have access to the sort of devices on which you would 
+> like to run your code? 
+
+    Mostly, yes, or I will get it. 
+
+    I intend to start to implement it on top of two very different 
+languages/platforms, such that it is possible to implement it on 
+anything in between those. The platforms are EcmaScript and Java 
+Mobile Edition. They are both very limited, relatively slow and 
+widely available. 
+
+    The reason I do not start with C or assembler are that they 
+have less limitations in the sense that you can write a reasonbly 
+efficient EcmaScript or Jave Mobile Edition on top of C, whereas 
+the opposite is not feasible. I should probably add that I plan 
+to bootstrap the compiler from Scheme, and write most of the 
+language in itself.
+
+    EcmaScript-like platforms mainly run on high-end mobile devices
+such n800, iphone, openmoko, etc. and larger computers. Some of the 
+limitations here are that arithmetic might be limited to floating 
+point numbers and there might not be threading available on the 
+platform. I have access to an n800, and also ordinary computers.
+
+    Java Mobile Edition is quite the opposite.  It is available 
+on low-end phones.  Depending on the platform there might only be
+integer arithmetic available, and dynamic loading of code might 
+not be possible. I have an old phone with java (CLDC-1.0), and 
+can probably also test it out on friends and siblings phones, so 
+no problems there. Android is another java dialect, only available 
+on simulators so far, and I believe there is another shrunk down
+one for mobiles also.
+
+    When the language is designed and running on those two platform, 
+the next platform will be Ansi C, which requires a bit more complex 
+virtual machine, as it is not possible to piggy-back on the garbage 
+collector nor object system.  At that point I will get a Lego 
+Mindstorms NXT, which is essentially an Arm processor with 64K RAM / 
+256K ROM in a nice package, and get the language to run on that.
+
+    I could also start looking at symbian, qnx, rim, palm, uclinux, 
+wince, python, and so on, where it probably would be possible to dig 
+up devices, but after the language is shown to run on a couple of
+very different platforms, I would rather spend time working directly
+on the language instead of using time on getting yet another
+development environment for a new device up and running.
+
+> Is there a particular domain that is of interest to you 
+> (programming embedded devices is a pretty broad area)?  
+
+    The challenge of minimizing memory usage, is one of the reasons 
+I am drawn towards embedded/mobile-devices.
+
+    The domain will mainly be user applications so it is probably 
+more "mobile" than "embedded", even when running on a lego brick.
+
+    I also hope that a scripting language like this will make 
+mobile/embedded programming more accessible for non-expert programmers,
+and if time permits, I would like to integrate the language with an 
+existing development environment, and add extra documentation, to make 
+it easier for others to learn the language.
+
+> I'm away from DIKU up to and including the 30th (Wednesday).  
+> Perhaps we could arrange a meeting after that?
+
+    How about 11th or 12th of august?
+
+    I will draft a synopsis with description, plan, learning goals, 
+literature et cetera, such that the project can get started.
+
+> What duration of masters project did you have in mind, and starting when?
+
+    The project is 45 ects, e.g. 9 months, starting now, where now 
+will probably be mid-august.
+
+Best regards,
+    Rasmus
