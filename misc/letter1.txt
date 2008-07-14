@@ -2,7 +2,7 @@ subject: Master thesis supervision
 
 Hi Julia,
 
-would you be interested in 
+would you be interested in
 supervising my master thesis?
 
 The learning goals are going to be in the
@@ -10,20 +10,20 @@ direction of programming on limited devices and
 programming language design and implementation.
 
 The topic will be to make a scripting language
-which works across the heterogenous platforms of 
-embedded/mobile devices and script-enabled webbrowsers.
-This is both practical as a tool, 
-and also as a focus for exploration 
+which works across the heterogeneous platforms of
+embedded/mobile devices and script-enabled web browsers.
+This is both practical as a tool,
+and also as a focus for exploration
 of programming language theory.
 
-I have been looking into it for a while,
-and I already have some literature and ideas 
-in place. Perhaps we could arrange a meeting 
-to discuss it futher?
+I have looked a bit into it,
+and I have some literature and ideas in place.
+Perhaps we could arrange a meeting
+to discuss it further?
 
 I hope that you are interested,
-as I think that you would probably be 
+as I think that you would probably be
 the best supervisor at diku for this project.
 
 Best regards,
-    Rasmus
+   Rasmus
