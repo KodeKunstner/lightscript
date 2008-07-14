@@ -1,4 +1,4 @@
-MAINFILE=synopsis
+MAINFILE=report
 
 view: $(MAINFILE).pdf $(MAINFILE).tex
 	evince $(MAINFILE).pdf

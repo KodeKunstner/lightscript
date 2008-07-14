@@ -20,7 +20,7 @@
 
 \setcounter{tocdepth}{3}
 
-\title{Design and implementation of a mobile scripting language}
+\title{A small scripting language}
 
 \author{
   Rasmus Jensen\footnote{
@@ -47,38 +47,48 @@
 %%%%%%%%%%%%%%%%%%%%%%%%
 % intro, purpose
 
-The topic of the project is the design and implementation of a scripting language.
-This is both to create a practical language, 
+The topic of the project is to design and implement a scripting language.
+This is both to create a practical tool, 
 and also a focus for exploration of programming language theory.
 
-The following sections will first elaborate on the topic of the project
+The learning goals are to learn about programming on limited devices and to learn about programming language design and implementation. 
+Through the project, I should be able to evaluate and choose programming language features and implementation techniques, design a full language and implement it on top of different platforms with different limitations.
 
-\section{The language}
+The language should be a portable embedable high level scripting language, with a low memory footprint. 
+Portable, such that it runs in webbrowsers, without special plugins, and on embedded and low-end mobile devices. 
+Embedable, such that it is very easy to include within, and interface with, applications in other languages.
+High level, such that it supports higher order functions and metaprogramming.
+Low memory footprint, such that the compiler and runtime system should be in the magnitude of tens, rather than hundreds, of kilobytes.
+The approach to the design should be of minimalistic and pragmatic.
+
+Suggested platforms would be: EcmaScript and Java Mobile Edition and C. 
+EcmaScript is the dominant language within webbrowsers. It has dynamic type system, and some versions only have floating point arithmetics.
+Java Mobile Edition is the dominating platform for applications for mobile phones. It is a shrunk down version of Java, and some versions have only integer arithmetics.
+C is the main language for system programming and embedded development. It does not have garbage collection and can be viewed as a high level portable assembler.
+
+The language design might have a lisp-inspired syntax, arrays and hashtables as main data structures, a simple macro system, python inspired module system, direct access to compilation and loading of code, and good interoperability with the JSON data exchange format.
+
+%The content of this synopsis is the following: The first section elaborates on why we need a new language and where the focus is. The second section contains the learning goals for the project. The third section describes how the final report should be structured. The fourth section is about my background for writing this project.  A bibliography with some literature for the project is appended at the end.
 
 
+%The language I want is a highly portable scripting language, with a low memory footprint. 
+%A language that 
+%A language that supports higher order functions and metaprogramming.
+%A language that is easy to embed and connect with native code.
+%
+%The design will probably end up with syntax similar to lisp, semantics similar to ecmascript and limitations similar to those of jave mobile edition.
 
 
+%My background is that I am returning to computer science, after being away for a while.
+%My recent computer science studies have mainly been within computer science education, data compression and information science.
+%I have had some algorithmic and programming language theory, but it is long time ago.
 
+%\nocite{sicp}
+%\appendix
 
-%%%%%%%%%%%%%%%%%%%%%%%%
-% learning goals
-
-%%%%%%%%%%%%%%%%%%%%%%%%
-% structure of the thesis
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%
-% related literature
-
-%%%%%%%%%%%%%%%%%%%%%%%%
-% my background
-
-\nocite{sicp}
-\appendix
-
-\addcontentsline{toc}{section}{Litteratur}
-\bibliography{bibliography}
-\bibliographystyle{alpha}
+%\addcontentsline{toc}{section}{Litteratur}
+%\bibliography{bibliography}
+%\bibliographystyle{alpha}
 
 %\addcontentsline{toc}{section}{Indeks}
 %\printindex
