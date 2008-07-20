@@ -1,21 +1,21 @@
 MAINFILE=report
 
-view: $(MAINFILE).pdf $(MAINFILE).tex
-	evince $(MAINFILE).pdf
-
 syn: synopsis.pdf synopsis.tex
 	evince synopsis.pdf
+
+view: $(MAINFILE).pdf $(MAINFILE).tex
+	evince $(MAINFILE).pdf
 
 rap: rapport.pdf rapport.tex
 	evince rapport.pdf
 
 section.pdf: section.tex
 	pdflatex section
-	evince section.pdf
 
-all: $(MAINFILE).pdf section.pdf synopsis.pdf
+all: $(MAINFILE).pdf section.pdf  synopsis.pdf
 
-$(MAINFILE).pdf: $(MAINFILE).tex bibliography.bib */*.tex
+$(MAINFILE).pdf: $(MAINFILE).tex *.tex bibliography.bib 
+# */*.tex
 
 synopsis.pdf: synopsis.tex bibliography.bib
 
