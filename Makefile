@@ -9,10 +9,10 @@ view: $(MAINFILE).pdf $(MAINFILE).tex
 rap: rapport.pdf rapport.tex
 	evince rapport.pdf
 
-section.pdf: section.tex
-	pdflatex section
+excerpt.pdf: excerpt.tex
+	pdflatex excerpt
 
-all: $(MAINFILE).pdf section.pdf  synopsis.pdf
+all: $(MAINFILE).pdf excerpt.pdf  synopsis.pdf
 
 $(MAINFILE).pdf: $(MAINFILE).tex *.tex bibliography.bib 
 # */*.tex
