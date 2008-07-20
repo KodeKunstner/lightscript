@@ -1,0 +1,134 @@
+> On Tue, 15 Jul 2008, Rasmus Jensen wrote:
+> > On Mon, 14 Jul 2008, Julia wrote:
+> > > What is your background in the area?
+> >
+> >     General computer science studies. I have not really specialised
+> > within programming languages, but I know the basic theory from spare
+> > time reading, hacking, and following some lectures.
+> 
+> Actually, I was more wondering what you know about programming small
+> devices?
+
+
+> 
+> > > Do you have access to the sort of devices on which you would
+> > > like to run your code?
+> >
+> >     Mostly, yes, or I will get it.
+> >
+> >     I intend to start to implement it on top of two very different
+> > languages/platforms, such that it is possible to implement it on
+> > anything in between those. The platforms are EcmaScript and Java
+> > Mobile Edition. They are both very limited, relatively slow and
+> > widely available.
+> 
+> Is being slow a benefit?
+
+No. Only the "widely available" is a benefit.
+The limitation and slowness is something that
+has to be couped with. But when it is running
+on those, it can only get faster :-)
+
+
+> 
+> >     The reason I do not start with C or assembler are that they
+> > have less limitations in the sense that you can write a reasonably
+> > efficient EcmaScript or Java Mobile Edition on top of C, whereas
+> > the opposite is not feasible. I should probably add that I plan
+> > to bootstrap the compiler from Scheme, and write most of the
+> > language in itself.
+> 
+> I programmed in Scheme for many years, but I think ML is better for this
+> sort of thing.  It has nice pattern matching facilities, and types are
+> useful when you start to make a big system, with many phases.  I use
+> ocaml, but perhaps you have already learned moscow ml.
+> 
+> >     EcmaScript-like platforms mainly run on high-end mobile devices
+> > such n800, iphone, openmoko, etc. and larger computers. Some of the
+> > limitations here are that arithmetic might be limited to floating
+> > point numbers and there might not be threading available on the
+> > platform. I have access to an n800, and also ordinary computers.
+> 
+> Have you considered Lua?  It is a very small language, but a lot of
+> attention has been paid to the interface with C code.
+
+While Lua is a beautiful language, EcmaScript has the larger install 
+base, and thus this is probably better as a target platform.
+An EcmaScript interpreter is already installed on platforms that 
+have a script enabled web browser, whereas Lua would require native 
+code, which can be quite difficult (requires expensive code signing 
+on symbian, and would afaik currently be legally impossible on iphone).
+
+I will look into Lua during the design of the language: there is an 
+article on "The Implementation of Lua 5.0" which seems quite good. Lua 
+is also interesting due to its relatively small memory footprint, which 
+is approximately 100KB including compiler and 40KB for the runtime only.
+
+> > > Is there a particular domain that is of interest to you
+> > > (programming embedded devices is a pretty broad area)?
+> >
+> >     The challenge of minimizing memory usage, is one of the reasons
+> > I am drawn towards embedded/mobile-devices.
+> 
+> This is certainly an interesting area.  Reducing energy usage is also
+> interesting and may be related.  But it is a bit hard to measure.
+> 
+> >     The domain will mainly be user applications so it is probably
+> > more "mobile" than "embedded", even when running on a lego brick.
+> 
+> I think you should try to think of something more restricted.  Otherwise
+> the person could just use Java.  Try to think of what kinds of thing you
+> would like to do, and why are those things hard currently.  In making your
+> language, you will probably have to make some choices, so it is helpful to
+> know what the goal is, so that you know how to choose.
+
+
+I would like to be able to make applications, where a single source
+can be compiled to and run on across the spectre of computing devices 
+from low-end mobile phones through internet tablets with slow web 
+browsers up to computers as we know them. I would also like support
+for dynamic loading of additional programmable content, and also
+allow the users to make customisations through simple domain specific
+languages.
+
+Why you cannot "just use Java":
+Even though the Java language is (mostly) the same across platforms,
+there are many different APIs: full java, midp/1.1, midp/2.0, GWT, 
+soon android, plus lots of vendor specific flavors if you want to
+do anything but basic UI.
+The application also needs to be customised to the device
+and Java does not have meta programming capabilities.
+(The customisations could be on input devices (numpad, 
+accelerometer, touchscreen, keyboard, ...) on connectivity,
+on output devices, on limitations (e.g. 64KB jar file limit 
+on some J2ME devices), and so on).
+
+Another drawback of Java is that dynamic loading of code is difficult
+or impossible on some of the mobile variants. And it is difficult to 
+roll out a customised version of the language to allow users to program
+the application.
+
+
+Why not Lua, Hecl or another scripting language? 
+Lua, and many other scripting languages would not run half
+the devices Java runs on, and would also be to heavy.
+Hecl could be a candidate. Hecl is a small tcl-inspired
+scripting language on top of Java Mobile Edition.
+TODO: why not hecl...
+
+Why not one of the many Lisp-dialects then? 
+The linked list data structure of lisp is 
+expensive memory-wise when it has to be build 
+on top of an existing object system, and this
+makes it less suitable for mobile systems.
+And then JVM does not support tail recursion.
+Some of this can be reduced at the cost of
+more complexity in the compiler, but the
+compiler is still needed and takes space
+if we want dynamic code loading.
+
+TODO:
+So essentially the language I want is:
+On some platforms it makes more sense to build on top of C or EcmaScript,
+rather than having a Java-layer in between.
+... syntax isomorphism.

@@ -1,49 +1,3 @@
-\documentclass[12pt]{article} 
-\usepackage{a4} 
-\usepackage{makeidx}
-\usepackage[utf8]{inputenc}
-\usepackage{textcomp}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{amsthm}
-\usepackage{graphicx} 
-\usepackage{verbatim} 
-\usepackage{fancyhdr}
-\usepackage{listings} 
-\usepackage{url}
-\frenchspacing
-\makeindex
-\pagestyle{plain}
-\newcommand{\Oh}[0]{ \mathcal{O} }
-%\addtolength{\voffset}{-30pt}
-%\addtolength{\textheight}{00pt}
-
-\setcounter{tocdepth}{3}
-
-\title{A small scripting language}
-
-\author{
-  Rasmus Jensen\footnote{
-    sumsar@solsort.dk
-  }
-} 
-
-% Remember 
-%    \index terms
-%    update template as well as document when structural updates.
-\date{July 2008}
-
-\begin{document}
-
-\maketitle
-
-%\begin{abstract}
-%\end{abstract}
-
-
-%\tableofcontents
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%
 % intro, purpose
 
@@ -55,18 +9,18 @@ The learning goals are to learn about programming on limited devices and to lear
 Through the project, I should be able to evaluate and choose programming language features and implementation techniques, design a full language and implement it on top of different platforms with different limitations.
 
 The language should be a portable embedable high level scripting language, with a low memory footprint. 
-Portable, such that it runs in webbrowsers, without special plugins, and on embedded and low-end mobile devices. 
+Portable, such that it even runs in webbrowsers, without special plugins, and on low-end mobile devices. 
 Embedable, such that it is very easy to include within, and interface with, applications in other languages.
-High level, such that it supports higher order functions and metaprogramming.
+High level, such that it supports features such as higher order functions and metaprogramming.
 Low memory footprint, such that the compiler and runtime system should be in the magnitude of tens, rather than hundreds, of kilobytes.
 The approach to the design should be of minimalistic and pragmatic.
 
-Suggested platforms would be: EcmaScript and Java Mobile Edition and C. 
-EcmaScript is the dominant language within webbrowsers. It has dynamic type system, and some versions only have floating point arithmetics.
-Java Mobile Edition is the dominating platform for applications for mobile phones. It is a shrunk down version of Java, and some versions have only integer arithmetics.
-C is the main language for system programming and embedded development. It does not have garbage collection and can be viewed as a high level portable assembler.
+%Suggested platforms would be: EcmaScript and Java Mobile Edition and C. 
+%EcmaScript is the dominant language within webbrowsers. It has dynamic type system, and some versions only have floating point arithmetics.
+%Java Mobile Edition is the dominating platform for applications for mobile phones. It is a shrunk down version of Java, and some versions have only integer arithmetics and is limited to 64KB application.
+%C is the main language for system programming and embedded development. It does not have garbage collection and can be viewed as a high level portable assembler.
 
-The language design might have a lisp-inspired syntax, arrays and hashtables as main data structures, a simple macro system, python inspired module system, direct access to compilation and loading of code, and good interoperability with the JSON data exchange format.
+%The language design might have a lisp-inspired syntax, arrays and hashtables as main data structures, a simple macro system, python inspired module system, direct access to compilation and loading of code, and good interoperability with the JSON data exchange format.
 
 %The content of this synopsis is the following: The first section elaborates on why we need a new language and where the focus is. The second section contains the learning goals for the project. The third section describes how the final report should be structured. The fourth section is about my background for writing this project.  A bibliography with some literature for the project is appended at the end.
 
@@ -92,6 +46,4 @@ The language design might have a lisp-inspired syntax, arrays and hashtables as 
 
 %\addcontentsline{toc}{section}{Indeks}
 %\printindex
-
-\end{document}
 

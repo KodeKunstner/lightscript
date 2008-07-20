@@ -21,7 +21,7 @@
 %\addtolength{\voffset}{-88pt}
 %\addtolength{\textheight}{93pt}
 
-\title{Design, implementation og evaluering \\ af et \\ introducerende datalogikursus}
+\title{Yolan \\ - a small scripting language}
 
 \author{
   Rasmus Erik Voel Jensen\footnote{
@@ -38,40 +38,61 @@
 
 % some parts commented out, for draft printing. size reduced an smaller top/bottom.
 
-\maketitle
+%\maketitle
 %\begin{abstract}
 %TODO: if time permits: write abstract
 %\end{abstract}
 
-\setcounter{tocdepth}{1}
-\addcontentsline{toc}{chapter}{Indhold}
-\tableofcontents
-\listoffigures
+%\setcounter{tocdepth}{1}
+%\tableofcontents
+%\listoffigures
+\nocite{sicp}
+
+\chapter*{Synopsis}
+\input{synopsis}
+\chapter{Survey}
+\input{survey}
+\chapter{Language design}
+\input{language}
 
 
-\chapter{Introduction}
-\chapter{Survey of programming language design and implementation}
-\input{survey/proglang}
-\chapter{Survey of mobile embedded platforms and programming techniques}
+%\chapter{Introduction}
+%\part{On programming language design and implementation}
+%\chapter{Design goals and motivation}
+%\chapter{Survey of programming language design and implementation}
+%\chapter{Survey of mobile embedded platforms and programming techniques}
+%\chapter{Compressed strings}
+%\chapter{Integration with DrScheme}
+%\chapter{Virtual machine}
+%\chapter{A simple partial evaluater}
 
-\part{The language specification}
-\chapter{The base design}
-\chapter{Data types}
-\chapter{The compiler}
-\chapter{The module system}
+%\part{Language specification and documentation}
+%\chapter{Syntax}
+%\chapter{Data types}
+%\chapter{The compiler}
+%\chapter{The module system}
 
-\part{APIs}
-\chapter{Base library}
-\chapter{GUI library}
-\chapter{The EcmaScript interface}
-\chapter{The Java interface}
-\chapter{The C interface}
-\chapter{The Scheme interface}
+%\chapter{Base library}
+%\chapter{GUI library}
 
-\part{Implementation details}
-\chapter{Compressed strings}
-\chapter{Integration with DrScheme}
-\chapter{Virtual machines}
+%\chapter{The EcmaScript interface}
+%\chapter{The Java interface}
+%\chapter{The C interface}
+%\chapter{The Scheme interface}
+
+%\chapter{Getting started - how to think like a computer scientist...} 
+
+%\part{Case studies}
+%\chapter{Pretty printer/editor}
+%\chapter{Tree diff}
+%\chapter{Museum guide}
+%\chapter{Dungeon master tools}
+%\chapter{People/genealogy}
+%\chapter{Learning games}
+%\chapter{Document formatting system}
+%\chapter{Database}
+%\chapter{Mail app}
+
 
 \newpage
 \addcontentsline{toc}{chapter}{Litteratur}

@@ -1,0 +1,136 @@
+On Fri, 18 Jul 2008, Julia wrote:
+> 
+> But do you think that non-programmers can do all of these things with a
+> single generic language?
+
+no, with the above examples I mostly thought of what an experienced 
+programmer could use it for. 
+
+I should probably elaborate a bit more on the direction and ideas for 
+the language.
+
+The first target audience for the language is myself. I would like 
+to have this scripting language for easy writing of mobile applications. 
+Second, it should be easy to learn, even to non-programmers. I have
+been teaching a bit, and would like a language that can be used for
+teaching introductory programming on mobile phones.
+
+I have already made preliminary design-sketches of large parts of the
+language, and even details on the virtual machines. I am followin up
+on some of these in the synopsis.
+
+> Wouldn't it make more sense to pick one domain, and make a language that
+> would be adapted to that, that could then run on any platform, from a
+> phone, to a PDA (ie perhaps a bigger screen than a normal phone), to a
+> desktop computer?
+
+I agree that it would make more sense, and be significantly easier.
+Anyhow I prefer to create the more general language, as the purpose
+of this project is not "just to make a master thesis", but also to
+implement this language, which I have now been thinking about for a 
+while.
+
+Rasmus
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--
+sketchpad:
+
+The motivation is that I want a scripting language where I can write
+applications that works on different mobile platforms.  And I want to 
+be able to share that language with anybody who want to learn to make 
+programs or learn to script or make contents for the applications.
+
+Why not Java: It is not a scripting language, nor is it a single
+platform on mobile devices.
+
+Hecl and Lua are probably the existing languages that comes closest 
+to what I would like to build, but I would like it somewhat different.
+
+I have already sketched a bit about the design, semantics will probably 
+be like most scripting languages, with dynamic arrays and hash tables 
+as basic data structures, syntax inspired by lisp. The base compiler 
+will probably be based on a simple macro system combined with a small 
+core language.
+
+Sample applications in the report will be the compiler itself, ..
+
+.....
+
+The base semantics of the language would be similar to other modern
+scripting languages, e.g. lua, python, ecmascript, etc. where dynamic 
+arrays and hashtables are the structuring elements. 
+I also want the language to be customisable like lisp.
+As it targets mobile devices, memory usage would be a prime concern,
+both the data structures and the footprint of the compiler/runtime.
+
+
+
+Mobile platforms are heterogenous, and it is difficult to judge
+what directions they are going (look at Android, OpenMoko, Nokia
+acquiring qtopia and symbian probably becoming open source, ...)
+
+
+
+I want a language to make mobile applications myself. 
+And I want to be able
+to share this language 
+
+Novice programmers would need customised versions of the language,
+target the specific task, to make it easier to get started.
+
+The target audience would both be programmers like myself,
+and novices in programming. 
+
+The language should be the language 
+that I would want to use for making mobile application. At the same
+time it should be the same language that content creators the 
+application with, and the same language
+that it is easy for kids to learn to make simple computer games,
+
+
+The language should be easy to learn for the novice,
+and still practical for advanced computer scientists. 
+
+Though I am not a lisp/scheme programmer, I have fallen in love with
+that class of languages, the simple syntax, the program as data, the
+ability to customise the language e.g. to be declarative or lazy or 
+what might spring into mind. I would like a language with that 
+expressiveness, and in the same time I want a language the can be
+implemented efficiently on the mobile platforms. 
+Here JVM lacks the support for tail recursion, and the use of the 
+linked list data structure is not pleasant on top of an object 
+system within a memory constrained device. (There are methods to
+improve memory usage there, but that enlarges the memory footprint
+of the compiler.)
+
+Essentially the language I am working on would be something 
+would have a syntactical simplicity and customisability like 
+lisp, while the semantics would be more similar to the recent
+scripting languages (lua, python, ecmascript, tcl, ...).
+Linked lists is be replaced with dynamic arrays, hashtables
+is also a primary data structure. 
+
+
+The language would be customisable to make it easier
+for novice programmer to do some of the things, e.g. develop exercises,
+story logic, etc. but most of the tasks would require a bit more 
+programming skills than what could be expected from a beginner.
+
+> Note that a lot of your objections to Java seem to be with respect to the
+> implementation, not to the language itself.
+

@@ -1,0 +1,100 @@
+FYI: Sometimes there is a bit of delay on mail on my hand, 
+due to that I have choosen not to have Internet at home.
+
+> > In short I want it to be a cross-platform scripting language for mobile
+> > devices with low memory usage, macros/meta programming, good
+> > embedding/integration with host platform.
+> 
+> These are features of the language.  But what do you expect the programmer
+> to do with it?
+
+Some examples below. I think of it as a general purpose scripting 
+language, for non performance critical parts of the applications. 
+Applications could be:
+
+Mobile expert systems, for example a botanical system to identify plants 
+when in the field, and similarly for geology, zoology etc.
+
+Access to online systems, optimised for mobile phones, 
+examples could be library systems, reservation systems, 
+train tables and other fact databases, museum guides,
+access to encyclopedias, and so on.
+
+Application scripting. Examples could be complex rules fo repeating
+events in a calendar system, dynamic loaded story logic in a game, etc.
+
+User utilities, such as unit conversion, calculator, role playing
+encounter generation, interactive checklist, and so on
+
+Learning applications, for example: arithmetic trainer, match
+capital to country, atomical elements, where the content 
+creators (teachers) have a relatively simple scripting 
+language to create the exercises.
+
+The main feature would probably be that the programmer relatively
+easy could customise the language, to allow the user or content
+developer to script tha application.
+
+Also I expect the programmer to be able to do something with it,
+without lots of programming background. I want a language that
+is suitable for an introduction to programming, where it is
+possible, from day one, to make programs, that does not only
+run on their PCs but also on ther mobile phones etc.
+When the first version of the language is up and running,
+and if time permits, I would like to intergrate the language
+with the DrScheme teaching environment, and make some 
+introductory material for learning to program in it.
+
+> Why does the programmer need something other than Java?
+
+Java is not a unified platform: GWT for web/iPhone/n800, 
+MIDP-1, integer only for low-end phones, MIDP-2 for 
+mid-end phones, android from next year on some phones, 
+different vendor and hardware specific extensions, ...
+Wrapper code, which takes space, or different versions of the 
+program would be needed for portability, 
+or a system that generates the code or a macro system on top.
+
+In Java on some of the platforms it is difficult/impossible 
+to load new code into the application. If you want to allow
+the user to customise the application, either it has to be
+reinstalled each time, or it need a scripting language.
+That is also the case with dynamic programmable content.
+
+Java is not a scripting language. There are scripting languages
+on top of Java, but most of them use quite many resources,
+and is java only, whereas I would like the scripting language
+to run directly on C, EcmaScript, etc. also. 
+
+> Why does the programmer need meta-programming?
+
+A main motivation is to be able to create versions of programs 
+optimised for different devices from a single source.
+    The optimal thing here would be a partial evalutor, but 
+I think that will be beyond the scope of this project, so 
+meta-programming is a way to allow the programmer to write 
+the generating extensions themself.
+    Examples of differences between mobile devices are that
+some are limited to 64K code, there are different kinds of 
+input devices - keyboard, numpad or pointer might not be 
+available. Examples of screen resolutions could be 96x65 or 
+800x640, which would need quite differen approaches to user 
+interfaces etc. some have GPS or camera, others have other hardware.
+
+Another thing - that is more in direction of a macro system -
+is to be able to customise the language for a particular domain,
+to make it easy for the user/content developer to make scripts
+for the application.
+
+> One idea that has been discussed among the people I work with is using a
+> phone to control the various equipments in a house, via the SIP protocol.
+> So there would be some language design, to let the person program what he
+> wants to do, and some network protocol related work as well.  Would that
+> be of interest to you?
+
+I am not particularly into network protocols etc., and I am
+more interested in creating the scripting language sketched above,
+Also I have some ideas for the language, that I would very much 
+like to try to implement.
+
+Rasmus
