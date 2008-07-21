@@ -1,4 +1,4 @@
-\documentclass[11pt]{article} 
+\documentclass[12pt]{article} 
 \usepackage{a4}
 \usepackage{makeidx}
 %\usepackage[danish]{babel} 
@@ -18,8 +18,8 @@
 \makeindex
 \pagestyle{plain}
 \newcommand{\Oh}[0]{ \mathcal{O} }
-%\addtolength{\voffset}{-50pt}
-%\addtolength{\textheight}{60pt}
+\addtolength{\voffset}{-30pt}
+\addtolength{\textheight}{30pt}
 
 \setcounter{tocdepth}{3}
 
@@ -49,10 +49,10 @@ High level, such that it supports features such as higher order functions and me
 Low memory footprint, such that the compiler and runtime system should be in the magnitude of tens, rather than hundreds, of kilobytes.
 The approach to the design should be of minimalistic and pragmatic.
 
-\section{Literature}
+\section{Some of the literature}
 
 For the basics there is the book ``Programming Language Design Concepts''\cite{programming-language-design-concepts}. 
-The books [TODO:real title for the tiger book]\cite{tigerbook} 
+The books ``Modern compiler implementation in ML''\cite{tigerbook} 
 and ``Basics of Compiler Design''\cite{basics-of-compiler-design} gives the basics for compiler implementation, and 
 ``Structure and Intepretation of Computer Programs''\cite{sicp} also has a bit on evaluation and compilation.
 %The book ``Concepts, Techniques, and Models of Computer Programming''\cite{bookvanroy} is also usefull 
@@ -76,7 +76,7 @@ An interesting taget for integration is the DrScheme environment\cite{drscheme},
 Languages and virtual machines, that could be especially interesting to look more into are Tcl\cite{tcl-tk}, 
 Lua\cite{lua5}, 
 Hecl\footnote{Tcl inspired language on Java Mobile Edition}\cite{Hecl}, 
-Scheme\cite{r5rs}, 
+Scheme\cite{r6rs}, 
 Parrot\footnote{Virtual machine for scripting languages}\cite{parrot}, 
 kvm\footnote{A JVM for mobile devices}\cite{kvm}
 
@@ -87,29 +87,16 @@ kvm\footnote{A JVM for mobile devices}\cite{kvm}
 The project consists of the following tasks:
 \begin{itemize}
 \item First revision of the language: survey, design, write specification and simple intepreter. (2 months)
-\item Implement the language on top of EcmaScript. Write some sample applications in the language and API. Document the implementation and possibly revise the language design. (1 month)
-\item Implement the language on top of Java Mobile Edition. This might include a simple virtual machine. Write more sample applications and API. Document the implementation and possibly revise the language design and earlier implementations. (1 month)
-\item Implement the language on top of C. This includes a virtual machine. Document the implementation and possibly revise the language design and earlier implementations. (1-2 months)
-\item Write report on current state of project, more sample code, documentation, experiments, benchmark, based on the progress so far. 
+\item Implement the language on top of EcmaScript. Write some sample applications. Document the implementation and possibly revise the language design. (1 month)
+\item Implement the language on top of Java Mobile Edition. This might include a simple virtual machine. Write more sample applications. Document the implementation and possibly revise the language design and earlier implementations. (1 month)
+\item Implement the language on top of C. This includes a virtual machine including garbage collection. Document the implementation and possibly revise the language design and earlier implementations. (1-2 months)
+\item Write report on current state of project, more sample code, documentation, experiments, benchmarks, etc. (1 month)
 \item If time permits, integrate with the DrScheme environment. (1-2 months)
 \item Finalise report (1 month).
 \end{itemize}
 
-If the project progresses slower than scheduled, the DrScheme integration can be skipped. If the project progresses faster than scheduled, some of the following can be added:
-\begin{itemize}
-\item Experiments with different compiler and virtual machine optimisations (1 month)
-\item Implementation of the language on top of Python (1 month)
-\item A survey of partial evaluation, and an implementation for the language if feasible (2-? months)
-\end{itemize}
-
-
-
-\begin{figure}
-\begin{tabular}{|p{6cm}|p{12cm}|}
-\hline
-\hline
-\end{tabular}
-\end{figure}
+\noindent
+If the project progresses slower than scheduled, the DrScheme integration can be skipped. If the project progresses faster than scheduled, possible extensions could be: experiments with different optimisations, more APIs, implementations on top of Python or LLVM, formal semantics written in Redex, studies into partial evaluation with implementation if feasible.
 
 %Suggested platforms would be: EcmaScript and Java Mobile Edition and C. 
 %EcmaScript is the dominant language within webbrowsers. It has dynamic type system, and some versions only have floating point arithmetics.

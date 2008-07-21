@@ -1,0 +1,64 @@
+\section{Preliminary informal notes on the specification of the scripting language Yolan}
+The name of the language is Yolan, which is just a contraction of
+yocto-language\footnote{Yocto- is one of the smallest prefixes for SI-units}.
+
+Yolan is dynamically typed. 
+This reduces the complexity and thereby the memory footprint of the compiler significantly, compared to static typing. 
+The cost is potentially slower performance and that type errors will not be caught during compilation.
+
+\subsection{Design lines}
+
+\begin{itemize}
+\item Good interoperability with JSON and XML
+\item Redefinable language
+\item Syntax should be easy to parse to reduce memory footprint of parser.
+\end{itemize}
+
+\subsection{Data types}
+
+The core language has three basic types: strings, stacks and maps.
+All atomic data types should support conversion to and from strings.
+More data types can be loaded via modules, for example numbers with arithmetics. 
+\paragraph{Strings} are immutable. 
+It is possible to iterate through the symbols of the string, where each symbol will be a string of length one.
+
+\paragraph{Stacks} supports push and pop of data at the end, and random access to the elements. The stacks are zero indiced, so the first pushed elements is at position 0, the next is at position 1, and the most recently pushed elements is on the length-1'th position. A typical implementation would be a dynamic array.
+
+\paragraph{Maps} contains a mapping between keys and values, typically implemented via a hashtable. 
+
+\subsection{Syntax}
+
+Programs are written as explicit syntax trees, similarly to lisp-dialects, except stacks are used instead of lisp lists.
+To differentiate from lisp lists, the stacks, and thus programs, are written with square brackets instead of parenthesis.
+Square brackets are already used for arrays/stacks in other languages, and should thus be easy to catch by experienced programmers. 
+Similarly maps are written with curly brackets, and then a sequence of key-value pairs. Examples:
+\begin{verbatim}
+[print hello world]
+{ key1 val1  
+  key2 val2 
+  key3 val3 }
+\end{verbatim}
+
+A special symbol is the quote ('), which is known from lisp, to avoid evaluation of functions written as lists.
+
+Strings are seperated by white space. Special symbols can be escaped with backslash ($\backslash$). Strings can also be quoted("), in order to contain whitespaces and brackets without needing escaping.
+
+\subsection{Compiler and macro system}
+\subsection{Interface with host language}
+
+\subsection{Other languages}
+
+This subsection motivates why a new language is needed, 
+and why specific languages does not fullfill my wish for the language.
+
+\subsubsection{Why not Hecl}
+Hecl currently seems to be the only scripting language on top of Java Mobile Edition, and also the language that is most comparable to Yolan.
+Hecl only runs on Java Mobile Edition, where Yolan should also run on different platforms such as EcmaScript and C. 
+Yolan should also have macro system, and metaprogramming for specialisation towards different platforms, which is not available in Hecl.
+Also, I believe it is possible to make a scripting language with easier integration with host language, and smaller memory footprint, even though Hecl is good at those points.
+
+\subsubsection{Why not Lisp/Scheme}
+Lisp/Scheme does most of what I want to do, 
+except that those languages does not play well on the mobile platforms:
+JVM does not support proper tail recursion. 
+In addition Lisp-like lists would be expensive on top of an object system, as each pair either would have memory overhead from the object, or complexity would be added to the compiler to optimise this away when possible.

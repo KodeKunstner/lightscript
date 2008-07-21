@@ -7,26 +7,213 @@
  address = {Cambridge, MA, USA},
  }
 
-% programming-language-design-concepts
-% tigerbook
-% basics-of-compiler-design
+@book{programming-language-design-concepts,
+ author = {David A. Watt},
+ title = {Programming Language Design Concepts},
+ year = {2004},
+ isbn = {0470853204},
+ publisher = {John Wiley \& Sons},
+ }
+
+@book{tigerbook,
+ author = {Andrew W. Appel},
+ title = {Modern Compiler Implementation: In ML},
+ year = {1998},
+ isbn = {0521582741},
+ publisher = {Cambridge University Press},
+ address = {New York, NY, USA},
+ }
+
+@Book{basics-of-compiler-design,
+  AUTHOR     = {Torben {\AE}. Mogensen},
+  YEAR       = {2008},
+  TITLE      = {Basics of Compiler Design},
+  PUBLISHER  = {LULU}
+}
+
 % bookvanroy
-% rabbit
-% essence-cps
-% stack-vs-register
-% case-for-vm
-% hoare-hints
+@techreport{rabbit,
+ author = {Guy L. Steele, Jr.},
+ title = {Rabbit: A Compiler for Scheme},
+ year = {1978},
+ publisher = {Massachusetts Institute of Technology},
+ address = {Cambridge, MA, USA},
+ }
+
+@article{ essence-cps,
+ author = {Cormac Flanagan and Amr Sabry and Bruce F. Duba and Matthias Felleisen},
+ title = {The essence of compiling with continuations},
+ journal = {SIGPLAN Not.},
+ volume = {39},
+ number = {4},
+ year = {2004},
+ issn = {0362-1340},
+ pages = {502--514},
+ doi = {http://doi.acm.org/10.1145/989393.989443},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ }
+
+
+@article{stack-vs-register,
+ author = {Yunhe Shi and Kevin Casey and M. Anton Ertl and David Gregg},
+ title = {Virtual machine showdown: Stack versus registers},
+ journal = {ACM Trans. Archit. Code Optim.},
+ volume = {4},
+ number = {4},
+ year = {2008},
+ issn = {1544-3566},
+ pages = {1--36},
+ doi = {http://doi.acm.org/10.1145/1328195.1328197},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ }
+
+
+@inproceedings{case-for-vm,
+ author = {Brian Davis and Andrew Beatty and Kevin Casey and David Gregg and John Waldron},
+ title = {The case for virtual register machines},
+ booktitle = {IVME '03: Proceedings of the 2003 workshop on Interpreters, virtual machines and emulators},
+ year = {2003},
+ isbn = {1-58113-655-2},
+ pages = {41--49},
+ location = {San Diego, California},
+ doi = {http://doi.acm.org/10.1145/858570.858575},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ }
+
+
+@techreport{hoare-hints,
+ author = {C. A. R. Hoare},
+ title = {Hints on programming language design.},
+ year = {1973},
+ publisher = {Stanford University},
+ address = {Stanford, CA, USA},
+ }
+
+
 % graham-five-questions
-% ousterhout-scripting
-% ecma262
-% jvm
-% j2me
-% knr
-% python
-% drscheme
-% tcl-tk
-% lua5
-% Hecl
-% r5rs
-% parrot
-% kvm
+@misc{graham-five-questions,
+author={Poul Graham},
+title={Five Questions about Language Design},
+year={2001},
+month={May},
+howpublished={Notes for panel discussion at MIT, available online on \url{http://www.paulgraham.com/langdes.html} } }
+
+@article{ ousterhout-scripting,
+    author = "John K. Ousterhout",
+    title = "Scripting: Higher-Level Programming for the 21st Century",
+    journal = "Computer",
+    volume = "31",
+    number = "3",
+    pages = "23--30",
+    year = "1998"
+}
+
+@book{ecma262,
+title = {Standard ECMA-262},
+author = {ECMA International},
+url = {http://www.ecma-international.org/publications/standards/Ecma-262.htm},
+year = {1999},
+description = {Standard definition of Javascript},
+keywords = {javascript }
+} 
+
+@article{lua5,
+  author =     "Roberto Ierusalimschy and Luiz Henrique de Figueiredo and Waldemar Celes",
+  title =      "The Implementation of Lua 5.0",
+  abstract =   "We discuss the main novelties of the   implementation of Lua 5.0: its register-based virtual machine, the   new algorithm for optimizing tables used as arrays, the   implementation of closures, and the addition of   coroutines.",
+  journal = "Journal of Universal Computer Science",
+  year =       "2005",
+  volume =     "11",
+  number =     "7",
+  pages =      "1159--1176",
+  date =       "2005-07-28",
+  month =      "jul"}
+
+
+
+@book{jvm,
+	author = {Lindholm, Tim   and Yellin, Frank  },
+	howpublished = {Paperback},
+	isbn = {0201432943},
+	keywords = {--},
+	month = {April},
+	posted-at = {2007-05-01 15:09:33},
+	priority = {2},
+	publisher = {{Prentice Hall PTR}},
+	title = {The Java(TM) Virtual Machine Specification (2nd Edition)},
+	year = {1999}
+}
+
+@book{knr,
+ author = {Brian W. Kernighan},
+ editor = {Dennis M. Ritchie},
+ title = {The  C Programming Language},
+ year = {1988},
+ isbn = {0131103709},
+ publisher = {Prentice Hall Professional Technical Reference},
+ }
+@techreport{r6rs,
+	Author = { Michael Sperber and R. Kent Dybvig and Matthew Flatt and Anton van Straaten and Richard Kelsey and William Clinger and Jonathan Rees and Robert Bruce Findler and Jacob Matthews},
+	title = {Report on the Algorithmic Language Scheme},
+	year = {2007}
+}
+
+@misc{python,
+author = {Guido van Rossum},
+title =	 {The Python Language},
+howpublished = {\url{www.python.org}}
+}
+
+@misc{j2me,
+author = {Sun Microsystems Inc.},
+title =	 {The Java ME Platform},
+howpublished = {\url{http://java.sun.com/javame}}
+}
+
+
+@article{drscheme,
+ author = {Robert Bruce Findler and John Clements and Cormac Flanagan and Matthew Flatt and Shriram Krishnamurthi and Paul Steckler and Matthias Felleisen},
+ title = {DrScheme: a programming environment for Scheme},
+ journal = {J. Funct. Program.},
+ volume = {12},
+ number = {2},
+ year = {2002},
+ issn = {0956-7968},
+ pages = {159--182},
+ doi = {http://dx.doi.org/10.1017/S0956796801004208},
+ publisher = {Cambridge University Press},
+ address = {New York, NY, USA},
+ }
+
+
+@book{tcl-tk,
+ author = {John K. Ousterhout},
+ title = {Tcl and the Tk toolkit},
+ year = {1994},
+ isbn = {0-201-63337-X},
+ publisher = {Addison-Wesley Longman Publishing Co., Inc.},
+ address = {Boston, MA, USA},
+}
+
+
+@misc{parrot,
+title =	 {The Parrot Virtual Machine},
+howpublished = {\url{http://www.parrotcode.org/}}
+}
+
+@misc{hecl,
+author = {David N. Welton and Wolfgang Kechel},
+title =	 {Hecl},
+howpublished = {\url{http://www.hecl.org/}}
+}
+
+@techreport{kvm,
+title = {The K Virtual Machine (KVM)},
+author = {Sun Microsystems Inc.},
+type = {White Paper},
+url = {http://java.sun.com/products/cldc/wp/},
+year = {1999}
+} 

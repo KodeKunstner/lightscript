@@ -1,5 +1,8 @@
 MAINFILE=report
 
+part: excerpt.pdf 
+	evince excerpt.pdf
+
 syn: synopsis.pdf synopsis.tex
 	evince synopsis.pdf
 
@@ -9,13 +12,12 @@ view: $(MAINFILE).pdf $(MAINFILE).tex
 rap: rapport.pdf rapport.tex
 	evince rapport.pdf
 
-excerpt.pdf: excerpt.tex
+excerpt.pdf: excerpt.tex */*.tex
 	pdflatex excerpt
 
 all: $(MAINFILE).pdf excerpt.pdf  synopsis.pdf
 
-$(MAINFILE).pdf: $(MAINFILE).tex *.tex bibliography.bib 
-# */*.tex
+$(MAINFILE).pdf: $(MAINFILE).tex *.tex bibliography.bib */*.tex
 
 synopsis.pdf: synopsis.tex bibliography.bib
 
