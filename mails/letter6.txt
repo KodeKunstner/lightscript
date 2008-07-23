@@ -1,0 +1,51 @@
+Thanks a lot for the comments.
+
+On Wed, 23 Jul 2008, Julia wrote:
+> 
+> Do you already know EcmaScript and JME? 
+
+Yes, though only on a basic level,
+- I have not made larger projects 
+in any of them.
+
+> I think it would be better to drop Dr Scheme and shift the time to
+> EcmaScript and JME.
+
+Makes sense, I will do that.
+
+> It would be a good idea to add some papers about compilation for embedded
+> systems.
+
+I will try to find some of those.
+
+By the way, while clarifying the goals, 
+the focus has shifted more towards 
+mobile rather than embedded devices,
+which is also why I do not use the word
+embedded in the synopsis but only talk 
+about limited devices.
+
+> What are the numbers (1 or 2) after the bibliography references?
+
+Page numbers where the references occur. 
+It is practical in longer documents, 
+but should probably be omitted 
+when the document is this short.
+
+> Overall, I think you should look at the whole proposal again, and consider
+> [...]
+> come up.  That is, a small language where you really address the
+> requirements of embedded systems in a novel way and at the same time have
+> a good formalization of the semantics and associated analyses would be
+> much better than a large language where you only have time to implement it
+> as you might implement it for a PC in a compilers course.
+
+I am revising the project, and currently considering
+just focusing on making a small dialect of EcmaScript run 
+on limited devices, rather than designing a new language 
+from scratch. That also makes it easier to bootstrap 
+the compiler (I want it to be able to compile itself).
+It also gives more time for work on optimisation for 
+limited devices, type inference etc.
+
+Rasmus

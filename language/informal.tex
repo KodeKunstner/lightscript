@@ -9,28 +9,31 @@ The cost is potentially slower performance and that type errors will not be caug
 \subsection{Design lines}
 
 \begin{itemize}
+\item Minimal memory footprint
+\item High portability
+\item Easy native interface/integration with host language
 \item Good interoperability with JSON and XML
-\item Redefinable language
-\item Syntax should be easy to parse to reduce memory footprint of parser.
 \end{itemize}
 
 \subsection{Data types}
 
-The core language has three basic types: strings, stacks and maps.
-All atomic data types should support conversion to and from strings.
-More data types can be loaded via modules, for example numbers with arithmetics. 
-\paragraph{Strings} are immutable. 
-It is possible to iterate through the symbols of the string, where each symbol will be a string of length one.
+The core language has four basic types: strings, functions, arrays and maps.
+More datatypes, such as numbers, can be added through native functions.
 
-\paragraph{Stacks} supports push and pop of data at the end, and random access to the elements. The stacks are zero indiced, so the first pushed elements is at position 0, the next is at position 1, and the most recently pushed elements is on the length-1'th position. A typical implementation would be a dynamic array.
+\paragraph{Strings} are immutable. 
+It is possible to iterate through the symbols of the string, where each symbol will be a string of length one, but not necessarily possible to access the nth element directly (this will allow compression of constant strings).
+
+\paragraph{Functions} are essentially something that can be applied to a number of arguments and return a single value. Typically these will be implemented as a native function combined with some data.
+
+\paragraph{Arrays} which are also stacks, supports push and pop of data at the end, and random access to the elements. The arrays are zero indiced, so the first pushed elements is at position 0, the next is at position 1, and the most recently pushed elements is on the length-1'th position. 
 
 \paragraph{Maps} contains a mapping between keys and values, typically implemented via a hashtable. 
 
 \subsection{Syntax}
 
-Programs are written as explicit syntax trees, similarly to lisp-dialects, except stacks are used instead of lisp lists.
-To differentiate from lisp lists, the stacks, and thus programs, are written with square brackets instead of parenthesis.
-Square brackets are already used for arrays/stacks in other languages, and should thus be easy to catch by experienced programmers. 
+Programs are written as explicit syntax trees, similarly to lisp-dialects, except arrays are used instead of lisp lists.
+To differentiate from lisp lists, the arrays, and thus programs, are written with square brackets instead of parenthesis.
+Square brackets are already used for arrays in other languages, and should thus be easy to catch by experienced programmers. 
 Similarly maps are written with curly brackets, and then a sequence of key-value pairs. Examples:
 \begin{verbatim}
 [print hello world]
@@ -39,12 +42,163 @@ Similarly maps are written with curly brackets, and then a sequence of key-value
   key3 val3 }
 \end{verbatim}
 
-A special symbol is the quote ('), which is known from lisp, to avoid evaluation of functions written as lists.
+A special symbol is the quote ('), which is known from lisp, to avoid evaluation of functions written as lists. That means that \verb|'x| is essentially a shorthand for \verb|[quote x]|.
 
-Strings are seperated by white space. Special symbols can be escaped with backslash ($\backslash$). Strings can also be quoted("), in order to contain whitespaces and brackets without needing escaping.
+Strings are seperated by white space. Strings can be quoted ("), and special symbols can be escaped with backslash ($\backslash$). 
+Strings used for variable names must not be in a list of reserved strings, must start with a letter, and can only contain \verb|a-zA-Z0-9_|
 
-\subsection{Compiler and macro system}
+\subsection{Macro system}
+Either a iterative replace syntax with propagating context and where macro has the responsibility to apply macros on subtree, or a macro based compiler to stackmachine like intermediate code.
+Haven't decided yet.
+
+In both cases it is possible to have small core language and build syntax on top of that.
+
+\subsubsection{Replace syntax}
+[Syntax used for example code is just a rough guess of what syntax might end like, assuming macros is the name in this context for the map used for macro application]
+
+Sketch of iterativ macro application (macros are themself responsible for calling apply\_macros on subtree):
+\begin{verbatim}
+[def [apply_macros syntax_tree context]
+  [doc 
+    {description "Function for iterative macro application"
+     syntax_tree "The abstract syntax tree"
+     context     "A pass through context, not used for this function"}]
+  [precond
+    [is_map context]]
+  [if [is_array syntax_tree]
+    [do
+      [set macros [global compiler macros]]
+      [set macro [get macros [get syntax_tree 0]]]
+      [while [is_function macro]
+        [macro syntax_tree context]
+        [if_debug [set prevmacro macro]]
+        [set macro [get macros [get syntax_tree 0]]]]]]]
+        [assert [not [equals macro prevmacro]]]
+\end{verbatim}
+
+Sketch of naive do-while macro:
+\begin{verbatim}
+[set [global compiler macros] 'do_while 
+  [lambda [syntax_tree context]
+    [doc
+      {description "A simple implementation of a do-while macro"
+       syntax_tree "The abstract syntax tree as an array. Must be of the form [do_while condition block]"
+       context     "A pass through context, not used for this function"}]
+    [precond
+      [is_array syntax_tree]
+      [equals [get syntax_tree 0] 'do_while]
+      [equals [length syntax_tree] 3]]
+
+    [# Get the elements of the syntax_tree #]
+    [set condition [get syntax_tree 1]]
+    [set code [get syntax_tree 2]]
+
+    [# Apply macros on subtree #]
+    [apply_macros condition context]
+    [apply_macros code context]
+
+    [# Build new syntax as "[do code [while condition code]]" #]
+    [set syntax_tree 0 'do]
+    [set syntax_tree 1 [new_copy code]]
+    [set syntax_tree 2 [array 'while condition code]]]]
+\end{verbatim}
+
+Sketch of comment macro:
+\begin{verbatim}
+[set [global compiler macros] '#
+  [lambda [syntax_tree context]
+    [doc 
+      {description "Transform comments to no-operation statements}]
+    [precond
+      [is_array syntax_tree]
+      [equals [get syntax_tree 0] '#]]
+    [resize syntax_tree 1]
+    [set syntax_tree 0 '_noop]]]
+\end{verbatim}
+
+(tests are done modulewise)
+
+
+
+\subsubsection{Macro-compilation to stack machine}
+An expression is compiled by a dispatch to the macro target the first element in the array with the code of the expression, or if no macro is found a default macro is called.
+A macro is a function that takes an abstract syntax tree and a compilation context as arguments, and is responsible of appending the code for the abstract syntax tree to the compilation context.
+The compilation context is an map, containing code, locals, closure, etc. 
+Code is appended to the context using predefined macros.
+This allows single pass compilation on simple platforms without optimisations, and also allows propagation of information through the compiler via the context.
+
+\subsection{Explicit compilation and possibly loading}
+
 \subsection{Interface with host language}
+Where possible, the language should piggy back on the host language object system for dynamic types. Similarly if possible the garbage collector of the host platform should be used.
+
+The interface is mainly the four basic data types, plus a registration function taking a function and a name as arguments, and registers those in the yolan runtime, plus a function that given a name returns the corresponding function from the yolan runtime (possibly the function is defined within yolan).
+
+\subsubsection{Java}
+Dynamic types maps directly to \verb|Object|s. Java Mobile Edition strings, stacks and hashtables can be used directly as strings, arrays and maps. 
+Similarly it makes sense to use a Java \verb|Stack| directly as call stack, as those are likely to implemented as native library, as this avoid extra space usage and performance penalty of user definde objects.
+A function would be an object implementing something like:
+\begin{verbatim}
+interface YolanFunction {
+    Object call(Stack s, int nargs) throws Exception;
+}
+\end{verbatim}
+The function would be responsible for popping \verb|nargs| elements from the stack. Another option would be to have a class wrapping the Stack as an argument instead of s and nargs, ... pro: possible speed optimisations on virtual machine, easier api and better decoupling, con: more overhead, a bit larger memory footprint, - probably a good idea, e.g.:
+\begin{verbatim}
+interface YolanFunction {
+    Object call(YolanVM yl) throws Exception;
+}
+\end{verbatim}
+
+\subsubsection{EcmaScript}
+EcmaScript strings, arrays, objects and functions can be used directly as strings, arrays, maps and functions.
+
+\subsubsection{C}
+There will probably be two or more different implementations on C: The large one, with a standard data structure with type tags, and probably just the Boehm-GC. That one runs on high-end C platforms, and cold be expanded with JIT compilation. The other implementation, if time permits, would target devices with 128K heap memory or less, should have a custom garbage collector, use pointer compression and different memory preserving techniques.
+
+Essentially strings, stacks and hashtables would need to be implemented. Functions would be a function pointer and a pointer for some context data that will be passed to the function on each call. A type tag would be needed on each datum, and new natively defined data types would need to be registered in some way with the GC (if not Boehm).
+
+\subsection{Module system}
+Partly inspired by python. 
+Possibly evaluated at compile time.
+Separation of execution to compile/module-time possibly on host and runtime on device
+Explicit export.
+
+\subsection{Integrated testing}
+... preconditions, postconditions, asserts, const\&datatype-asserts usable for static analysis, logging. profiling
+
+Unit testing.
+
+\subsection{Documentation}
+Comments not just ignored by parser, but is a part of the language.
+
+Built in functionality a la doxygen/javadoc.
+
+\subsection{Syntax isomorphisms}
+Pretty printer directives.
+Lossless conversion to/from internal syntax tree and JSON and XML.
+
+\subsection{APIs}
+\subsubsection{Numbers/math}
+Numbers as api.
+\subsubsection{Util}
+variations over fold, map, foreach, ...
+\subsubsection{Bytevector}
+\subsubsection{Stringprocessing}
+iteration through string, simple replace, conversion between utf8 and binary data.
+\subsubsection{Streams}
+sequential reading/writing somewhere.
+\subsubsection{Mapping to/from JSON}
+Mostly direct, except numbers
+\subsubsection{Mapping to/from XML}
+x2: embedding into xml, and embedding xml in yolan expr, a la sxml in scheme or xml-embedding in json.
+\subsubsection{Basic http access}
+\subsubsection{Event system}
+\subsubsection{Simple user interface}
+Modal interaction with user, simple menu and structured text/forms presentation.
+Possibly support for autocrop'ed background.
+\subsubsection{Turtle}
+Simple graphics for novice programmers, good for intro teaching.
 
 \subsection{Other languages}
 
@@ -62,3 +216,6 @@ Lisp/Scheme does most of what I want to do,
 except that those languages does not play well on the mobile platforms:
 JVM does not support proper tail recursion. 
 In addition Lisp-like lists would be expensive on top of an object system, as each pair either would have memory overhead from the object, or complexity would be added to the compiler to optimise this away when possible.
+
+\subsubsection{Why not Java}
+Java is not a scripting language. In addition the "Java Platform" is fragmented on mobile devices
