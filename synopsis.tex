@@ -23,7 +23,7 @@
 
 \setcounter{tocdepth}{3}
 
-\title{Design and implementation of \\ a small scripting language}
+\title{Design and implementation of \\ an EcmaScript-like language \\ targeted mobile devices}
 
 \author{Rasmus Jensen\footnote{\url{rasmusjensen@solsort.dk}}
 } 
@@ -35,68 +35,99 @@
 %%%%%%%%%%%%%%%%%%%%%%%%
 % intro, purpose
 
-The topic of the project is to design and implement a scripting language.
+The topic of the project is to design and implement an EcmaScript-like language that runs on low-end mobile devices.
 This is both to create a practical tool, 
 and also a focus for exploration of programming language theory.
 
-The learning goals are to learn about programming on limited devices and to learn about programming language design and implementation. 
-Through the project, I should be able to evaluate and choose programming language features and implementation techniques, design a full language and implement it on top of different platforms with different limitations.
+The learning goals are 
+to learn about programming language design and implementation, 
+and to learn about programming on limited devices.
+Through the project, I should be able to evaluate and choose programming language features and implementation techniques, design a simplified dialect of EcmaScript and implement it on top of different limited platforms.
 
-The language should be a portable embedable high level scripting language, with a low memory footprint. 
-Portable, such that it even runs in webbrowsers, without special plugins, and on low-end mobile devices. 
+
+The motivation
+%-- for making a simplified EcmaScript dialect that runs on limited devices --
+is to have a scripting language where it is easy to make applications that run both within web browsers, and on low-end phones, and other devices.
+
+%\nocite{blah}
+% EcmaScript is the main client-side web scripting language, but is unsuitable for low-end mobile devices. 
+
+%The motivation is to have a scripting language that runs on low end mobile phones as well as high 
+%from a practical point of view is, that there are no scripting language that  is the desire for a scripting language that works across different platforms, including low end mobile phones.
+% EcmaScript is the main client-side web scripting language. 
+
+
+The focus of the language is that it should be portable and embedable and have a low memory footprint. 
+Portable, such that it can run on different configurations of mobile devices, with different limitations.
 Embedable, such that it is very easy to include within, and interface with, applications in other languages.
-High level, such that it supports features such as higher order functions and metaprogramming.
-Low memory footprint, such that the compiler and runtime system should be in the magnitude of tens, rather than hundreds, of kilobytes.
-The approach to the design should be of minimalistic and pragmatic.
+Low memory footprint, such that the compiler and runtime system preferibly should be in the magnitude of tens, rather than hundreds, of kilobytes.
+Most of the implementation should be in the language itself.
 
-\section{Some of the literature}
+The plan of the project consists of the following tasks:
+~1.~Survey on related projects, on mobile platforms, and on programming language techniques.
+~\mbox{2.~Design} and specification of the language.
+~3.~Creation of test suite and benchmarks.
+~4.~Design and implementation of the compiler and runtime.
+~\mbox{5.~Iterative} improvements on the language implementation and specification.
+~6.~Evaluation of the results and finish the report.
 
-For the basics there is the book ``Programming Language Design Concepts''\cite{programming-language-design-concepts}. 
-The books ``Modern compiler implementation in ML''\cite{tigerbook} 
-and ``Basics of Compiler Design''\cite{basics-of-compiler-design} gives the basics for compiler implementation, and 
-``Structure and Intepretation of Computer Programs''\cite{sicp} also has a bit on evaluation and compilation.
-%The book ``Concepts, Techniques, and Models of Computer Programming''\cite{bookvanroy} is also usefull 
+The approach will be pragmatic and favor simplicity.
 
-There is a report on the Rabbit\cite{rabbit} Scheme compiler which gives an interesting insight into continuations and the use of a small core language.
-  \cite{essence-cps} has a followup on continuation passing style, and points in directions of single static assignment and A normal form.
-There is an article\cite{stack-vs-register} that covers performance characteristics of stack versus register machines. 
-This is also touched by \cite{case-for-vm} which also has some details of the performance of different implementations of dispatch.
-Hoare\cite{hoare-hints} has some hints on programming language design, 
-and Graham\cite{graham-five-questions} also has some nice ideas about language design. 
-Ousterhout\cite{ousterhout-scripting} gives some motivation for scripting languages.
 
-For details of potential target languages, the EcmaScript specification\cite{ecma262}, the documentation of the 
-Java virtual machine (JVM)\cite{jvm}  
-and mobile edition\cite{j2me}, 
-the C programming language\cite{knr}, 
-the specification of python\cite{python} are of high importance. 
+%\begin{itemize}
+%\item Survey of programming language techniques, EcmaScript, and programming on limited devices
+%\item Design and specification of a dialect suitable for limited devices
+%\item I
+%\end{itemize}
 
-An interesting taget for integration is the DrScheme environment\cite{drscheme}, which is a customisable introductory development environment.
+%\section{Some of the literature}
+%
+%For the basics there is the book ``Programming Language Design Concepts''\cite{programming-language-design-concepts}. 
+%The books ``Modern compiler implementation in ML''\cite{tigerbook} 
+%and ``Basics of Compiler Design''\cite{basics-of-compiler-design} gives the basics for compiler implementation, and 
+%``Structure and Intepretation of Computer Programs''\cite{sicp} also has a bit on evaluation and compilation.
+%%The book ``Concepts, Techniques, and Models of Computer Programming''\cite{bookvanroy} is also usefull 
+%
+%There is a report on the Rabbit\cite{rabbit} Scheme compiler which gives an interesting insight into continuations and the use of a small core language.
+%  \cite{essence-cps} has a followup on continuation passing style, and points in directions of single static assignment and A normal form.
+%There is an article\cite{stack-vs-register} that covers performance characteristics of stack versus register machines. 
+%This is also touched by \cite{case-for-vm} which also has some details of the performance of different implementations of dispatch.
+%Hoare\cite{hoare-hints} has some hints on programming language design, 
+%and Graham\cite{graham-five-questions} also has some nice ideas about language design. 
+%Ousterhout\cite{ousterhout-scripting} gives some motivation for scripting languages.
+%
+%For details of potential target languages, the EcmaScript specification\cite{ecma262}, the documentation of the 
+%Java virtual machine (JVM)\cite{jvm}  
+%and mobile edition\cite{j2me}, 
+%the C programming language\cite{knr}, 
+%the specification of python\cite{python} are of high importance. 
+%
+%An interesting taget for integration is the DrScheme environment\cite{drscheme}, which is a customisable introductory development environment.
+%
+%Languages and virtual machines, that could be especially interesting to look more into are Tcl\cite{tcl-tk}, 
+%Lua\cite{lua5}, 
+%Hecl\footnote{Tcl inspired language on Java Mobile Edition}\cite{Hecl}, 
+%Scheme\cite{r6rs}, 
+%Parrot\footnote{Virtual machine for scripting languages}\cite{parrot}, 
+%kvm\footnote{A JVM for mobile devices}\cite{kvm}
+%
+%%(Things to explore futher is the Erlang concurrency model, A-normal form, tracing jit compiler.)
+%
+%\section{Project plan}
+%
+%The project consists of the following tasks:
+%\begin{itemize}
+%\item First revision of the language: survey, design, write specification and simple intepreter. (2 months)
+%\item Implement the language on top of EcmaScript. Write some sample applications. Document the implementation and possibly revise the language design. (1 month)
+%\item Implement the language on top of Java Mobile Edition. This might include a simple virtual machine. Write more sample applications. Document the implementation and possibly revise the language design and earlier implementations. (1 month)
+%\item Implement the language on top of C. This includes a virtual machine including garbage collection. Document the implementation and possibly revise the language design and earlier implementations. (1-2 months)
+%\item Write report on current state of project, more sample code, documentation, experiments, benchmarks, etc. (1 month)
+%\item If time permits, integrate with the DrScheme environment. (1-2 months)
+%\item Finalise report (1 month).
+%\end{itemize}
 
-Languages and virtual machines, that could be especially interesting to look more into are Tcl\cite{tcl-tk}, 
-Lua\cite{lua5}, 
-Hecl\footnote{Tcl inspired language on Java Mobile Edition}\cite{Hecl}, 
-Scheme\cite{r6rs}, 
-Parrot\footnote{Virtual machine for scripting languages}\cite{parrot}, 
-kvm\footnote{A JVM for mobile devices}\cite{kvm}
-
-%(Things to explore futher is the Erlang concurrency model, A-normal form, tracing jit compiler.)
-
-\section{Project plan}
-
-The project consists of the following tasks:
-\begin{itemize}
-\item First revision of the language: survey, design, write specification and simple intepreter. (2 months)
-\item Implement the language on top of EcmaScript. Write some sample applications. Document the implementation and possibly revise the language design. (1 month)
-\item Implement the language on top of Java Mobile Edition. This might include a simple virtual machine. Write more sample applications. Document the implementation and possibly revise the language design and earlier implementations. (1 month)
-\item Implement the language on top of C. This includes a virtual machine including garbage collection. Document the implementation and possibly revise the language design and earlier implementations. (1-2 months)
-\item Write report on current state of project, more sample code, documentation, experiments, benchmarks, etc. (1 month)
-\item If time permits, integrate with the DrScheme environment. (1-2 months)
-\item Finalise report (1 month).
-\end{itemize}
-
-\noindent
-If the project progresses slower than scheduled, the DrScheme integration can be skipped. If the project progresses faster than scheduled, possible extensions could be: experiments with different optimisations, more APIs, implementations on top of Python or LLVM, formal semantics written in Redex, studies into partial evaluation with implementation if feasible.
+%\noindent
+%If the project progresses slower than scheduled, the DrScheme integration can be skipped. If the project progresses faster than scheduled, possible extensions could be: experiments with different optimisations, more APIs, implementations on top of Python or LLVM, formal semantics written in Redex, studies into partial evaluation with implementation if feasible.
 
 %Suggested platforms would be: EcmaScript and Java Mobile Edition and C. 
 %EcmaScript is the dominant language within webbrowsers. It has dynamic type system, and some versions only have floating point arithmetics.
@@ -122,9 +153,9 @@ If the project progresses slower than scheduled, the DrScheme integration can be
 
 %\appendix
 
-\addcontentsline{toc}{section}{References}
-\bibliography{bibliography}
-\bibliographystyle{plain}
+%\addcontentsline{toc}{section}{References}
+%\bibliography{bibliography}
+%\bibliographystyle{plain}
 
 %\addcontentsline{toc}{section}{Indeks}
 %\printindex

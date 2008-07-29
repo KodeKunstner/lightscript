@@ -3,7 +3,8 @@ MAINFILE=report
 part: excerpt.pdf 
 	evince excerpt.pdf
 
-syn: synopsis.pdf synopsis.tex
+syn: synopsis.tex
+	pdflatex synopsis
 	evince synopsis.pdf
 
 view: $(MAINFILE).pdf $(MAINFILE).tex
