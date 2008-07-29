@@ -40,12 +40,11 @@ when the document is this short.
 > much better than a large language where you only have time to implement it
 > as you might implement it for a PC in a compilers course.
 
-I am revising the project, and currently considering
-just focusing on making a small dialect of EcmaScript run 
-on limited devices, rather than designing a new language 
-from scratch. That also makes it easier to bootstrap 
-the compiler (I want it to be able to compile itself).
-It also gives more time for work on optimisation for 
-limited devices, type inference etc.
+I am revising the project, and currently considering just focusing on
+making a small subset/dialect of EcmaScript run on limited devices,
+rather than designing a new language from scratch. That also makes it
+easier to bootstrap the compiler (I want it to be able to compile itself).
+It also gives more time for work on optimisation for limited devices,
+type inference etc.
 
 Rasmus

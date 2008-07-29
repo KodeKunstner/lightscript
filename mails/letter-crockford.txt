@@ -1,0 +1,13 @@
+subject: Source code for jslint?
+
+Hi Douglas,
+
+can the source code for jslint be available
+under some kind of open source license?
+(Or just the parser?)
+
+I would very much like to use it in the frontend
+while implementing a simplified dialect of ecmascript
+targeting mobile devices. 
+
+Rasmus
