@@ -18,53 +18,48 @@
 \makeindex
 \pagestyle{plain}
 \newcommand{\Oh}[0]{ \mathcal{O} }
-\addtolength{\voffset}{-30pt}
-\addtolength{\textheight}{30pt}
+%\addtolength{\voffset}{-30pt}
+%\addtolength{\textheight}{30pt}
 
 \setcounter{tocdepth}{3}
 
 \title{Design and implementation of \\ an EcmaScript-like language \\ targeted mobile devices}
 
-\author{Rasmus Jensen\footnote{\url{rasmusjensen@solsort.dk}}
+\author{Rasmus Erik Voel Jensen\footnote{\url{sumsar@solsort.dk}}
 } 
 
 \begin{document}
 \maketitle
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%
 % intro, purpose
 
-The topic of the project is to design and implement an EcmaScript-like language that runs on low-end mobile devices.
-This is both to create a practical tool, 
-and also a focus for exploration of programming language theory.
 
-The learning goals are 
+
+%EcmaScript is the client-side web scripting language. 
+
+%The motivation for the project is to make a scripting language where it is easy to make user applications that runs both within standard web browsers and on mobile devices.
+%Mobile platforms are heterogenous with Java dialects and C as the main languages, and in web browsers EcmaScript is the main language.
+%A full EcmaScript is not feasible on low end mobile devices. 
+%The purpose of this project is therefore to design and implement a small EcmaScript-like language targeted mobile devices.
+%This is both practical as a tool, and also as a focus for exploration of programming language theory.
+The topic of the project is to design and implement an EcmaScript-like language  that runs on low-end mobile devices. This is both to create a practical tool, and also a focus for exploration of programming language theory.
+The motivation is to have a scripting language where it is easy to make applications that run both within web browsers, and on low-end phones, and other devices.
+
+The educational goals are 
 to learn about programming language design and implementation, 
 and to learn about programming on limited devices.
-Through the project, I should be able to evaluate and choose programming language features and implementation techniques, design a simplified dialect of EcmaScript and implement it on top of different limited platforms.
+Through the project, I should be able to evaluate and choose programming language features and implementation techniques, design a simplified dialect of EcmaScript and implement it on top of different platforms.
 
-
-The motivation
-%-- for making a simplified EcmaScript dialect that runs on limited devices --
-is to have a scripting language where it is easy to make applications that run both within web browsers, and on low-end phones, and other devices.
-
-%\nocite{blah}
-% EcmaScript is the main client-side web scripting language, but is unsuitable for low-end mobile devices. 
-
-%The motivation is to have a scripting language that runs on low end mobile phones as well as high 
-%from a practical point of view is, that there are no scripting language that  is the desire for a scripting language that works across different platforms, including low end mobile phones.
-% EcmaScript is the main client-side web scripting language. 
-
-
-The focus of the language is that it should be portable and embedable and have a low memory footprint. 
-Portable, such that it can run on different configurations of mobile devices, with different limitations.
-Embedable, such that it is very easy to include within, and interface with, applications in other languages.
-Low memory footprint, such that the compiler and runtime system preferibly should be in the magnitude of tens, rather than hundreds, of kilobytes.
+The focus of the language is that it should be portable, embeddable and have a low memory footprint. 
+Portable implies that it should run both within web browsers without special plugins and also run on different kinds of mobile devices.
+Embeddable implies that it should be easy to include within, and interface with, applications in other languages.
+Low memory footprint implies that it should be suitable for running on platforms where the available memory is measured in kilobytes rather than megabytes.
+%the compiler and runtime system preferibly should be in the magnitude of tens, rather than hundreds, of kilobytes.
 Most of the implementation should be in the language itself.
 
 The plan of the project consists of the following tasks:
-~1.~Survey on related projects, on mobile platforms, and on programming language techniques.
+~1.~Survey of related projects, of mobile platforms, and of programming language techniques.
 ~\mbox{2.~Design} and specification of the language.
 ~3.~Creation of test suite and benchmarks.
 ~4.~Design and implementation of the compiler and runtime.
