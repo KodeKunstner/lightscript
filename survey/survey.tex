@@ -1,64 +1,7 @@
+\chapter{Survey}
 
+\input{survey/related}
+\input{survey/mobile}
+\input{survey/ecmascript}
+\input{survey/proglang}
 
-
-%\cite{findler-executable-semantics} is a executable way to specify formal semantics, which might be interesting to apply for the language, if time permits.
-%
-%\cite{lisp-list-compression} shows how the overhead of Lisp lists can be reduced.
-%
-%For garbage collection \cite{gc-survey} gives a good overview of techniques.
-%Generational garbage collection \cite{generational-gc} is also interesting, but at this level a simpler approach i wanted.
-%For comparison: Python uses reference counting combined with some cycle clean-up\cite{python-gc}, kvm (embedded jvm) uses mark-and-sweep\cite{kvm-source}, lua uses an incremental algorithm (TODO:elaborate on this)\cite{lua-gc}.
-%On advanced C-language platforms the Boehm garbage collector\cite{boehm-gc} could be a good choice, for using existing implementations. 
-%
-%An interesting approach for compiling is the Continuation Passing Style (CPS). This is introduced with the Rabbit\cite{rabbit} Scheme compiler, used in the Scheme compiler Orbit\cite{orbit}, and is futher elaborated in \cite{compilingwithcontinuations}. 
-%According to \cite{essence-of-compiling-with-continuations} though this approach has been dated for a while.
-%(TODO: elaborate on SSA+find references, and find out more about A normal-form. Question to Julia: what are current other/main techniques in this directions)
-%
-%For a platform for JIT-compiling, LLVM\cite{llvm} seems like a promising choice, as it is a low-level abstraction for machine code across different architectures.
-%Other approaches could be runtime generation and loading of JVM\cite{jvm} or .net\cite{cil}, runtime compilation of C via the fast compiler tcc\cite{tiny-c-compiler} or direct machine code generation, for example for x86\cite{ia32}.
-
-
-
-
-%\section{Platforms}
-%Focus on mobile devices...
-%\subsection{C-based platforms}
-%\subsubsection{Mobile and embedded linux}
-%\subsubsection{Small embedded platforms}
-%Harvard vs. Neumann architecture, microcontrollers, typical limitations, ...
-%Refs: MarkI, Neumann, docs for 
-%
-%\subsubsection{Symbian}
-%\subsubsection{WinCE, Palm, RIM, ...}
-%
-%\subsection{Java-based platforms}
-%\subsubsection{Java Micro Edition}
-%\subsubsection{Android}
-%\subsubsection{GWT}
-%\subsubsection{Java Standard Edition}
-%
-%\subsection{Scripting language based platforms}
-%\subsubsection{EcmaScript}
-%\subsubsection{Python}
-%\subsubsection{Other languages}
-%
-%\section{Programming language features}
-%The purpose of this section is to highlight interesting features of existing programming languages, which could be relevant for the project. 
-%It is not inteded to be comprehensive as that would be beyond the scope of this document. 
-%
-%
-%
-%\section{Programming language techniques}
-%\subsection{Type system}
-%strong vs. week, static vs. dynamic. Milner-type-inference
-%\subsection{Parsers}
-%Existing frameworks, top-down vs. bottom up, parser generators, monadic parsing.
-%\subsection{Scope}
-%\subsection{Garbage collection}
-%... existing survey, mark and sweep simplest, copying-compaction-benefits. Piggyback on existing language
-%\subsection{CPS, SSA, A-normal-form}
-%\subsection{Virtual machines}
-%stack vs. register.
-%
-%
-%\cite{sicp} \index{Structure and intepretation of computer programs}

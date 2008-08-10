@@ -1,0 +1,34 @@
+On Tue, Jul 29, 2008 at 3:33 PM, Julia Lawall <julia@diku.dk> wrote:
+> Is there a DIKU specification of how this should be structured?
+
+The DIKU specification of the synopsis is:
+
+"En beskrivelse af projektet/specialets planlagte indhold vedlægges projektkon-
+trakten som bilag, og skal ligesom kontraktforsiden godkendes og underskrives af
+studerende, vejleder og studieleder.
+   Projektbeskrivelsen skal klart angive projektspecifikke læringsmål (se næste side).
+En projektbeskrivelse bør være 1-2 normalsider plus evt. bilag."
+(source: http://www.diku.dk/diku/blanketter/kandidatkontrakt.pdf)
+
+> [...]
+> seems better to do something that is intrinsically interesting, rather
+> than just something that has educational value.  (Of course educational
+> value is good too :)  The motivation could indeed be at the end of the
+> [...]
+
+Some parts has now  been rewritten, 
+and a new revision of the synopsis 
+is attached.
+
+> The plan could contain an expected time line.
+
+I think it is easier if I do not have to change the synopsis
+if the time line needs to be revised.
+
+An informal time line would be:
+  Survey + language specification + test suite: 1-3 months
+  Implementation:  2-5 months 
+  Improvements and optimisations: 1-3 months. 
+  Finish the report: 1 month
+
+Rasmus

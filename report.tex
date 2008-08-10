@@ -21,7 +21,11 @@
 %\addtolength{\voffset}{-88pt}
 %\addtolength{\textheight}{93pt}
 
-\title{Yolan \\ - a small scripting language}
+\title{
+\emph{Document currently under development} \\ ~ \\
+Design and implementation of \\ 
+an EcmaScript-like language \\ 
+targeted mobile devices}
 
 \author{
   Rasmus Erik Voel Jensen\footnote{
@@ -38,67 +42,30 @@
 
 % some parts commented out, for draft printing. size reduced an smaller top/bottom.
 
-%\maketitle
-%\begin{abstract}
-%TODO: if time permits: write abstract
-%\end{abstract}
+\maketitle
+\begin{abstract}
+\end{abstract}
 
-%\setcounter{tocdepth}{1}
-%\tableofcontents
-%\listoffigures
+\setcounter{tocdepth}{1}
+\tableofcontents
+\listoffigures
 \nocite{sicp}
 
+\input{intro/intro}
+\input{survey/survey}
+\input{language/language}
 
-
-\chapter{Introduction}
-\chapter{Survey}
-\input{intro/survey}
-%\chapter{Design goals and motivation}
-%\chapter{Survey of programming language design and implementation}
-%\chapter{Survey of mobile embedded platforms and programming techniques}
-%\chapter{Compressed strings}
-%\chapter{Integration with DrScheme}
-%\chapter{Virtual machine}
-%\chapter{A simple partial evaluater}
-
-\part{Language specification and documentation}
-\chapter{Language design}
-\input{language/design}
-%\chapter{Syntax}
-%\chapter{Data types}
-%\chapter{The compiler}
-%\chapter{The module system}
-
-%\chapter{Base library}
-%\chapter{GUI library}
-
-%\chapter{The EcmaScript interface}
-%\chapter{The Java interface}
-%\chapter{The C interface}
-%\chapter{The Scheme interface}
-
-%\chapter{Getting started - how to think like a computer scientist...} 
-
-\part{Sample applications}
-%\chapter{Pretty printer/editor}
-%\chapter{Tree diff}
-%\chapter{Museum guide}
-%\chapter{Dungeon master tools}
-%\chapter{People/genealogy}
-%\chapter{Learning games}
-%\chapter{Document formatting system}
-%\chapter{Database}
-%\chapter{Mail app}
+\chapter{TODO: testplan, implementation, improvements, evaluation, ...}
 
 \newpage
-\addcontentsline{toc}{chapter}{Litteratur}
+\addcontentsline{toc}{chapter}{Bibliography}
 \bibliography{bibliography}
 \bibliographystyle{alpha}
 
 \appendix
 
 \newpage
-\addcontentsline{toc}{chapter}{Indeks}
+\addcontentsline{toc}{chapter}{Index}
 \printindex
 
 \end{document}
