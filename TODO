@@ -1,20 +1,32 @@
-General list
-------------
+######################
+# Report sections
+##
 
-- survey
-  - related projects
-  - mobile platforms
-  - programming language techniques in general
-  - ecmascript
+survey
+- related projects
+- mobile platforms
+- programming language techniques in general
+- ecmascript
 
-- design/specification
+design/specification
 
-- testing
+testing
 
-- implementation
+implementation
 
-- optimisation
-  - compressed strings
+optimisation
+- compressed strings
 
-- finishing
-  - printing
+finishing
+- printing
+
+########################
+# Misc
+##
+
+application case studies: 
+- implement simplified-json <-> json -> latex converter
+- json versioning system
+- display of online information on mobile devices (wiki's, opac, access to business DBs, crm, etc), 
+- calendar&contacts&communication
+- learning tools
