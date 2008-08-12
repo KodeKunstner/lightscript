@@ -2,7 +2,5 @@
 
 load("simple-json.js");
 
-report = parse_sjs(getch)();
-print(report["header"]);
-
-print(report["footer"]);
+data = parse_sjs(getch)();
+print_r(data);
