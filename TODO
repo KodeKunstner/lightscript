@@ -1,4 +1,21 @@
 ######################
+# Plan
+##
+
+implement simplejson-parser in javascript
+implement simplejson-to-tex in javascript
+
+write survey draft
+
+write notes about simplejson
+
+implement moby(subjavascript)-parser in javascript
+implement simplejson-prettyprinter in moby
+implement prototype compiler in moby and runtime in java
+
+write report on above
+
+######################
 # Report sections
 ##
 
