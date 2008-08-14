@@ -1,1 +1,25 @@
 \chapter{The Language}
+
+\section{...}
+\subsection{Numbers}
+Numbers in MobyScript are integers with at least 32 bit precision.
+The result of overflow are not defined.
+Platforms might not support floating point arithmetic, examples are Java CLDC 1.0 devices and devices without FPU programmed in C.
+This is a major deviation from EcmaScript where all numbers are 64 bit floating point. 
+Fortunately the operations on 64 bit floats yields the same result as operations on 32 bit integers, except for division and overflow. 
+Thus the division operator \verb|\| is not included in the MobyScript language, and
+instead a new library function for integer division \verb|div| is introduced.
+
+To simplify parsing, numbers can only be entered in decimal notation.
+
+\subsection{Strings}
+
+A string is a sequence of characters, where a character can be any unicode symbol. 
+
+In EcmaScript strings supports random access, and contains unicode characters in range 0...65545.
+This makes good sense if implemented as an array of 16-bit numbers. Unfortunately that representation use TODO:fix-spelling:excessive memory and does not support all unicode characters. 
+By limiting the string access to be sequential, it is possible to support all unicode characters, while having a more compact format. 
+This also makes i possible to add compression later to the strings in memory.
+Strings in MobyScript can therefore only be accessed sequentially, for example through iteration.
+
+To simplify parsing, strings can only be quoted with \verb|"|, and the only escape symbols are \verb|\\| and \verb|\"|.

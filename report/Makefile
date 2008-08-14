@@ -1,11 +1,10 @@
 MAINFILE=thesis
 
-part: excerpt.pdf 
-	evince excerpt.pdf
-
-
 view: $(MAINFILE).pdf $(MAINFILE).tex
 	evince $(MAINFILE).pdf
+
+part: excerpt.pdf 
+	evince excerpt.pdf
 
 synopsis.pdf: synopsis.tex
 	pdflatex $*
