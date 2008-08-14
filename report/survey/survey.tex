@@ -1,10 +1,86 @@
 \chapter{Survey}
 
 \section{Related projects}
+\subsection{Hecl}
+\subsection{Lua}
+\subsection{Mobile EcmaScript}
+\subsection{Mbed EcmaScript}
+\subsection{Flash Lite}
+\subsection{J2ME}
+\subsection{Python}
+\subsection{Scheme and other small Lisp languages}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Mobile platforms}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+%%%%%%%%%%%%%%%%%%
+\subsection{C}
+differentated through available memory (arbitrary set)
+\subsubsection{Large systems}
+megabytes available 
+
+typically linux, symbian, win-ce, palm, ?brew?
+may hav slow float arith.
+probably 32 bit.
+E.g. arm, mips, ...
+
+
+\subsubsection{Small systems}
+32KB-1MB
+not full library,
+just the bare metal,
+might not have float support,
+might be 8 or 16 bit.
+
+like large, or z80, ...
+\subsubsection{Tiny systems}
+Often harvard instead of neumann,
+<32KB
+Not the subject of this thesis.
+forth-like
+
+\subsubsection{Devices}
+Lego bricks, microcontrollers, N800, FreeRunner, most PDA's, symbian phones.
+\subsubsection{Platforms}
+\paragraph{Linux/Unix}
+\paragraph{Embedded Linux/Unix}
+\paragraph{Qtopia}
+\paragraph{Symbian}
+\paragraph{Windows CE}
+\paragraph{Palm OS}
+\paragraph{BREW}
+\paragraph{Rim}
+\paragraph{Custom systems}
+
+%%%%%%%%%%%%%%%%%%
+\subsection{Java}
+different api's, java does not contain macro system to differentiate between different 
+\subsubsection{Java Micro Edition}
+no class loading, 
+no floats in CLDC/1.0,
+might have 64KB limit on jar-size
+\subsubsection{Android}
+may have classloading through hacks
+\subsubsection{Full JRE}
+have classloading
+\subsubsection{Devices}
+Mobile phones en mas.
+
+
+%%%%%%%%%%%%%%%%%%
+\subsection{Scripting languages}
+\subsubsection{EcmaScript}
+\subsubsection{Python}
+\subsubsection{Devices}
+Large C devices, high end, locked down devices such as iPhone.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Programming language techniques}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Programming language design}
+... growing a language, hoare design,
 \subsection{Parsing}
 chomsky, parsers, grammars, tokenisation, yada yada
 \subsubsection{Parser generators}
@@ -27,6 +103,55 @@ lexical vs. dynamic
 \subsubsection{Copying}
 \subsubsection{Reference counting}
 \subsubsection{Generational}
-\subsection{Interesting languages and features}
+\subsection{Interesting languages}
+... no talk a bout the usual static oop languages with single inheritance and interfaces, as that is assumed well known.
 
+Interesting features or as platform is criteria.
+
+\subsubsection{Lisp}
+Scoping, s-expressions,
+\subsubsection{Scheme}
+macros, static scope, shrink-down lisp
+\subsubsection{Self}
+OOP without classes
+\subsubsection{JVM}
+Platform, stack machine.
+\subsubsection{llvm}
+Platform, machin abstraction, register machine.
+\subsubsection{Parrot?}
+Platform for scripting, register machine.
+\subsubsection{Haskell}
+Lazy, pure functional
+\subsubsection{Tcl}
+scripting, all is string, gui
+\subsubsection{TeX}
+Literate programming
+\subsubsection{Erlang}
+concurrency
+\subsubsection{Prolog}
+logic programming
+\subsubsection{Forth}
+stack based, low resource requirements
+\subsubsection{Eiffel}
+contracts
+\subsubsection{C}
+high level assembler :-), widely used, and as platform
+\subsubsection{Python}
+module system, and as platform, docstrings, doctest
+\subsubsection{Lua}
+all as tables.
+\subsubsection{EcmaScript}
+self-objects, json, hofs, and as platform
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{EcmaScript}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Language overview}
+\subsection{Implementations}
+\subsubsection{Rhino}
+\subsubsection{WebKit}
+\subsubsection{SpiderMonkey}
+\subsubsection{...}
+\subsection{Mobile initiatives}
+\subsection{Language features and quircks}
