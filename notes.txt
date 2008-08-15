@@ -1,0 +1,37 @@
+Idea:
+generalised virtual machine
+
+inteface function {
+    apply(vm);
+}
+
+InterpretedFunction: {
+    Function ops[256];
+    Byte[] code;
+    Object[] closure;
+    apply(vm) {
+        vm.call(this);
+    }
+}
+
+Continuation: {
+    Int pc;
+    Stack stack;
+    Function fn;
+
+    fromFn(fn, cont) {
+        Stack.empty();
+        this.fn = fn;
+        pc = 0;
+    }
+
+    function interpret(fn) {
+        byte[] code = fn.code;
+	function[] ops = fn.ops;
+	size = code.length;
+	while(pc<size) {
+	    ops[code[pc]].apply(this);
+	    pc++;
+	}
+    }
+}

@@ -63,7 +63,7 @@ var filter = function(predicate, iter) {
 		var result;
 		do {
 			result = iter();
-		} while (result !== undefined && !predicate(result));
+		} while (result !== undefined && predicate(result));
 		return result
 	}
 }
@@ -119,9 +119,45 @@ var cleanup = function(iter) {
 	}
 }
 
-iter = cleanup(tokeniser(getch));
+iter = filter(function(elem) { return elem.type === "comment"},cleanup(tokeniser(getch)));
 
+var appendObject = function(dst, src) {
+	for(elem in src) {
+		dst[elem] = src[elem];
+	}
+}
 
+var foo = { "bar" :123, "bax": "xxx" };
+
+	var adddenom = function(elem) {
+		appendObject(elem, foo);
+		elem.nud = {
+			"string" : "foo"
+		} [elem.type];
+		elem.led = {
+			"ident" : "bar"
+		} [elem.type];
+	}
+
+	iter = filter(adddenom, iter);
+
+	var token = iter();
+	var next = function() {
+		token = iter();
+	}
+
+	var expression = function (rbp) {
+		var left;
+		var t = token;
+		next();
+		left = t.nud();
+		while (rbp < token.lbp) {
+			t = token;
+			next();
+			left = t.led(left);
+		}
+		return left;
+	}
 
 while((token = iter()) !== undefined) {
 	print_r(token);
