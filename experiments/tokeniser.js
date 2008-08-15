@@ -24,35 +24,36 @@ var tokeniser = function(iter) {
 	}
 
 	var nextToken =  function() {
-		var token = current;
+
+		var token = {}
 		var tokensymbs = "";
-		var type = "single";
+		var str = current;
 
-		if(oneof(num)) {
-			tokensymbs = num;
-			type = "num";
-		}
-
-		if(oneof(ident)) {
-			tokensymbs = num + ident;
-			type = "ident";
-		}
-
-		if(oneof(oper)) {
-			tokensymbs = oper;
-			type = "oper";
-		}
-
-		next();
 		if(current === undefined) {
 			return undefined;
 		}
 
+		if(oneof(num)) {
+			tokensymbs = num;
+			token.type = "num";
+		}
+
+		if(oneof(ident)) {
+			tokensymbs = num + ident;
+		}
+
+		if(oneof(oper)) {
+			tokensymbs = oper;
+		}
+
+		next();
+
 		while(oneof(tokensymbs)) {
-			token += current;
+			str += current;
 			next();
 		}
-		return {"str": token, "type": type};
+		token.id = str;
+		return token;
 	}
 
 	return nextToken;
@@ -70,56 +71,67 @@ var filter = function(predicate, iter) {
 
 var cleanup = function(iter) {
 	return function() {
-		var token = ""; 
+		var token;
 		var str = "";
 		var type;
+		var i = 0;
 
 		// Skip whitespace, and return if end of stream
 		do {
+			i++;
 			token = iter();
 			if(token === undefined) {
 				return undefined;
 			}
-		} while (token.str === " " || token.str === "\t" 
-		   || token.str === "\n" || token.str === "\r");
+		} while (token.id === " " || token.id === "\t" 
+		   || token.id === "\n" || token.id === "\r");
 
 		// Comments
-		if(token.str === "//") {
+		if(token.id === "//") {
 			token = iter();
-			while(token !== undefined && token.str !== "\n") {
-				str = str + token.str;
+			while(token !== undefined && token.id !== "\n") {
+				str = str + token.id ;
 				token = iter();
 			}
-			type = "comment";
+			token.val = str;
+			token.id = "(comment)";
 
-		} else if(token.str === "/*" || token.str === "/**") {
+		} else if(token.id === "/*" || token.id === "/**") {
 			token = iter();
-			while(token !== undefined && token.str !== "*/") {
-				str = str + token.str;
+			while(token !== undefined && token.id !== "*/") {
+				str = str + token.id;
 				token = iter();
 			}
-			type = "comment";
+			token.val = str;
+			token.id = "(comment)";
 
 		// String
-		} else if(token.str === "\"") {
+		} else if(token.id === "\"") {
 			token = iter();
-			while(token !== undefined && token.str !== "\"") {
-				if(token.str === "\\") {
+			while(token !== undefined && token.id !== "\"") {
+				if(token.id === "\\") {
 					token = iter();
 				}
-				str += token.str;
+				str += token.id;
 				token = iter();
 			}
-			type = "string";
+			token.val = str;
+			token.id = "(literal)";
 
-		} else {
-			return token;
-		}
-		return {"str": str, "type": type};
+		} else if(token.type === "num") {
+			delete token.type;
+			token.val = parseInt(token.str);
+			token.id = "(literal)"
+		} 
+		return token;
 	}
 }
 
-iter = filter(function(elem) { return elem.type === "comment"},cleanup(tokeniser(getch)));
+var qwerty = 123;
+
+iter = tokeniser(getch);
+iter = cleanup(iter);
+iter = filter(function(elem) { return elem.id === "(comment)"},iter);
 
 var appendObject = function(dst, src) {
 	for(elem in src) {
@@ -127,21 +139,25 @@ var appendObject = function(dst, src) {
 	}
 }
 
-var foo = { "bar" :123, "bax": "xxx" };
 
-	var adddenom = function(elem) {
-		appendObject(elem, foo);
-		elem.nud = {
-			"string" : "foo"
-		} [elem.type];
-		elem.led = {
-			"ident" : "bar"
-		} [elem.type];
+/////////////////////////////
+// Beginning of parser
+//
+	var parserObject= {
+		"(literal)": {"foo": "stringify"}
+	};
+
+	var defaultdenom = {
+		"foo": "bar"
 	}
 
-	iter = filter(adddenom, iter);
+	var adddenom = function(elem) {
+		appendObject(elem, parserObject[elem.id] || defaultdenom);
+	};
 
-	var token = iter();
+iter = filter(adddenom, iter);
+
+	//var token = iter();
 	var next = function() {
 		token = iter();
 	}
