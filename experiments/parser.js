@@ -59,16 +59,6 @@ var tokeniser = function(iter) {
 	return nextToken;
 }
 
-var filter = function(predicate, iter) {
-	return function() {
-		var result;
-		do {
-			result = iter();
-		} while (result !== undefined && predicate(result));
-		return result
-	}
-}
-
 var cleanup = function(iter) {
 	return function() {
 		var token;
@@ -127,19 +117,6 @@ var cleanup = function(iter) {
 	}
 }
 
-var qwerty = 123;
-
-iter = tokeniser(getch);
-iter = cleanup(iter);
-iter = filter(function(elem) { return elem.id === "(comment)"},iter);
-
-var appendObject = function(dst, src) {
-	for(elem in src) {
-		dst[elem] = src[elem];
-	}
-}
-
-
 /////////////////////////////
 // Beginning of parser
 //
@@ -155,7 +132,6 @@ var appendObject = function(dst, src) {
 		appendObject(elem, parserObject[elem.id] || defaultdenom);
 	};
 
-iter = filter(adddenom, iter);
 
 	//var token = iter();
 	var next = function() {
@@ -174,6 +150,14 @@ iter = filter(adddenom, iter);
 		}
 		return left;
 	}
+
+//////////////////////////////
+// Some testing
+//
+iter = tokeniser(getch);
+iter = cleanup(iter);
+iter = filter(function(elem) { return elem.id === "(comment)"},iter);
+iter = filter(adddenom, iter);
 
 while((token = iter()) !== undefined) {
 	print_r(token);

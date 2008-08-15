@@ -60,3 +60,25 @@ var getch = function() {
 	}
 } ();
 
+//////////////////////////////////////////
+// Copy the content of an object onto another object
+var appendObject = function(dst, src) {
+        for(elem in src) {
+                dst[elem] = src[elem];
+        }
+}
+
+
+/////////////////////////////////////////////////////////
+// Add a filter to an iterator, such that elements
+// where predicate is true is removed
+
+var filter = function(predicate, iter) {
+        return function() {
+                var result;
+                do {
+                        result = iter();
+                } while (result !== undefined && predicate(result));
+                return result
+        }
+}
