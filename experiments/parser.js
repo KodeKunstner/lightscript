@@ -46,6 +46,7 @@ var tokeniser = function(iter) {
 			tokensymbs = oper;
 		}
 
+		// perhaps comment-catcher here
 		next();
 
 		while(oneof(tokensymbs)) {
@@ -66,15 +67,10 @@ var cleanup = function(iter) {
 		var type;
 		var i = 0;
 
-		// Skip whitespace, and return if end of stream
-		do {
-			i++;
-			token = iter();
-			if(token === undefined) {
-				return undefined;
-			}
-		} while (token.id === " " || token.id === "\t" 
-		   || token.id === "\n" || token.id === "\r");
+		token = iter();
+		if(token === undefined) {
+			return undefined;
+		}
 
 		// Comments
 		if(token.id === "//") {
@@ -138,7 +134,7 @@ var cleanup = function(iter) {
 		token = iter();
 	}
 
-	var expression = function (rbp) {
+	var parse = function (rbp) {
 		var left;
 		var t = token;
 		next();
@@ -156,7 +152,14 @@ var cleanup = function(iter) {
 //
 iter = tokeniser(getch);
 iter = cleanup(iter);
-iter = filter(function(elem) { return elem.id === "(comment)"},iter);
+
+// remove comments
+iter = filter(function(elem) { return elem.id === "(comment)"; },iter);
+
+// remove whitespaces
+iter = filter(function(elem) { return elem.id === " " || elem.id === "\n" || elem.id === "\t" || elem.id === "\r"; },iter);
+
+// add functions for building syntax tree to token
 iter = filter(adddenom, iter);
 
 while((token = iter()) !== undefined) {
