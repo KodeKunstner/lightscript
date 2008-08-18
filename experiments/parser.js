@@ -118,7 +118,7 @@ iter = tokeniser(getch);
 iter = cleanup(iter);
 
 // remove comments
-iter = filter(function(elem) { return elem.id === "(comment)"; },iter);
+// iter = filter(function(elem) { return elem.id === "(comment)"; },iter);
 
 // remove whitespaces
 iter = filter(function(elem) { return elem.id === " " || elem.id === "\n" || elem.id === "\t" || elem.id === "\r"; },iter);
@@ -133,7 +133,7 @@ iter = filter(function(elem) { return elem.id === " " || elem.id === "\n" || ele
 
 	// strings and numbers
 	var literal = function() {
-		return ["(" + typeof(this.val) + ")", this.val];
+		return [this.id + typeof(this.val), this.val];
 	}
 
 	// lists: {...}, [...], (...)
@@ -227,6 +227,7 @@ iter = filter(function(elem) { return elem.id === " " || elem.id === "\n" || ele
 		"}" : { "nud" : seperator, "lbp" : -300},
 		"]" : { "nud" : seperator, "lbp" : -300},
 		"(literal)" : { "nud" : literal},
+		"(comment)" : { "nud" : literal},
 		"(end)" : { "nud" : function() { return undefined;}}
 	};
 
