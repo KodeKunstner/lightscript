@@ -126,15 +126,12 @@ iter = filter(function(elem) { return elem.id === " " || elem.id === "\n" || ele
 /////////////////////////////
 // Beginning of parser
 //
-	var infix = function (left) {
-		var result = [this.id, left]
-		result.push(parse(this.lbp));
-		return result;
-	}
-
 	var dotsub = function (left) {
-		assert(token.id === "(literal)" 
-				&& typeof(token.val) === "string");
+		if(!(token.id === "(literal)" 
+				&& typeof(token.val) === "string")) {
+			print("HERE!");
+		} ;
+		print_r(["dotsub", left, token.val]);
 		var result = ["(subscript)", left, ["(string)", token.val]];
 		return result;
 	}
@@ -147,9 +144,82 @@ iter = filter(function(elem) { return elem.id === " " || elem.id === "\n" || ele
 		return ["(" + typeof(this.val) + ")", this.val];
 	}
 
+	// infix-"["  
+	var subscript = function (left) {
+		var result = ["(subscript)", left]
+		result.push(parse(0));
+		expect("]");
+		return result;
+	}
+
+	// list
+	var listnud = function() {
+		var result = ["list"+this.id];
+		var t = parse(0);
+		while(t !== this.end) {
+			result.push(t);
+			t = parse(0);
+		}
+		return result;
+	}
+
+	// list
+	var listled = function(left) {
+		var result = ["apply" + this.id, left];
+		var t = parse(0);
+		while(t !== this.end) {
+			result.push(t);
+			t = parse(0);
+		}
+		return result;
+	}
+
+	var infix = function (left) {
+		var result = [this.id, left]
+		result.push(parse(this.lbp));
+		return result;
+	}
+
+	var infixr = function (left) {
+		var result = [this.id, left]
+		result.push(parse(this.lbp - 1));
+		return result;
+	}
+
+	// return, var
+	var prefix = function() {
+		return [this.id, parse(0)];
+	}
+
+	// function, for, while
+	var prefix2 = function() {
+		return [this.id, parse(0), parse(0)];
+	}
+	var ifnud = function() {
+		var result = [this.id, parse(0), parse(0)];
+		if(token.id === "else") {
+			next();
+			result.push(parse(0));
+		}
+		return result;
+	}
+
+	// led
+	var seperator = function() {
+		this.seperator = true;
+		return this.id;
+	}
+
 	var parserObject= {
+		"return": {"nud" : prefix},
+		"var": {"nud" : prefix},
+		"function": {"nud" : prefix2},
+		"for": {"nud" : prefix2},
+		"while": {"nud" : prefix2},
+		"if": {"nud" : ifnud},
 		"+": {"led" : infix, "lbp" : 50},
-		"-": {"led" : infix, "lbp" : 50},
+		".": {"led" : infix, "lbp" : 80},
+		"-": {"nud" : prefix, "led" : infix, "lbp" : 50},
 		"*": {"led" : infix, "lbp" : 60},
 		"/": {"led" : infix, "lbp" : 60},
 		"===": {"led" : infix, "lbp" : 40},
@@ -158,10 +228,20 @@ iter = filter(function(elem) { return elem.id === " " || elem.id === "\n" || ele
 		">=": {"led" : infix, "lbp" : 40},
 		">": {"led" : infix, "lbp" : 40},
 		"<": {"led" : infix, "lbp" : 40},
+		"&&": {"led" : infixr, "lbp" : 30},
+		"||": {"led" : infixr, "lbp" : 30},
+		"=": {"led" : infixr, "lbp" : 10},
+		"[": { "nud" : listnud, "end": "]",  "led" : listled, "lbp" : 80},
+		"(": { "nud" : listnud, "end": ")",  "led" : listled, "lbp" : 80},
+		"{": { "nud" : listnud, "end": "}"},
+		"," : { "nud" : seperator, "lbp" : -100},
+		":" : { "nud" : seperator, "lbp" : -100},
+		";" : { "nud" : seperator, "lbp" : -200},
+		")" : { "nud" : seperator, "lbp" : -300},
+		"}" : { "nud" : seperator, "lbp" : -300},
+		"]" : { "nud" : seperator, "lbp" : -300},
 		"(literal)" : { "nud" : literal},
 		"(end)" : { "nud" : function() { return undefined;}}
-		//"else": {"lbp" : 0},
-		//"(literal)": {"foo": "stringify"}
 	};
 
 	var defaultdenom = {
@@ -178,19 +258,33 @@ iter = filter(function(elem) { return elem.id === " " || elem.id === "\n" || ele
 
 	var next = function() {
 		token = iter();
+		print_r(["token:", token])
+	}
+
+	var expect = function(id) {
+		if(id !== token.id) {
+			print("unexpected token");
+			assert(false);
+		}
+		next();
 	}
 
 	var parse = function (rbp) {
 		var left;
-		var t = token;
+		var t = token;;
 
+		t = token;
 		next();
+		print_r(["nud", t, rbp, token]);
 		left = t.nud();
-		while (rbp < (token.lbp || 0)) {
+
+		while (!t.seperator && rbp < (token.lbp || 0)) {
 			t = token;
 			next();
+			print_r(["led", t]);
 			left = t.led(left);
 		}
+		print_r({"result": left});
 		return left;
 	}
 
@@ -201,7 +295,7 @@ iter = filter(function(elem) { return elem.id === " " || elem.id === "\n" || ele
 
 
 while((x = parse(0)) !== undefined) {
-	print_r(x);
+	print_r(["output:", x]);
 }
 
 1+2*4*5+4+3*4-4*3-2;
