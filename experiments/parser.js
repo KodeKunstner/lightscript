@@ -110,9 +110,9 @@ var cleanup = function(iter) {
 	}
 }
 
-///////////////////////////////////
+// /////////////////////////////////
 // Create an iterator for testing
-////
+//
 
 iter = tokeniser(getch);
 iter = cleanup(iter);
@@ -123,36 +123,20 @@ iter = filter(function(elem) { return elem.id === "(comment)"; },iter);
 // remove whitespaces
 iter = filter(function(elem) { return elem.id === " " || elem.id === "\n" || elem.id === "\t" || elem.id === "\r"; },iter);
 
-/////////////////////////////
+// ///////////////////////////
 // Beginning of parser
 //
-	var dotsub = function (left) {
-		if(!(token.id === "(literal)" 
-				&& typeof(token.val) === "string")) {
-			print("HERE!");
-		} ;
-		print_r(["dotsub", left, token.val]);
-		var result = ["(subscript)", left, ["(string)", token.val]];
-		return result;
-	}
-
+	// pass-through, for variable names.
 	var simplenud = function() {
 		return this.id;
 	}
 
+	// strings and numbers
 	var literal = function() {
 		return ["(" + typeof(this.val) + ")", this.val];
 	}
 
-	// infix-"["  
-	var subscript = function (left) {
-		var result = ["(subscript)", left]
-		result.push(parse(0));
-		expect("]");
-		return result;
-	}
-
-	// list
+	// lists: {...}, [...], (...)
 	var listnud = function() {
 		var result = ["list"+this.id];
 		var t = parse(0);
@@ -163,7 +147,7 @@ iter = filter(function(elem) { return elem.id === " " || elem.id === "\n" || ele
 		return result;
 	}
 
-	// list
+	// apply-list: function call() and subscript[]
 	var listled = function(left) {
 		var result = ["apply" + this.id, left];
 		var t = parse(0);
@@ -195,6 +179,8 @@ iter = filter(function(elem) { return elem.id === " " || elem.id === "\n" || ele
 	var prefix2 = function() {
 		return [this.id, parse(0), parse(0)];
 	}
+
+	// if-else
 	var ifnud = function() {
 		var result = [this.id, parse(0), parse(0)];
 		if(token.id === "else") {
@@ -204,7 +190,7 @@ iter = filter(function(elem) { return elem.id === " " || elem.id === "\n" || ele
 		return result;
 	}
 
-	// led
+	// seperators (if led, bypass nud)
 	var seperator = function() {
 		this.seperator = true;
 		return this.id;
@@ -258,15 +244,7 @@ iter = filter(function(elem) { return elem.id === " " || elem.id === "\n" || ele
 
 	var next = function() {
 		token = iter();
-		print_r(["token:", token])
-	}
-
-	var expect = function(id) {
-		if(id !== token.id) {
-			print("unexpected token");
-			assert(false);
-		}
-		next();
+		//print_r(["token:", token])
 	}
 
 	var parse = function (rbp) {
@@ -275,28 +253,23 @@ iter = filter(function(elem) { return elem.id === " " || elem.id === "\n" || ele
 
 		t = token;
 		next();
-		print_r(["nud", t, rbp, token]);
+		//print_r(["nud", t, rbp, token]);
 		left = t.nud();
 
 		while (!t.seperator && rbp < (token.lbp || 0)) {
 			t = token;
 			next();
-			print_r(["led", t]);
+			//print_r(["led", t]);
 			left = t.led(left);
 		}
-		print_r({"result": left});
+		//print_r({"result": left});
 		return left;
 	}
 
-//////////////////////////////
-// Some testing
+// ///////////////////
+// Some testing 
 //
-
-
 
 while((x = parse(0)) !== undefined) {
 	print_r(["output:", x]);
 }
-
-1+2*4*5+4+3*4-4*3-2;
-1*2-3*4*5;
