@@ -17,11 +17,12 @@ var parser = function(iter) {
 	var isnum;
 	
 	var oneof = function(symbs) {
-		var i;
-		for(i = 0; i < symbs.length; i = i + 1) {
+		var i = 0;
+		while(i < symbs.length) {
 			if (c === symbs[i]) {
 				return true;
 			}
+			i = i + 1;
 		}
 		return false;
 	}
@@ -52,10 +53,10 @@ var parser = function(iter) {
 		nextc();
 	
 		if(id === "/" && oneof("/*")) {
-			id += c;
+			id = id + c;
 			nextc();
 		} else while(oneof(symbs)) {
-			id += c;
+			id = id + c;
 			nextc();
 		}
 	};
@@ -80,14 +81,14 @@ var parser = function(iter) {
 			val = id;
 			while(id !== undefined && id !== "\n") {
 				nextid();
-				val += id;
+				val = val + id;
 			}
 			token = {"id": "comment", "val": val, "nud": literal};
 		} else if(id === "/*") {
 			val = id;
 			while(id !== undefined && id !== "*/") {
 				nextid();
-				val += id;
+				val = val + id;
 			}
 			token = {"id": "comment", "val": val, "nud": literal};
 		} else if(id === "\"") {
@@ -97,17 +98,13 @@ var parser = function(iter) {
 				if(id === "\\") {
 					nextid();
 				}
-				val += id;
+				val = val + id;
 				nextid();
 			}
 			token = {"id": "literal", "val": val, "nud": literal};
 		} else {
-			t = parserObject[id] || {"nud" : ident};
-			val = {"id": id};
-			for(elem in t) {
-				val[elem] = t[elem];
-			}
-			token = val;
+			token = copy(parserObject[id] || {"nud" : ident});
+			token.id = id;
 		}
 	};
 	
@@ -169,14 +166,11 @@ var parser = function(iter) {
 	};
 	
 	var parserObject = {
-		"case": {"nud" : prefix},
 		"return": {"nud" : prefix},
 		"var": {"nud" : prefix},
 		"delete": {"nud" : prefix},
 		"function": {"nud" : prefix2},
-		"for": {"nud" : prefix2},
 		"while": {"nud" : prefix2},
-		"switch": {"nud" : prefix2},
 		"if": {"nud" : if_else},
 		"+": {"led" : infix, "lbp" : 50},
 		".": {"led" : infix, "lbp" : 80},
@@ -202,8 +196,6 @@ var parser = function(iter) {
 		"]" : { "nud" : seperator, "lbp" : -300},
 		"(end)" : { "nud" : function() { return undefined;}}
 	};
-	
-	
 	
 	nexttoken();
 	

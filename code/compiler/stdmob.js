@@ -1,3 +1,10 @@
+var copy = function(obj) {
+	var result = {};
+	for(x in obj) {
+		result[x] = obj[x];
+	}
+	return result;
+}
 var print_r = function(obj) {
 	var genstr = function(obj, acc) {
 		var t, i;
