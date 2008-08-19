@@ -121,8 +121,6 @@ var nexttoken = function() {
 var iter = function() { 
 	nexttoken();
 	var obj = {"id": id, "val": val, "led": led, "nud": nud, "lbp": lbp }; 
-	//print(nud === undefined);
-//	print_r(obj);
 	return obj;
 };
 
