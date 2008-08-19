@@ -53,7 +53,7 @@ macros;
 x = "hello";
 
 while(node = parse()) {
-	print(JSON.stringify(node));
+	print_r(node);
 	print(docompile(node).join("\n"));
 	print();
 }

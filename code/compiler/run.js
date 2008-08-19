@@ -8,5 +8,5 @@ parse = parser(getch);
 load("compiler.js");
 
 while(node = parse()) {
-	print(JSON.stringify(node));
+	print_r(node);
 }

@@ -1,7 +1,31 @@
-load("json2.js");
 var print_r = function(obj) {
-	var str = JSON.stringify(obj);
-	print(str);
+	var genstr = function(obj, acc) {
+		var t, i;
+		if(typeof(obj) === "string") {
+			return "\""+obj+"\"";
+		} else if(obj instanceof Array) {
+			acc.push("[");
+			t = [];
+			for(i=0;i<obj.length;i++) {
+				t.push(genstr(obj[i], []));
+			}
+			acc.push(t.join(", "));
+			acc.push("]");
+		} else if(obj instanceof Object) {
+			acc.push("{");
+			t = [];
+			for(key in obj) {
+				t.push( "\"" + key + "\": "+ genstr(obj[key], []));
+			}
+			acc.push(t.join(", "));
+			acc.push("}");
+		} else {
+			acc.push(obj);
+		}
+		return acc.join("");
+
+	}
+	print(genstr(obj, []));
 };
 
 var getch = function() {
