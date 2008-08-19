@@ -11,10 +11,10 @@ var parser = function(iter) {
 	// lists: {...}, [...], (...)
 	var listnud = function() {
 		var result = ["list"+this.id];
-		var t = parse(0);
+		var t = parse();
 		while(t !== this.end) {
 			result.push(t);
-			t = parse(0);
+			t = parse();
 		}
 		return result;
 	}
@@ -22,10 +22,10 @@ var parser = function(iter) {
 	// apply-list: function call() and subscript[]
 	var listled = function(left) {
 		var result = ["apply" + this.id, left];
-		var t = parse(0);
+		var t = parse();
 		while(t !== this.end) {
 			result.push(t);
-			t = parse(0);
+			t = parse();
 		}
 		return result;
 	}
@@ -44,20 +44,20 @@ var parser = function(iter) {
 
 	// return, var
 	var prefix = function() {
-		return [this.id, parse(0)];
+		return [this.id, parse()];
 	}
 
 	// function, for, while
 	var prefix2 = function() {
-		return [this.id, parse(0), parse(0)];
+		return [this.id, parse(), parse()];
 	}
 
 	// if-else
 	var ifnud = function() {
-		var result = [this.id, parse(0), parse(0)];
+		var result = [this.id, parse(), parse()];
 		if(token.id === "else") {
 			next();
-			result.push(parse(0));
+			result.push(parse());
 		}
 		return result;
 	}
@@ -71,6 +71,7 @@ var parser = function(iter) {
 	var parserObject= {
 		"return": {"nud" : prefix},
 		"var": {"nud" : prefix},
+		"delete": {"nud" : prefix},
 		"function": {"nud" : prefix2},
 		"for": {"nud" : prefix2},
 		"while": {"nud" : prefix2},
@@ -123,6 +124,8 @@ var parser = function(iter) {
 	var parse = function (rbp) {
 		var left;
 		var t = token;;
+
+		rbp = rbp || 0;
 
 		t = token;
 		next();
