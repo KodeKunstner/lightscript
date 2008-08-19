@@ -17,9 +17,9 @@ var parser = function(iter) {
 	var isnum;
 	
 	var oneof = function(symbs) {
-		symbiter = iterator(symbs);
-		while((symb = symbiter()) !== undefined) {
-			if (c === symb) {
+		var i;
+		for(i = 0; i < symbs.length; i = i + 1) {
+			if (c === symbs[i]) {
 				return true;
 			}
 		}
@@ -69,6 +69,7 @@ var parser = function(iter) {
 	
 	var nexttoken = function() {
 		var val;
+		var t;
 		skipws();
 		nextid();
 	
@@ -101,8 +102,11 @@ var parser = function(iter) {
 			}
 			token = {"id": "string", "val": val, "nud": literal};
 		} else {
+			t = parserObject[id] || {"nud" : passthrough};
 			val = {"id": id};
-			appendObject(val, parserObject[id] || {"nud" : passthrough});
+			for(elem in t) {
+				val[elem] = t[elem];
+			}
 			token = val;
 		}
 	};

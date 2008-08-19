@@ -5,4 +5,6 @@ load("parser.js");
 
 parse = parser(getch);
 
-load("prettyprinter.js");
+while(node = parse()) {
+	print(JSON.stringify(node));
+}
