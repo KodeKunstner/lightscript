@@ -1,86 +1,178 @@
 var parser = function(iter) {
-	var simplenud = function() {
-		return this.id;
+	/**
+	 * Character reader
+	 */
+	var c; // current character
+	
+	var nextc = function() {
+		c = iter();
 	}
-
-	// strings and numbers
-	var literal = function() {
-		return [this.id + typeof(this.val), this.val];
+	
+	nextc();
+	
+	/**
+	 * Id-reader 
+	 */
+	var id;
+	var isnum;
+	
+	var oneof = function(symbs) {
+		symbiter = iterator(symbs);
+		while((symb = symbiter()) !== undefined) {
+			if (c === symb) {
+				return true;
+			}
+		}
+		return false;
 	}
-
-	// lists: {...}, [...], (...)
-	var listnud = function() {
+	
+	var skipws = function() {
+		while(oneof(" \n\r\t")) {
+			nextc();
+		}
+	}
+	
+	var nextid =  function() {
+		var num = "0123456789";
+		var ident = "$_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		var oper = "<>/|=+-*&^%!~";
+	
+		var symbs = "";
+		id = c;
+	
+		if(oneof(num)) {
+			symbs = num;
+			isnum = true;
+		} else if(oneof(ident)) {
+			symbs = num + ident;
+		} else if(oneof(oper)) {
+			symbs = oper;
+		}
+	
+		nextc();
+	
+		if(id === "/" && oneof("/*")) {
+			id += c;
+			nextc();
+		} else while(oneof(symbs)) {
+			id += c;
+			nextc();
+		}
+	};
+	
+	/**
+	 * Skip white-space, literals and comments;
+	 */
+	
+	// value, being used as is_number flag, and later containing value of literals or comments.
+	var token; 
+	
+	var nexttoken = function() {
+		var val;
+		skipws();
+		nextid();
+	
+		if(isnum) {
+			isnum = false;
+			token = {"id": "number", "val": parseInt(id), "nud": literal};
+		} else if(id === "//") {
+			val = id;
+			while(id !== undefined && id !== "\n") {
+				nextid();
+				val += id;
+			}
+			token = {"id": "comment", "val": val, "nud": literal};
+		} else if(id === "/*") {
+			val = id;
+			while(id !== undefined && id !== "*/") {
+				nextid();
+				val += id;
+			}
+			token = {"id": "comment", "val": val, "nud": literal};
+		} else if(id === "\"") {
+			val = "";
+			nextid();
+			while(id !== undefined && id !== "\"") {
+				if(id === "\\") {
+					nextid();
+				}
+				val += id;
+				nextid();
+			}
+			token = {"id": "string", "val": val, "nud": literal};
+		} else {
+			val = {"id": id};
+			appendObject(val, parserObject[id] || {"nud" : passthrough});
+			token = val;
+		}
+	};
+	
+	/** tree building functions */
+	var passthrough = function() { 
+		return this.id; 
+	};
+	var literal = function() { 
+		return [this.id, this.val]; 
+	};
+	var infix = function (left) { 
+		return [this.id, left, parse(this.lbp)]; 
+	};
+	var infixr = function (left) { 
+		return [this.id, left, parse(this.lbp - 1)] 
+	};
+	var prefix = function() { 
+		return [this.id, parse()]; 
+	};
+	var prefix2 = function() { 
+		return [this.id, parse(), parse()]; 
+	};
+	
+	var list = function() {
 		var result = ["list"+this.id];
 		var t = parse();
-		while(t !== this.end) {
+		while(t && t !== this.end) {
 			result.push(t);
 			t = parse();
 		}
 		return result;
-	}
-
-	// apply-list: function call() and subscript[]
-	var listled = function(left) {
+	};
+	
+	var apply = function(left) {
 		var result = ["apply" + this.id, left];
 		var t = parse();
-		while(t !== this.end) {
+		while(t && t !== this.end) {
 			result.push(t);
 			t = parse();
 		}
 		return result;
-	}
-
-	var infix = function (left) {
-		var result = [this.id, left]
-		result.push(parse(this.lbp));
-		return result;
-	}
-
-	var infixr = function (left) {
-		var result = [this.id, left]
-		result.push(parse(this.lbp - 1));
-		return result;
-	}
-
-	// return, var
-	var prefix = function() {
-		return [this.id, parse()];
-	}
-
-	// function, for, while
-	var prefix2 = function() {
-		return [this.id, parse(), parse()];
-	}
-
-	// if-else
-	var ifnud = function() {
+	};
+	
+	var if_else = function() {
 		var result = [this.id, parse(), parse()];
 		if(token.id === "else") {
-			next();
+			nexttoken();
 			result.push(parse());
 		}
 		return result;
-	}
-
-	// seperators (if led, bypass nud)
+	};
+	
 	var seperator = function() {
 		this.seperator = true;
 		return this.id;
-	}
-
-	var parserObject= {
+	};
+	
+	var parserObject = {
 		"return": {"nud" : prefix},
 		"var": {"nud" : prefix},
 		"delete": {"nud" : prefix},
 		"function": {"nud" : prefix2},
 		"for": {"nud" : prefix2},
 		"while": {"nud" : prefix2},
-		"if": {"nud" : ifnud},
+		"if": {"nud" : if_else},
 		"+": {"led" : infix, "lbp" : 50},
 		".": {"led" : infix, "lbp" : 80},
 		"-": {"nud" : prefix, "led" : infix, "lbp" : 50},
 		"*": {"led" : infix, "lbp" : 60},
-		"/": {"led" : infix, "lbp" : 60},
 		"===": {"led" : infix, "lbp" : 40},
 		"!==": {"led" : infix, "lbp" : 40},
 		"<=": {"led" : infix, "lbp" : 40},
@@ -90,51 +182,36 @@ var parser = function(iter) {
 		"&&": {"led" : infixr, "lbp" : 30},
 		"||": {"led" : infixr, "lbp" : 30},
 		"=": {"led" : infixr, "lbp" : 10},
-		"[": { "nud" : listnud, "end": "]",  "led" : listled, "lbp" : 80},
-		"(": { "nud" : listnud, "end": ")",  "led" : listled, "lbp" : 80},
-		"{": { "nud" : listnud, "end": "}"},
+		"[": { "nud" : list, "end": "]",  "led" : apply, "lbp" : 80},
+		"(": { "nud" : list, "end": ")",  "led" : apply, "lbp" : 80},
+		"{": { "nud" : list, "end": "}"},
 		"," : { "nud" : seperator, "lbp" : -100},
 		":" : { "nud" : seperator, "lbp" : -100},
 		";" : { "nud" : seperator, "lbp" : -200},
 		")" : { "nud" : seperator, "lbp" : -300},
 		"}" : { "nud" : seperator, "lbp" : -300},
 		"]" : { "nud" : seperator, "lbp" : -300},
-		"(literal)" : { "nud" : literal},
-		"(comment)" : { "nud" : literal},
 		"(end)" : { "nud" : function() { return undefined;}}
 	};
-
-	var defaultdenom = {
-		"nud" : simplenud
-	}
-
-	var adddenom = function(elem) {
-		appendObject(elem, parserObject[elem.id] || defaultdenom);
-	};
-
-	iter = filter(adddenom, iter);
-
-	var token = iter();
-
-	var next = function() {
-		token = iter();
-		//print_r(["token:", token])
-	}
-
+	
+	
+	
+	nexttoken();
+	
 	var parse = function (rbp) {
 		var left;
 		var t = token;;
-
+	
 		rbp = rbp || 0;
-
+	
 		t = token;
-		next();
+		nexttoken();
 		//print_r(["nud", t, rbp, token]);
 		left = t.nud();
-
+	
 		while (!t.seperator && rbp < (token.lbp || 0)) {
 			t = token;
-			next();
+			nexttoken();
 			//print_r(["led", t]);
 			left = t.led(left);
 		}
