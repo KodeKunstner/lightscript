@@ -17,7 +17,10 @@ nextc();
  * Id-reader 
  */
 var id;
-var isnum;
+var val;
+var led;
+var nud;
+var lbp;
 
 var oneof = function(symbs) {
 	symbiter = iterator(symbs);
@@ -42,11 +45,11 @@ var nextid =  function() {
 
 	var symbs = "";
 	id = c;
-	isnum = false;
+	val = false;
 
 	if(oneof(num)) {
 		symbs = num;
-		isnum = true;
+		val = true;
 	} else if(oneof(ident)) {
 		symbs = num + ident;
 	} else if(oneof(oper)) {
@@ -73,29 +76,28 @@ var nextid =  function() {
 var nexttoken = function() {
 	skipws();
 	nextid();
-	var val;
 
-	if(isnum) {
-		return {"id": "(literal)", 
-			"val": parseInt(id)};
-	} else switch(id) {
-	case "//":
+	if(val) {
+		id = "(number)";
+		val = parseInt(id);
+		nud = literal;
+	} else if(id === "//") {
 		val = id;
 		while(id !== undefined && id !== "\n") {
 			nextid();
 			val += id;
 		}
-		return {"id": "(comment)", 
-			"val": val};
-	case "/*":
+		id = "(comment)";
+		nud = literal;
+	} else if(id === "/*") {
 		val = id;
 		while(id !== undefined && id !== "*/") {
 			nextid();
 			val += id;
 		}
-		return {"id": "(comment)", 
-			"val": val};
-	case "\"":
+		id = "(comment)";
+		nud = literal;
+	} else if(id === "\"") {
 		val = "";
 		nextid();
 		while(id !== undefined && id !== "\"") {
@@ -105,13 +107,24 @@ var nexttoken = function() {
 			val += id;
 			nextid();
 		}
-		return {"id": "(literal)", 
-			"val": val};
-	} 
-	return {"id": id, "nud":simplenud};
+		id = "(number)";
+		nud = literal;
+	} else {
+		obj = parserObject[id] || defaultdenom;
+		led = obj.led;
+		nud = obj.nud;
+		lbp = obj.lbp;
+		val = obj.val;
+	}
 }
 
-var iter = nexttoken;
+var iter = function() { 
+	nexttoken();
+	var obj = {"id": id, "val": val, "led": led, "nud": nud, "lbp": lbp }; 
+	//print(nud === undefined);
+//	print_r(obj);
+	return obj;
+};
 
 var simplenud = function() {
 	return this.id;
@@ -119,14 +132,14 @@ var simplenud = function() {
 
 // strings and numbers
 var literal = function() {
-	return [this.id + typeof(this.val), this.val];
+	return [this.id, this.val];
 }
 
 // lists: {...}, [...], (...)
 var listnud = function() {
 	var result = ["list"+this.id];
 	var t = parse();
-	while(t !== this.end) {
+	while(t !== this.val) {
 		result.push(t);
 		t = parse();
 	}
@@ -137,7 +150,7 @@ var listnud = function() {
 var listled = function(left) {
 	var result = ["apply" + this.id, left];
 	var t = parse();
-	while(t !== this.end) {
+	while(t !== this.val) {
 		result.push(t);
 		t = parse();
 	}
@@ -204,16 +217,17 @@ var parserObject= {
 	"&&": {"led" : infixr, "lbp" : 30},
 	"||": {"led" : infixr, "lbp" : 30},
 	"=": {"led" : infixr, "lbp" : 10},
-	"[": { "nud" : listnud, "end": "]",  "led" : listled, "lbp" : 80},
-	"(": { "nud" : listnud, "end": ")",  "led" : listled, "lbp" : 80},
-	"{": { "nud" : listnud, "end": "}"},
+	"[": { "nud" : listnud, "val": "]",  "led" : listled, "lbp" : 80},
+	"(": { "nud" : listnud, "val": ")",  "led" : listled, "lbp" : 80},
+	"{": { "nud" : listnud, "val": "}"},
 	"," : { "nud" : seperator, "lbp" : -100},
 	":" : { "nud" : seperator, "lbp" : -100},
 	";" : { "nud" : seperator, "lbp" : -200},
 	")" : { "nud" : seperator, "lbp" : -300},
 	"}" : { "nud" : seperator, "lbp" : -300},
 	"]" : { "nud" : seperator, "lbp" : -300},
-	"(literal)" : { "nud" : literal},
+	"(number)" : { "nud" : literal},
+	"(string)" : { "nud" : literal},
 	"(comment)" : { "nud" : literal},
 	"(end)" : { "nud" : function() { return undefined;}}
 };
@@ -222,11 +236,8 @@ var defaultdenom = {
 	"nud" : simplenud
 }
 
-var adddenom = function(elem) {
-	appendObject(elem, parserObject[elem.id] || defaultdenom);
-};
 
-iter = filter(adddenom, iter);
+/////////////////////////////////////////////////////////////
 
 var token = iter();
 
