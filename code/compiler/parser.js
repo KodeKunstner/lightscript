@@ -76,34 +76,36 @@ var parser = function(iter) {
 	
 		if(isnum) {
 			isnum = false;
-			token = {"id": "literal", "val": parseInt(id), "nud": literal};
+			token = {"id": "literal", "val": parseInt(id), "n": literal};
 		} else if(id === "//") {
 			val = id;
 			while(id !== undefined && id !== "\n") {
 				nextid();
 				val = val + id;
 			}
-			token = {"id": "comment", "val": val, "nud": literal};
+			token = {"id": "comment", "val": val, "n": literal};
 		} else if(id === "/*") {
 			val = id;
 			while(id !== undefined && id !== "*/") {
 				nextid();
 				val = val + id;
 			}
-			token = {"id": "comment", "val": val, "nud": literal};
+			token = {"id": "comment", "val": val, "n": literal};
 		} else if(id === "\"") {
 			val = "";
 			nextid();
 			while(id !== undefined && id !== "\"") {
 				if(id === "\\") {
-					nextid();
+					val = val + ({"n": "\n", "r": "\r", "t": "\t"}[c] || c);
+					nextc();
+				} else {
+					val = val + id;
 				}
-				val = val + id;
 				nextid();
 			}
-			token = {"id": "literal", "val": val, "nud": literal};
+			token = {"id": "literal", "val": val, "n": literal};
 		} else {
-			token = copy(parserObject[id] || {"nud" : ident});
+			token = copy(parserObject[id] || {"n" : ident});
 			token.id = id;
 		}
 	};
@@ -119,10 +121,10 @@ var parser = function(iter) {
 		return [this.id, this.val]; 
 	};
 	var infix = function (left) { 
-		return [this.id, left, parse(this.lbp)]; 
+		return [this.id, left, parse(this.p)]; 
 	};
 	var infixr = function (left) { 
-		return [this.id, left, parse(this.lbp - 1)] 
+		return [this.id, left, parse(this.p - 1)] 
 	};
 	var prefix = function() { 
 		return [this.id, parse()]; 
@@ -160,41 +162,41 @@ var parser = function(iter) {
 		return result;
 	};
 	
-	var seperator = function() {
-		this.seperator = true;
+	var sep = function() {
+		this.sep = true;
 		return this.id;
 	};
 	
 	var parserObject = {
-		"return": {"nud" : prefix},
-		"var": {"nud" : prefix},
-		"delete": {"nud" : prefix},
-		"function": {"nud" : prefix2},
-		"while": {"nud" : prefix2},
-		"if": {"nud" : if_else},
-		"+": {"led" : infix, "lbp" : 50},
-		".": {"led" : infix, "lbp" : 80},
-		"-": {"nud" : prefix, "led" : infix, "lbp" : 50},
-		"*": {"led" : infix, "lbp" : 60},
-		"===": {"led" : infix, "lbp" : 40},
-		"!==": {"led" : infix, "lbp" : 40},
-		"<=": {"led" : infix, "lbp" : 40},
-		">=": {"led" : infix, "lbp" : 40},
-		">": {"led" : infix, "lbp" : 40},
-		"<": {"led" : infix, "lbp" : 40},
-		"&&": {"led" : infixr, "lbp" : 30},
-		"||": {"led" : infixr, "lbp" : 30},
-		"=": {"led" : infixr, "lbp" : 10},
-		"[": { "nud" : list, "end": "]",  "led" : apply, "lbp" : 80},
-		"(": { "nud" : list, "end": ")",  "led" : apply, "lbp" : 80},
-		"{": { "nud" : list, "end": "}"},
-		"," : { "nud" : seperator, "lbp" : -100},
-		":" : { "nud" : seperator, "lbp" : -100},
-		";" : { "nud" : seperator, "lbp" : -200},
-		")" : { "nud" : seperator, "lbp" : -300},
-		"}" : { "nud" : seperator, "lbp" : -300},
-		"]" : { "nud" : seperator, "lbp" : -300},
-		"(end)" : { "nud" : function() { return undefined;}}
+		"return": {"n" : prefix},
+		"var": {"n" : prefix},
+		"delete": {"n" : prefix},
+		"function": {"n" : prefix2},
+		"while": {"n" : prefix2},
+		"if": {"n" : if_else},
+		"+": {"l" : infix, "p" : 50},
+		".": {"l" : infix, "p" : 80},
+		"-": {"n" : prefix, "l" : infix, "p" : 50},
+		"*": {"l" : infix, "p" : 60},
+		"===": {"l" : infix, "p" : 40},
+		"!==": {"l" : infix, "p" : 40},
+		"<=": {"l" : infix, "p" : 40},
+		">=": {"l" : infix, "p" : 40},
+		">": {"l" : infix, "p" : 40},
+		"<": {"l" : infix, "p" : 40},
+		"&&": {"l" : infixr, "p" : 30},
+		"||": {"l" : infixr, "p" : 30},
+		"=": {"l" : infixr, "p" : 10},
+		"[": { "n" : list, "end": "]",  "l" : apply, "p" : 80},
+		"(": { "n" : list, "end": ")",  "l" : apply, "p" : 80},
+		"{": { "n" : list, "end": "}"},
+		"," : { "n" : sep, "p" : -100},
+		":" : { "n" : sep, "p" : -100},
+		";" : { "n" : sep, "p" : -200},
+		")" : { "n" : sep, "p" : -300},
+		"}" : { "n" : sep, "p" : -300},
+		"]" : { "n" : sep, "p" : -300},
+		"(end)" : { "n" : function() { return undefined;}}
 	};
 	
 	nexttoken();
@@ -207,14 +209,14 @@ var parser = function(iter) {
 	
 		t = token;
 		nexttoken();
-		//print_r(["nud", t, rbp, token]);
-		left = t.nud();
+		//print_r(["n", t, rbp, token]);
+		left = t.n();
 	
-		while (!t.seperator && rbp < (token.lbp || 0)) {
+		while (!t.sep && rbp < (token.p || 0)) {
 			t = token;
 			nexttoken();
-			//print_r(["led", t]);
-			left = t.led(left);
+			//print_r(["l", t]);
+			left = t.l(left);
 		}
 		//print_r({"result": left});
 		return left;
