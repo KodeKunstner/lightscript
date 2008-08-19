@@ -17,6 +17,7 @@ nextc();
  * Id-reader 
  */
 var id;
+var isnum;
 
 var oneof = function(symbs) {
 	symbiter = iterator(symbs);
@@ -41,11 +42,11 @@ var nextid =  function() {
 
 	var symbs = "";
 	id = c;
-	val = undefined;
+	isnum = false;
 
 	if(oneof(num)) {
 		symbs = num;
-		val = true;
+		isnum = true;
 	} else if(oneof(ident)) {
 		symbs = num + ident;
 	} else if(oneof(oper)) {
@@ -68,30 +69,33 @@ var nextid =  function() {
  */
 
 // value, being used as is_number flag, and later containing value of literals or comments.
-var val;
 
 var nexttoken = function() {
 	skipws();
 	nextid();
+	var val;
 
-	if(val) {
-		val = parseInt(id);
-		id = "(literal)"
-	} else if(id === "//") {
-		val = "";
+	if(isnum) {
+		return {"id": "(literal)", 
+			"val": parseInt(id)};
+	} else switch(id) {
+	case "//":
+		val = id;
 		while(id !== undefined && id !== "\n") {
-			val += id;
 			nextid();
+			val += id;
 		}
-		id = "(comment)";
-	} else if(id === "/*") {
-		val = "";
+		return {"id": "(comment)", 
+			"val": val};
+	case "/*":
+		val = id;
 		while(id !== undefined && id !== "*/") {
-			val += id;
 			nextid();
+			val += id;
 		}
-		id = "(comment)";
-	} else if(id === "\"") {
+		return {"id": "(comment)", 
+			"val": val};
+	case "\"":
 		val = "";
 		nextid();
 		while(id !== undefined && id !== "\"") {
@@ -101,14 +105,13 @@ var nexttoken = function() {
 			val += id;
 			nextid();
 		}
-		id = "(literal)";
+		return {"id": "(literal)", 
+			"val": val};
 	} 
+	return {"id": id, "nud":simplenud};
 }
 
-var iter = function() {
-	nexttoken();
-	return {"id": id, "val": val};
-}
+var iter = nexttoken;
 
 var simplenud = function() {
 	return this.id;
