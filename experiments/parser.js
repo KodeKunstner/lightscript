@@ -75,7 +75,7 @@ var parser = function(iter) {
 	
 		if(isnum) {
 			isnum = false;
-			token = {"id": "number", "val": parseInt(id), "nud": literal};
+			token = {"id": "literal", "val": parseInt(id), "nud": literal};
 		} else if(id === "//") {
 			val = id;
 			while(id !== undefined && id !== "\n") {
@@ -100,9 +100,9 @@ var parser = function(iter) {
 				val += id;
 				nextid();
 			}
-			token = {"id": "string", "val": val, "nud": literal};
+			token = {"id": "literal", "val": val, "nud": literal};
 		} else {
-			t = parserObject[id] || {"nud" : passthrough};
+			t = parserObject[id] || {"nud" : ident};
 			val = {"id": id};
 			for(elem in t) {
 				val[elem] = t[elem];
@@ -112,8 +112,11 @@ var parser = function(iter) {
 	};
 	
 	/** tree building functions */
-	var passthrough = function() { 
-		return this.id; 
+	var ident = function() { 
+		if(this.id === undefined) {
+			return undefined;
+		}
+		return ["ident", this.id]; 
 	};
 	var literal = function() { 
 		return [this.id, this.val]; 
