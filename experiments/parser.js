@@ -162,12 +162,14 @@ var parser = function(iter) {
 	};
 	
 	var parserObject = {
+		"case": {"nud" : prefix},
 		"return": {"nud" : prefix},
 		"var": {"nud" : prefix},
 		"delete": {"nud" : prefix},
 		"function": {"nud" : prefix2},
 		"for": {"nud" : prefix2},
 		"while": {"nud" : prefix2},
+		"switch": {"nud" : prefix2},
 		"if": {"nud" : if_else},
 		"+": {"led" : infix, "lbp" : 50},
 		".": {"led" : infix, "lbp" : 80},

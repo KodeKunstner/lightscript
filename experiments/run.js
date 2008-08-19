@@ -5,7 +5,4 @@ load("parser.js");
 
 parse = parser(getch);
 
-while((x = parse(0)) !== undefined) {
-	        print_r(["output:", x]);
-}
-
+load("prettyprinter.js");
