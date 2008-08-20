@@ -6,6 +6,21 @@ var copy = function(obj) {
 	return result;
 }
 
+var iterator = function(obj) {
+	var keys = [];
+	for(key in obj) {
+		keys.push(key);
+	}
+	keys.reverse();
+	return { 
+		next: function() {
+			this.key= keys.pop();
+			this.val = obj[this.key];
+			return this.key !== undefined;
+		}
+	}
+}; 
+
 var print_r = function(obj) {
 	var genstr = function(obj, acc) {
 		var t, i;

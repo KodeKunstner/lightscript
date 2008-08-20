@@ -74,6 +74,10 @@ var parser = function(iter) {
 		var t;
 		skipws();
 		nextid();
+
+		if(id === undefined) {
+			id = "(end)";
+		} 
 	
 		if(isnum) {
 			isnum = false;
@@ -106,7 +110,10 @@ var parser = function(iter) {
 			}
 			token = {"id": "literal", "val": val, "n": literal};
 		} else {
-			token = copy(parserObject[id] || {"n" : ident});
+			token = copy(parserObject[id]);
+			token.n = token.n || ident;
+			token.l = token.l || infix;
+			token.p = token.p || 0;
 			token.id = id;
 		}
 	};
@@ -116,56 +123,52 @@ var parser = function(iter) {
 		if(this.id === undefined) {
 			return undefined;
 		}
-		return ["ident", this.id]; 
 	};
 	var literal = function() { 
-		return [this.id, this.val]; 
 	};
 	var infix = function (left) { 
-		return [this.id, left, parse(this.p)]; 
+		this.args = [left, parse(this.p)]
 	};
 	var infixr = function (left) { 
-		return [this.id, left, parse(this.p - 1)] 
+		this.args = [left, parse(this.p - 1)]
 	};
 	var prefix = function() { 
-		return [this.id, parse()]; 
+		this.args = [parse()];
 	};
 	var prefix2 = function() { 
-		return [this.id, parse(), parse()]; 
+		this.args = [parse(), parse()]; 
 	};
 	
 	var list = function() {
-		var result = ["list"+this.id];
+		this.id = "list" + this.id;
+		this.args = []
 		var t = parse();
-		while(t && t !== this.end) {
-			result.push(t);
+		while(t && t.id !== this.end) {
+			this.args.push(t);
 			t = parse();
 		}
-		return result;
 	};
 	
 	var apply = function(left) {
-		var result = ["apply" + this.id, left];
+		this.id = "apply" + this.id;
+		this.args = [left]
 		var t = parse();
-		while(t && t !== this.end) {
-			result.push(t);
+		while(t && t.id !== this.end) {
+			this.args.push(t);
 			t = parse();
 		}
-		return result;
 	};
 	
 	var if_else = function() {
-		var result = [this.id, parse(), parse()];
+		this.args = [parse(), parse()];
 		if(token.id === "else") {
 			nexttoken();
-			result.push(parse());
+			this.args.push(parse());
 		}
-		return result;
 	};
 	
 	var sep = function() {
 		this.sep = true;
-		return this.id;
 	};
 	
 	var parserObject = {
@@ -197,7 +200,7 @@ var parser = function(iter) {
 		")" : { "n" : sep, "p" : -300},
 		"}" : { "n" : sep, "p" : -300},
 		"]" : { "n" : sep, "p" : -300},
-		"(end)" : { "n" : function() { return undefined;}}
+		"(end)" : {"n" : sep, "p" : -300}
 	};
 	
 	nexttoken();
@@ -210,18 +213,24 @@ var parser = function(iter) {
 	
 		t = token;
 		nexttoken();
-		//print_r(["n", t, rbp, token]);
-		left = t.n();
+		t.n();
+		left = t;
+		delete left.p; delete left.n; delete left.l;
 	
-		while (!t.sep && rbp < (token.p || 0)) {
+		while (!t.sep && rbp < token.p) {
 			t = token;
 			nexttoken();
-			//print_r(["l", t]);
-			left = t.l(left);
+			t.l(left);
+			left = t;
+			delete left.p; delete left.n; delete left.l;
 		}
-		//print_r({"result": left});
+		if(left.id === "(end)") {
+			return undefined;
+		}
 		return left;
 	}
 
 	return parse;
 };
+
+var f = function(x) { if(x > 1) { return f(x - 1) } else {return 1 } }
