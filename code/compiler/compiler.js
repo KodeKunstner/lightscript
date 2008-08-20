@@ -1,13 +1,5 @@
-var macros = {
-	"(default)": function() {},
-};
 
-var compile = function(node) {
-	return (macros[node] || macros["(default)"])(node);
-}; 
-
-while(node = parse()) {
-	print_r(node);
-	print_r(compile(node));
+while(iter.next()) {
+	print_r(iter.val);
 	print("\n");
 }

@@ -24,7 +24,9 @@ var iterator = function(obj) {
 	return { 
 		next: function() {
 			this.key= keys.pop();
-			this.val = obj[this.key];
+			if(this.key) {
+				this.val = obj[this.key];
+			} 
 			return this.key !== undefined;
 		}
 	}

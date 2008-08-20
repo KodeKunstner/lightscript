@@ -26,7 +26,8 @@ var parser = function (iter) {
 
 	var c, id, isnum, nextc, nextid, nexttoken, oneof, readlist, 
 	    skipws, token, apply, if_else, infix, infixr, list, parse, 
-	    prefix, prefix2, var_decl, parserObject;
+	    prefix, prefix2, var_decl, parserObject, passthrough, 
+	    identifier;
 
 // where \verb|c| is the next character, \verb|id| is the parsed 
 // identifier/token as a string, \verb|isnum| indicates whether \verb|id| 
@@ -151,15 +152,22 @@ var parser = function (iter) {
 		} 
 
 		token = copy(parserObject[id]);
-		token.n = token.n || function () {};
+		token.n = token.n || identifier;
 		token.l = token.l || infix;
 		token.p = token.p || 0;
-		token.id = id;
+		token.id = token.id || id;
 		if (val !== undefined) {
 			token.val = val;
 		}
 	};
+
+	passthrough = function () {};
 	
+	identifier = function() {
+		this.val = this.id;
+		this.id = "identifier";
+	};
+
 	infix = function (prev) { 
 		this.args = [prev, parse(this.p)];
 	};
@@ -218,6 +226,10 @@ var parser = function (iter) {
 	};
 	
 	parserObject = {
+		"undefined": {"n" : passthrough},
+		"undefined": {"n" : passthrough},
+		"true": {"n" : passthrough, "val": true, "id": "(literal)"},
+		"false": {"n" : passthrough, "val": false, "id": "(literal)"},
 		"return": {"n" : prefix},
 		"var": {"n" : var_decl},
 		"delete": {"n" : prefix},
@@ -240,13 +252,15 @@ var parser = function (iter) {
 		"[": { "n" : list, "l" : apply, "p" : 600},
 		"(": { "n" : list, "l" : apply, "p" : 600},
 		"{": { "n" : list},
-		"," : { sep: true, "p" : -100},
-		":" : { sep: true, "p" : -100},
-		";" : { sep: true, "p" : -200},
-		")" : { rpar: true, "p" : -300},
-		"}" : { rpar: true, "p" : -300},
-		"]" : { rpar: true, "p" : -300},
-		"(end)" : {rpar: true, "p" : -300}
+		"," : { "n": passthrough, sep: true, "p" : -100},
+		":" : { "n": passthrough, sep: true, "p" : -100},
+		";" : { "n": passthrough, sep: true, "p" : -200},
+		")" : { "n": passthrough, rpar: true, "p" : -300},
+		"}" : { "n": passthrough, rpar: true, "p" : -300},
+		"]" : { "n": passthrough, rpar: true, "p" : -300},
+		"(literal)" : {"n": passthrough},
+		"(comment)" : {"n": passthrough},
+		"(end)" : {"n": passthrough, rpar: true, "p" : -300}
 	};
 
 //
@@ -292,5 +306,12 @@ var parser = function (iter) {
 // \subsection{End of code}
 // Just return the parser.
 
-	return parse;
+	return { next: function() {
+			this.val = parse();
+			if(this.val === undefined) {
+				return false;
+			} else {
+				return true;
+			}
+		} }
 };
