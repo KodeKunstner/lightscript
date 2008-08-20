@@ -5,6 +5,7 @@ var copy = function(obj) {
 	}
 	return result;
 }
+
 var print_r = function(obj) {
 	var genstr = function(obj, acc) {
 		var t, i;
@@ -35,7 +36,7 @@ var print_r = function(obj) {
 	print(genstr(obj, []));
 };
 
-var getch = function() {
+var getch = {"next": function() {
 	// "" instead of readline() avoids reading from stdin,
 	// when getch is not used. On the other hand, this inserts
 	// an empty line in the beginning of stdin.
@@ -49,7 +50,8 @@ var getch = function() {
 
 		if(pos >= line.length) {
 			if(emptycount > 10) {
-				return undefined;
+				this.val = undefined;
+				return false;
 			}
 			pos = -1;
 			line = readline();
@@ -58,9 +60,11 @@ var getch = function() {
 			} else {
 				emptycount = 0;
 			}
-			return "\n";
+			this.val = "\n";
+			return true;
 		}
+		this.val = line[pos];
 
-		return line[pos];
+		return true;
 	}
-} ();
+}()};

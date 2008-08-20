@@ -5,7 +5,8 @@ var parser = function(iter) {
 	var c; // current character
 	
 	var nextc = function() {
-		c = iter();
+		iter.next();
+		c = iter.val;
 	}
 	
 	nextc();
