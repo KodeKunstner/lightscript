@@ -110,7 +110,7 @@ var parser = function(iter) {
 		} 
 
 		token = copy(parserObject[id]);
-		token.n = token.n || ident;
+		token.n = token.n || function() {};
 		token.l = token.l || infix;
 		token.p = token.p || 0;
 		token.id = id;
@@ -119,19 +119,12 @@ var parser = function(iter) {
 		}
 	};
 	
-	/** tree building functions */
-	var ident = function() { 
-		if(this.id === undefined) {
-			return undefined;
-		}
+	var infix = function (prev) { 
+		this.args = [prev, parse(this.p)]
 	};
 
-	var infix = function (left) { 
-		this.args = [left, parse(this.p)]
-	};
-
-	var infixr = function (left) { 
-		this.args = [left, parse(this.p - 1)]
+	var infixr = function (prev) { 
+		this.args = [prev, parse(this.p - 1)]
 	};
 
 	var prefix = function() { 
@@ -152,9 +145,9 @@ var parser = function(iter) {
 		}
 	};
 	
-	var apply = function(left) {
+	var apply = function(prev) {
 		this.id = "apply" + this.id;
-		this.args = [left]
+		this.args = [prev]
 		var t = parse();
 		while(t && t.id !== this.end) {
 			this.args.push(t);
@@ -168,10 +161,6 @@ var parser = function(iter) {
 			nexttoken();
 			this.args.push(parse());
 		}
-	};
-	
-	var sep = function() {
-		this.sep = true;
 	};
 	
 	var parserObject = {
@@ -197,19 +186,26 @@ var parser = function(iter) {
 		"[": { "n" : list, "end": "]",  "l" : apply, "p" : 80},
 		"(": { "n" : list, "end": ")",  "l" : apply, "p" : 80},
 		"{": { "n" : list, "end": "}"},
-		"," : { "n" : sep, "p" : -100},
-		":" : { "n" : sep, "p" : -100},
-		";" : { "n" : sep, "p" : -200},
-		")" : { "n" : sep, "p" : -300},
-		"}" : { "n" : sep, "p" : -300},
-		"]" : { "n" : sep, "p" : -300},
-		"(end)" : {"n" : sep, "p" : -300}
+		"," : { sep: true, "p" : -100},
+		":" : { sep: true, "p" : -100},
+		";" : { sep: true, "p" : -200},
+		")" : { sep: true, "p" : -300},
+		"}" : { sep: true, "p" : -300},
+		"]" : { sep: true, "p" : -300},
+		"(end)" : {sep: true, "p" : -300}
 	};
 	
 	nexttoken();
 	
+	var deltmp = function(obj) {
+		delete obj.p; 
+		delete obj.n; 
+		delete obj.l;
+		delete obj.sep;
+		delete obj.end;
+	}
 	var parse = function (rbp) {
-		var left;
+		var prev;
 		var t = token;;
 	
 		rbp = rbp || 0;
@@ -217,20 +213,19 @@ var parser = function(iter) {
 		t = token;
 		nexttoken();
 		t.n();
-		left = t;
-		delete left.p; delete left.n; delete left.l;
 	
 		while (!t.sep && rbp < token.p) {
+			deltmp(t);
+			prev = t;
 			t = token;
 			nexttoken();
-			t.l(left);
-			left = t;
-			delete left.p; delete left.n; delete left.l;
+			t.l(prev);
 		}
-		if(left.id === "(end)") {
+		deltmp(t);
+		if(t.id === "(end)") {
 			return undefined;
 		}
-		return left;
+		return t;
 	}
 
 	return parse;
