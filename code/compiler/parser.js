@@ -135,24 +135,24 @@ var parser = function(iter) {
 		this.args = [parse(), parse()]; 
 	};
 
-	var list = function() {
-		this.id = "list" + this.id;
-		this.args = []
+	var readlist = function(arr) {
 		var t = parse();
-		while(t && t.id !== this.end) {
-			this.args.push(t);
+		while(!t.rpar) {
+			arr.push(t);
 			t = parse();
 		}
+	}
+
+	var list = function() {
+		this.id = "list" + this.id;
+		this.args = [];
+		readlist(this.args);
 	};
 	
 	var apply = function(prev) {
 		this.id = "apply" + this.id;
 		this.args = [prev]
-		var t = parse();
-		while(t && t.id !== this.end) {
-			this.args.push(t);
-			t = parse();
-		}
+		readlist(this.args);
 	};
 	
 	var if_else = function() {
@@ -189,10 +189,10 @@ var parser = function(iter) {
 		"," : { sep: true, "p" : -100},
 		":" : { sep: true, "p" : -100},
 		";" : { sep: true, "p" : -200},
-		")" : { sep: true, "p" : -300},
-		"}" : { sep: true, "p" : -300},
-		"]" : { sep: true, "p" : -300},
-		"(end)" : {sep: true, "p" : -300}
+		")" : { rpar: true, "p" : -300},
+		"}" : { rpar: true, "p" : -300},
+		"]" : { rpar: true, "p" : -300},
+		"(end)" : {rpar: true, "p" : -300}
 	};
 	
 	nexttoken();
@@ -214,7 +214,7 @@ var parser = function(iter) {
 		nexttoken();
 		t.n();
 	
-		while (!t.sep && rbp < token.p) {
+		while (rbp < token.p && !(t.sep || t.rpar)) {
 			deltmp(t);
 			prev = t;
 			t = token;
