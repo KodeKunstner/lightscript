@@ -1,32 +1,77 @@
+// \section{Small MobyScript Parser}
+//
+// The following is a MobyScript parser written in MobyScript. It 
+// is designed to be as small as possible and omits error checking. 
+// It is using the top down operator precedence parsing technique, 
+// as described in \cite{pratt-top-down-operator-precedence}. The 
+// implementation is also inspired by the JavaScript parser in 
+// \cite{beautiful-code}, which is also available online\cite{crockford-tdop}.
+//
+// It is stream oriented/lazy, such that it does not need to keep
+// the entire source in memory, but can be read from other streams
+// without large intermediate results in memory.
+//
+// The parser is encapsulated in the function
+
 var parser = function(iter) {
-	/**
-	 * Character reader
-	 */
-	var c; // current character
-	
+
+// which takes a character iterator as an argument, and returns an iterator
+// of parsetrees.
+//
+// \subsection{Tokeniser variables}
+//
+// The state of the tokeniser is stored in
+
+	var c;
+	var id; 
+	var isnum;
+	var token;
+
+// where \verb|c| is the next character, \verb|id| is the parsed 
+// identifier/token as a string, \verb|isnum| indicates whether \verb|id| 
+// is a number, and \verb|token| is an object containing the token 
+// currently being generated, and is also used to pass the token to the 
+// parse tree generator.
+//
+// \verb|token| has several elements:
+// 
+// TODO: describe token.t, token.... here
+//
+// \subsection{Tokeniser}
+// \subsubsection{Utility functions}
+//
+// Read the next character from the input iterator:
+
 	var nextc = function() {
 		iter.next();
 		c = iter.val;
 	}
-	
-	nextc();
-	
-	/**
-	 * Id-reader 
-	 */
-	var id;
-	var isnum;
+
+//
+// Check if the current character is contained in a given string:
 	
 	var oneof = function(symbs) {
 		return has_element(symbs, c);
 	}
 	
+//
+// Skip white spaces:
+
 	var skipws = function() {
 		while(oneof(" \n\r\t")) {
 			nextc();
 		}
 	}
 	
+// \subsubsection{String tokeniser}
+//
+// The following is a simple tokeniser, that generates a string from a sequence
+// of character. It TODO:spelling:distengueses integers (\verb|[0-9]+|), 
+// beginning of comment (\verb|/[/*]|), identifiers 
+// (\verb|[$_a-zA-Z][$_a-zA-Z0-9]*|), operaters 
+// (\verbX[<>/|=+-*&^%!~]+X) and single symbols (the rest).
+// It also sets a flag if it found an integer. The code is:
+
 	var nextid =  function() {
 		var num = "0123456789";
 		var ident = "$_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -54,13 +99,10 @@ var parser = function(iter) {
 			nextc();
 		}
 	};
-	
-	/**
-	 * Skip white-space, literals and comments;
-	 */
-	
-	// value, being used as is_number flag, and later containing value of literals or comments.
-	var token; 
+
+// \subsubsection{String tokeniser}
+//
+// This is the core tokeniser.
 	
 	var nexttoken = function() {
 		var val;
@@ -190,7 +232,12 @@ var parser = function(iter) {
 		"]" : { rpar: true, "p" : -300},
 		"(end)" : {rpar: true, "p" : -300}
 	};
-	
+
+/////////////////////////////////////////
+// Initialisation
+////
+
+	nextc();
 	nexttoken();
 	
 	var deltmp = function(obj) {
