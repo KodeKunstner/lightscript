@@ -132,7 +132,9 @@ var parser = function(iter) {
 	var readlist = function(arr) {
 		var t = parse();
 		while(!t.rpar) {
-			arr.push(t);
+			if(!t.sep) {
+				arr.push(t);
+			}
 			t = parse();
 		}
 	}
@@ -164,22 +166,22 @@ var parser = function(iter) {
 		"function": {"n" : prefix2},
 		"while": {"n" : prefix2},
 		"if": {"n" : if_else},
-		"+": {"p" : 50},
-		".": {"p" : 80},
-		"-": {"n" : prefix, "l" : infix, "p" : 50},
-		"*": {"p" : 60},
-		"===": {"p" : 40},
-		"!==": {"p" : 40},
-		"<=": {"p" : 40},
-		">=": {"p" : 40},
-		">": {"p" : 40},
-		"<": {"p" : 40},
-		"&&": {"l" : infixr, "p" : 30},
-		"||": {"l" : infixr, "p" : 30},
-		"=": {"l" : infixr, "p" : 10},
-		"[": { "n" : list, "end": "]",  "l" : apply, "p" : 80},
-		"(": { "n" : list, "end": ")",  "l" : apply, "p" : 80},
-		"{": { "n" : list, "end": "}"},
+		"+": {"p" : 400},
+		".": {"p" : 600},
+		"-": {"n" : prefix, "l" : infix, "p" : 400},
+		"*": {"p" : 500},
+		"===": {"p" : 300},
+		"!==": {"p" : 300},
+		"<=": {"p" : 300},
+		">=": {"p" : 300},
+		">": {"p" : 300},
+		"<": {"p" : 300},
+		"&&": {"l" : infixr, "p" : 200},
+		"||": {"l" : infixr, "p" : 200},
+		"=": {"l" : infixr, "p" : 100},
+		"[": { "n" : list, "l" : apply, "p" : 600},
+		"(": { "n" : list, "l" : apply, "p" : 600},
+		"{": { "n" : list},
 		"," : { sep: true, "p" : -100},
 		":" : { sep: true, "p" : -100},
 		";" : { sep: true, "p" : -200},
@@ -192,11 +194,6 @@ var parser = function(iter) {
 	nexttoken();
 	
 	var deltmp = function(obj) {
-		delete obj.p; 
-		delete obj.n; 
-		delete obj.l;
-		delete obj.sep;
-		delete obj.end;
 	}
 
 	var parse = function (rbp) {
@@ -205,18 +202,15 @@ var parser = function(iter) {
 	
 		rbp = rbp || 0;
 	
-		t = token;
 		nexttoken();
 		t.n();
 	
 		while (rbp < token.p && !(t.sep || t.rpar)) {
-			deltmp(t);
-			prev = t;
-			t = token;
-			nexttoken();
+			delete t.p; delete t.n; delete t.l;
+			prev = t; t = token; nexttoken();
 			t.l(prev);
 		}
-		deltmp(t);
+		delete t.p; delete t.n; delete t.l;
 		if(t.id === "(end)") {
 			return undefined;
 		}
@@ -225,5 +219,3 @@ var parser = function(iter) {
 
 	return parse;
 };
-
-var f = function(x) { if(x > 1) { return f(x - 1) } else {return 1 } }
