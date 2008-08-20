@@ -18,13 +18,7 @@ var parser = function(iter) {
 	var isnum;
 	
 	var oneof = function(symbs) {
-		var i = iterator(symbs);
-		while(i.next()) {
-			if (c === i.val) {
-				return true;
-			}
-		}
-		return false;
+		return has_element(symbs, c);
 	}
 	
 	var skipws = function() {
@@ -204,6 +198,7 @@ var parser = function(iter) {
 		delete obj.sep;
 		delete obj.end;
 	}
+
 	var parse = function (rbp) {
 		var prev;
 		var t = token;;

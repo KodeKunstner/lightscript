@@ -6,6 +6,15 @@ var copy = function(obj) {
 	return result;
 }
 
+var has_element = function(set, elem) {
+	for(key in set) {
+		if(set[key] === elem) {
+			return true;
+		}
+	}
+	return false;
+}
+
 var iterator = function(obj) {
 	var keys = [];
 	for(key in obj) {
