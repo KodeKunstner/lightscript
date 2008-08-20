@@ -18,12 +18,11 @@ var parser = function(iter) {
 	var isnum;
 	
 	var oneof = function(symbs) {
-		var i = 0;
-		while(i < symbs.length) {
-			if (c === symbs[i]) {
+		var i = iterator(symbs);
+		while(i.next()) {
+			if (c === i.val) {
 				return true;
 			}
-			i = i + 1;
 		}
 		return false;
 	}
@@ -77,25 +76,24 @@ var parser = function(iter) {
 
 		if(id === undefined) {
 			id = "(end)";
-		} 
-	
-		if(isnum) {
+		} else if(isnum) {
 			isnum = false;
-			token = {"id": "literal", "val": parseInt(id), "n": literal};
+			val = parseInt(id);
+			id = "(literal)";
 		} else if(id === "//") {
 			val = id;
 			while(id !== undefined && id !== "\n") {
 				nextid();
 				val = val + id;
 			}
-			token = {"id": "comment", "val": val, "n": literal};
+			id = "(comment)";
 		} else if(id === "/*") {
 			val = id;
 			while(id !== undefined && id !== "*/") {
 				nextid();
 				val = val + id;
 			}
-			token = {"id": "comment", "val": val, "n": literal};
+			id = "(comment)";
 		} else if(id === "\"") {
 			val = "";
 			nextid();
@@ -108,13 +106,16 @@ var parser = function(iter) {
 				}
 				nextid();
 			}
-			token = {"id": "literal", "val": val, "n": literal};
-		} else {
-			token = copy(parserObject[id]);
-			token.n = token.n || ident;
-			token.l = token.l || infix;
-			token.p = token.p || 0;
-			token.id = id;
+			id = "(literal)";
+		} 
+
+		token = copy(parserObject[id]);
+		token.n = token.n || ident;
+		token.l = token.l || infix;
+		token.p = token.p || 0;
+		token.id = id;
+		if(val !== undefined) {
+			token.val = val;
 		}
 	};
 	
@@ -124,21 +125,23 @@ var parser = function(iter) {
 			return undefined;
 		}
 	};
-	var literal = function() { 
-	};
+
 	var infix = function (left) { 
 		this.args = [left, parse(this.p)]
 	};
+
 	var infixr = function (left) { 
 		this.args = [left, parse(this.p - 1)]
 	};
+
 	var prefix = function() { 
 		this.args = [parse()];
 	};
+
 	var prefix2 = function() { 
 		this.args = [parse(), parse()]; 
 	};
-	
+
 	var list = function() {
 		this.id = "list" + this.id;
 		this.args = []
@@ -178,16 +181,16 @@ var parser = function(iter) {
 		"function": {"n" : prefix2},
 		"while": {"n" : prefix2},
 		"if": {"n" : if_else},
-		"+": {"l" : infix, "p" : 50},
-		".": {"l" : infix, "p" : 80},
+		"+": {"p" : 50},
+		".": {"p" : 80},
 		"-": {"n" : prefix, "l" : infix, "p" : 50},
-		"*": {"l" : infix, "p" : 60},
-		"===": {"l" : infix, "p" : 40},
-		"!==": {"l" : infix, "p" : 40},
-		"<=": {"l" : infix, "p" : 40},
-		">=": {"l" : infix, "p" : 40},
-		">": {"l" : infix, "p" : 40},
-		"<": {"l" : infix, "p" : 40},
+		"*": {"p" : 60},
+		"===": {"p" : 40},
+		"!==": {"p" : 40},
+		"<=": {"p" : 40},
+		">=": {"p" : 40},
+		">": {"p" : 40},
+		"<": {"p" : 40},
 		"&&": {"l" : infixr, "p" : 30},
 		"||": {"l" : infixr, "p" : 30},
 		"=": {"l" : infixr, "p" : 10},
