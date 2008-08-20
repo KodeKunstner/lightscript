@@ -13,19 +13,20 @@
 //
 // The parser is encapsulated in the function
 
-var parser = function(iter) {
+var parser = function (iter) {
 
 // which takes a character iterator as an argument, and returns an iterator
 // of parsetrees.
 //
+//
+/*global copy, has_element */
 // \subsection{Tokeniser variables}
 //
 // The state of the tokeniser is stored in
 
-	var c;
-	var id; 
-	var isnum;
-	var token;
+	var c, id, isnum, nextc, nextid, nexttoken, oneof, readlist, 
+	    skipws, token, apply, if_else, infix, infixr, list, parse, 
+	    prefix, prefix2, var_decl, parserObject;
 
 // where \verb|c| is the next character, \verb|id| is the parsed 
 // identifier/token as a string, \verb|isnum| indicates whether \verb|id| 
@@ -42,7 +43,7 @@ var parser = function(iter) {
 //
 // Read the next character from the input iterator:
 
-	var nextc = function() {
+	nextc = function () {
 		iter.next();
 		c = iter.val;
 	};
@@ -50,15 +51,15 @@ var parser = function(iter) {
 //
 // Check if the current character is contained in a given string:
 	
-	var oneof = function(symbs) {
+	oneof = function (symbs) {
 		return has_element(symbs, c);
 	};
 	
 //
 // Skip white spaces:
 
-	var skipws = function() {
-		while(oneof(" \n\r\t")) {
+	skipws = function () {
+		while (oneof(" \n\r\t")) {
 			nextc();
 		}
 	};
@@ -74,30 +75,31 @@ var parser = function(iter) {
 //
 // Forward declarations, not needed, but nice for JSLint
 
-	var nextid =  function() {
-		var num = "0123456789";
-		var ident = "$_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-		var oper = "<>/|=+-*&^%!~";
+	nextid =  function () {
+		var num, ident, oper, symbs;
+		num = "0123456789";
+		ident = "$_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		oper = "<>/|=+-*&^%!~";
 	
-		var symbs = "";
+		symbs = "";
 		id = c;
 	
-		if(oneof(num)) {
+		if (oneof(num)) {
 			symbs = num;
 			isnum = true;
-		} else if(oneof(ident)) {
+		} else if (oneof(ident)) {
 			symbs = num + ident;
-		} else if(oneof(oper)) {
+		} else if (oneof(oper)) {
 			symbs = oper;
 		}
 	
 		nextc();
 	
-		if(id === "/" && oneof("/*")) {
+		if (id === "/" && oneof("/*")) {
 			id = id + c;
 			nextc();
 		} else {
-			while(oneof(symbs)) {
+			while (oneof(symbs)) {
 				id = id + c;
 				nextc();
 			}
@@ -108,36 +110,36 @@ var parser = function(iter) {
 //
 // This is the core tokeniser.
 	
-	var nexttoken = function() {
+	nexttoken = function () {
 		var val;
 		skipws();
 		nextid();
 
-		if(id === undefined) {
+		if (id === undefined) {
 			id = "(end)";
-		} else if(isnum) {
+		} else if (isnum) {
 			isnum = false;
 			val = parseInt(id, 10);
 			id = "(literal)";
-		} else if(id === "//") {
+		} else if (id === "//") {
 			val = id;
-			while(id !== undefined && id !== "\n") {
+			while (id !== undefined && id !== "\n") {
 				nextid();
 				val = val + id;
 			}
 			id = "(comment)";
-		} else if(id === "/*") {
+		} else if (id === "/*") {
 			val = id;
-			while(id !== undefined && id !== "*/") {
+			while (id !== undefined && id !== "*/") {
 				nextid();
 				val = val + id;
 			}
 			id = "(comment)";
-		} else if(id === "\"") {
+		} else if (id === "\"") {
 			val = "";
 			nextid();
-			while(id !== undefined && id !== "\"") {
-				if(id === "\\") {
+			while (id !== undefined && id !== "\"") {
+				if (id === "\\") {
 					val = val + ({"n": "\n", "r": "\r", "t": "\t"}[c] || c);
 					nextc();
 				} else {
@@ -149,64 +151,75 @@ var parser = function(iter) {
 		} 
 
 		token = copy(parserObject[id]);
-		token.n = token.n || function() {};
+		token.n = token.n || function () {};
 		token.l = token.l || infix;
 		token.p = token.p || 0;
 		token.id = id;
-		if(val !== undefined) {
+		if (val !== undefined) {
 			token.val = val;
 		}
 	};
 	
-	var infix = function (prev) { 
+	infix = function (prev) { 
 		this.args = [prev, parse(this.p)];
 	};
 
-	var infixr = function (prev) { 
+	infixr = function (prev) { 
 		this.args = [prev, parse(this.p - 1)];
 	};
 
-	var prefix = function() { 
+	prefix = function () { 
 		this.args = [parse()];
 	};
 
-	var prefix2 = function() { 
+	prefix2 = function () { 
 		this.args = [parse(), parse()]; 
 	};
 
-	var readlist = function(arr) {
-		var t = parse();
-		while(!t.rpar) {
-			if(!t.sep) {
+	readlist = function (arr) {
+		var t;
+		t = parse();
+		while (!t.rpar) {
+			if (!t.sep) {
 				arr.push(t);
 			}
 			t = parse();
 		}
 	};
 
-	var list = function() {
+	list = function () {
 		this.id = "list" + this.id;
 		this.args = [];
 		readlist(this.args);
 	};
 	
-	var apply = function(prev) {
+	apply = function (prev) {
 		this.id = "apply" + this.id;
 		this.args = [prev];
 		readlist(this.args);
 	};
 	
-	var if_else = function() {
+	if_else = function () {
 		this.args = [parse(), parse()];
-		if(token.id === "else") {
+		if (token.id === "else") {
 			nexttoken();
 			this.args.push(parse());
 		}
 	};
+	var_decl = function () {
+		var t;
+		this.args = [parse()];
+		t = parse();
+		while (t.id === ",") {
+			this.args.push(parse());
+			t = parse();
+		}
+
+	};
 	
-	var parserObject = {
+	parserObject = {
 		"return": {"n" : prefix},
-		"var": {"n" : prefix},
+		"var": {"n" : var_decl},
 		"delete": {"n" : prefix},
 		"function": {"n" : prefix2},
 		"while": {"n" : prefix2},
@@ -245,9 +258,10 @@ var parser = function(iter) {
 // 
 // \subsection{The parser core}
 	
-	var parse = function (rbp) {
-		var prev;
-		var t = token;
+	parse = function (rbp) {
+		var prev, t;
+
+		t = token;
 	
 		rbp = rbp || 0;
 	
@@ -255,12 +269,21 @@ var parser = function(iter) {
 		t.n();
 	
 		while (rbp < token.p && !(t.sep || t.rpar)) {
-			delete t.p; delete t.n; delete t.l;
-			prev = t; t = token; nexttoken();
+			delete t.p; 
+			delete t.n; 
+			delete t.l;
+
+			prev = t; 
+			t = token; 
+			nexttoken();
+
 			t.l(prev);
 		}
-		delete t.p; delete t.n; delete t.l;
-		if(t.id === "(end)") {
+		delete t.p; 
+		delete t.n; 
+		delete t.l;
+
+		if (t.id === "(end)") {
 			return undefined;
 		}
 		return t;
