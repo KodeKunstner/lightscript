@@ -69,7 +69,7 @@ var parser = function(iter) {
 // of character. It TODO:spelling:distengueses integers (\verb|[0-9]+|), 
 // beginning of comment (\verb|/[/*]|), identifiers 
 // (\verb|[$_a-zA-Z][$_a-zA-Z0-9]*|), operaters 
-// (\verbX[<>/|=+-*&^%!~]+X) and single symbols (the rest).
+// (\verb"[<>/|=+-*&^%!~]+") and single symbols (the rest).
 // It also sets a flag if it found an integer. The code is:
 
 	var nextid =  function() {
@@ -233,16 +233,15 @@ var parser = function(iter) {
 		"(end)" : {rpar: true, "p" : -300}
 	};
 
-/////////////////////////////////////////
-// Initialisation
-////
-
+//
+// \subsection{Initialisation}
+// 
 	nextc();
 	nexttoken();
-	
-	var deltmp = function(obj) {
-	}
 
+// 
+// \subsection{The parser core}
+	
 	var parse = function (rbp) {
 		var prev;
 		var t = token;;
@@ -263,6 +262,9 @@ var parser = function(iter) {
 		}
 		return t;
 	}
+
+// \subsection{End of code}
+// Just return the parser.
 
 	return parse;
 };
