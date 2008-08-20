@@ -45,14 +45,14 @@ var parser = function(iter) {
 	var nextc = function() {
 		iter.next();
 		c = iter.val;
-	}
+	};
 
 //
 // Check if the current character is contained in a given string:
 	
 	var oneof = function(symbs) {
 		return has_element(symbs, c);
-	}
+	};
 	
 //
 // Skip white spaces:
@@ -61,7 +61,7 @@ var parser = function(iter) {
 		while(oneof(" \n\r\t")) {
 			nextc();
 		}
-	}
+	};
 	
 // \subsubsection{String tokeniser}
 //
@@ -70,7 +70,9 @@ var parser = function(iter) {
 // beginning of comment (\verb|/[/*]|), identifiers 
 // (\verb|[$_a-zA-Z][$_a-zA-Z0-9]*|), operaters 
 // (\verb"[<>/|=+-*&^%!~]+") and single symbols (the rest).
-// It also sets a flag if it found an integer. The code is:
+// It also sets a flag if it found an integer.
+//
+// Forward declarations, not needed, but nice for JSLint
 
 	var nextid =  function() {
 		var num = "0123456789";
@@ -94,9 +96,11 @@ var parser = function(iter) {
 		if(id === "/" && oneof("/*")) {
 			id = id + c;
 			nextc();
-		} else while(oneof(symbs)) {
-			id = id + c;
-			nextc();
+		} else {
+			while(oneof(symbs)) {
+				id = id + c;
+				nextc();
+			}
 		}
 	};
 
@@ -106,7 +110,6 @@ var parser = function(iter) {
 	
 	var nexttoken = function() {
 		var val;
-		var t;
 		skipws();
 		nextid();
 
@@ -114,7 +117,7 @@ var parser = function(iter) {
 			id = "(end)";
 		} else if(isnum) {
 			isnum = false;
-			val = parseInt(id);
+			val = parseInt(id, 10);
 			id = "(literal)";
 		} else if(id === "//") {
 			val = id;
@@ -156,11 +159,11 @@ var parser = function(iter) {
 	};
 	
 	var infix = function (prev) { 
-		this.args = [prev, parse(this.p)]
+		this.args = [prev, parse(this.p)];
 	};
 
 	var infixr = function (prev) { 
-		this.args = [prev, parse(this.p - 1)]
+		this.args = [prev, parse(this.p - 1)];
 	};
 
 	var prefix = function() { 
@@ -179,7 +182,7 @@ var parser = function(iter) {
 			}
 			t = parse();
 		}
-	}
+	};
 
 	var list = function() {
 		this.id = "list" + this.id;
@@ -189,7 +192,7 @@ var parser = function(iter) {
 	
 	var apply = function(prev) {
 		this.id = "apply" + this.id;
-		this.args = [prev]
+		this.args = [prev];
 		readlist(this.args);
 	};
 	
@@ -244,7 +247,7 @@ var parser = function(iter) {
 	
 	var parse = function (rbp) {
 		var prev;
-		var t = token;;
+		var t = token;
 	
 		rbp = rbp || 0;
 	
@@ -261,7 +264,7 @@ var parser = function(iter) {
 			return undefined;
 		}
 		return t;
-	}
+	};
 
 // \subsection{End of code}
 // Just return the parser.
