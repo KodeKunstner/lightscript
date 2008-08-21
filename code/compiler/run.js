@@ -2,7 +2,5 @@
 
 load("stdmob.js");
 load("parser.js");
-
-iter = parser(getch);
-
-load("compiler.js");
+load("macro.js");
+load("cogen.js");

@@ -1,7 +1,7 @@
 CLASSES=JSON.class Test.class MobyFunction.class MobyVM.class
 
-run: $(CLASSES) test.json
-	java Test test.json
+run: $(CLASSES) ../test/test.json
+	java Test ../test/test.json
 
 clean:
 	rm -f *.class *.class.gz

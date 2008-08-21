@@ -4,17 +4,17 @@ import java.util.Vector;
 
 class MobyVM {
 	class Code implements MobyFunction {
-		public Object[] closure;
+		public Object[] consts;
 		public byte[] code;
 
 		public Code(Object o) {
 			int i;
 			Hashtable h = (Hashtable)o;
 
-			Vector v = (Vector)h.get("closure");
-			closure = new Object[v.size()];
+			Vector v = (Vector)h.get("consts");
+			consts = new Object[v.size()];
 			for(i=0;i<v.size();i++) {
-				closure[i] = v.elementAt(i);
+				consts[i] = v.elementAt(i);
 			}
 
 			v = (Vector)h.get("code");
@@ -92,24 +92,24 @@ class MobyVM {
 
 	public Object eval(Code c) {
 		byte[] code = c.code;
-		Object[] closure = c.closure;
+		Object[] consts = c.consts;
 		int pc, codesize, i;
 		Object o;
 		codesize = code.length;
 
 		for(pc=0;pc < codesize;pc++) {
 			switch(code[pc]) {
-	// push from closure (closure id)
+	// push from consts (consts id)
 	case 0: 
 		pc++;
-		stack.push(closure[code[pc]]);
+		stack.push(consts[code[pc]]);
 		break;
-	// call global (number of arguments, closure id of name)
+	// call global (number of arguments, consts id of name)
 	case 1:
 		pc++; 
 		argc = code[pc];
 		pc++;
-		((MobyFunction)globals.get(closure[code[pc]])).apply(this);
+		((MobyFunction)globals.get(consts[code[pc]])).apply(this);
 		break;
 			}
 		}
