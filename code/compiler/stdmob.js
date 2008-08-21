@@ -32,6 +32,12 @@ var iterator = function(obj) {
 	}
 }; 
 
+var map = function(fn, obj) {
+	for(key in obj) {
+		fn(obj[key]);
+	}
+};
+
 var print_r = function(obj) {
 	var genstr = function(obj, acc) {
 		var t, i;

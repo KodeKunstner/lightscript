@@ -19,7 +19,9 @@ var parser = function (iter) {
 // of parsetrees.
 //
 //
-/*global copy, has_element */
+
+   /*global copy, has_element */
+
 // \subsection{Tokeniser variables}
 //
 // The state of the tokeniser is stored in
@@ -226,7 +228,6 @@ var parser = function (iter) {
 	};
 	
 	parserObject = {
-		"undefined": {"n" : passthrough},
 		"undefined": {"n" : passthrough},
 		"true": {"n" : passthrough, "val": true, "id": "(literal)"},
 		"false": {"n" : passthrough, "val": false, "id": "(literal)"},
