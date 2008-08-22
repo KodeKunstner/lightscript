@@ -13,6 +13,7 @@ ops = [
 ["jump", 3],
 ["condjump", 4],
 ["putglobal", 5],
+["popn", 6],
 ];
 
 op = {};
@@ -50,6 +51,14 @@ writeconst = function(obj) {
 noop = function(obj) {};
 cogens = {
 	"(comment)": noop,
+	"(codeblock)": function(obj) {
+		iter = iterator(obj.args);
+		while(iter.next()) {
+			cogen(iter.val);
+		}
+		code.push(op.popn);
+		code.push(obj.args.length);
+	},
 	"var": noop,
 	"(call)": function(obj) {
 		var iter;

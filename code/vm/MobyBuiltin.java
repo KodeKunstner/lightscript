@@ -37,7 +37,7 @@ final class MobyBuiltin implements MobyFunction {
 	// print
 	case 0: 
 		for(i=0;i<vm.argc;i++) {
-			System.out.println(vm.getArg(i));
+			Print.print(vm.getArg(i));
 		}
 	break;
 	// +

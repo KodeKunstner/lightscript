@@ -98,21 +98,19 @@ run_macro = function(obj) {
 			}
 			run_macro(obj);
 		},
-		/*
 		"while": function(obj) {
-			obj.args[0].id = "(condition)";
+		//	obj.args[0].id = "(condition)";
 			obj.args[1].id = "(codeblock)";
 			macro_args(obj);
 		},
 		"if": function(obj) {
-			obj.args[0].id = "(condition)";
+		//	obj.args[0].id = "(condition)";
 			obj.args[1].id = "(codeblock)";
 			if(obj.args[2]) {
 				obj.args[2].id = "(codeblock)";
 			}
 			macro_args(obj);
 		},
-		*/
 		"function": function(obj) {
 			obj.args[0].id = "var";
 			obj.args[1].id = "(codeblock)"

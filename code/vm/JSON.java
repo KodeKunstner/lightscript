@@ -276,8 +276,10 @@ class JSON {
 		 * the platform does not support
 		 * floats
 		 */
+			/*
 		} else if(o instanceof Double) {
 			s.write((new String(o.toString())).getBytes());
+			*/
 		/* end of float */
 
 		} else if(o instanceof Hashtable) {

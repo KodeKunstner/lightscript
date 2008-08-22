@@ -31,7 +31,6 @@ final class MobyCode implements MobyFunction {
 		Hashtable globals = vm.globals;
 
 		for(pc=0;pc < code.length;pc++) {
-			System.out.println("op " + code[pc] + " @ " + pc);
 			switch(code[pc]) {
 /////////////////////////////
 // Beginning of dispatch
@@ -73,10 +72,17 @@ final class MobyCode implements MobyFunction {
 		}
 		break;
 	// put-global, pop statcktop and store as global val (global const id)
-	// ..., value -> ...
+	// ..., value -> ..., null
 	case 5: 
 		pc++;
 		globals.put(consts[code[pc]], stack.pop());
+		stack.push(null);
+		break;
+	// pop n values from the stack;
+	// ..., value -> ...
+	case 6: 
+		pc++;
+		stack.setSize(stack.size() - code[pc]);
 		break;
 ////
 // End of dispatch
