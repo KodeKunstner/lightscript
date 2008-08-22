@@ -2,7 +2,7 @@ run:
 	cd compiler && ./run.js < ../test/test.js > ../test/test.json
 	cd vm && make run
 
-run-compiler:
+translate:
 	cd compiler && ./test-run.js < ../test/test.js 
 
 clean:
