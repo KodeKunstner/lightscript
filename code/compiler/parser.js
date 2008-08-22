@@ -1,83 +1,29 @@
 // \section{Small MobyScript Parser}
-//
-// The following is a MobyScript parser written in MobyScript. It 
-// is designed to be as small as possible and omits error checking. 
-// It is using the top down operator precedence parsing technique, 
-// as described in \cite{pratt-top-down-operator-precedence}. The 
-// implementation is also inspired by the JavaScript parser in 
-// \cite{beautiful-code}, which is also available online\cite{crockford-tdop}.
-//
-// It is stream oriented/lazy, such that it does not need to keep
-// the entire source in memory, but can be read from other streams
-// without large intermediate results in memory.
-//
-// The parser is encapsulated in the function
 
 var parser = function (iter) {
 
-// which takes a character iterator as an argument, and returns an iterator
-// of parsetrees.
-//
-//
-
    /*global copy, has_element */
-
-// \subsection{Tokeniser variables}
-//
-// The state of the tokeniser is stored in
 
 	var c, id, isnum, nextc, nextid, nexttoken, oneof, readlist, 
 	    skipws, token, apply, if_else, infix, infixr, list, parse, 
 	    prefix, prefix2, var_decl, parserObject, passthrough, 
 	    identifier;
 
-// where \verb|c| is the next character, \verb|id| is the parsed 
-// identifier/token as a string, \verb|isnum| indicates whether \verb|id| 
-// is a number, and \verb|token| is an object containing the token 
-// currently being generated, and is also used to pass the token to the 
-// parse tree generator.
-//
-// \verb|token| has several elements:
-// 
-// TODO: describe token.t, token.... here
-//
-// \subsection{Tokeniser}
-// \subsubsection{Utility functions}
-//
-// Read the next character from the input iterator:
-
 	nextc = function () {
 		iter.next();
 		c = iter.val;
 	};
 
-//
-// Check if the current character is contained in a given string:
-	
 	oneof = function (symbs) {
 		return has_element(symbs, c);
 	};
 	
-//
-// Skip white spaces:
-
 	skipws = function () {
 		while (oneof(" \n\r\t")) {
 			nextc();
 		}
 	};
 	
-// \subsubsection{String tokeniser}
-//
-// The following is a simple tokeniser, that generates a string from a sequence
-// of character. It TODO:spelling:distengueses integers (\verb|[0-9]+|), 
-// beginning of comment (\verb|/[/*]|), identifiers 
-// (\verb|[$_a-zA-Z][$_a-zA-Z0-9]*|), operaters 
-// (\verb"[<>/|=+-*&^%!~]+") and single symbols (the rest).
-// It also sets a flag if it found an integer.
-//
-// Forward declarations, not needed, but nice for JSLint
-
 	nextid =  function () {
 		var num, ident, oper, symbs;
 		num = "0123456789";
@@ -110,10 +56,6 @@ var parser = function (iter) {
 		}
 	};
 
-// \subsubsection{String tokeniser}
-//
-// This is the core tokeniser.
-	
 	nexttoken = function () {
 		var val;
 		skipws();
@@ -264,15 +206,9 @@ var parser = function (iter) {
 		"(end)" : {"n": passthrough, rpar: true, "p" : -300}
 	};
 
-//
-// \subsection{Initialisation}
-// 
 	nextc();
 	nexttoken();
 
-// 
-// \subsection{The parser core}
-	
 	parse = function (rbp) {
 		var prev, t;
 
@@ -303,9 +239,6 @@ var parser = function (iter) {
 		}
 		return t;
 	};
-
-// \subsection{End of code}
-// Just return the parser.
 
 	return { next: function() {
 			this.val = parse();

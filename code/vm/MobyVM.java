@@ -5,7 +5,7 @@ import java.util.Vector;
 class MobyVM {
 	class Code implements MobyFunction {
 		public Object[] consts;
-		public byte[] code;
+		public short[] code;
 
 		public Code(Object o) {
 			int i;
@@ -18,9 +18,9 @@ class MobyVM {
 			}
 
 			v = (Vector)h.get("code");
-			code = new byte[v.size()];
+			code = new short[v.size()];
 			for(i=0;i<v.size();i++) {
-				code[i] = ((Integer)v.elementAt(i)).byteValue();
+				code[i] = ((Integer)v.elementAt(i)).shortValue();
 			}
 		}
 
@@ -179,7 +179,7 @@ class MobyVM {
 	}
 
 	public Object eval(Code c) {
-		byte[] code = c.code;
+		short[] code = c.code;
 		Object[] consts = c.consts;
 		int pc, codesize, i;
 		Object o;

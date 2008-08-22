@@ -1,7 +1,8 @@
 var op, functions;
 
 nextconst = 0;
-consts = {};
+strconsts = {};
+numconsts = {};
 consttable = [];
 code = [];
 
@@ -20,19 +21,33 @@ while(iter.next()) {
 };
 
 newconst = function(obj) {
-	consts[obj] = nextconst;
+	if(typeof(obj) === "number") {
+		numconsts[obj] = nextconst;
+	} else {
+		strconsts[obj] = nextconst;
+	}
 	nextconst = nextconst + 1;
 	consttable.push(obj);
 };
 
 writeconst = function(obj) {
+	var consts;
+	if(typeof(obj) === "number") {
+		consts = numconsts;
+	} else {
+		consts = strconsts;
+	}
+
 	if(consts[obj] === undefined) {
 		newconst(obj);
 	}
 	code.push(consts[obj]);
 };
 
+noop = function(obj) {};
 cogens = {
+	"(comment)": noop,
+	"var": noop,
 	"(call)": function(obj) {
 		var iter;
 		iter = iterator(obj.args);
