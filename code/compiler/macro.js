@@ -1,6 +1,6 @@
 var run_macro;
 run_macro = function(obj) {
-	var macro_args, macros, run_macro, fn, fn_stack, functions, new_id;
+	var macro_args, macros, run_macro, fn, fn_stack, functions, new_id, tofunction, neg_op;
 	
 	new_id = (function() {
 		var id = 0;
@@ -28,8 +28,49 @@ run_macro = function(obj) {
 	run_macro = function(node) {
 		(macros[node.id]||macro_args)(node); 
 	}
+
+	tofunction = function(obj) {
+		var newargs, iter;
+		newargs = [{"id": "(identifier)", "val": obj.id}];
+		iter = iterator(obj.args);
+		while(iter.next()) {
+			newargs.push(iter.val);
+		}
+		obj.args = newargs;
+		obj.id = "(call)";
+		macro_args(obj);
+	}
+
+	neg_op = function(op) {
+		return function(obj) {
+			obj.id = "!";
+			obj.args = [{"id": op, "args": obj.args}];
+			run_macro(obj);
+		}
+	}
 	
 	macros = {
+		"+": tofunction,
+		"*": tofunction,
+		"-": tofunction,
+		"===": tofunction,
+		"<": tofunction,
+		"!": tofunction,
+		"~": tofunction,
+		"|": tofunction,
+		"^": tofunction,
+		"&": tofunction,
+		"<<": tofunction,
+		">>": tofunction,
+		">>>": tofunction,
+		"!==": neg_op("==="),
+		"<=": neg_op(">"),
+		">=": neg_op("<"),
+		">": function(obj) {
+			obj.id = "<";
+			obj.args = [obj.args[1], obj.args[0]];
+			run_macro(obj);
+		},
 		".": function(obj) {
 			obj.args[1].id = "(literal)";
 			obj.id = "(subscript)";
@@ -48,6 +89,14 @@ run_macro = function(obj) {
 				obj.id = "(call)";
 			}
 			macro_args(obj);
+		},
+		"list(": function(obj) {
+			var iter;
+			iter = iterator(obj.args[0]);
+			while(iter.next()) {
+				obj[iter.key] = iter.val;
+			}
+			run_macro(obj);
 		},
 		"while": function(obj) {
 			obj.args[0].id = "(condition)";
@@ -87,10 +136,7 @@ run_macro = function(obj) {
 			}
 			macro_args(obj);
 		},
-		"=": function(obj) {
-			macro_args(obj);
-		},
-		"identifier": function(obj) {
+		"(identifier)": function(obj) {
 			var iter, scope, name;
 	
 			name = obj.val;

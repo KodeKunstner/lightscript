@@ -1,6 +1,7 @@
 \chapter{The Language}
 
-\section{Features}
+\section{Overview}
+\subsection{Features}
 
 \begin{itemize}
 \item First class functions
@@ -22,21 +23,23 @@ The following features will not be in the first version of the language:
 \item Regex
 \end{itemize}
 
-\section{...}
-\subsection{Numbers}
-Numbers in MobyScript are integers with at least 32 bit precision.
-The result of overflow are not defined.
-Platforms might not support floating point arithmetic, examples are Java CLDC 1.0 devices and devices without FPU programmed in C.
-This is a major deviation from EcmaScript where all numbers are 64 bit floating point. 
-Fortunately the operations on 64 bit floats yields the same result as operations on 32 bit integers, except for division and overflow. 
-Thus the division operator \verb|\| is not included in the MobyScript language, and
-instead a new library function for integer division \verb|div| is introduced.
+\section{Types}
+\subsection{Undefined}
+Undefined is the null type/value.
 
-To simplify parsing, numbers can only be entered in decimal notation.
+\subsection{Booleans}
+
+\subsection{Numbers}
+
+Numbers in MobyScript are at least 32-bit signed integers. 
+This allows the language to run on platforms without floating point arithmetics, such as Java CLDC 1.0 and many embedded devices.
+Results of overflows are not defined, and may vary between platforms.
+Numbers can only entered in decimal notation.
 
 \subsection{Strings}
 
 A string is a sequence of characters, where a character can be any unicode symbol. 
+
 
 In EcmaScript strings supports random access, and contains unicode characters in range 0...65545.
 This makes good sense if implemented as an array of 16-bit numbers. Unfortunately that representation use TODO:fix-spelling:excessive memory and does not support all unicode characters. 
@@ -45,3 +48,63 @@ This also makes i possible to add compression later to the strings in memory.
 Strings in MobyScript can therefore only be accessed sequentially, for example through iteration.
 
 To simplify parsing, strings can only be quoted with \verb|"|, and the only escape symbols are \verb|\\| and \verb|\"|.
+
+\subsection{Functions}
+
+\subsection{Arrays}
+
+Arrays are numbered sequences of elements.
+
+\subsection{Objects}
+
+Objects are hashtables. 
+There is the usual notation for method calls, which requires the method to be a function property of the object.
+There are no builtin support for inheritance.
+
+
+\section{Control structures}
+
+The control structure of the language is \verb|if|, \verb|else|, \verb|while|.
+
+\section{Operators and library functions}
+
+\subsection{Integer operations}
+
+The binary integer operators are
+\verb|+|, \verb|-|, \verb|*|, \verb|&|, \verb|^|, \verb$|$, \verb|<<|, \verb|>>| and \verb|>>>|.
+The unary integer operators are \verb|-| and \verb|~|.
+
+Integer division is done via the library function \verb|div|. \verb|/| is reserved for floating point division, which is not supported in language version.
+Modulus are implemented similarly as \verb|mod| instead of \verb|%|.
+
+
+\subsection{Iterators}
+Iterators are objects, used for iteration. An iterator contains a method \verb|next()| which returns true or false, depending on whether there are more elements, and goes to the next element. The \verb|next()| method also sets the \verb|val| property and possibly the \verb|key| property.
+
+There is a function \verb|iterator(obj)| that creates an iterator across some kind of object. \verb|key| and \verb|val| is not set until \verb|next()| is called. To access all elements in an object or array:
+\begin{verbatim}
+iter = iterator(object);
+while(iter.next()) {
+    ... do something with iter.key and iter.val ...
+}
+\end{verbatim}
+To access every character in a string:
+\begin{verbatim}
+iter = iterator(string);
+while(iter.next()) {
+    ... do something with iter.val ...
+}
+\end{verbatim}
+
+The use of iterators is a pattern, which also applies to library routines such as input and output.
+
+
+\section{Differences from EcmaScript}
+
+MobyScript is a subset of EcmaScript, with some additional library functions, which can easily be defined in EcmaScript. This makes it possible to run MobyScript programs unmodified on every EcmaScript implementation.
+
+--------------
+
+A major difference to EcmaScript is that MobyScript arrays are not objects.
+
+Unlike EcmaScript, inheritance is not supported. This is a tradeof between size and features.

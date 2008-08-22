@@ -11,7 +11,7 @@ iter = parser(getch);
 
 while(iter.next()) {
         functions = run_macro(iter.val);
-        //print_r(iter.val);
+        print_r(iter.val);
         cogen(iter.val);
         print();
 }

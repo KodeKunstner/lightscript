@@ -2,11 +2,13 @@ var op, functions;
 
 nextconst = 0;
 consts = {};
+consttable = [];
 code = [];
 
 ops = [
-["getconst", 0, "followed by const-id, pops none, push 1"],
-["callglobal", 1, "followed by number-of-arguments and global-id as const-id, pops number of arguments, push one"],
+["getconst", 0],
+["callglobal", 1],
+["getglobal", 2],
 ];
 
 op = {};
@@ -20,6 +22,7 @@ while(iter.next()) {
 newconst = function(obj) {
 	consts[obj] = nextconst;
 	nextconst = nextconst + 1;
+	consttable.push(obj);
 };
 
 writeconst = function(obj) {
@@ -31,19 +34,23 @@ writeconst = function(obj) {
 
 cogens = {
 	"(call)": function(obj) {
-		// TODO: currently only call const functions, fix this.
 		var iter;
 		iter = iterator(obj.args);
 		iter.next();
 		while(iter.next()) {
 			cogen(iter.val);
 		}
+		cogen(obj.args[0]);
 		code.push(op.callglobal);
-		writeconst(obj.args[0].val);
 		code.push(obj.args.length - 1);
 	},
 	"(literal)": function(obj) {
 		code.push(op.getconst);
+		writeconst(obj.val);
+	},
+	"(identifier)": function(obj) {
+		// TODO: currently only get global values.
+		code.push(op.getglobal);
 		writeconst(obj.val);
 	},
 
@@ -63,26 +70,4 @@ cogen = function(node) {
 gencode = function(obj) {
 };
 
-
-
-
-iter = parser(getch);
-
-while(iter.next()) {
-	functions = run_macro(iter.val);
-	//print_r(iter.val);
-	cogen(iter.val);
-	//print();
-}
-//print_r(functions);
-//print_r(ops);
-//print_r(op);
-
-consttable = [];
-iter = iterator(consts);
-while(iter.next()) {
-	consttable[iter.val] = iter.key;
-}
-
-print_r({"consts": consttable, "code": code});
 

@@ -27,6 +27,7 @@ synopsis.pdf: synopsis.tex bibliography.bib
 	epstopdf $*.eps
 
 .tex.pdf:
+	./src2tex.sh
 	pdflatex $*.tex && bibtex $* && makeindex $*.idx && pdflatex $*.tex \
 	pdflatex $*.tex && pdflatex $*.tex
 

@@ -84,6 +84,7 @@ var parser = function (iter) {
 		ident = "$_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 		oper = "<>/|=+-*&^%!~";
 	
+		isnum = false;
 		symbs = "";
 		id = c;
 	
@@ -121,7 +122,6 @@ var parser = function (iter) {
 		if (id === undefined) {
 			id = "(end)";
 		} else if (isnum) {
-			isnum = false;
 			val = parseInt(id, 10);
 			id = "(literal)";
 		} else if (id === "//") {
@@ -167,7 +167,7 @@ var parser = function (iter) {
 	
 	identifier = function() {
 		this.val = this.id;
-		this.id = "identifier";
+		this.id = "(identifier)";
 	};
 
 	infix = function (prev) { 
