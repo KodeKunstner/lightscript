@@ -1,10 +1,10 @@
 import java.util.Hashtable;
 import java.util.Stack;
 
-class MobyBuiltin implements MobyFunction {
-	private int id;
+final class MobyBuiltin implements MobyFunction {
+	private final int id;
 
-	public MobyBuiltin(int id) {
+	private MobyBuiltin(int id) {
 		this.id = id;
 	}
 

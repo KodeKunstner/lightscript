@@ -98,6 +98,7 @@ run_macro = function(obj) {
 			}
 			run_macro(obj);
 		},
+		/*
 		"while": function(obj) {
 			obj.args[0].id = "(condition)";
 			obj.args[1].id = "(codeblock)";
@@ -111,6 +112,7 @@ run_macro = function(obj) {
 			}
 			macro_args(obj);
 		},
+		*/
 		"function": function(obj) {
 			obj.args[0].id = "var";
 			obj.args[1].id = "(codeblock)"

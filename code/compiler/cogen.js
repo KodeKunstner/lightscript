@@ -10,6 +10,9 @@ ops = [
 ["getconst", 0],
 ["callglobal", 1],
 ["getglobal", 2],
+["jump", 3],
+["condjump", 4],
+["putglobal", 5],
 ];
 
 op = {};
@@ -68,7 +71,42 @@ cogens = {
 		code.push(op.getglobal);
 		writeconst(obj.val);
 	},
-
+	"while": function(obj) {
+		var jumpadr_pos, startpos;
+		startpos = code.length - 1;
+		cogen(obj.args[0]);
+		code.push(op.condjump);
+		jumpadr_pos = code.length;
+		code.push(0);
+		cogen(obj.args[1]);
+		code.push(op.jump);
+		code.push(startpos - code.length);
+		code[jumpadr_pos] = code.length - jumpadr_pos - 1;
+	},
+	"if": function(obj) {
+		var jumpadr_pos;
+		cogen(obj.args[0]);
+		code.push(op.condjump);
+		jumpadr_pos = code.length;
+		code.push(0);
+		cogen(obj.args[1]);
+		code[jumpadr_pos] = code.length - jumpadr_pos - 1;
+		/* if-else */
+		if(obj.args === 3) {
+			code[jumpadr_pos] = code[jumpadr_pos] + 2;
+			code.push(op.jump);
+			jumpadr_pos = code.length;
+			code.push(0);
+			cogen(obj.args[2]);
+			code[jumpadr_pos] = code.length - jumpadr_pos - 1;
+		}
+	},
+	"=": function(obj) {
+		// TODO: currently only set global values.
+		cogen(obj.args[1]);
+		code.push(op.putglobal);
+		writeconst(obj.args[0].val);
+	},
 };
 
 cogen_args =  function(node) {
@@ -76,6 +114,7 @@ cogen_args =  function(node) {
 };
 
 cogen = function(node) {
+	//print_r(["NODE", node]);
 	if(!node.sep) {
 		cogens[node.id](node); 
 	}

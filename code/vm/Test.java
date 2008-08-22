@@ -10,6 +10,7 @@ class Test {
 		System.out.println("");
 
 		MobyVM vm = new MobyVM();
-		vm.eval(o);
+		MobyFunction f = new MobyCode(o);
+		vm.call(f);
 	}
 }

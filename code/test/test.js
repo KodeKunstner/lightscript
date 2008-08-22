@@ -1,5 +1,3 @@
-print("hello " + (1 * 5 + 4 * 4));
-print("world");
-print("a < b:" + ("a" < "b"));
-print("a <= b:" + ("a" <= "b"));
-print("1" + 1);
+a = 0
+while(a<4) a = a + 1;
+print(a);

@@ -1,9 +1,10 @@
 import java.util.Hashtable;
 import java.util.Stack;
 
-class MobyCode implements MobyFunction {
-	public Object[] consts;
-	public short[] code;
+final class MobyCode implements MobyFunction {
+	//private final Object[] upvals;
+	private final Object[] consts;
+	private final short[] code;
 
 	public MobyCode(Object o) {
 		int i;
@@ -23,12 +24,14 @@ class MobyCode implements MobyFunction {
 	}
 
 	public Object apply(MobyVM vm) {
-		int pc, codesize, i;
-		Object o;
+		int pc, i;
+		Object o, result;
+		result = null;
 		Stack stack = vm.stack;
 		Hashtable globals = vm.globals;
 
 		for(pc=0;pc < code.length;pc++) {
+			System.out.println("op " + code[pc] + " @ " + pc);
 			switch(code[pc]) {
 /////////////////////////////
 // Beginning of dispatch
@@ -54,12 +57,33 @@ class MobyCode implements MobyFunction {
 		pc++;
 		stack.push(globals.get(consts[code[pc]]));
 		break;
+	// jump
+	// ... -> ...
+	case 3: 
+		pc++;
+		pc += code[pc];
+		break;
+	// condjump, jump if stack top is false
+	// ..., truth-value -> ...
+	case 4: 
+		pc++;
+		o = stack.pop();
+		if(o == null || o == vm.f) {
+			pc += code[pc];
+		}
+		break;
+	// put-global, pop statcktop and store as global val (global const id)
+	// ..., value -> ...
+	case 5: 
+		pc++;
+		globals.put(consts[code[pc]], stack.pop());
+		break;
 ////
 // End of dispatch
 /////////////////////////////
 			}
 		}
-		return stack.pop();
+		return result;
 	}
 }
 
