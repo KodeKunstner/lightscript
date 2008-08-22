@@ -1,4 +1,169 @@
-\chapter{The Language}
+\chapter{Language}
+
+In language:
+\verb|instanceof|
+\verb|typeof|
+\verb|<|
+\verb|>|
+\verb|<=| 
+\verb|>=|
+\verb|===|
+\verb|!==|
+\verb|>|
+\verb|+|
+\verb|-|
+\verb|*|
+\verb|<<|
+\verb|>>|
+\verb|>>>|
+\verb|!|
+\verb$|$
+\verb|^|
+\verb|~|
+\verb|&|
+\verb$||$ 
+\verb|&&|
+\verb|this|
+\verb|while|
+\verb|if| \verb|else|
+string-literals\verb|"...\" \n \t \\..."|
+number-literals\verb|0123456789|
+array-literals\verb|[]|
+object-literals\verb|{}|
+identifiers(\verb|A-Za-z_$|...)
+function-literals/lambda-expressions(\verb|function(|...\verb|)|)
+function-application\verb|()|
+method-invocation\verb|()|
+subscript\verb|[]|
+subscript\verb|.|
+\verb|undefined| (written as null)
+\verb|true|
+\verb|false|
+\verb|delete|
+\verb|var|
+\verb|return|
+\verb|this|
+\verb|/*|...\verb|*/|
+\verb|//|
+\verb|;|
+\verb|=|
+\verb|parseInt|
+array.\verb|push|
+array.\verb|pop|
+array.\verb|length|
+array.\verb|join|
+
+
+\paragraph{Library extensions:}
+\verb|iterator|
+\verb|div|
+\verb|mod|
+\verb|assert|
+\verb|log|
+
+
+\paragraph{Possible expansions:}
+Math.\verb|max|
+Math.\verb|min|
+string.\verb|fromCharCode|
+string.\verb|charCodeAt(0)|
+string.\verb|concat|
+string.\verb|slice|
+string.\verb|indexOf|
+string.\verb|lastIndexOf|
+string.\verb|length|
+array.\verb|sort|
+array.\verb|splice|
+array.\verb|unshift|
+array.\verb|concat|
+array.\verb|reverse|
+array.\verb|shift|
+array.\verb|slice|
+number.\verb|MAX_VALUE|
+number.\verb|MIN_VALUE|
+*\verb|.toString|
+\verb|do|
+\verb|for|
+\verb|in|
+\verb|switch|
+\verb|case|
+\verb|break|
+\verb|default|
+\verb|continue|
+\verb|eval|
+\verb|function|~name\verb|(|...\verb|)|
+string.\verb|slice|
+string.\verb|split|
+string.\verb|toLowerCase|
+string.\verb|toUpperCase|
+
+\paragraph{less-likely-expansion:}
+simplified-regex\verb|/ /|
+\verb|arguments|
+\verb|throw|
+\verb|try|
+\verb|catch|
+\verb|finally|
+string.\verb|substring|
+string.\verb|toLocaleLowerCase|
+number.\verb|toLocaleString|
+string.\verb|toLocaleUpperCase|
+string.\verb|localeCompare|
+string.\verb|match|
+string.\verb|replace|
+string.\verb|search|
+\verb|? :|
+unary\verb|+|
+Date.*
+\verb|++|
+\verb|--|
+\verb|+=|
+\verb|-=|
+\verb|*=|
+\verb$|=$
+\verb|&=|
+\verb|^=|
+\verb|==|
+\verb|!=|
+\verb|<<=|
+\verb|>>=|
+\verb|>>>=|
+
+
+\paragraph{Likely omitted:}
+number.\verb|toFixed|
+number.\verb|toExponential|
+number.\verb|toPrecision|
+string.\verb|charAt|
+string.\verb|charCodeAt(|n>0\verb|)|
+IEEE-754-numbers
+automatic-semicolon-insertion\verb|;|
+full-regular-expressions\verb|/ /|
+Constructor: \verb|Date|, \verb|Object|, \verb|Function|, \verb|Array|, \verb|String|, \verb|Boolean|, \verb|Number|, \verb|RegExp|, \verb|Error|, \verb|EvalError|,\verb|RangeError|,\verb|ReferenceError|,\verb|SyntaxError|,\verb|TypeError|, \verb|URIError|,
+\verb|void|
+\verb|prototype|
+\verb|Math|
+\verb|null|
+\verb|new|
+\verb|parseFloat|
+\verb|isNan|
+\verb|isFinite|
+\verb|decodeURI|
+\verb|decodeURIComponent|
+\verb|encodeURI|
+\verb|encodeURIComponent|
+\verb|NaN| \verb|Infinity|
+\verb|with|
+\verb|/|
+\verb|%|
+\verb|/=|
+\verb|%=|
+comma-expression\verb|,|
+blocks-anywhere\verb|{}|
+
+
+
+\chapter{Being revised/deleted}
 
 \section{Overview}
 \subsection{Features}
@@ -24,10 +189,15 @@ The following features will not be in the first version of the language:
 \end{itemize}
 
 \section{Types}
+
 \subsection{Undefined}
 Undefined is the null type/value.
 
 \subsection{Booleans}
+Booleans 
+
+The boolean literals are \verb|true| and \verb|false|.
+
 
 \subsection{Numbers}
 
