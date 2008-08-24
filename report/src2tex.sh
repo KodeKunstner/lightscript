@@ -1,6 +1,6 @@
 #/bin/sh
 
-for file in compiler/parser.js 
+for file in `cd ../code; find compiler/ -name "*.js"` `cd ../code; find vm/ -name "*.java"` 
 do
   cat ../code/$file |
     sed -e s/"\t"/".   "/g |

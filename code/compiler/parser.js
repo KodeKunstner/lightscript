@@ -1,5 +1,3 @@
-// \section{Small MobyScript Parser}
-
 var parser = function (iter) {
 
    /*global copy, has_element */

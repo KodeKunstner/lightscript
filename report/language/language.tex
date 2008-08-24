@@ -1,6 +1,44 @@
 \chapter{Language}
 
-In language:
+\section{Language elements}
+
+\subsection{In the initial version}
+
+\subsubsection{Variables and assignment}
+\verb|var|
+identifiers(\verb|A-Za-z_$|...)
+\verb|this|
+\verb|=|
+
+\subsubsection{Subscripting}
+\verb|[]|
+\verb|.|
+
+\subsubsection{Control flow}
+\verb|if| \verb|else| \verb|while|
+
+\verb|return|
+
+\subsubsection{Comments}
+\verb|/*|...\verb|*/|
+\verb|//|
+\subsubsection{Literals}
+string-literals\verb|"...\" \n \t \\..."|
+number-literals\verb|0123456789|
+array-literals\verb|[]|
+object-literals\verb|{}|
+function-literals/lambda-expressions(\verb|function(|...\verb|)|)
+\verb|true|
+\verb|false|
+\verb|undefined| (printed as null)
+
+\subsubsection{Standard library}
+\verb|delete|
+\verb|parseInt|
+array.\verb|push|
+array.\verb|pop|
+array.\verb|length|
+array.\verb|join|
 \verb|instanceof|
 \verb|typeof|
 \verb|<|
@@ -12,243 +50,26 @@ In language:
 \verb|>|
 \verb|+|
 \verb|-|
-\verb|*|
-\verb|<<|
-\verb|>>|
-\verb|>>>|
 \verb|!|
-\verb$|$
-\verb|^|
-\verb|~|
-\verb|&|
-\verb$||$ 
-\verb|&&|
-\verb|this|
-\verb|while|
-\verb|if| \verb|else|
-string-literals\verb|"...\" \n \t \\..."|
-number-literals\verb|0123456789|
-array-literals\verb|[]|
-object-literals\verb|{}|
-identifiers(\verb|A-Za-z_$|...)
-function-literals/lambda-expressions(\verb|function(|...\verb|)|)
+
+\subsubsection{Blocks}
+blocks after while, if and functions \verb|{}|
+statement separation \verb|;|
+
+\subsubsection{Functions}
 function-application\verb|()|
 method-invocation\verb|()|
-subscript\verb|[]|
-subscript\verb|.|
-\verb|undefined| (written as null)
-\verb|true|
-\verb|false|
-\verb|delete|
-\verb|var|
-\verb|return|
-\verb|this|
-\verb|/*|...\verb|*/|
-\verb|//|
-\verb|;|
-\verb|=|
-\verb|parseInt|
-array.\verb|push|
-array.\verb|pop|
-array.\verb|length|
-array.\verb|join|
 
 
-\paragraph{Library extensions:}
+\subsection{Library extensions}
 \verb|iterator|
+\verb|has_type|
 \verb|div|
 \verb|mod|
 \verb|assert|
 \verb|log|
+\subsubsection{Iterators}
 
-
-\paragraph{Possible expansions:}
-Math.\verb|max|
-Math.\verb|min|
-string.\verb|fromCharCode|
-string.\verb|charCodeAt(0)|
-string.\verb|concat|
-string.\verb|slice|
-string.\verb|indexOf|
-string.\verb|lastIndexOf|
-string.\verb|length|
-array.\verb|sort|
-array.\verb|splice|
-array.\verb|unshift|
-array.\verb|concat|
-array.\verb|reverse|
-array.\verb|shift|
-array.\verb|slice|
-number.\verb|MAX_VALUE|
-number.\verb|MIN_VALUE|
-*\verb|.toString|
-\verb|do|
-\verb|for|
-\verb|in|
-\verb|switch|
-\verb|case|
-\verb|break|
-\verb|default|
-\verb|continue|
-\verb|eval|
-\verb|function|~name\verb|(|...\verb|)|
-string.\verb|slice|
-string.\verb|split|
-string.\verb|toLowerCase|
-string.\verb|toUpperCase|
-
-\paragraph{less-likely-expansion:}
-simplified-regex\verb|/ /|
-\verb|arguments|
-\verb|throw|
-\verb|try|
-\verb|catch|
-\verb|finally|
-string.\verb|substring|
-string.\verb|toLocaleLowerCase|
-number.\verb|toLocaleString|
-string.\verb|toLocaleUpperCase|
-string.\verb|localeCompare|
-string.\verb|match|
-string.\verb|replace|
-string.\verb|search|
-\verb|? :|
-unary\verb|+|
-Date.*
-\verb|++|
-\verb|--|
-\verb|+=|
-\verb|-=|
-\verb|*=|
-\verb$|=$
-\verb|&=|
-\verb|^=|
-\verb|==|
-\verb|!=|
-\verb|<<=|
-\verb|>>=|
-\verb|>>>=|
-
-
-\paragraph{Likely omitted:}
-number.\verb|toFixed|
-number.\verb|toExponential|
-number.\verb|toPrecision|
-string.\verb|charAt|
-string.\verb|charCodeAt(|n>0\verb|)|
-IEEE-754-numbers
-automatic-semicolon-insertion\verb|;|
-full-regular-expressions\verb|/ /|
-Constructor: \verb|Date|, \verb|Object|, \verb|Function|, \verb|Array|, \verb|String|, \verb|Boolean|, \verb|Number|, \verb|RegExp|, \verb|Error|, \verb|EvalError|,\verb|RangeError|,\verb|ReferenceError|,\verb|SyntaxError|,\verb|TypeError|, \verb|URIError|,
-\verb|void|
-\verb|prototype|
-\verb|Math|
-\verb|null|
-\verb|new|
-\verb|parseFloat|
-\verb|isNan|
-\verb|isFinite|
-\verb|decodeURI|
-\verb|decodeURIComponent|
-\verb|encodeURI|
-\verb|encodeURIComponent|
-\verb|NaN| \verb|Infinity|
-\verb|with|
-\verb|/|
-\verb|%|
-\verb|/=|
-\verb|%=|
-comma-expression\verb|,|
-blocks-anywhere\verb|{}|
-
-
-
-\chapter{Being revised/deleted}
-
-\section{Overview}
-\subsection{Features}
-
-\begin{itemize}
-\item First class functions
-\item Object/hashtables
-\item Dynamic Arrays
-\item Numbers as integers, aritmetic etc.
-\item Immutable strings, streams
-\item Basic control structures (while, if-else, ...)
-\end{itemize}
-
-\subsection{Limitations}
-The following features will not be in the first version of the language:
-\begin{itemize}
-\item Inheritance/prototypes
-\item Floating point numbers
-\item Exceptions
-\item with
-\item Random access to characters strings (though sequential access through streams is possible).
-\item Regex
-\end{itemize}
-
-\section{Types}
-
-\subsection{Undefined}
-Undefined is the null type/value.
-
-\subsection{Booleans}
-Booleans 
-
-The boolean literals are \verb|true| and \verb|false|.
-
-
-\subsection{Numbers}
-
-Numbers in MobyScript are at least 32-bit signed integers. 
-This allows the language to run on platforms without floating point arithmetics, such as Java CLDC 1.0 and many embedded devices.
-Results of overflows are not defined, and may vary between platforms.
-Numbers can only entered in decimal notation.
-
-\subsection{Strings}
-
-A string is a sequence of characters, where a character can be any unicode symbol. 
-
-
-In EcmaScript strings supports random access, and contains unicode characters in range 0...65545.
-This makes good sense if implemented as an array of 16-bit numbers. Unfortunately that representation use TODO:fix-spelling:excessive memory and does not support all unicode characters. 
-By limiting the string access to be sequential, it is possible to support all unicode characters, while having a more compact format. 
-This also makes i possible to add compression later to the strings in memory.
-Strings in MobyScript can therefore only be accessed sequentially, for example through iteration.
-
-To simplify parsing, strings can only be quoted with \verb|"|, and the only escape symbols are \verb|\\| and \verb|\"|.
-
-\subsection{Functions}
-
-\subsection{Arrays}
-
-Arrays are numbered sequences of elements.
-
-\subsection{Objects}
-
-Objects are hashtables. 
-There is the usual notation for method calls, which requires the method to be a function property of the object.
-There are no builtin support for inheritance.
-
-
-\section{Control structures}
-
-The control structure of the language is \verb|if|, \verb|else|, \verb|while|.
-
-\section{Operators and library functions}
-
-\subsection{Integer operations}
-
-The binary integer operators are
-\verb|+|, \verb|-|, \verb|*|, \verb|&|, \verb|^|, \verb$|$, \verb|<<|, \verb|>>| and \verb|>>>|.
-The unary integer operators are \verb|-| and \verb|~|.
-
-Integer division is done via the library function \verb|div|. \verb|/| is reserved for floating point division, which is not supported in language version.
-Modulus are implemented similarly as \verb|mod| instead of \verb|%|.
-
-
-\subsection{Iterators}
 Iterators are objects, used for iteration. An iterator contains a method \verb|next()| which returns true or false, depending on whether there are more elements, and goes to the next element. The \verb|next()| method also sets the \verb|val| property and possibly the \verb|key| property.
 
 There is a function \verb|iterator(obj)| that creates an iterator across some kind of object. \verb|key| and \verb|val| is not set until \verb|next()| is called. To access all elements in an object or array:
@@ -269,12 +90,225 @@ while(iter.next()) {
 The use of iterators is a pattern, which also applies to library routines such as input and output.
 
 
-\section{Differences from EcmaScript}
 
-MobyScript is a subset of EcmaScript, with some additional library functions, which can easily be defined in EcmaScript. This makes it possible to run MobyScript programs unmodified on every EcmaScript implementation.
+\subsection{Possible later expansions}
 
---------------
+\subsubsection{Larger standard library}
+\verb|<<|
+\verb|>>|
+\verb|>>>|
+\verb$|$
+\verb|^|
+\verb|~|
+\verb|&|
+\verb|*|
+Math.\verb|max|
+Math.\verb|min|
+string.\verb|fromCharCode|
+string.\verb|charCodeAt(0)|
+string.\verb|concat|
+string.\verb|slice|
+string.\verb|indexOf|
+string.\verb|lastIndexOf|
+string.\verb|length|
+array.\verb|sort|
+array.\verb|splice|
+array.\verb|unshift|
+array.\verb|concat|
+array.\verb|reverse|
+array.\verb|shift|
+array.\verb|slice|
+number.\verb|MAX_VALUE|
+number.\verb|MIN_VALUE|
+*\verb|.toString|
+string.\verb|slice|
+string.\verb|split|
+string.\verb|toLowerCase|
+string.\verb|toUpperCase|
 
-A major difference to EcmaScript is that MobyScript arrays are not objects.
 
-Unlike EcmaScript, inheritance is not supported. This is a tradeof between size and features.
+
+\subsubsection{More control flow}
+\verb|do|
+\verb|for|
+\verb|in|
+\verb$||$ 
+\verb|&&|
+\verb|? :|
+\verb|switch|
+\verb|case|
+\verb|break|
+\verb|default|
+\verb|continue|
+
+
+\subsubsection{Exceptions}
+\verb|throw|
+\verb|try|
+\verb|catch|
+\verb|finally|
+
+\subsubsection{Arguments variable}
+\verb|arguments|
+
+\subsubsection{Eval}
+\verb|eval|
+
+\subsubsection{Syntactic sugar}
+syntactic sugar not particularly interesting...
+\verb|function|~name\verb|(|...\verb|)|
+\verb|--|
+\verb|++|
+\verb|+=|
+\verb|-=|
+\verb|*=|
+\verb$|=$
+\verb|&=|
+\verb|^=|
+\verb|<<=|
+\verb|>>=|
+\verb|>>>=|
+
+\subsection{Likely omitted:}
+\subsubsection{Comparison with type coersion}
+\verb|==|
+\verb|!=|
+
+\begin{verbatim}
+"\n \t01e-0\t\r" == {"valueOf": function() { return true; } } 
+\end{verbatim}
+is true because in the comparison, the object is replaced by the result of the valueOf method, which is true. When true is casted into a number it is 1. When \verb|"\n \t01e-0\t\r"| is converted to a number it is also 1. Therefor the above object equals the above string. It should also be noted that this equals operator is not transitive, as the above object also equals \verb|"1"| which does not equals the above string.
+
+\subsubsection{Floating point numbers}
+number.\verb|toFixed|
+number.\verb|toExponential|
+number.\verb|toPrecision|
+IEEE-754-numbers
+\verb|parseFloat|
+\verb|isNan|
+\verb|isFinite|
+\verb|/|
+\verb|%|
+\verb|/=|
+\verb|%=|
+\verb|NaN| \verb|Infinity|
+\verb|Math|
+
+\subsubsection{Random access to strings}
+string.\verb|charAt|
+string.\verb|charCodeAt(|n>0\verb|)|
+
+\subsubsection{Automatic semi-colon insertion}
+automatic-semicolon-insertion\verb|;|
+
+\subsubsection{Regular Expressions}
+regular-expressions\verb|/ /|
+string.\verb|match|
+string.\verb|replace|
+string.\verb|search|
+
+\subsubsection{Inheritance and object constructors}
+\verb|prototype|
+\verb|new|
+Constructor: \verb|Date|, \verb|Object|, \verb|Function|, \verb|Array|, \verb|String|, \verb|Boolean|, \verb|Number|, \verb|RegExp|, \verb|Error|, \verb|EvalError|,\verb|RangeError|,\verb|ReferenceError|,\verb|SyntaxError|,\verb|TypeError|, \verb|URIError|,
+
+\subsubsection{Nonessential library functions}
+string.\verb|substring|
+string.\verb|toLocaleLowerCase|
+number.\verb|toLocaleString|
+string.\verb|toLocaleUpperCase|
+string.\verb|localeCompare|
+unary\verb|+|
+Date.*
+\verb|decodeURI|
+\verb|decodeURIComponent|
+\verb|encodeURI|
+\verb|encodeURIComponent|
+
+\subsubsection{Other language features}
+\verb|void|
+\verb|null|
+\verb|with|
+comma-expression\verb|,|
+blocks-anywhere\verb|{}|
+
+\section{Datatypes}
+
+\subsection{Undefined}
+... undefined and null...
+\subsection{Boolean}
+... true and false ... what is true/false ... 
+\subsection{Number}
+... integer ... div ... decimal notation only ...
+\subsection{Strings}
+... immutable ... sequential ... hashable...
+\subsection{Array}
+... not objects ...
+\subsection{Object / Hashtable}
+... oop, with constructor-functions...
+\subsection{Function}
+... scope... first class
+
+\section{Abstract Intermediate Syntax Tree}
+\subsection{The machine}
+\subsection{Types}
+\subsubsection{Undefined}
+\subsubsection{Boolean}
+\subsubsection{Number}
+\subsubsection{Strings}
+\subsubsection{Array}
+\subsubsection{Object}
+\subsubsection{Function}
+\subsubsection{Uniontype}
+\subsubsection{Anytype}
+\subsubsection{Boxedtype}
+\subsection{The nodes}
+
+\subsubsection{Comment}
+
+\subsubsection{While}
+\subsubsection{If-else}
+\subsubsection{GetVar}
+flagged if upval/downval/local/global
+\subsubsection{SetVar}
+flagged if upval/downval/local/global
+\subsubsection{Literal}
+strings, numbers
+\subsubsection{Functionclosure}
+contains variable information: scope = {var: (upval | downval | local) ... }
+impl: byte[] code, Object[] consts, Ref[] refs, Function(code, consts, refs), 
+python-like-$this$-as-an-argument
+\subsubsection{Return}
+\subsubsection{Sequential logical operator}
+\verb|&&| \verb#||#
+\subsubsection{ApplyFunction/method}
+
+\subsection{Functions}
+\subsubsection{Get}
+a[b], a.b
+\subsubsection{Put}
+a[b]= c; a.b = c
+\subsubsection{New array}
+\verb|[]|
+\subsubsection{New Object}
+\verb|{}|
+\subsubsection{True}
+\subsubsection{False}
+\subsubsection{Undefined}
+\subsubsection{Delete}
+\subsubsection{Array.push}
+\subsubsection{Array.length}
+\subsubsection{Array.pop}
+\subsubsection{Array.join}
+\subsubsection{isa}
+joined typeof/instanceof
+\subsubsection{!}
+\subsubsection{===}
+\subsubsection{<}
+\subsubsection{+}
+\subsubsection{-}
+\subsubsection{parseInt}
+
+
+\verb|{}|
+

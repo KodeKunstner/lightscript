@@ -7,13 +7,13 @@ consttable = [];
 code = [];
 
 ops = [
-["getconst", 0],
-["callglobal", 1],
-["getglobal", 2],
-["jump", 3],
-["condjump", 4],
-["putglobal", 5],
-["popn", 6],
+["getconst", 100],
+["callglobal", 101],
+["getglobal", 102],
+["jump", 103],
+["condjump", 104],
+["putglobal", 105],
+["popn", 106],
 ];
 
 op = {};
@@ -52,12 +52,13 @@ noop = function(obj) {};
 cogens = {
 	"(comment)": noop,
 	"(codeblock)": function(obj) {
+		var iter;
 		iter = iterator(obj.args);
 		while(iter.next()) {
 			cogen(iter.val);
 		}
 		code.push(op.popn);
-		code.push(obj.args.length);
+		code.push(obj.args.length - 1);
 	},
 	"var": noop,
 	"(call)": function(obj) {

@@ -37,13 +37,13 @@ final class MobyCode implements MobyFunction {
 ////
 	// push from consts (consts id)
 	// ... -> ..., val
-	case 0: 
+	case 100: 
 		pc++;
 		stack.push(consts[code[pc]]);
 		break;
 	// call global (number of arguments) 
 	// ..., arg0, arg1, ..., argN, fn -> ..., return value
-	case 1:
+	case 101:
 		pc++; 
 		vm.argc = code[pc];
 		o = ((MobyFunction)stack.pop()).apply(vm);
@@ -52,35 +52,36 @@ final class MobyCode implements MobyFunction {
 		break;
 	// lookup global (consts id)
 	// ... -> ..., val
-	case 2: 
+	case 102: 
 		pc++;
 		stack.push(globals.get(consts[code[pc]]));
 		break;
 	// jump
 	// ... -> ...
-	case 3: 
+	case 103: 
 		pc++;
 		pc += code[pc];
 		break;
 	// condjump, jump if stack top is false
 	// ..., truth-value -> ...
-	case 4: 
+	case 104: 
 		pc++;
 		o = stack.pop();
-		if(o == null || o == vm.f) {
+		if(o == null || o == vm.f 
+				|| (o instanceof Integer && 0 == ((Integer)o).intValue())) {
 			pc += code[pc];
 		}
 		break;
 	// put-global, pop statcktop and store as global val (global const id)
 	// ..., value -> ..., null
-	case 5: 
+	case 105: 
 		pc++;
 		globals.put(consts[code[pc]], stack.pop());
 		stack.push(null);
 		break;
 	// pop n values from the stack;
 	// ..., value -> ...
-	case 6: 
+	case 106: 
 		pc++;
 		stack.setSize(stack.size() - code[pc]);
 		break;
