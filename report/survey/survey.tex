@@ -1,6 +1,7 @@
 \chapter{Survey}
 
 \section{Related projects}
+This section is a survey of related projects.
 \subsection{Mobile}
 \subsubsection{Flash Lite}
 \subsubsection{J2ME}
@@ -9,23 +10,44 @@
 \subsubsection{Lua}
 \subsubsection{Python}
 \subsubsection{Scheme and other small Lisp languages}
+
 \subsection{Mobile Scripting}
+There are only few scripting languages targeting mobile devices. 
+
 \subsubsection{Hecl}
-\subsubsection{FScriptME}
+Hecl\cite{hecl} is an embeddable scripting language for mobile java devices.
+It i
+It 
 \subsubsection{Simkin}
+\subsubsection{FScriptME}
+FScriptME
+
 \subsection{EcmaScript subset}
+There are already some work o
 \subsubsection{Mobile EcmaScript}
 \subsubsection{Mbed EcmaScript}
+TODO:mbedsystems has i
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Mobile platforms}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+This section investigates the different platforms for mobile development. 
+It is divided in three parts depending on the language in which the platform can be programmed:
+C/C++, Java, and scripting languages.
+There are other ways program low-end device, such as assembler, Forth, and .net, but these are deemed out of scope for this project.
+
 
 %%%%%%%%%%%%%%%%%%
-\subsection{C}
-differentated through available memory (arbitrary set)
+\subsection{C/C++}
+C/C++ are the language for devices which allows native code execution.
+Large, small, and tiny systems will be treated individually in the following.
+
 \subsubsection{Large systems}
+Large systems covers smartphones, pda's, road navigation systems, and so on, which typically have megabytes of memory, memory protection, 32-bit processor, and likely also floating point or other coprocessors. Programming platforms here are linux, symbian, windows-ce, palm, or brew on mips or arm cpus. 
+
+On many of these platforms applications need signing, which costs a fee, and they might be cut off from some api-features.
+
 megabytes available 
 
 typically linux, symbian, win-ce, palm, ?brew?
@@ -42,6 +64,7 @@ might not have float support,
 might be 8 or 16 bit.
 
 like large, or z80, ...
+
 \subsubsection{Tiny systems}
 Often harvard instead of neumann,
 <32KB

@@ -1,5 +1,42 @@
 \chapter{Language}
+\section{Language specification}
 
+This section describes the MobyScript language.
+The language is a subset of EcmaScript-3, augmented with some library function. 
+This means that programs written in MobyScript also can be executed in EcmaScript-3 compliant interpreters after loading a function library.
+
+
+\subsection{Types}
+The language is dynamically typed, where each value has one of the eight following types.
+
+\subsubsection{Undefined}
+
+Undefined is the null type of MobyScript. It is the type of undefined values, either written as the literal \verb|undefined| and as uninitialised variables.
+
+EcmaScript has seperate null type and undefined type, which is a contrast to MobyScript that only has the undefined type. 
+
+\subsubsection{Boolean}
+Boolean values has either the value \verb|true| or \verb|false|.
+
+\subsubsection{Number}
+
+Numbers in MobyScript are at least signed integers with 32 bit precision, and the behavior in case of overflow is unspecified. 
+The motivation for this is that many mobile devices only have integer arithmetics.
+
+This is a major difference from EcmaScript, where all numbers are 64 bit floating point numbers. 
+MobyScript is still a subset of EcmaScript, as the arithmetic/logical operations of 64 bit floats yields the same result as on 32 bit integers, with the exception of overflow and division. This is why overflow handling is unspecified, and division/modulo-operators is a function rather than infix operators.
+
+Numbers are entered in decimal notation.
+
+\subsubsection{Strings}
+
+\subsubsection{Array}
+\subsubsection{Object}
+\subsubsection{Function}
+\subsubsection{Native}
+
+
+\chapter{Language notes (TODO: cleanup)}
 \section{Language elements}
 
 \subsection{In the initial version}
@@ -41,6 +78,8 @@ array.\verb|length|
 array.\verb|join|
 \verb|instanceof|
 \verb|typeof|
+\verb$||$ 
+\verb|&&|
 \verb|<|
 \verb|>|
 \verb|<=| 
@@ -132,8 +171,6 @@ string.\verb|toUpperCase|
 \verb|do|
 \verb|for|
 \verb|in|
-\verb$||$ 
-\verb|&&|
 \verb|? :|
 \verb|switch|
 \verb|case|
@@ -259,15 +296,14 @@ blocks-anywhere\verb|{}|
 \subsubsection{Array}
 \subsubsection{Object}
 \subsubsection{Function}
-\subsubsection{Uniontype}
-\subsubsection{Anytype}
-\subsubsection{Boxedtype}
+\subsubsection{Native}
 \subsection{The nodes}
 
 \subsubsection{Comment}
 
 \subsubsection{While}
 \subsubsection{If-else}
+\subsubsection{Statement block}
 \subsubsection{GetVar}
 flagged if upval/downval/local/global
 \subsubsection{SetVar}
@@ -304,11 +340,7 @@ a[b]= c; a.b = c
 joined typeof/instanceof
 \subsubsection{!}
 \subsubsection{===}
-\subsubsection{<}
+\subsubsection{$<$}
 \subsubsection{+}
 \subsubsection{-}
 \subsubsection{parseInt}
-
-
-\verb|{}|
-
