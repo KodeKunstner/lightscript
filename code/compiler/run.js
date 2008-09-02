@@ -10,9 +10,9 @@ load("cogen.js");
 iter = parser(getch);
 
 while(iter.next()) {
-        functions = run_macro(iter.val);
-        //print_r(iter.val);
-        cogen(iter.val);
+        //functions = run_macro(iter.val);
+        print_r(iter.val);
+        //cogen(iter.val);
         print();
 }
 //print_r(functions);

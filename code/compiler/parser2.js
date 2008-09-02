@@ -4,7 +4,7 @@ load("stdmob.js");
 
 // functions 
 var parse, getchar, is_multisymb, is_ws, is_num, is_alphanum, nextc, nexttoken, 
-    decl, expect, register_local, pass;
+    decl, expect, register_local, pass, prefix, localvarnud, readlist, binop, unop, logicop, clean_prop;
 // objects
 var parsers, ctx, globals, localvar, token;
 // arrays
@@ -168,8 +168,7 @@ nexttoken = function() {
 	// Add properties to token
 	token.id = str;
 	token.lbp = 0;
-	token.nud = function() { this.doh = true; };
-	token.led = function() { this.doh = true; };
+
 	default_token = parsers[str];
 	for(key in default_token) {
 		token[key] = default_token[key];
@@ -183,7 +182,7 @@ nexttoken = function() {
 
 ctx_stack = [];
 ctx = {"locals": {}, };
-globals = {"readline": "fun", "print" : "fun", "load": "fun", "parseInt": "fun"};
+globals = {"readline": "fun", "print" : "fun", "load": "fun", "parseInt": "fun", "print_r": "fun"};
 
 // The parsing functions
 
@@ -277,21 +276,21 @@ parsers = {
 	"delete": {"nud": prefix, "id": "(delete)"},
 	"function": {"id": "(function)", "nud":
 		function() {
-			var i;
-			var t;
-			t = [];
-			expect("(");
-			readlist(t);
 			register_local("this", "obj");
-			for(i in t) {
-				register_local(t[i].id, "var");
+			expect("(");
+			this.parameters = {};
+			while(token.id !== "(end)") {
+				if(token.id !== ",") {
+					register_local(token.id, "param");
+					this.parameters[token.id] = "param";
+				}
+				nexttoken();
 			}
-			this.parameters = t;
+			nexttoken();
 
-			t = [];
+			this.args = [];
 			expect("{");
-			readlist(t);
-			this.args = t;
+			readlist(this.args);
 		}
 	},
 	"if": {"id": "(if)", "nud":
@@ -379,6 +378,7 @@ parsers = {
 	"]": {"nud": pass, "id": "(end)", "val": "]", "lbp": -300, "sep": true},
 	";": {"nud": pass, "id": "(noop)", "val": ";", "lbp": -200, "sep": true},
 	"(noop)": {"nud": pass},
+	"(end)": {"nud": pass},
 	"(literal)": {"nud": pass},
 	"=": {"lbp": 100, "led": 
 		function(left) {
@@ -396,8 +396,8 @@ parsers = {
 	},
 	"-": {"nud": unop, "led": binop, "lbp": 400},
 	"+": {"led": binop, "lbp": 400},
-	",": {"sep": true, "lbp": -100},
-	":": {"sep": true, "lbp": -100},
+	",": {"nud": pass, "sep": true, "lbp": -100},
+	":": {"nud": pass, "sep": true, "lbp": -100},
 	"||": {"led": logicop, "lbp": 200},
 	"&&": {"led": logicop, "lbp": 200},
 	"!": {"nud": unop, "lbp": 300},
@@ -434,12 +434,11 @@ clean_prop = function(obj) {
 	delete obj.lbp;
 	delete obj.led;
 	delete obj.type;
-	//delete obj.line;
+	delete obj.line;
 }
 // The parser itself
 parse = function (rbp) {
 	var prev, t;
-	do {
 
 	t = token;
 	rbp = rbp || 0;
@@ -454,8 +453,6 @@ parse = function (rbp) {
 		t.led(prev);
 	}
 	clean_prop(t);
-
-	} while(t.id === "(noop)");
 
 	if (t.id === "(end)") {
 		return undefined;
@@ -477,6 +474,7 @@ nexttoken();
 
 //while(token.id !== "(end)") { print_r(token); nexttoken(); }
 
+var tree;
 while(tree = parse()) {
 	print_r(tree);
 	print();
