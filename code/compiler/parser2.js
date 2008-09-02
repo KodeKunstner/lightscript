@@ -278,12 +278,13 @@ parsers = {
 	"function": {"id": "(function)", "nud":
 		function() {
 			var i;
-			var t = [];
+			var t;
+			t = [];
 			expect("(");
 			readlist(t);
 			register_local("this", "obj");
 			for(i in t) {
-				register_local(i, "var");
+				register_local(t[i].id, "var");
 			}
 			this.parameters = t;
 
@@ -295,7 +296,8 @@ parsers = {
 	},
 	"if": {"id": "(if)", "nud":
 		function() {
-			var t = [];
+			var t;
+			t = [];
 			this.args = [parse(), {"id":"(block)", "args": t}];
 			expect("{");
 			readlist(t);
@@ -316,7 +318,8 @@ parsers = {
 	},
 	"for": {"id": "(for)", "nud":
 		function() {
-			var t = [];
+			var t;
+			t = [];
 			expect("(");
 			t.push(parse());
 			expect("in");
@@ -363,7 +366,8 @@ parsers = {
 			readlist(this.args);
 		}, 
 		"nud": function() {
-			var t = parse();
+			var t;
+			t = parse();
 			for(key in t) {
 				this[key] = t[key];
 			}
