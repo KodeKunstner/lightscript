@@ -3,8 +3,9 @@ load("stdmob.js");
 
 
 // functions 
-var parse, getchar, is_multisymb, is_ws, is_num, is_alphanum, nextc, nexttoken, 
-    decl, expect, register_local, pass, prefix, localvarnud, readlist, binop, unop, logicop, clean_prop;
+var parse, getchar, is_multisymb, is_ws, is_num, is_alphanum, nextc, 
+    nexttoken, decl, expect, register_local, pass, prefix, localvarnud, 
+    readlist, binop, unop, logicop, clean_prop, error_mesg; 
 // objects
 var parsers, ctx, globals, localvar, token;
 // arrays
@@ -168,12 +169,18 @@ nexttoken = function() {
 	// Add properties to token
 	token.id = str;
 	token.lbp = 0;
+	token.nud = error_mesg;
+	token.led = error_mesg;
 
 	default_token = parsers[str];
 	for(key in default_token) {
 		token[key] = default_token[key];
 	}
 };
+
+error_mesg = function() {
+	print_r(["Er" + "ror at token", this]);
+}
 
 /////////////////////////////////
 // The parser
@@ -182,7 +189,7 @@ nexttoken = function() {
 
 ctx_stack = [];
 ctx = {"locals": {}, };
-globals = {"readline": "fun", "print" : "fun", "load": "fun", "parseInt": "fun", "print_r": "fun"};
+globals = {"readline": "fun", "print" : "fun", "load": "fun", "parseInt": "fun", "print_r": "fun", "typeof": "fun"};
 
 // The parsing functions
 
@@ -227,12 +234,25 @@ prefix = function() {
 };
 
 localvarnud = function() {
+	var pos, i, t;
 	this.type = ctx.locals[this.id];
 	this.val = this.id;
 	this.id = "(local)";
+	pos = 57;
+	if(this.type === -1) {
+		for(i in ctx_stack) {
+			t = ctx_stack[i].locals[this.val];
+			if(t !== undefined && typeof(t) !== "number") {
+				pos = i;
+			}
+		}
+		ctx_stack[pos].locals[this.val] = "shared";
+		pos = ctx_stack.length - pos;
+		this.type = pos;
+		ctx.locals[this.val] = pos;
+	}
 }
 
-// function for parsing local vars
 localvar = {
 	"nud": localvarnud
 };
@@ -276,7 +296,16 @@ parsers = {
 	"delete": {"nud": prefix, "id": "(delete)"},
 	"function": {"id": "(function)", "nud":
 		function() {
-			register_local("this", "obj");
+			var prev_ctx;
+			prev_ctx = ctx;
+			ctx_stack.push(ctx);
+
+			ctx = {"locals": {}, };
+			for(key in prev_ctx.locals) {
+				register_local(key, -1);
+			}
+
+			register_local("this", "this");
 			expect("(");
 			this.parameters = {};
 			while(token.id !== "(end)") {
@@ -291,6 +320,14 @@ parsers = {
 			this.args = [];
 			expect("{");
 			readlist(this.args);
+
+			for(key in ctx.locals) {
+				if(ctx.locals[key] === -1) {
+					delete ctx.locals[key];
+				}
+			}
+			this.locals = ctx.locals;
+			ctx = ctx_stack.pop();
 		}
 	},
 	"if": {"id": "(if)", "nud":
@@ -382,9 +419,13 @@ parsers = {
 	"(literal)": {"nud": pass},
 	"=": {"lbp": 100, "led": 
 		function(left) {
-			// TODO: special case if lval is subscript
-			this.id = "(assign)";
-			this.args = [left, parse()];
+			if(left.id === "(subscript)") {
+				this.id = "(put)";
+				this.args = [left.args[0], left.args[1], parse()];
+			} else {
+				this.id = "(assign)";
+				this.args = [left, parse()];
+			}
 		}
 	},
 	".": {"lbp": 600, "led": 
@@ -472,8 +513,6 @@ nexttoken();
 ////
 
 
-//while(token.id !== "(end)") { print_r(token); nexttoken(); }
-
 var tree;
 while(tree = parse()) {
 	print_r(tree);
@@ -481,3 +520,15 @@ while(tree = parse()) {
 }
 
 print_r(ctx.locals);
+
+var test;
+
+test = function() {
+	var foo, bar, baz;
+	foo = function(baz) {
+		var quux;
+		return function() {
+			return foo+bar+baz+test;
+		}
+	}
+}
