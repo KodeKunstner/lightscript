@@ -9,6 +9,6 @@ eval:
 	cd compiler && ./test-run.js < ../test/test.js 
 
 clean:
-	rm test/*.json
+	rm -f test/*.json
 	cd vm && make clean
 	cd mobileapp && ant clean

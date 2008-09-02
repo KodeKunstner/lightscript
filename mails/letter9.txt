@@ -1,0 +1,25 @@
+On Tue, Aug 26, 2008 at 12:46 PM, Julia Lawall <julia@diku.dk> wrote:
+> How is your work coming?
+> 
+
+It is going forward.
+
+I have done some prototyping 
+to gain more insight into the project
+
+The survey is on it's way, 
+
+I have done some prototyping, to gain more insight,
+and am still working on the survey.
+The language subset is taking shape.
+I'll send some draft text at end of
+
+
+
+
+> Yesterday, I was at the speciale defense of another student.  The lesson I
+> would take away from it is that it is very important to know the related
+> work, both how it works and how it relates to your work.  Because the
+> censor probably knows a lot more about the related work than he does about
+> your work, and so it is easy for him to ask questions about that.
+> 

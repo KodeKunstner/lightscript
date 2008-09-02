@@ -1,0 +1,162 @@
+Hi Julia,
+
+I have some bad news: Yesterday I discovered the existance of 
+Mojax Script, which seems to be doing exactly what I intended, 
+except that it is closed source. This forces me to reconsider
+the entire project, as I do not like to reinvent the wheel :-(
+
+Anyhow, the status for the project so far is that I have done some 
+prototyping and found a lot of related literature.  This has been used to 
+identify what the first version of the language should contain, and what 
+features could be added and which should be omitted in future versions, 
+it also led to a core language for an intermediate AST. 
+
+The prototype consists of a self-parsing top down operator precedence 
+parser for a subset of EcmaScript, and non-complete compiler,
+and a virtual stack machine on top of Java.  Very simple EcmaScript
+test programs can be compiled and runs on top of this vm on a jvm 
+on a mobile phone.
+
+The survey consists mainly of notes. It has branched in several directions:
+general programming language theory, mobile and embedded platforms,
+virtual machine implementation, scripting languages in general, and 
+JavaScript/EcmaScript. It is quite interesting and lots of stuff is happening
+right now, both in the mobile field, and with EcmaScript implementations.
+In addition it has also been an opportunity to look back at some of the 
+classical programming language papers.
+
+Well, after the discovery of Mojax, I need to rethink what to do, and I 
+will likely have to change both the synopsis and project title :-(.
+
+Rasmus
+
+---------------------------------
+Hi Julia,
+
+Here is a status report, and also some bad news: Yesterday I discovered
+the existance of Mojax Script, which seems to be doing exactly what I
+intended, except that it is closed source. This forces me to reconsider
+the entire project, as I do not like to reinvent the wheel.
+
+
+Status report:
+
+I have done some prototyping and found a lot of related literature.  
+This has been used to identify what the first version of
+the language should contain, and what features could be added and which
+should be omitted in future versions, it also led to a core language
+for an intermediate AST.
+
+The prototype has a top-down-operator-precedence parser of a subset of
+EcmaScript The source of the parser uses less than 5K including lexer,
+and it is able to parse itself.  I have also prototyped a simple virtual
+stack machine on top of java, and a simple compiler for a few parts of
+EcmaScript onto the machine. The mobile java development environment
+is up and running, and virtual machine prototype runs, albeit slowly,
+on mobile phones.
+
+The survey has gone in several directions, mainly: mobile platforms,
+scripting languages, javascript/ecmascript, virtual machine techniques, and general programming language theory.
+
+In mobile platforms my focus has mostly been on Jave Micro Edition(J2ME)
+[JavaME] and on the OpenMoko [OpenMoko] and Maemo [Maemo] linux
+distributions, as those would be the first targets for the language.
+
+Java on mobile devices is not a single platform, but contains different
+device configurations and api's, including additional vendor specific
+apis, plus Android which is not even a jvm. Typical limitations on
+mobile java is that it is not possible to load code at run time and some
+platforms only have integer arithmetics.
+
+Linux is playing a big role on mobile devices, though many of them is
+closed down. The most open mobile platform is OpenMoko, which is a full
+open source mobile linux stack, with a corresponding development of
+phone. Maemo is
+
+[JavaME] OpenMoko [JavaME] Sun: The Java ME Platform,
+http://java.sun.com/javame
+
+[Beautiful] (several authors):Beautiful Code, ISBN-9780596510046, 2007
+
+[Pratt] Vaughan Pratt: Top Down Operator Precedence, ACM-POPL-1973
+
+
+Most of what I have done is
+
+The
+
+The survey is not in a readable form yet.
+
+
+
+
+1. Project status.
+
+Bad NEWS: I have just discovered that I am reinventing the wheel,
+as Mojax Script seems doing exactly what I inteded, except that it is
+closed source. This forces me to reconsider the entire project.
+
+The status of the project is that I have surveyed,
+
+2. Overview of surveying
+
+2.1 EcmaScript/JavaScript
+
+2.1.1 The language
+
+2.1.2 Implementations
+
+2.2 Mobile platforms
+
+Linux - openmoko, android, qtopia-nokia, access-linux(palm), maemo,
+MontaVista, uClinux, openembedded,
+
+J2ME - market stat from getjar.com,
+
+Android -
+
+Symbian
+
+Windows CE
+
+iPhone - strict license for native apps, javascript/webkit in browser.
+
+BREW - Little penetration in europe,
+
+WIPI - South Korean platform
+
+EcmaScript
+
+Python
+
+2.3 Mobile scripting
+
+This section focuses on scripting languages with minimal footprint, as
+opposed to scripting languages just running on powerfull mobile devices.
+
+Hecl is a tcl-like language for j2me and android. It is fully open
+source, and seems to be the main scripting language targeting mobile
+java platforms. It runs on both midp-1, midp-2, android, full java.
+http://www.hecl.org
+
+Simkin: Symbian, Windows CE, Java, Midp-?
+
+Mojax is a mobile developmentplatform, consiting of a xml markup
+language and EcmaScript-like scripting language.  Mojax. EcmaScript
+subset. Dev. team of 6 people. A couple of years...  It runs on MIDP2
+and Blackberry, and the platforms BREW, Windows Mobile and WIPI are on
+their way.  http://mojax.mfoundry.com
+
+Lua, embedded-oriented, int-only possible. Kahlua on CLDC1.1/MIDP2.
+
+FScriptME
+
+2.4 Virtual machines
+
+2.5 Misc. Proglang.
+
+3. Prototyping
+
+4. The language
+
+5. Plan

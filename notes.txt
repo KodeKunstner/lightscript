@@ -1,3 +1,14 @@
+---------------------------------------------------------------------
+code compression via superinstructions in vm
+
+
+> Yesterday, I was at the speciale defense of another student.  The lesson I
+> would take away from it is that it is very important to know the related
+> work, both how it works and how it relates to your work.  Because the
+> censor probably knows a lot more about the related work than he does about
+> your work, and so it is easy for him to ask questions about that.
+
+------------------------------
 Idea:
 generalised virtual machine
 

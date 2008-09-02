@@ -3,5 +3,5 @@ all:
 	cd report && make all
 
 clean:
+	cd code && make clean
 	cd report && make clean
-	cd code/vm && make clean
