@@ -1,14 +1,28 @@
+
 load("stdmob.js");
+
+
+// functions 
+var parse, getchar, is_multisymb, is_ws, is_num, is_alphanum, nextc, nexttoken, 
+    decl, expect, register_local, pass;
+// objects
+var parsers, ctx, globals, localvar, token;
+// arrays
+var ctx_stack;
+// string
+var line, c, key;
+// int 
+var line_pos, line_nr, empty_line_count;
 
 //////////////////////////////
 // Utility functions for reading a char at a time
 ////
 
-var line, line_pos, line_nr, empty_line_count, getchar;
 
-line = readline();
+line = "";
 line_pos = -1;
 line_nr = 1;
+empty_line_count = 0;
 
 getchar = function() {
 	line_pos = line_pos + 1;
@@ -32,16 +46,7 @@ getchar = function() {
 // Tokeniser
 ////
 
-
-// strings
-var c; 
-// objs
-var token;
-// functions
-var is_multisymb, is_ws, is_num, is_alphanum, nextc, nexttoken;
-
-// initialisation
-c = getchar(); // current char
+c = " "; 
 
 //////
 //Predicate functions
@@ -49,7 +54,7 @@ c = getchar(); // current char
 
 is_multisymb = function() {
 	return c === "|" || c === "<" || c === "=" || c === ">"
-		|| c === "!";
+		|| c === "!" || c === "&";
 };
 
 is_ws = function() {
@@ -72,7 +77,7 @@ nextc = function() {
 
 
 nexttoken = function() {
-	var str, default_token;
+	var key, str, default_token;
 
 	// Skip whitespaces
 	while(is_ws()) {
@@ -98,7 +103,6 @@ nexttoken = function() {
 			str = str + c;
 			nextc();
 		}
-		token.type = "int";
 		token.val = parseInt(str, 10);
 		str = "(literal)";
 
@@ -131,7 +135,6 @@ nexttoken = function() {
 			nextc();
 		}
 		nextc();
-		token.type = "string";
 		token.val = str;
 		str = "(literal)";
 
@@ -141,12 +144,13 @@ nexttoken = function() {
 		if(c === "/") {
 			nextc();
 			str = "";
-			while(c != "\n") {
+			while(c !== "\n") {
 				str = str + c;
 				nextc();
 			}
-			token.val = str;
-			str = "(comment)";
+			token.content = str;
+			token.val = "comment";
+			str = "(noop)";
 		} 
 
 	// Symbol consisting of several chars
@@ -163,6 +167,9 @@ nexttoken = function() {
 
 	// Add properties to token
 	token.id = str;
+	token.lbp = 0;
+	token.nud = function() { this.doh = true; };
+	token.led = function() { this.doh = true; };
 	default_token = parsers[str];
 	for(key in default_token) {
 		token[key] = default_token[key];
@@ -173,33 +180,302 @@ nexttoken = function() {
 // The parser
 ////
 
-// functions 
-var parse;
-// objects
-var parsers, ctx, globals;
-// arrays
-var ctx_stack;
-
-parsers = {
-};
 
 ctx_stack = [];
-ctx = {locals: {}, };
-globals = {"readline": "fun", "print" : "fun", "load": "fun"};
+ctx = {"locals": {}, };
+globals = {"readline": "fun", "print" : "fun", "load": "fun", "parseInt": "fun"};
 
 // The parsing functions
 
-decl = function() {
+expect = function(str) {
+	if(str !== token.id) {
+		print("Unexpected token: \"" + token.id + "\" at line " + token.line);
+		print("Expected: \"" + str + "\"");
+	} 
+	nexttoken();
 }
 
+register_local = function(name, type) {
+	ctx.locals[name] = type;
+	parsers[name] = localvar;
+	parsers[name].type = type;
+}
+
+decl = function() {
+	var type, args;
+	type = this.id;
+
+	args = [token.id];
+	register_local(token.id, type);
+	nexttoken();
+
+	while(token.val !== ";") {
+		expect(",");
+		args.push(token.id);
+		register_local(token.id, type);
+		nexttoken();
+	}
+
+	this.id = "(noop)";
+	this.val = "decl-" + type;
+	this.elems = args;
+};
+
+pass = function () { };
+
+prefix = function() {
+	this.args = [parse()];
+};
+
+localvarnud = function() {
+	this.type = ctx.locals[this.id];
+	this.val = this.id;
+	this.id = "(local)";
+}
+
+// function for parsing local vars
+localvar = {
+	"nud": localvarnud
+};
+
+readlist = function(arr) {
+	var t;
+	t = parse();
+	while(t) {
+		if(!t.sep) {
+			arr.push(t);
+		}
+		t = parse();
+	}
+};
+
+binop = function(left) {
+	this.val = this.id;
+	this.args = [left, parse(this.lbp)];
+	this.id = "(builtin)";
+}
+
+unop = function() {
+	this.val = this.id;
+	this.args = [parse()];
+	this.id = "(builtin)";
+}
+
+logicop = function(left) {
+	this.val = this.id;
+	this.args = [left, parse(this.lbp - 1)];
+	this.id = "(logical)";
+}
+
+// The table of parser functions
+parsers = {
+	"var": {"nud": decl},
+	"undefined": {"nud": pass, "id": "(literal)"},
+	"true": {"nud": pass, "id": "(literal)", "val": true},
+	"false": {"nud": pass, "id": "(literal)", "val": false},
+	"return": {"nud": prefix, "id": "(return)"},
+	"delete": {"nud": prefix, "id": "(delete)"},
+	"function": {"id": "(function)", "nud":
+		function() {
+			var i;
+			var t = [];
+			expect("(");
+			readlist(t);
+			register_local("this", "obj");
+			for(i in t) {
+				register_local(i, "var");
+			}
+			this.parameters = t;
+
+			t = [];
+			expect("{");
+			readlist(t);
+			this.args = t;
+		}
+	},
+	"if": {"id": "(if)", "nud":
+		function() {
+			var t = [];
+			this.args = [parse(), {"id":"(block)", "args": t}];
+			expect("{");
+			readlist(t);
+			if(token.id === "else") {
+				t = [];
+				nexttoken();
+
+				if(token.id === "{") {
+					nexttoken();
+					readlist(t);
+					this.args.push({"id":"(block)", "args":t});
+				} else {
+					this.args.push(parse());
+				}
+			}
+
+		}
+	},
+	"for": {"id": "(for)", "nud":
+		function() {
+			var t = [];
+			expect("(");
+			t.push(parse());
+			expect("in");
+			t.push(parse());
+			expect("(end)");
+			expect("{");
+			this.args = t;
+			t = [];
+			readlist(t);
+			this.args.push({"id":"(block)", "args":t});
+		}
+	},
+	"while": {"id": "(while)", "nud":
+		function() {
+			this.args = [parse()];
+			expect("{");
+			readlist(this.args);
+		}
+	},
+	"{": {
+		"nud": function() {
+			this.id =  "(object literal)";
+			this.args = [];
+			readlist(this.args);
+		}
+	},
+	"[": {"lbp": 600,
+		"led": function(left) {
+			this.id = "(subscript)";
+			this.args = [left, parse()];
+			expect("(end)");
+		},
+		"nud": function() {
+			this.id =  "(array literal)";
+			this.args = [];
+			readlist(this.args);
+		}
+	},
+	"(": {"lbp": 600, 
+		"led": function(left) {
+			// TODO: var analysis
+			this.id = "(function call)";
+			this.args = [left];
+			readlist(this.args);
+		}, 
+		"nud": function() {
+			var t = parse();
+			for(key in t) {
+				this[key] = t[key];
+			}
+			expect("(end)");
+		}
+	},
+	")": {"nud": pass, "id": "(end)", "val": ")", "lbp": -300, "sep": true},
+	"}": {"nud": pass, "id": "(end)", "val": "}", "lbp": -300, "sep": true},
+	"]": {"nud": pass, "id": "(end)", "val": "]", "lbp": -300, "sep": true},
+	";": {"nud": pass, "id": "(noop)", "val": ";", "lbp": -200, "sep": true},
+	"(noop)": {"nud": pass},
+	"(literal)": {"nud": pass},
+	"=": {"lbp": 100, "led": 
+		function(left) {
+			// TODO: special case if lval is subscript
+			this.id = "(assign)";
+			this.args = [left, parse()];
+		}
+	},
+	".": {"lbp": 600, "led": 
+		function(left) {
+			this.id = "(subscript)";
+			this.args = [left, {"id": "(literal)", "val": token.id}];
+			nexttoken();
+		}
+	},
+	"-": {"nud": unop, "led": binop, "lbp": 400},
+	"+": {"led": binop, "lbp": 400},
+	",": {"sep": true, "lbp": -100},
+	":": {"sep": true, "lbp": -100},
+	"||": {"led": logicop, "lbp": 200},
+	"&&": {"led": logicop, "lbp": 200},
+	"!": {"nud": unop, "lbp": 300},
+	"===": {"led": binop, "lbp": 300},
+	"!==": {"lbp": 300, "id": "(builtin)", "val": "!", "led":
+		function(left) {
+			this.args = [{"id":"(builtin)",  "val": "===", "args":[left, parse()]}];
+		}
+	},
+	"<": {"led": binop, "lbp": 300},
+	">": {"lbp": 300, "id": "(builtin)", "val": "<", "led":
+		function(left) {
+			this.args = [parse(), left];
+		}
+	},
+	"<=": {"lbp": 300, "id": "(builtin)", "val": "!", "led":
+		function(left) {
+			this.args = [{"id":"(builtin)",  "val": "<", "args":[parse(), left]}];
+		}
+	},
+	">=": {"lbp": 300, "id": "(builtin)", "val": "!", "led":
+		function(left) {
+			this.args = [{"id":"(builtin)",  "val": "<", "args":[left, parse()]}];
+		}
+	},
+};
+
+for(key in globals) {
+	parsers[key] = { "nud": pass, "id": "(global)", "val": key};
+}
+
+clean_prop = function(obj) {
+	delete obj.nud;
+	delete obj.lbp;
+	delete obj.led;
+	delete obj.type;
+	//delete obj.line;
+}
 // The parser itself
+parse = function (rbp) {
+	var prev, t;
+	do {
+
+	t = token;
+	rbp = rbp || 0;
+	nexttoken();
+	t.nud();
+
+	while (rbp < token.lbp && !t.sep) {
+		clean_prop(t);
+		prev = t;
+		t = token;
+		nexttoken();
+		t.led(prev);
+	}
+	clean_prop(t);
+
+	} while(t.id === "(noop)");
+
+	if (t.id === "(end)") {
+		return undefined;
+	}
+	return t;
+};
+
+
+//////////////////////////////
+// initialisation
+////
+
+nexttoken();
 
 ////////////////////////////////
 // Test code
 ////
-nexttoken();
 
-while(token.id !== "(end)") {
-	print_r(token);
-	nexttoken();
+
+//while(token.id !== "(end)") { print_r(token); nexttoken(); }
+
+while(tree = parse()) {
+	print_r(tree);
+	print();
 }
+
+print_r(ctx.locals);
