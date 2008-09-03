@@ -1,7 +1,6 @@
 
 load("stdmob.js");
 
-(function() {
 // functions 
 var parse, getchar, is_multisymb, is_ws, is_num, is_alphanum, nextc, parse_rbp,
     nexttoken, decl, expect, register_local, pass, prefix, localvarnud, 
@@ -35,7 +34,7 @@ empty_line_count = 0;
 
 getchar = function() {
 	line_pos = line_pos + 1;
-	if(line[line_pos]) {
+	if(line[line_pos] !== undefined) {
 		empty_line_count = 0;
 		return line[line_pos];
 	} else {
@@ -250,7 +249,7 @@ localvarnud = function() {
 	this.type = ctx.locals[this.id];
 	this.val = this.id;
 	this.id = "(local)";
-	pos = 57;
+	pos = 0;
 	if(this.type === -1) {
 		for(i in ctx_stack) {
 			t = ctx_stack[i].locals[this.val];
@@ -301,9 +300,9 @@ logicop = function(left) {
 // The table of parser functions
 parsers = {
 	"var": {"nud": decl},
-	"undefined": {"nud": pass, "id": "(literal)"},
-	"true": {"nud": pass, "id": "(literal)", "val": true},
-	"false": {"nud": pass, "id": "(literal)", "val": false},
+	"undefined": {"nud": pass, "type": "null", "id": "(literal)"},
+	"true": {"nud": pass, "type": "bool", "id": "(literal)", "val": true},
+	"false": {"nud": pass, "type" : "bool", "id": "(literal)", "val": false},
 	"return": {"nud": prefix, "id": "(return)"},
 	"delete": {"nud": prefix, "id": "(delete)"},
 	"function": {"id": "(function)", "nud":
@@ -382,9 +381,12 @@ parsers = {
 	},
 	"while": {"id": "(while)", "nud":
 		function() {
+			var t;
 			this.args = [parse()];
 			expect("{");
-			readlist(this.args);
+			t = [];
+			readlist(t);
+			this.args.push({"id":"(block)", "args":t});
 		}
 	},
 	"{": {
@@ -440,7 +442,7 @@ parsers = {
 			}
 		}
 	},
-	".": {"lbp": 600, "led": 
+	".": {"lbp": 700, "led": 
 		function(left) {
 			this.id = "(subscript)";
 			this.args = [left, {"type": "string", "id": "(literal)", "val": token.id}];
@@ -457,7 +459,7 @@ parsers = {
 	"===": {"led": binop, "lbp": 300},
 	"!==": {"lbp": 300, "id": "(builtin)", "val": "!", "led":
 		function(left) {
-			this.args = [{"id":"(builtin)",  "val": "===", "args":[left, parse()]}];
+			this.args = [{"id":"(builtin)",  "val": "===", "args":[left, parse_rbp(this.lbp)]}];
 		}
 	},
 	"<": {"led": binop, "lbp": 300},
@@ -486,7 +488,7 @@ clean_prop = function(obj) {
 	delete obj.nud;
 	delete obj.lbp;
 	delete obj.led;
-	delete obj.line;
+	//delete obj.line;
 }
 // The parser itself
 parse = function() {
@@ -537,13 +539,25 @@ tab = function(i) {
 	return str;
 }
 
+var block_toJS;
+
+block_toJS = function(elem, indent, acc) {
+	acc.push(" {\n");
+	acc.push(tab(indent));
+	acc.push("} ");
+}
+
 toJS = function(elem, indent, acc) {
 	var i, t, x;
 
 	if(elem.id === "(literal)") {
 		if(elem.type === "int") {
 			acc.push("");
-			acc.push(elem.val);
+			acc.push(toString(elem.val));
+		} else if(elem.type === "null") {
+			acc.push("undefined");
+		} else if(elem.type === "bool") {
+			acc.push(toString(elem.val));
 		} else if(elem.type === "string") {
 			acc.push("\"");
 			for(i in elem.val) {
@@ -560,21 +574,73 @@ toJS = function(elem, indent, acc) {
 			print(concat("Unknown literal type: ", elem.type));
 		}
 	} else if(elem.id === "(noop)") {
-	} else if(elem.id === "(while)") {
-		acc.push("while(");
+	} else if(elem.id === "(if)") {
+		acc.push("if (");
 		toJS(elem.args[0], indent, acc);
-		acc.push(") {\n");
+		acc.push(") ");
+		toJS(elem.args[1], indent, acc);
+		if(3 === elem.args.length) {
+			acc.push(" else ");
+			toJS(elem.args[2], indent, acc);
+		} 
+	} else if(elem.id === "(block)") {
+		acc.push("{\n");
 		indent = indent + 4;
-		i = 1;
-		while(i<elem.args.length) {
-			acc.push(tab(indent));
-			toJS(elem.args[i], indent, acc);
-			acc.push(";\n");
-			i = i + 1;
+		for(i in elem.args) {
+			if(elem.args[i].id !== "(noop)") {
+				acc.push(tab(indent));
+				toJS(elem.args[i], indent, acc);
+				acc.push(";\n");
+			}
 		}
 		indent = indent - 4;
 		acc.push(tab(indent));
 		acc.push("}");
+	} else if(elem.id === "(object literal)") {
+		if(elem.args.length > 0) {
+			acc.push("{\n");
+			indent = indent + 4;
+			i = 0;
+			while(i<elem.args.length) {
+				acc.push(tab(indent));
+				toJS(elem.args[i], indent, acc);
+				acc.push(": ");
+				toJS(elem.args[i + 1], indent, acc);
+				acc.push(",\n");
+				i = i + 2;
+			}
+			indent = indent - 4;
+			acc.push(tab(indent));
+			acc.push("}");
+		} else {
+			acc.push("{}");
+		}
+	} else if(elem.id === "(array literal)") {
+		if(elem.args.length > 0) {
+			t = [];
+			acc.push("[");
+			for(i in elem.args) {
+				x = [];
+				toJS(elem.args[i], indent, x);
+				t.push(x.join(""));
+			}
+			acc.push(t.join(", "));
+			acc.push("]");
+		} else {
+			acc.push("[]");
+		}
+	} else if(elem.id === "(for)") {
+		acc.push("for (");
+		toJS(elem.args[0], indent, acc);
+		acc.push(" in ");
+		toJS(elem.args[1], indent, acc);
+		acc.push(") ");
+		toJS(elem.args[2], indent, acc);
+	} else if(elem.id === "(while)") {
+		acc.push("while (");
+		toJS(elem.args[0], indent, acc);
+		acc.push(") ");
+		toJS(elem.args[1], indent, acc);
 	} else if(elem.id === "(logical)") {
 		acc.push("(");
 		toJS(elem.args[0], indent, acc);
@@ -694,10 +760,12 @@ toJS = function(elem, indent, acc) {
 			}
 		} else {
 			print(concat("Unknown builtin: ", elem.val));
+			print_r(elem);
 		}
 		acc.push(")");
 	} else {
 		print(concat("Unknown id: ", elem.id));
+		print_r(elem);
 	}
 	return acc;
 }
@@ -716,4 +784,4 @@ while(tree = parse()) {
 		print(concat(st, ";"));
 	}
 }
-})();
+
