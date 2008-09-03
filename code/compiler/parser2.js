@@ -308,11 +308,11 @@ parsers = {
 
 			register_local("this", "this");
 			expect("(");
-			this.parameters = {};
+			this.parameters = [];
 			while(token.id !== "(end)") {
 				if(token.id !== ",") {
 					register_local(token.id, "param");
-					this.parameters[token.id] = "param";
+					this.parameters.push(token.id);
 				}
 				nexttoken();
 			}
@@ -432,7 +432,7 @@ parsers = {
 	".": {"lbp": 600, "led": 
 		function(left) {
 			this.id = "(subscript)";
-			this.args = [left, {"id": "(literal)", "val": token.id}];
+			this.args = [left, {"type": "string", "id": "(literal)", "val": token.id}];
 			nexttoken();
 		}
 	},
@@ -452,17 +452,17 @@ parsers = {
 	"<": {"led": binop, "lbp": 300},
 	">": {"lbp": 300, "id": "(builtin)", "val": "<", "led":
 		function(left) {
-			this.args = [parse(), left];
+			this.args = [parse(this.lbp), left];
 		}
 	},
 	"<=": {"lbp": 300, "id": "(builtin)", "val": "!", "led":
 		function(left) {
-			this.args = [{"id":"(builtin)",  "val": "<", "args":[parse(), left]}];
+			this.args = [{"id":"(builtin)",  "val": "<", "args":[parse(this.lbp), left]}];
 		}
 	},
 	">=": {"lbp": 300, "id": "(builtin)", "val": "!", "led":
 		function(left) {
-			this.args = [{"id":"(builtin)",  "val": "<", "args":[left, parse()]}];
+			this.args = [{"id":"(builtin)",  "val": "<", "args":[left, parse(this.lbp)]}];
 		}
 	},
 };
@@ -525,7 +525,7 @@ tab = function(i) {
 }
 
 toJS = function(elem, indent, acc) {
-	var i, t;
+	var i, t, x;
 	indent = indent || 0;
 	acc = acc || [];
 
@@ -560,12 +560,67 @@ toJS = function(elem, indent, acc) {
 		}
 		indent = indent - 4;
 		acc.push(tab(indent) + "}");
+	} else if(elem.id === "(logical)") {
+		acc.push("(");
+		toJS(elem.args[0], indent, acc);
+		acc.push(elem.val);
+		toJS(elem.args[1], indent, acc);
+		acc.push(")");
 	} else if(elem.id === "(local)") {
 		acc.push(elem.val);
 	} else if(elem.id === "(assign)") {
 		toJS(elem.args[0], indent, acc);
 		acc.push(" = ");
 		toJS(elem.args[1], indent, acc);
+	} else if(elem.id === "(subscript)") {
+		toJS(elem.args[0], indent, acc);
+		acc.push("[");
+		toJS(elem.args[1], indent, acc);
+		acc.push("]");
+	} else if(elem.id === "(put)") {
+		toJS(elem.args[0], indent, acc);
+		acc.push("[");
+		toJS(elem.args[1], indent, acc);
+		acc.push("] = ");
+		toJS(elem.args[2], indent, acc);
+	} else if(elem.id === "(function)") {
+		acc.push("function(");
+		t = [];
+		for(i in elem.parameters) {
+			t.push(elem.parameters[i]);
+		}
+		acc.push(t.join(", "));
+		acc.push(") {\n");
+		indent = indent + 4;
+
+		t = {};
+		for(i in elem.locals) {
+			if(t[elem.locals[i]] === undefined) {
+				t[elem.locals[i]]  = [];
+			}
+			t[elem.locals[i]].push(i);
+		}
+
+		if(t["var"] !== undefined) {
+			x = [];
+			for(i in t["var"]) {
+				x.push(t["var"][i]);
+			}
+			acc.push(tab(indent));
+			acc.push("var ");
+			acc.push(x.join(", "));
+			acc.push(";\n");
+		}
+
+		for(i in elem.args) {
+			acc.push(tab(indent));
+			toJS(elem.args[i], indent, acc);
+			acc.push(";\n");
+		}
+
+		indent = indent - 4;
+		acc.push(tab(indent) + "}");
+
 	} else if(elem.id === "(global)") {
 		acc.push("" + elem.val);
 	} else if(elem.id === "(function call)") {
@@ -579,6 +634,42 @@ toJS = function(elem, indent, acc) {
 		}
 		acc.push(t.join(", "));
 		acc.push(")");
+	} else if(elem.id === "(delete)") {
+		acc.push("delete ");
+		toJS(elem.args[0], indent, acc);
+	} else if(elem.id === "(return)") {
+		acc.push("return ");
+		toJS(elem.args[0], indent, acc);
+	} else if(elem.id === "(builtin)") {
+		acc.push("(");
+		if(elem.val === "===") {
+			toJS(elem.args[0], indent, acc);
+			acc.push("===");
+			toJS(elem.args[1], indent, acc);
+		} else if(elem.val === "<") {
+			toJS(elem.args[0], indent, acc);
+			acc.push("<");
+			toJS(elem.args[1], indent, acc);
+		} else if(elem.val === "!") {
+			acc.push("!");
+			toJS(elem.args[0], indent, acc);
+		} else if(elem.val === "+") {
+			toJS(elem.args[0], indent, acc);
+			acc.push("+");
+			toJS(elem.args[1], indent, acc);
+		} else if(elem.val === "-") {
+			if(elem.args.length === 1) {
+				acc.push("-");
+				toJS(elem.args[0], indent, acc);
+			} else {
+				toJS(elem.args[0], indent, acc);
+				acc.push("-");
+				toJS(elem.args[1], indent, acc);
+			}
+		} else {
+			print("Unknown builtin: " + elem.val);
+		}
+		acc.push(")");
 	} else {
 		print("Unknown id: " + elem.id);
 	}
@@ -591,8 +682,14 @@ toJS = function(elem, indent, acc) {
 
 
 
-var tree;
+var tree, st;
 while(tree = parse()) {
-	//print_r(tree);
-	print(toJS(tree).join("")+";\n");
+//	print_r(tree);
+	st = toJS(tree).join("");
+	if(st) {
+		print(st + ";");
+	}
 }
+
+tree = {};
+tree.foo = 3;
