@@ -1,10 +1,9 @@
-
-load("stdmob.js");
+load("stdmob2.js");
 
 // functions 
 var parse, getchar, is_multisymb, is_ws, is_num, is_alphanum, nextc, parse_rbp,
-    nexttoken, decl, expect, register_local, pass, prefix, localvarnud, push, pop,
-    readlist, binop, unop, logicop, clean_prop, error_mesg, concat, toString, join; 
+    nexttoken, decl, expect, register_local, pass, prefix, localvarnud, 
+    readlist, binop, unop, logicop, clean_prop, error_mesg; 
 // objects
 var parsers, ctx, globals, localvar, token;
 // arrays
@@ -13,54 +12,6 @@ var ctx_stack;
 var line, c, key;
 // int 
 var line_pos, line_nr, empty_line_count;
-
-concat = function(a, b) {
-        return a+b;
-}
-
-toString = function(o) {
-        return concat("", o);
-}
-
-join = function(a, b) {
-        return a.join(b);
-}
-
-pop = function(s) {
-        return s.pop();
-}
-
-push = function(s, val) {
-        return s.push(val);
-}
-
-//////////////////////////////
-// Utility functions for reading a char at a time
-////
-
-
-line = "";
-line_pos = -1;
-line_nr = 1;
-empty_line_count = 0;
-
-getchar = function() {
-        line_pos = line_pos + 1;
-        if(line[line_pos] !== undefined) {
-                empty_line_count = 0;
-                return line[line_pos];
-        } else {
-                line_nr = line_nr + 1;
-                line_pos = -1;
-                line = readline();
-                empty_line_count = empty_line_count + 1;
-                if(empty_line_count > 10) {
-                        return undefined;
-                } else {
-                        return "\n";
-                } 
-        }
-}
 
 ////////////////////////////////
 // Tokeniser
@@ -106,7 +57,7 @@ nexttoken = function() {
 
         // Initialisation;
         token = {};
-        token.line = line_nr;
+        token.line = currentline();
         str = c;
 
         // Create token
@@ -123,7 +74,7 @@ nexttoken = function() {
                         str = concat(str, c);
                         nextc();
                 }
-                token.val = parseInt(str, 10);
+                token.val = toInt(str);
                 token.type = "int";
                 str = "(literal)";
 
@@ -157,7 +108,7 @@ nexttoken = function() {
                 }
                 nextc();
                 token.val = str;
-                token.type = "string";
+                token.type = "str";
                 str = "(literal)";
 
         // Comment (and division passhtrough)
@@ -210,7 +161,12 @@ error_mesg = function() {
 
 ctx_stack = [];
 ctx = {"locals": {}, };
-globals = {"readline": "fun", "print" : "fun", "load": "fun", "parseInt": "fun", "print_r": "fun", "typeof": "fun"};
+globals = {"readline": "fun", "print" : "fun", "load": "fun", 
+	"print_r": "fun", "typeof": "fun", 
+	"currentline": "fun", "push": "fun", "pop": "fun", 
+	"toInt": "fun", "toArr": "fun", "toVar": "fun", 
+	"toBool": "fun", "toObj": "fun", "toFun": "fun", 
+	"join": "fun", "concat": "fun", "toStr": "fun"};
 
 // The parsing functions
 
@@ -310,12 +266,12 @@ logicop = function(left) {
 // The table of parser functions
 parsers = {
         "var": {"nud": decl},
-        "undefined": {"nud": pass, "type": "null", "id": "(literal)"},
+        "undefined": {"nud": pass, "type": "nil", "id": "(literal)"},
         "true": {"nud": pass, "type": "bool", "id": "(literal)", "val": true},
         "false": {"nud": pass, "type" : "bool", "id": "(literal)", "val": false},
-        "return": {"nud": prefix, "id": "(return)"},
-        "delete": {"nud": prefix, "id": "(delete)"},
-        "function": {"id": "(function)", "nud":
+        "return": {"nud": prefix, "type": "void", "id": "(return)"},
+        "delete": {"nud": prefix, "type": "void", "id": "(delete)"},
+        "function": {"id": "(function)", "type":"fun", "nud":
                 function() {
                         var prev_ctx;
                         prev_ctx = ctx;
@@ -351,7 +307,7 @@ parsers = {
                         ctx = pop(ctx_stack);
                 }
         },
-        "if": {"id": "(if)", "nud":
+        "if": {"id": "(if)", "type": "void", "nud":
                 function() {
                         var t;
                         t = [];
@@ -373,7 +329,7 @@ parsers = {
 
                 }
         },
-        "for": {"id": "(for)", "nud":
+        "for": {"id": "(for)", "type": "void", "nud":
                 function() {
                         var t;
                         t = [];
@@ -389,7 +345,7 @@ parsers = {
                         push(this.args, {"id":"(block)", "args":t});
                 }
         },
-        "while": {"id": "(while)", "nud":
+        "while": {"id": "(while)", "type": "void", "nud":
                 function() {
                         var t;
                         this.args = [parse()];
@@ -399,28 +355,30 @@ parsers = {
                         push(this.args, {"id":"(block)", "args":t});
                 }
         },
-        "{": {
+        "{": {"type": "obj",
                 "nud": function() {
                         this.id =  "(object literal)";
                         this.args = [];
                         readlist(this.args);
                 }
         },
-        "[": {"lbp": 600,
+        "[": {"lbp": 600, 
                 "led": function(left) {
                         this.id = "(subscript)";
                         this.args = [left, parse()];
+			this.type = "var";
                         expect("(end)");
                 },
                 "nud": function() {
                         this.id =  "(array literal)";
                         this.args = [];
+                        this.type = "arr";
                         readlist(this.args);
                 }
         },
         "(": {"lbp": 600, 
                 "led": function(left) {
-                        // TODO: var analysis
+                        this.type = "var";
                         this.id = "(function call)";
                         this.args = [left];
                         readlist(this.args);
@@ -441,7 +399,7 @@ parsers = {
         "(noop)": {"nud": pass},
         "(end)": {"nud": pass},
         "(literal)": {"nud": pass},
-        "=": {"lbp": 100, "led": 
+        "=": {"lbp": 100, "type": "void", "led": 
                 function(left) {
                         if(left.id === "(subscript)") {
                                 this.id = "(put)";
@@ -455,35 +413,37 @@ parsers = {
         ".": {"lbp": 700, "led": 
                 function(left) {
                         this.id = "(subscript)";
-                        this.args = [left, {"type": "string", "id": "(literal)", "val": token.id}];
+                        this.args = [left, {"type": "str", "id": "(literal)", "val": token.id}];
+			this.type = "var";
                         nexttoken();
                 }
         },
-        "-": {"nud": unop, "led": binop, "lbp": 400},
-        "+": {"led": binop, "lbp": 400},
+        "-": {"nud": unop, "led": binop, "type": "int", "lbp": 400},
+        "+": {"led": binop, "lbp": 400, "type": "int"},
         ",": {"nud": pass, "sep": true, "lbp": -100},
         ":": {"nud": pass, "sep": true, "lbp": -100},
-        "||": {"led": logicop, "lbp": 200},
-        "&&": {"led": logicop, "lbp": 200},
-        "!": {"nud": unop, "lbp": 300},
-        "===": {"led": binop, "lbp": 300},
-        "!==": {"lbp": 300, "id": "(builtin)", "val": "!", "led":
+        "||": {"led": logicop, "lbp": 200, "type": "bool"},
+        "&&": {"led": logicop, "lbp": 200, "type": "bool"},
+        "!": {"nud": unop, "lbp": 300, "type": "bool"},
+        "===": {"led": binop, "lbp": 300, "type": "bool"},
+        "!==": {"lbp": 300, "id": "(builtin)", "val": "!", 
+		"type": "bool", "led":
                 function(left) {
                         this.args = [{"id":"(builtin)",  "val": "===", "args":[left, parse_rbp(this.lbp)]}];
                 }
         },
-        "<": {"led": binop, "lbp": 300},
-        ">": {"lbp": 300, "id": "(builtin)", "val": "<", "led":
+        "<": {"led": binop, "lbp": 300, "type": "bool"},
+        ">": {"lbp": 300, "id": "(builtin)", "val": "<", "type": "bool", "led":
                 function(left) {
                         this.args = [parse_rbp(this.lbp), left];
                 }
         },
-        "<=": {"lbp": 300, "id": "(builtin)", "val": "!", "led":
+        "<=": {"lbp": 300, "id": "(builtin)", "val": "!", "type": "bool", "led":
                 function(left) {
                         this.args = [{"id":"(builtin)",  "val": "<", "args":[parse_rbp(this.lbp), left]}];
                 }
         },
-        ">=": {"lbp": 300, "id": "(builtin)", "val": "!", "led":
+        ">=": {"lbp": 300, "id": "(builtin)", "val": "!", "type": "bool", "led":
                 function(left) {
                         this.args = [{"id":"(builtin)",  "val": "<", "args":[left, parse_rbp(this.lbp)]}];
                 }
@@ -563,12 +523,12 @@ toJS = function(elem, indent, acc) {
         if(elem.id === "(literal)") {
                 if(elem.type === "int") {
                         push(acc, "");
-                        push(acc, toString(elem.val));
-                } else if(elem.type === "null") {
+                        push(acc, toStr(elem.val));
+                } else if(elem.type === "nil") {
                         push(acc, "undefined");
                 } else if(elem.type === "bool") {
-                        push(acc, toString(elem.val));
-                } else if(elem.type === "string") {
+                        push(acc, toStr(elem.val));
+                } else if(elem.type === "str") {
                         push(acc, "\"");
                         for(i in elem.val) {
                                 t = {"\n": "\\n", "\"": "\\\"", 
@@ -675,7 +635,7 @@ toJS = function(elem, indent, acc) {
                 push(acc, "] = ");
                 toJS(elem.args[2], indent, acc);
         } else if(elem.id === "(function)") {
-                push(acc, "function(");
+                push(acc, "function (");
                 t = [];
                 for(i in elem.parameters) {
                         push(t, elem.parameters[i]);
@@ -724,7 +684,7 @@ toJS = function(elem, indent, acc) {
                 push(acc, "}");
 
         } else if(elem.id === "(global)") {
-                push(acc, toString(elem.val));
+                push(acc, toStr(elem.val));
         } else if(elem.id === "(function call)") {
                 t = [];
                 toJS(elem.args[0], indent, acc);
