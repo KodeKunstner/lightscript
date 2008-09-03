@@ -1,11 +1,11 @@
 
 load("stdmob.js");
 
-
+(function() {
 // functions 
-var parse, getchar, is_multisymb, is_ws, is_num, is_alphanum, nextc, 
+var parse, getchar, is_multisymb, is_ws, is_num, is_alphanum, nextc, parse_rbp,
     nexttoken, decl, expect, register_local, pass, prefix, localvarnud, 
-    readlist, binop, unop, logicop, clean_prop, error_mesg; 
+    readlist, binop, unop, logicop, clean_prop, error_mesg, concat, toString; 
 // objects
 var parsers, ctx, globals, localvar, token;
 // arrays
@@ -14,6 +14,14 @@ var ctx_stack;
 var line, c, key;
 // int 
 var line_pos, line_nr, empty_line_count;
+
+concat = function(a, b) {
+	return a+b;
+}
+
+toString = function(o) {
+	return concat("", o);
+}
 
 //////////////////////////////
 // Utility functions for reading a char at a time
@@ -78,7 +86,7 @@ nextc = function() {
 
 
 nexttoken = function() {
-	var key, str, default_token;
+	var key, str, default_token, t;
 
 	// Skip whitespaces
 	while(is_ws()) {
@@ -101,7 +109,7 @@ nexttoken = function() {
 
 		nextc();
 		while(is_num()) {
-			str = str + c;
+			str = concat(str, c);
 			nextc();
 		}
 		token.val = parseInt(str, 10);
@@ -113,7 +121,7 @@ nexttoken = function() {
 
 		nextc();
 		while(is_alphanum()) {
-			str = str + c;
+			str = concat(str, c);
 			nextc();
 		}
 
@@ -125,14 +133,17 @@ nexttoken = function() {
 		while(c !== "\"") {
 			if(c === "\\") {
 				nextc();
-				c = {"n": "\n",
+				t = {"n": "\n",
 					"r": "\r",
 					"t": "\t",
 					"f": "\f",
 					"b": "\b",
-				}[c] || c;
+				}[c];
+				if(t !== undefined) {
+					c = t;
+				}
 			}
-			str = str + c;
+			str = concat(str, c);
 			nextc();
 		}
 		nextc();
@@ -147,7 +158,7 @@ nexttoken = function() {
 			nextc();
 			str = "";
 			while(c !== "\n") {
-				str = str + c;
+				str = concat(str, c);
 				nextc();
 			}
 			token.content = str;
@@ -159,7 +170,7 @@ nexttoken = function() {
 	} else if(is_multisymb()) {
 		nextc();
 		while(is_multisymb()) {
-			str = str + c;
+			str = concat(str, c);
 			nextc();
 		}
 	// Single symbol
@@ -180,7 +191,7 @@ nexttoken = function() {
 };
 
 error_mesg = function() {
-	print_r(["Er" + "ror at token", this]);
+	print_r(["Error at token", this]);
 }
 
 /////////////////////////////////
@@ -196,8 +207,8 @@ globals = {"readline": "fun", "print" : "fun", "load": "fun", "parseInt": "fun",
 
 expect = function(str) {
 	if(str !== token.id) {
-		print("Unexpected token: \"" + token.id + "\" at line " + token.line);
-		print("Expected: \"" + str + "\"");
+		print(["Unexpected token: \"", token.id, "\" at line ", token.line].join(""));
+		print(["Expected: \"", str, "\""].join(""));
 	} 
 	nexttoken();
 }
@@ -224,7 +235,7 @@ decl = function() {
 	}
 
 	this.id = "(noop)";
-	this.val = "decl-" + type;
+	this.val = concat("decl-", type);
 	this.elems = args;
 };
 
@@ -271,7 +282,7 @@ readlist = function(arr) {
 
 binop = function(left) {
 	this.val = this.id;
-	this.args = [left, parse(this.lbp)];
+	this.args = [left, parse_rbp(this.lbp)];
 	this.id = "(builtin)";
 }
 
@@ -283,7 +294,7 @@ unop = function() {
 
 logicop = function(left) {
 	this.val = this.id;
-	this.args = [left, parse(this.lbp - 1)];
+	this.args = [left, parse_rbp(this.lbp - 1)];
 	this.id = "(logical)";
 }
 
@@ -452,17 +463,17 @@ parsers = {
 	"<": {"led": binop, "lbp": 300},
 	">": {"lbp": 300, "id": "(builtin)", "val": "<", "led":
 		function(left) {
-			this.args = [parse(this.lbp), left];
+			this.args = [parse_rbp(this.lbp), left];
 		}
 	},
 	"<=": {"lbp": 300, "id": "(builtin)", "val": "!", "led":
 		function(left) {
-			this.args = [{"id":"(builtin)",  "val": "<", "args":[parse(this.lbp), left]}];
+			this.args = [{"id":"(builtin)",  "val": "<", "args":[parse_rbp(this.lbp), left]}];
 		}
 	},
 	">=": {"lbp": 300, "id": "(builtin)", "val": "!", "led":
 		function(left) {
-			this.args = [{"id":"(builtin)",  "val": "<", "args":[left, parse(this.lbp)]}];
+			this.args = [{"id":"(builtin)",  "val": "<", "args":[left, parse_rbp(this.lbp)]}];
 		}
 	},
 };
@@ -478,11 +489,13 @@ clean_prop = function(obj) {
 	delete obj.line;
 }
 // The parser itself
-parse = function (rbp) {
+parse = function() {
+	return parse_rbp(0);
+}
+parse_rbp = function (rbp) {
 	var prev, t;
 
 	t = token;
-	rbp = rbp || 0;
 	nexttoken();
 	t.nud();
 
@@ -518,7 +531,7 @@ tab = function(i) {
 	var str;
 	str = "";
 	while(i > 0) {
-		str = str + " ";
+		str = concat(str, " ");
 		i = i - 1;
 	}
 	return str;
@@ -526,24 +539,25 @@ tab = function(i) {
 
 toJS = function(elem, indent, acc) {
 	var i, t, x;
-	indent = indent || 0;
-	acc = acc || [];
 
-	//print_r(["T" + "O" + "JS", elem]);
 	if(elem.id === "(literal)") {
 		if(elem.type === "int") {
-			acc.push("" + elem.val);
+			acc.push("");
+			acc.push(elem.val);
 		} else if(elem.type === "string") {
 			acc.push("\"");
 			for(i in elem.val) {
-				acc.push( {"\n": "\\n", "\"": "\\\"", 
+				t = {"\n": "\\n", "\"": "\\\"", 
 					"\\": "\\\\", "\r": "\\r",
-					"\t": "\\t"}[elem.val[i]]
-					|| elem.val[i]);
+					"\t": "\\t"}[elem.val[i]];
+				if(t === undefined) {
+					t = elem.val[i];
+				}
+				acc.push(t);
 			}
 			acc.push("\"");
 		} else {
-			print("Unknown literal type: " + elem.type);
+			print(concat("Unknown literal type: ", elem.type));
 		}
 	} else if(elem.id === "(noop)") {
 	} else if(elem.id === "(while)") {
@@ -559,7 +573,8 @@ toJS = function(elem, indent, acc) {
 			i = i + 1;
 		}
 		indent = indent - 4;
-		acc.push(tab(indent) + "}");
+		acc.push(tab(indent));
+		acc.push("}");
 	} else if(elem.id === "(logical)") {
 		acc.push("(");
 		toJS(elem.args[0], indent, acc);
@@ -612,6 +627,16 @@ toJS = function(elem, indent, acc) {
 			acc.push(";\n");
 		}
 
+		if(t["shared"] !== undefined) {
+			x = [];
+			for(i in t["shared"]) {
+				x.push(t["shared"][i]);
+			}
+			acc.push(tab(indent));
+			acc.push("var ");
+			acc.push(x.join(", "));
+			acc.push(";\n");
+		}
 		for(i in elem.args) {
 			acc.push(tab(indent));
 			toJS(elem.args[i], indent, acc);
@@ -619,17 +644,18 @@ toJS = function(elem, indent, acc) {
 		}
 
 		indent = indent - 4;
-		acc.push(tab(indent) + "}");
+		acc.push(tab(indent));
+		acc.push("}");
 
 	} else if(elem.id === "(global)") {
-		acc.push("" + elem.val);
+		acc.push(toString(elem.val));
 	} else if(elem.id === "(function call)") {
 		t = [];
 		toJS(elem.args[0], indent, acc);
 		acc.push("(");
 		i = 1;
 		while(i<elem.args.length) {
-			t.push(toJS(elem.args[i], indent).join(""));
+			t.push(toJS(elem.args[i], indent, []).join(""));
 			i = i + 1;
 		}
 		acc.push(t.join(", "));
@@ -667,11 +693,11 @@ toJS = function(elem, indent, acc) {
 				toJS(elem.args[1], indent, acc);
 			}
 		} else {
-			print("Unknown builtin: " + elem.val);
+			print(concat("Unknown builtin: ", elem.val));
 		}
 		acc.push(")");
 	} else {
-		print("Unknown id: " + elem.id);
+		print(concat("Unknown id: ", elem.id));
 	}
 	return acc;
 }
@@ -685,11 +711,9 @@ toJS = function(elem, indent, acc) {
 var tree, st;
 while(tree = parse()) {
 //	print_r(tree);
-	st = toJS(tree).join("");
+	st = toJS(tree, 0, []).join("");
 	if(st) {
-		print(st + ";");
+		print(concat(st, ";"));
 	}
 }
-
-tree = {};
-tree.foo = 3;
+})();
