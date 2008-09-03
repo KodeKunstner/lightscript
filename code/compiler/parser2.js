@@ -736,18 +736,18 @@ toJS = function(elem, indent, acc) {
 		acc.push("(");
 		if(elem.val === "===") {
 			toJS(elem.args[0], indent, acc);
-			acc.push("===");
+			acc.push(" === ");
 			toJS(elem.args[1], indent, acc);
 		} else if(elem.val === "<") {
 			toJS(elem.args[0], indent, acc);
-			acc.push("<");
+			acc.push(" < ");
 			toJS(elem.args[1], indent, acc);
 		} else if(elem.val === "!") {
 			acc.push("!");
 			toJS(elem.args[0], indent, acc);
 		} else if(elem.val === "+") {
 			toJS(elem.args[0], indent, acc);
-			acc.push("+");
+			acc.push(" + ");
 			toJS(elem.args[1], indent, acc);
 		} else if(elem.val === "-") {
 			if(elem.args.length === 1) {
@@ -755,7 +755,7 @@ toJS = function(elem, indent, acc) {
 				toJS(elem.args[0], indent, acc);
 			} else {
 				toJS(elem.args[0], indent, acc);
-				acc.push("-");
+				acc.push(" - ");
 				toJS(elem.args[1], indent, acc);
 			}
 		} else {
