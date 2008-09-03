@@ -105,6 +105,7 @@ nexttoken = function() {
 			nextc();
 		}
 		token.val = parseInt(str, 10);
+		token.type = "int";
 		str = "(literal)";
 
 	// Identifier
@@ -129,7 +130,6 @@ nexttoken = function() {
 					"t": "\t",
 					"f": "\f",
 					"b": "\b",
-					"l": "\l",
 				}[c] || c;
 			}
 			str = str + c;
@@ -137,6 +137,7 @@ nexttoken = function() {
 		}
 		nextc();
 		token.val = str;
+		token.type = "string";
 		str = "(literal)";
 
 	// Comment (and division passhtrough)
@@ -474,7 +475,6 @@ clean_prop = function(obj) {
 	delete obj.nud;
 	delete obj.lbp;
 	delete obj.led;
-	delete obj.type;
 	delete obj.line;
 }
 // The parser itself
@@ -508,27 +508,91 @@ parse = function (rbp) {
 
 nexttoken();
 
+/////////////////////////////
+// to js-compiler
+////
+
+var toJS, tab;
+
+tab = function(i) {
+	var str;
+	str = "";
+	while(i > 0) {
+		str = str + " ";
+		i = i - 1;
+	}
+	return str;
+}
+
+toJS = function(elem, indent, acc) {
+	var i, t;
+	indent = indent || 0;
+	acc = acc || [];
+
+	//print_r(["T" + "O" + "JS", elem]);
+	if(elem.id === "(literal)") {
+		if(elem.type === "int") {
+			acc.push("" + elem.val);
+		} else if(elem.type === "string") {
+			acc.push("\"");
+			for(i in elem.val) {
+				acc.push( {"\n": "\\n", "\"": "\\\"", 
+					"\\": "\\\\", "\r": "\\r",
+					"\t": "\\t"}[elem.val[i]]
+					|| elem.val[i]);
+			}
+			acc.push("\"");
+		} else {
+			print("Unknown literal type: " + elem.type);
+		}
+	} else if(elem.id === "(noop)") {
+	} else if(elem.id === "(while)") {
+		acc.push("while(");
+		toJS(elem.args[0], indent, acc);
+		acc.push(") {\n");
+		indent = indent + 4;
+		i = 1;
+		while(i<elem.args.length) {
+			acc.push(tab(indent));
+			toJS(elem.args[i], indent, acc);
+			acc.push(";\n");
+			i = i + 1;
+		}
+		indent = indent - 4;
+		acc.push(tab(indent) + "}");
+	} else if(elem.id === "(local)") {
+		acc.push(elem.val);
+	} else if(elem.id === "(assign)") {
+		toJS(elem.args[0], indent, acc);
+		acc.push(" = ");
+		toJS(elem.args[1], indent, acc);
+	} else if(elem.id === "(global)") {
+		acc.push("" + elem.val);
+	} else if(elem.id === "(function call)") {
+		t = [];
+		toJS(elem.args[0], indent, acc);
+		acc.push("(");
+		i = 1;
+		while(i<elem.args.length) {
+			t.push(toJS(elem.args[i], indent).join(""));
+			i = i + 1;
+		}
+		acc.push(t.join(", "));
+		acc.push(")");
+	} else {
+		print("Unknown id: " + elem.id);
+	}
+	return acc;
+}
+
 ////////////////////////////////
 // Test code
 ////
 
 
+
 var tree;
 while(tree = parse()) {
-	print_r(tree);
-	print();
-}
-
-print_r(ctx.locals);
-
-var test;
-
-test = function() {
-	var foo, bar, baz;
-	foo = function(baz) {
-		var quux;
-		return function() {
-			return foo+bar+baz+test;
-		}
-	}
+	//print_r(tree);
+	print(toJS(tree).join("")+";\n");
 }
