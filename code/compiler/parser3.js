@@ -1,106 +1,123 @@
 load("stdmob3.js");
 
 
-////////////////////////////////
-// Tokeniser
-////
-c = " ";
+/////////////
+// Parser //
+///////////
+parser = {};
 
+//////////////////
+// Char reader //
+////////////////
+parser.char_reader = {
+	"str": " ",
+	"is_multisymb": function () {
+		var c;
+		c = this.str;
+		return ((c === "|") || ((c === "<") || ((c === "=") || ((c === ">") || ((c === "!") || (c === "&"))))));
+	},
+	"is_ws": function () {
+		var c;
+		c = this.str;
+		return ((c === " ") || ((c === "\n") || ((c === "\r") || (c === "\t"))));
+	},
+	"is_num": function () {
+		var c;
+		c = this.str;
+		return (("0" <= c) && (c <= "9"));
+	},
+	"is_alphanum": function () {
+		var c;
+		c = this.str;
+		return ((("a" <= c) && (c <= "z")) || ((("A" <= c) && (c <= "Z")) || (this.is_num() || (c === "_"))));
+	},
+	"next": function () {
+		this.str = std.io.getchar();
+	},
+};
 
-//////
-//Predicate functions
-//////
-is_multisymb = function () {
-	return ((c === "|") || ((c === "<") || ((c === "=") || ((c === ">") || ((c === "!") || (c === "&"))))));
-};
-is_ws = function () {
-	return ((c === " ") || ((c === "\n") || ((c === "\r") || (c === "\t"))));
-};
-is_num = function () {
-	return (("0" <= c) && (c <= "9"));
-};
-is_alphanum = function () {
-	return ((("a" <= c) && (c <= "z")) || ((("A" <= c) && (c <= "Z")) || (is_num() || (c === "_"))));
-};
-nextc = function () {
-	c = std.io.getchar();
-};
+///////////////////
+// Token reader //
+/////////////////
+parser.token_reader = {};
+
 nexttoken = function () {
-	var key, str, default_token, t;
+	var key, str, default_token, t, c;
+	c = parser.char_reader;
 
 
 // Skip whitespaces
-	while (is_ws()) {
-		nextc();
+	while (c.is_ws()) {
+		c.next();
 	};
 
 
 // Initialisation;
 	token = {};
 	token.line = std.io.currentline();
-	str = c;
+	str = c.str;
 
 
 // Create token
 // End-token
-	if ((c === undefined)) {
+	if ((c.str === undefined)) {
 		str = "(end)";
 
 
 // Number literal
-	} else if (is_num()) {
-		nextc();
-		while (is_num()) {
-			str = strcat(str, c);
-			nextc();
+	} else if (c.is_num()) {
+		c.next();
+		while (c.is_num()) {
+			str = strcat(str, c.str);
+			c.next();
 		};
 		token.val = str;
 		str = "(integer literal)";
 
 
 // Identifier
-	} else if (is_alphanum()) {
-		nextc();
-		while (is_alphanum()) {
-			str = strcat(str, c);
-			nextc();
+	} else if (c.is_alphanum()) {
+		c.next();
+		while (c.is_alphanum()) {
+			str = strcat(str, c.str);
+			c.next();
 		};
 
 
 // String literal
-	} else if ((c === "\"")) {
-		nextc();
+	} else if ((c.str === "\"")) {
+		c.next();
 		str = "";
-		while ((c !== "\"")) {
-			if ((c === "\\")) {
-				nextc();
+		while ((c.str !== "\"")) {
+			if ((c.str === "\\")) {
+				c.next();
 				t = {
 					"n": "\n",
 					"r": "\r",
 					"t": "\t",
-				}[c];
+				}[c.str];
 				if ((t !== undefined)) {
-					c = t;
+					c.str = t;
 				};
 			};
-			str = strcat(str, c);
-			nextc();
+			str = strcat(str, c.str);
+			c.next();
 		};
-		nextc();
+		c.next();
 		token.val = str;
 		token.type = "str";
 		str = "(string literal)";
 
 
 // Comment (and division passhtrough)
-	} else if ((c === "/")) {
-		nextc();
-		if ((c === "/")) {
-			nextc();
+	} else if ((c.str === "/")) {
+		c.next();
+		if ((c.str === "/")) {
+			c.next();
 			str = "";
-			while ((c !== "\n")) {
-				str = strcat(str, c);
-				nextc();
+			while ((c.str !== "\n")) {
+				str = strcat(str, c.str);
+				c.next();
 			};
 			token.content = str;
 			token.val = "comment";
@@ -109,17 +126,17 @@ nexttoken = function () {
 
 
 // Symbol consisting of several chars
-	} else if (is_multisymb()) {
-		nextc();
-		while (is_multisymb()) {
-			str = strcat(str, c);
-			nextc();
+	} else if (c.is_multisymb()) {
+		c.next();
+		while (c.is_multisymb()) {
+			str = strcat(str, c.str);
+			c.next();
 		};
 
 
 // Single symbol
 	} else {
-		nextc();
+		c.next();
 	};
 
 
@@ -951,3 +968,4 @@ toJS = function (parser) {
 // std.io.printerror(arrjoin(printblock(st, 0, []), ""));
 //
 std.io.println(toJS(parse));
+
