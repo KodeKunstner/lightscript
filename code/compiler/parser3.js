@@ -481,6 +481,7 @@ tab = function(i) {
 printblock = function(arr, indent, acc) {
 	var prevcomment;
 	prevcomment = false;
+	//print(concat("/", "*")); print("ARR:", arr); print(concat("*", "/"));
 	for(i in arr) {
 		if(arr[i].id !== "(noop)") {
 			push(acc, tab(indent));
@@ -508,6 +509,7 @@ printblock = function(arr, indent, acc) {
 
 node2js = function(elem, indent, acc) {
 	var i, t, x;
+	//print(concat("/", "*")); print("ELEM:", elem); print(concat("*", "/"));
 
 	if(elem.id === "(string literal)") {
 		push(acc, "\"");
@@ -743,8 +745,10 @@ node2js = function(elem, indent, acc) {
 toJS = function(parser) {
 	var node, nodes, acc;
 	nodes = [];
-	while((node = parser()) !== undefined) {
+	node = parser();
+	while(node !== undefined) {
 		push(nodes, node);
+		node = parser();
 	}
 	return join(printblock(nodes, 0, []), "")
 }

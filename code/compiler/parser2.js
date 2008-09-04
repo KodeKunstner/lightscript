@@ -1,6 +1,5 @@
 load("stdmob2.js");
 
-(function() {
 // functions 
 var parse, is_multisymb, is_ws, is_num, is_alphanum, nextc, parse_rbp,
     nexttoken, decl, expect, register_local, pass, prefix, localvarnud, 
@@ -659,7 +658,7 @@ node2js = function(elem, indent, acc) {
 		push(acc, "] = ");
 		node2js(elem.args[2], indent, acc);
 	} else if(elem.id === "(function)") {
-		push(acc, "function (");
+		push(acc, "(function (");
 		t = [];
 		for(i in elem.parameters) {
 			push(t, elem.parameters[i]);
@@ -701,7 +700,7 @@ node2js = function(elem, indent, acc) {
 
 		indent = indent - 1;
 		push(acc, tab(indent));
-		push(acc, "}");
+		push(acc, "})");
 
 	} else if(elem.id === "(global)") {
 		push(acc, int2str(elem.val));
@@ -798,4 +797,3 @@ toJS = function(parser) {
 // print(join(printblock(st, 0, []), ""));
 //
 print(toJS(parse));
-})();
