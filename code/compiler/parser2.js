@@ -1,9 +1,10 @@
 load("stdmob2.js");
 
+(function() {
 // functions 
-var parse, getchar, is_multisymb, is_ws, is_num, is_alphanum, nextc, parse_rbp,
+var parse, is_multisymb, is_ws, is_num, is_alphanum, nextc, parse_rbp,
     nexttoken, decl, expect, register_local, pass, prefix, localvarnud, 
-    readlist, binop, unop, infixr, clean_prop, error_mesg, printblock; 
+    readlist, binop, unop, infixr, clean_prop, error_mesg, printblock, toJS; 
 // objects
 var parsers, ctx, globals, localvar, token;
 // arrays
@@ -75,8 +76,7 @@ nexttoken = function() {
 			nextc();
 		}
 		token.val = toInt(str);
-		token.type = "int";
-		str = "(literal)";
+		str = "(integer literal)";
 
 	// Identifier
 	} else if(is_alphanum()) {
@@ -109,7 +109,7 @@ nexttoken = function() {
 		nextc();
 		token.val = str;
 		token.type = "str";
-		str = "(literal)";
+		str = "(string literal)";
 
 	// Comment (and division passhtrough)
 	} else if(c === "/") {
@@ -162,7 +162,7 @@ error_mesg = function() {
 ctx_stack = [];
 ctx = {"locals": {}, };
 globals = {"readline": "fun", "print" : "fun", "load": "fun", 
-	"print_r": "fun", "typeof": "fun", 
+	"print_r": "fun", "typeof": "fun", "getchar": "fun", 
 	"currentline": "fun", "push": "fun", "pop": "fun", 
 	"toInt": "fun", "toArr": "fun", "toVar": "fun", 
 	"toBool": "fun", "toObj": "fun", "toFun": "fun", 
@@ -260,9 +260,9 @@ infixr = function(left) {
 // The table of parser functions
 parsers = {
 	"var": {"nud": decl},
-	"undefined": {"nud": pass, "type": "nil", "id": "(literal)"},
-	"true": {"nud": pass, "type": "bool", "id": "(literal)", "val": true},
-	"false": {"nud": pass, "type" : "bool", "id": "(literal)", "val": false},
+	"undefined": {"nud": pass, "type": "nil", "id": "(nil)"},
+	"true": {"nud": pass, "type": "bool", "id": "(true)", "val": true},
+	"false": {"nud": pass, "type" : "bool", "id": "(false)", "val": false},
 	"return": {"nud": prefix, "type": "void", "id": "(return)"},
 	"delete": {"nud": prefix, "type": "void", "id": "(delete)"},
 	"function": {"id": "(function)", "type":"fun", "nud":
@@ -392,12 +392,16 @@ parsers = {
 	";": {"nud": pass, "id": "(noop)", "val": ";", "lbp": -200, "sep": true},
 	"(noop)": {"nud": pass},
 	"(end)": {"nud": pass},
-	"(literal)": {"nud": pass},
+	"(string literal)": {"nud": pass},
+	"(integer literal)": {"nud": pass},
 	"=": {"lbp": 100, "type": "void", "led": 
 		function(left) {
 			if(left.id === "(subscript)") {
 				this.id = "(put)";
 				this.args = [left.args[0], left.args[1], parse()];
+			} else if(left.id === "(global)") {
+				this.id = "(setglobal)";
+				this.args = [left, parse()];
 			} else {
 				this.id = "(assign)";
 				this.args = [left, parse()];
@@ -407,7 +411,7 @@ parsers = {
 	".": {"lbp": 700, "led": 
 		function(left) {
 			this.id = "(subscript)";
-			this.args = [left, {"type": "str", "id": "(literal)", "val": token.id}];
+			this.args = [left, {"id": "(string literal)", "val": token.id}];
 			this.type = "var";
 			nexttoken();
 		}
@@ -492,93 +496,101 @@ nexttoken();
 // to js-compiler
 ////
 
-var toJS, tab;
+var node2js, tab;
 
 tab = function(i) {
 	var str;
 	str = "";
 	while(i > 0) {
-		str = concat(str, " ");
+		str = concat(str, "\t");
 		i = i - 1;
 	}
 	return str;
 }
 
-var block_toJS;
-
-block_toJS = function(elem, indent, acc) {
-	push(acc, " {\n");
-	push(acc, tab(indent));
-	push(acc, "} ");
-}
-
 printblock = function(arr, indent, acc) {
-	indent = indent + 4;
+	var prevcomment;
+	prevcomment = false;
 	for(i in arr) {
 		if(arr[i].id !== "(noop)") {
 			push(acc, tab(indent));
-			toJS(arr[i], indent, acc);
+			node2js(arr[i], indent, acc);
 			push(acc, ";\n");
+			prevcomment = false;
+		} else if(arr[i].val === "comment") {
+			if(prevcomment === false) {
+				push(acc, "\n");
+				push(acc, "\n");
+			}
+			//push(acc, tab(indent));
+			push(acc, "//");
+			push(acc, arr[i].content);
+			push(acc, "\n");
+			prevcomment = true;
+
+		} else {
+			prevcomment = false;
 		}
 	}
+
+	return acc;
 }
-toJS = function(elem, indent, acc) {
+
+node2js = function(elem, indent, acc) {
 	var i, t, x;
 
-	if(elem.id === "(literal)") {
-		if(elem.type === "int") {
-			push(acc, "");
-			push(acc, int2str(elem.val));
-		} else if(elem.type === "nil") {
-			push(acc, "undefined");
-		} else if(elem.type === "bool") {
-			push(acc, int2str(elem.val));
-		} else if(elem.type === "str") {
-			push(acc, "\"");
-			for(i in elem.val) {
-				t = {"\n": "\\n", "\"": "\\\"", 
-					"\\": "\\\\", "\r": "\\r",
-					"\t": "\\t"}[elem.val[i]];
-				if(t === undefined) {
-					t = elem.val[i];
-				}
-				push(acc, t);
+	if(elem.id === "(string literal)") {
+		push(acc, "\"");
+		for(i in elem.val) {
+			t = {"\n": "\\n", "\"": "\\\"", 
+				"\\": "\\\\", "\r": "\\r",
+				"\t": "\\t"}[elem.val[i]];
+			if(t === undefined) {
+				t = elem.val[i];
 			}
-			push(acc, "\"");
-		} else {
-			print(concat("Unknown literal type: ", elem.type));
+			push(acc, t);
 		}
+		push(acc, "\"");
+	} else if(elem.id === "(integer literal)") {
+		push(acc, "");
+		push(acc, int2str(elem.val));
+	} else if(elem.id === "(nil)") {
+		push(acc, "undefined");
+	} else if(elem.id === "(true)") {
+		push(acc, "true");
+	} else if(elem.id === "(false)") {
+		push(acc, "false");
 	} else if(elem.id === "(noop)") {
 	} else if(elem.id === "(if)") {
 		push(acc, "if (");
-		toJS(elem.args[0], indent, acc);
+		node2js(elem.args[0], indent, acc);
 		push(acc, ") ");
-		toJS(elem.args[1], indent, acc);
+		node2js(elem.args[1], indent, acc);
 		if(3 === elem.args.length) {
 			push(acc, " else ");
-			toJS(elem.args[2], indent, acc);
+			node2js(elem.args[2], indent, acc);
 		} 
 	} else if(elem.id === "(block)") {
 		push(acc, "{\n");
 
-		printblock(elem.args, indent, acc);
+		printblock(elem.args, indent+1, acc);
 
 		push(acc, tab(indent));
 		push(acc, "}");
 	} else if(elem.id === "(object literal)") {
 		if(elem.args.length > 0) {
 			push(acc, "{\n");
-			indent = indent + 4;
+			indent = indent + 1;
 			i = 0;
 			while(i<elem.args.length) {
 				push(acc, tab(indent));
-				toJS(elem.args[i], indent, acc);
+				node2js(elem.args[i], indent, acc);
 				push(acc, ": ");
-				toJS(elem.args[i + 1], indent, acc);
+				node2js(elem.args[i + 1], indent, acc);
 				push(acc, ",\n");
 				i = i + 2;
 			}
-			indent = indent - 4;
+			indent = indent - 1;
 			push(acc, tab(indent));
 			push(acc, "}");
 		} else {
@@ -590,7 +602,7 @@ toJS = function(elem, indent, acc) {
 			push(acc, "[");
 			for(i in elem.args) {
 				x = [];
-				toJS(elem.args[i], indent, x);
+				node2js(elem.args[i], indent, x);
 				push(t, join(x, ""));
 			}
 			push(acc, join(t, ", "));
@@ -600,45 +612,52 @@ toJS = function(elem, indent, acc) {
 		}
 	} else if(elem.id === "(for)") {
 		push(acc, "for (");
-		toJS(elem.args[0], indent, acc);
+		node2js(elem.args[0], indent, acc);
 		push(acc, " in ");
-		toJS(elem.args[1], indent, acc);
+		node2js(elem.args[1], indent, acc);
 		push(acc, ") ");
-		toJS(elem.args[2], indent, acc);
+		node2js(elem.args[2], indent, acc);
 	} else if(elem.id === "(while)") {
 		push(acc, "while (");
-		toJS(elem.args[0], indent, acc);
+		node2js(elem.args[0], indent, acc);
 		push(acc, ") ");
-		toJS(elem.args[1], indent, acc);
+		node2js(elem.args[1], indent, acc);
 	} else if(elem.id === "(and)") {
 		push(acc, "(");
-		toJS(elem.args[0], indent, acc);
+		node2js(elem.args[0], indent, acc);
 		push(acc, " && ");
-		toJS(elem.args[1], indent, acc);
+		node2js(elem.args[1], indent, acc);
 		push(acc, ")");
 	} else if(elem.id === "(or)") {
 		push(acc, "(");
-		toJS(elem.args[0], indent, acc);
+		node2js(elem.args[0], indent, acc);
 		push(acc, " || ");
-		toJS(elem.args[1], indent, acc);
+		node2js(elem.args[1], indent, acc);
 		push(acc, ")");
 	} else if(elem.id === "(local)") {
 		push(acc, elem.val);
-	} else if(elem.id === "(assign)") {
-		toJS(elem.args[0], indent, acc);
+		push(acc, "/*");
+		push(acc, elem.type);
+		push(acc, "*/");
+	} else if(elem.id === "(setglobal)") {
+		node2js(elem.args[0], indent, acc);
 		push(acc, " = ");
-		toJS(elem.args[1], indent, acc);
+		node2js(elem.args[1], indent, acc);
+	} else if(elem.id === "(assign)") {
+		node2js(elem.args[0], indent, acc);
+		push(acc, " = ");
+		node2js(elem.args[1], indent, acc);
 	} else if(elem.id === "(subscript)") {
-		toJS(elem.args[0], indent, acc);
+		node2js(elem.args[0], indent, acc);
 		push(acc, "[");
-		toJS(elem.args[1], indent, acc);
+		node2js(elem.args[1], indent, acc);
 		push(acc, "]");
 	} else if(elem.id === "(put)") {
-		toJS(elem.args[0], indent, acc);
+		node2js(elem.args[0], indent, acc);
 		push(acc, "[");
-		toJS(elem.args[1], indent, acc);
+		node2js(elem.args[1], indent, acc);
 		push(acc, "] = ");
-		toJS(elem.args[2], indent, acc);
+		node2js(elem.args[2], indent, acc);
 	} else if(elem.id === "(function)") {
 		push(acc, "function (");
 		t = [];
@@ -655,13 +674,14 @@ toJS = function(elem, indent, acc) {
 			}
 			push(t[elem.locals[i]], i);
 		}
+		indent = indent + 1;
 
 		if(t["var"] !== undefined) {
 			x = [];
 			for(i in t["var"]) {
 				push(x, t["var"][i]);
 			}
-			push(acc, tab(indent+4));
+			push(acc, tab(indent));
 			push(acc, "var ");
 			push(acc, join(x, ", "));
 			push(acc, ";\n");
@@ -672,13 +692,14 @@ toJS = function(elem, indent, acc) {
 			for(i in t["shared"]) {
 				push(x, t["shared"][i]);
 			}
-			push(acc, tab(indent+4));
+			push(acc, tab(indent));
 			push(acc, "var ");
 			push(acc, join(x, ", "));
 			push(acc, ";\n");
 		}
 		printblock(elem.args, indent, acc);
 
+		indent = indent - 1;
 		push(acc, tab(indent));
 		push(acc, "}");
 
@@ -686,64 +707,64 @@ toJS = function(elem, indent, acc) {
 		push(acc, int2str(elem.val));
 	} else if(elem.id === "(function call)") {
 		t = [];
-		toJS(elem.args[0], indent, acc);
+		node2js(elem.args[0], indent, acc);
 		push(acc, "(");
 		i = 1;
 		while(i<elem.args.length) {
-			push(t, join(toJS(elem.args[i], indent, []), ""));
+			push(t, join(node2js(elem.args[i], indent, []), ""));
 			i = i + 1;
 		}
 		push(acc, join(t, ", "));
 		push(acc, ")");
 	} else if(elem.id === "(delete)") {
 		push(acc, "delete ");
-		toJS(elem.args[0], indent, acc);
+		node2js(elem.args[0], indent, acc);
 	} else if(elem.id === "(return)") {
 		push(acc, "return ");
-		toJS(elem.args[0], indent, acc);
+		node2js(elem.args[0], indent, acc);
 	} else if(elem.id === "(sign)") {
 		push(acc, "(-");
-		toJS(elem.args[0], indent, acc);
+		node2js(elem.args[0], indent, acc);
 		push(acc, ")");
 	} else if(elem.id === "(plus)") {
 		push(acc, "(");
-		toJS(elem.args[0], indent, acc);
+		node2js(elem.args[0], indent, acc);
 		push(acc, " + ");
-		toJS(elem.args[1], indent, acc);
+		node2js(elem.args[1], indent, acc);
 		push(acc, ")");
 	} else if(elem.id === "(minus)") {
 		push(acc, "(");
-		toJS(elem.args[0], indent, acc);
+		node2js(elem.args[0], indent, acc);
 		push(acc, " - ");
-		toJS(elem.args[1], indent, acc);
+		node2js(elem.args[1], indent, acc);
 		push(acc, ")");
 	} else if(elem.id === "(equals)") {
 		push(acc, "(");
-		toJS(elem.args[0], indent, acc);
+		node2js(elem.args[0], indent, acc);
 		push(acc, " === ");
-		toJS(elem.args[1], indent, acc);
+		node2js(elem.args[1], indent, acc);
 		push(acc, ")");
 	} else if(elem.id === "(not equals)") {
 		push(acc, "(");
-		toJS(elem.args[0], indent, acc);
+		node2js(elem.args[0], indent, acc);
 		push(acc, " !== ");
-		toJS(elem.args[1], indent, acc);
+		node2js(elem.args[1], indent, acc);
 		push(acc, ")");
 	} else if(elem.id === "(not)") {
 		push(acc, "(!");
-		toJS(elem.args[0], indent, acc);
+		node2js(elem.args[0], indent, acc);
 		push(acc, ")");
 	} else if(elem.id === "(less)") {
 		push(acc, "(");
-		toJS(elem.args[0], indent, acc);
+		node2js(elem.args[0], indent, acc);
 		push(acc, " < ");
-		toJS(elem.args[1], indent, acc);
+		node2js(elem.args[1], indent, acc);
 		push(acc, ")");
 	} else if(elem.id === "(less or equal)") {
 		push(acc, "(");
-		toJS(elem.args[0], indent, acc);
+		node2js(elem.args[0], indent, acc);
 		push(acc, " <= ");
-		toJS(elem.args[1], indent, acc);
+		node2js(elem.args[1], indent, acc);
 		push(acc, ")");
 	} else {
 		print(concat("Unknown id: ", elem.id));
@@ -752,18 +773,29 @@ toJS = function(elem, indent, acc) {
 	return acc;
 }
 
+toJS = function(parser) {
+	var node, nodes, acc;
+	nodes = [];
+	while((node = parser()) !== undefined) {
+		push(nodes, node);
+	}
+	return join(printblock(nodes, 0, []), "")
+}
+
 ////////////////////////////////
 // Test code
 ////
 
 
 
-var tree, st;
-while(tree = parse()) {
-//	print_r(tree);
-	st = join(toJS(tree, 0, []), "");
-	if(st !== "") {
-		print(concat(st, ";"));
-	}
-}
 
+//var tree, st;
+//st = [];
+//while(tree = parse()) {
+//	print_r(tree);
+// push(st, tree);
+// }
+// print(join(printblock(st, 0, []), ""));
+//
+print(toJS(parse));
+})();
