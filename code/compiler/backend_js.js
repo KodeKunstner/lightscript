@@ -4,6 +4,9 @@
 // to js-compiler
 ////
 backend_js = {};
+
+
+// indent
 backend_js.tab = (function (i) {
 	var str;
 	str = "";
@@ -13,12 +16,12 @@ backend_js.tab = (function (i) {
 	};
 	return str;
 });
+
+
+// print an indented sequence of statements
 backend_js.printblock = (function (arr, indent, acc) {
 	var prevcomment;
 	prevcomment = false;
-
-
-//std.io.printerror(strcat("/", "*")); println("ARR:", arr); println(strcat("*", "/"));
 	for (i in arr) {
 		if ((arr[i].id !== "(noop)")) {
 			arrpush(acc, this.tab(indent));
@@ -30,9 +33,6 @@ backend_js.printblock = (function (arr, indent, acc) {
 				arrpush(acc, "\n");
 				arrpush(acc, "\n");
 			};
-
-
-//arrpush(acc, this.tab(indent));
 			arrpush(acc, "//");
 			arrpush(acc, arr[i].content);
 			arrpush(acc, "\n");
@@ -43,11 +43,11 @@ backend_js.printblock = (function (arr, indent, acc) {
 	};
 	return acc;
 });
+
+
+// transform an AST-node into javascript
 backend_js.node2js = (function (elem, indent, acc) {
 	var i, t, x;
-
-
-//std.io.printerror(strcat("/", "*")); println("ELEM:", elem); println(strcat("*", "/"));
 	if ((elem.id === "(string literal)")) {
 		arrpush(acc, "\"");
 		for (i in elem.val) {
@@ -298,6 +298,9 @@ backend_js.node2js = (function (elem, indent, acc) {
 	};
 	return acc;
 });
+
+
+// translate the AST into a string
 backend_js.toJS = (function (parser) {
 	var node, nodes, acc;
 	nodes = [];
@@ -308,10 +311,4 @@ backend_js.toJS = (function (parser) {
 	};
 	return arrjoin(this.printblock(nodes, 0, []), "");
 });
-
-
-////////////////////////////////
-// Test code
-////
-std.io.println(backend_js.toJS(parser.parse));
 

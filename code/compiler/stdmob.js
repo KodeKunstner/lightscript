@@ -1,3 +1,18 @@
+is_int = function(o) {
+	return typeof(o) === "number";
+}
+
+is_str = function(o) {
+	return typeof(o) === "string";
+}
+
+is_arr = function(o) {
+	return o instanceof Array;
+}
+
+is_obj = function(o) {
+	return o instanceof Object;
+}
 
 strcat = function(a, b) {
         return a+b;
@@ -50,10 +65,6 @@ std.io.currentline = function() {
 }
 
 std.io.println = function(obj) {
-	print(obj);
-}
-
-std.io.printerror = function(obj) {
 	var genstr;
 	if(typeof(obj) === "string") {
 		print(obj);
@@ -87,5 +98,8 @@ std.io.printerror = function(obj) {
 
 	}
 	print(genstr(obj, []));
+}
+std.io.printerror = function(obj) {
+	std.io.println(obj);
 };
 

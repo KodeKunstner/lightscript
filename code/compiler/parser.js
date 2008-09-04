@@ -104,7 +104,6 @@ parser.nexttoken = (function () {
 		};
 		c.next();
 		parser.token.val = str;
-		parser.token.type = "str";
 		str = "(string literal)";
 
 
@@ -188,7 +187,6 @@ parser.handlers = (function () {
 		parser.ctx.locals[name] = type;
 		parser.ctx.prev[name] = parser.handlers[name];
 		parser.handlers[name] = localvar;
-		parser.handlers[name].type = type;
 	});
 	decl = (function () {
 		var type, args;
@@ -212,7 +210,6 @@ parser.handlers = (function () {
 		this.args = [parser.parse()];
 	});
 	localvarnud = (function () {
-		this.type = parser.ctx.locals[this.id];
 		this.val = this.id;
 		this.id = "(local)";
 	});
@@ -244,7 +241,6 @@ parser.handlers = (function () {
 		},
 		"undefined": {
 			"nud": pass,
-			"type": "nil",
 			"id": "(nil)",
 		},
 		"globals": {
@@ -273,24 +269,20 @@ parser.handlers = (function () {
 		},
 		"true": {
 			"nud": pass,
-			"type": "bool",
 			"id": "(true)",
 			"val": true,
 		},
 		"false": {
 			"nud": pass,
-			"type": "bool",
 			"id": "(false)",
 			"val": false,
 		},
 		"return": {
 			"nud": prefix,
-			"type": "void",
 			"id": "(return)",
 		},
 		"delete": {
 			"nud": prefix,
-			"type": "void",
 			"id": "(delete)",
 		},
 		"function": {
@@ -344,7 +336,6 @@ parser.handlers = (function () {
 		},
 		"if": {
 			"id": "(if)",
-			"type": "void",
 			"nud": (function () {
 				var t;
 				t = [];
@@ -372,7 +363,6 @@ parser.handlers = (function () {
 		},
 		"for": {
 			"id": "(for)",
-			"type": "void",
 			"nud": (function () {
 				var t, t2;
 				t = [];
@@ -397,7 +387,6 @@ parser.handlers = (function () {
 		},
 		"while": {
 			"id": "(while)",
-			"type": "void",
 			"nud": (function () {
 				var t;
 				this.args = [parser.parse()];
@@ -411,7 +400,6 @@ parser.handlers = (function () {
 			}),
 		},
 		"{": {
-			"type": "obj",
 			"nud": (function () {
 				this.id = "(object literal)";
 				this.args = [];
@@ -423,20 +411,17 @@ parser.handlers = (function () {
 			"led": (function (left) {
 				this.id = "(subscript)";
 				this.args = [left, parser.parse()];
-				this.type = "var";
 				expect("(end)");
 			}),
 			"nud": (function () {
 				this.id = "(array literal)";
 				this.args = [];
-				this.type = "arr";
 				readlist(this.args);
 			}),
 		},
 		"(": {
 			"lbp": 600,
 			"led": (function (left) {
-				this.type = "var";
 				this.id = "(function call)";
 				this.args = [left];
 				readlist(this.args);
@@ -492,7 +477,6 @@ parser.handlers = (function () {
 		},
 		"=": {
 			"lbp": 100,
-			"type": "void",
 			"led": (function (left) {
 				if ((left.id === "(subscript)")) {
 					this.id = "(put)";
@@ -516,12 +500,10 @@ parser.handlers = (function () {
 					"id": "(string literal)",
 					"val": parser.token.id,
 				}];
-				this.type = "var";
 				parser.nexttoken();
 			}),
 		},
 		"-": {
-			"type": "int",
 			"lbp": 400,
 			"nud": (function () {
 				this.args = [parser.parse()];
@@ -534,7 +516,6 @@ parser.handlers = (function () {
 		},
 		"+": {
 			"lbp": 400,
-			"type": "int",
 			"led": binop,
 			"id": "(plus)",
 		},
@@ -552,42 +533,35 @@ parser.handlers = (function () {
 			"led": infixr,
 			"id": "(or)",
 			"lbp": 200,
-			"type": "bool",
 		},
 		"&&": {
 			"led": infixr,
 			"id": "(and)",
 			"lbp": 200,
-			"type": "bool",
 		},
 		"!": {
 			"nud": unop,
 			"id": "(not)",
 			"lbp": 300,
-			"type": "bool",
 		},
 		"===": {
 			"led": binop,
 			"lbp": 300,
-			"type": "bool",
 			"id": "(equals)",
 		},
 		"!==": {
 			"lbp": 300,
 			"id": "(not equals)",
-			"type": "bool",
 			"led": binop,
 		},
 		"<": {
 			"led": binop,
 			"lbp": 300,
-			"type": "bool",
 			"id": "(less)",
 		},
 		">": {
 			"lbp": 300,
 			"id": "(less)",
-			"type": "bool",
 			"led": (function (left) {
 				this.args = [parser.parse_rbp(this.lbp), left];
 			}),
@@ -595,13 +569,11 @@ parser.handlers = (function () {
 		"<=": {
 			"led": binop,
 			"lbp": 300,
-			"type": "bool",
 			"id": "(less or equal)",
 		},
 		">=": {
 			"lbp": 300,
 			"id": "(less or equal)",
-			"type": "bool",
 			"led": (function (left) {
 				this.args = [parser.parse_rbp(this.lbp), left];
 			}),
