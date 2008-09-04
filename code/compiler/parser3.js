@@ -278,13 +278,17 @@ parsers = {
 	},
 	"function": {
 		"id": "(function)",
-		"type": "fun",
 		"nud": function () {
-			var key;
+			var key, t, assign;
+			assign = undefined;
 			arrpush(ctx_stack, ctx);
 			ctx = {
 				"locals": {},
 				"prev": {},
+			};
+			if ((token.id !== "(")) {
+				assign = token.id;
+				nexttoken();
 			};
 			expect("(");
 			this.parameters = [];
@@ -304,6 +308,21 @@ parsers = {
 				parsers[key] = ctx.prev[key];
 			};
 			ctx = arrpop(ctx_stack);
+			if ((assign !== undefined)) {
+				this.args = [{
+					"id": "(global)",
+					"val": assign,
+				}, {
+					"id": this.id,
+					"locals": this.locals,
+					"nud": this.nud,
+					"args": this.args,
+					"parameters": this.parameters,
+				}];
+				this.id = "(setglobal)";
+				delete this.locals;
+				delete this.parameters;
+			};
 		},
 	},
 	"if": {
@@ -932,4 +951,3 @@ toJS = function (parser) {
 // std.io.printerror(arrjoin(printblock(st, 0, []), ""));
 //
 std.io.println(toJS(parse));
-
