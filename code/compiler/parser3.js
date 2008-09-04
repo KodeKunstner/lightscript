@@ -6,43 +6,43 @@ load("stdmob3.js");
 ///////////
 parser = {};
 
+
 //////////////////
 // Char reader //
 ////////////////
 parser.char_reader = {
 	"str": " ",
-	"is_multisymb": function () {
+	"is_multisymb": (function () {
 		var c;
 		c = this.str;
 		return ((c === "|") || ((c === "<") || ((c === "=") || ((c === ">") || ((c === "!") || (c === "&"))))));
-	},
-	"is_ws": function () {
+	}),
+	"is_ws": (function () {
 		var c;
 		c = this.str;
 		return ((c === " ") || ((c === "\n") || ((c === "\r") || (c === "\t"))));
-	},
-	"is_num": function () {
+	}),
+	"is_num": (function () {
 		var c;
 		c = this.str;
 		return (("0" <= c) && (c <= "9"));
-	},
-	"is_alphanum": function () {
+	}),
+	"is_alphanum": (function () {
 		var c;
 		c = this.str;
 		return ((("a" <= c) && (c <= "z")) || ((("A" <= c) && (c <= "Z")) || (this.is_num() || (c === "_"))));
-	},
-	"next": function () {
+	}),
+	"next": (function () {
 		this.str = std.io.getchar();
-	},
+	}),
 };
+
 
 ///////////////////
 // Token reader //
 /////////////////
-parser.token_reader = {};
-
-nexttoken = function () {
-	var key, str, default_token, t, c;
+parser.nexttoken = (function () {
+	var key, str, default_token, t, c, error_mesg;
 	c = parser.char_reader;
 
 
@@ -53,8 +53,8 @@ nexttoken = function () {
 
 
 // Initialisation;
-	token = {};
-	token.line = std.io.currentline();
+	parser.token = {};
+	parser.token.line = std.io.currentline();
 	str = c.str;
 
 
@@ -71,7 +71,7 @@ nexttoken = function () {
 			str = strcat(str, c.str);
 			c.next();
 		};
-		token.val = str;
+		parser.token.val = str;
 		str = "(integer literal)";
 
 
@@ -104,8 +104,8 @@ nexttoken = function () {
 			c.next();
 		};
 		c.next();
-		token.val = str;
-		token.type = "str";
+		parser.token.val = str;
+		parser.token.type = "str";
 		str = "(string literal)";
 
 
@@ -119,8 +119,8 @@ nexttoken = function () {
 				str = strcat(str, c.str);
 				c.next();
 			};
-			token.content = str;
-			token.val = "comment";
+			parser.token.content = str;
+			parser.token.val = "comment";
 			str = "(noop)";
 		};
 
@@ -141,82 +141,82 @@ nexttoken = function () {
 
 
 // Add properties to token
-	token.id = str;
-	token.lbp = 0;
-	token.nud = error_mesg;
-	token.led = error_mesg;
-	default_token = parsers[str];
+	parser.token.id = str;
+	parser.token.lbp = 0;
+	error_mesg = (function () {
+		std.io.printerror(["Error at token", this]);
+	});
+	parser.token.nud = error_mesg;
+	parser.token.led = error_mesg;
+	default_token = parser.handlers[str];
 	if ((default_token === undefined)) {
 		default_token = {
-			"nud": function () {
+			"nud": (function () {
 				this.val = this.id;
 				this.id = "(global)";
-			},
+			}),
 		};
 	};
 	for (key in default_token) {
-		token[key] = default_token[key];
+		parser.token[key] = default_token[key];
 	};
-};
-error_mesg = function () {
-	std.io.printerror(["Error at token", this]);
-};
+});
 
 
 /////////////////////////////////
 // The parser
 ////
-ctx_stack = [];
-ctx = {
+parser.ctx_stack = [];
+parser.ctx = {
 	"locals": {},
 	"prev": {},
 };
 
 
 // The parsing functions
-expect = function (str) {
-	if ((str !== token.id)) {
-		std.io.printerror(arrjoin(["Unexpected token: \"", token.id, "\" at line ", token.line], ""));
+expect = (function (str) {
+	if ((str !== parser.token.id)) {
+		std.io.printerror(arrjoin(["Unexpected token: \"", parser.token.id, "\" at line ", parser.token.line], ""));
 		std.io.printerror(arrjoin(["Expected: \"", str, "\""], ""));
 	};
-	nexttoken();
-};
-register_local = function (name, type) {
-	ctx.locals[name] = type;
-	ctx.prev[name] = parsers[name];
-	parsers[name] = localvar;
-	parsers[name].type = type;
-};
-decl = function () {
+	parser.nexttoken();
+});
+register_local = (function (name, type) {
+	parser.ctx.locals[name] = type;
+	parser.ctx.prev[name] = parser.handlers[name];
+	parser.handlers[name] = localvar;
+	parser.handlers[name].type = type;
+});
+decl = (function () {
 	var type, args;
 	type = this.id;
-	args = [token.id];
-	register_local(token.id, type);
-	nexttoken();
-	while ((token.val !== ";")) {
+	args = [parser.token.id];
+	register_local(parser.token.id, type);
+	parser.nexttoken();
+	while ((parser.token.val !== ";")) {
 		expect(",");
-		arrpush(args, token.id);
-		register_local(token.id, type);
-		nexttoken();
+		arrpush(args, parser.token.id);
+		register_local(parser.token.id, type);
+		parser.nexttoken();
 	};
 	this.id = "(noop)";
 	this.val = strcat("decl-", type);
 	this.elems = args;
-};
-pass = function () {
-};
-prefix = function () {
+});
+pass = (function () {
+});
+prefix = (function () {
 	this.args = [parse()];
-};
-localvarnud = function () {
-	this.type = ctx.locals[this.id];
+});
+localvarnud = (function () {
+	this.type = parser.ctx.locals[this.id];
 	this.val = this.id;
 	this.id = "(local)";
-};
+});
 localvar = {
 	"nud": localvarnud,
 };
-readlist = function (arr) {
+readlist = (function (arr) {
 	var t;
 	t = parse();
 	while (t) {
@@ -225,20 +225,20 @@ readlist = function (arr) {
 		};
 		t = parse();
 	};
-};
-binop = function (left) {
+});
+binop = (function (left) {
 	this.args = [left, parse_rbp(this.lbp)];
-};
-unop = function () {
+});
+unop = (function () {
 	this.args = [parse()];
-};
-infixr = function (left) {
+});
+infixr = (function (left) {
 	this.args = [left, parse_rbp((this.lbp - 1))];
-};
+});
 
 
 // The table of parser functions
-parsers = {
+parser.handlers = {
 	"var": {
 		"nud": decl,
 	},
@@ -295,36 +295,36 @@ parsers = {
 	},
 	"function": {
 		"id": "(function)",
-		"nud": function () {
+		"nud": (function () {
 			var key, t, assign;
 			assign = undefined;
-			arrpush(ctx_stack, ctx);
-			ctx = {
+			arrpush(parser.ctx_stack, parser.ctx);
+			parser.ctx = {
 				"locals": {},
 				"prev": {},
 			};
-			if ((token.id !== "(")) {
-				assign = token.id;
-				nexttoken();
+			if ((parser.token.id !== "(")) {
+				assign = parser.token.id;
+				parser.nexttoken();
 			};
 			expect("(");
 			this.parameters = [];
-			while ((token.id !== "(end)")) {
-				if ((token.id !== ",")) {
-					register_local(token.id, "param");
-					arrpush(this.parameters, token.id);
+			while ((parser.token.id !== "(end)")) {
+				if ((parser.token.id !== ",")) {
+					register_local(parser.token.id, "param");
+					arrpush(this.parameters, parser.token.id);
 				};
-				nexttoken();
+				parser.nexttoken();
 			};
-			nexttoken();
+			parser.nexttoken();
 			this.args = [];
 			expect("{");
 			readlist(this.args);
-			this.locals = ctx.locals;
-			for (key in ctx.prev) {
-				parsers[key] = ctx.prev[key];
+			this.locals = parser.ctx.locals;
+			for (key in parser.ctx.prev) {
+				parser.handlers[key] = parser.ctx.prev[key];
 			};
-			ctx = arrpop(ctx_stack);
+			parser.ctx = arrpop(parser.ctx_stack);
 			if ((assign !== undefined)) {
 				this.args = [{
 					"id": "(global)",
@@ -340,12 +340,12 @@ parsers = {
 				delete this.locals;
 				delete this.parameters;
 			};
-		},
+		}),
 	},
 	"if": {
 		"id": "(if)",
 		"type": "void",
-		"nud": function () {
+		"nud": (function () {
 			var t;
 			t = [];
 			this.args = [parse(), {
@@ -354,11 +354,11 @@ parsers = {
 			}];
 			expect("{");
 			readlist(t);
-			if ((token.id === "else")) {
+			if ((parser.token.id === "else")) {
 				t = [];
-				nexttoken();
-				if ((token.id === "{")) {
-					nexttoken();
+				parser.nexttoken();
+				if ((parser.token.id === "{")) {
+					parser.nexttoken();
 					readlist(t);
 					arrpush(this.args, {
 						"id": "(block)",
@@ -368,12 +368,12 @@ parsers = {
 					arrpush(this.args, parse());
 				};
 			};
-		},
+		}),
 	},
 	"for": {
 		"id": "(for)",
 		"type": "void",
-		"nud": function () {
+		"nud": (function () {
 			var t, t2;
 			t = [];
 			expect("(");
@@ -393,12 +393,12 @@ parsers = {
 				"id": "(block)",
 				"args": t,
 			});
-		},
+		}),
 	},
 	"while": {
 		"id": "(while)",
 		"type": "void",
-		"nud": function () {
+		"nud": (function () {
 			var t;
 			this.args = [parse()];
 			expect("{");
@@ -408,47 +408,47 @@ parsers = {
 				"id": "(block)",
 				"args": t,
 			});
-		},
+		}),
 	},
 	"{": {
 		"type": "obj",
-		"nud": function () {
+		"nud": (function () {
 			this.id = "(object literal)";
 			this.args = [];
 			readlist(this.args);
-		},
+		}),
 	},
 	"[": {
 		"lbp": 600,
-		"led": function (left) {
+		"led": (function (left) {
 			this.id = "(subscript)";
 			this.args = [left, parse()];
 			this.type = "var";
 			expect("(end)");
-		},
-		"nud": function () {
+		}),
+		"nud": (function () {
 			this.id = "(array literal)";
 			this.args = [];
 			this.type = "arr";
 			readlist(this.args);
-		},
+		}),
 	},
 	"(": {
 		"lbp": 600,
-		"led": function (left) {
+		"led": (function (left) {
 			this.type = "var";
 			this.id = "(function call)";
 			this.args = [left];
 			readlist(this.args);
-		},
-		"nud": function () {
+		}),
+		"nud": (function () {
 			var t;
 			t = parse();
 			for (key in t) {
 				this[key] = t[key];
 			};
 			expect("(end)");
-		},
+		}),
 	},
 	")": {
 		"nud": pass,
@@ -493,7 +493,7 @@ parsers = {
 	"=": {
 		"lbp": 100,
 		"type": "void",
-		"led": function (left) {
+		"led": (function (left) {
 			if ((left.id === "(subscript)")) {
 				this.id = "(put)";
 				this.args = [left.args[0], left.args[1], parse()];
@@ -506,31 +506,31 @@ parsers = {
 			} else {
 				std.io.printerror(strcat("Error, wrong lval for assignment in line ", this.line));
 			};
-		},
+		}),
 	},
 	".": {
 		"lbp": 700,
-		"led": function (left) {
+		"led": (function (left) {
 			this.id = "(subscript)";
 			this.args = [left, {
 				"id": "(string literal)",
-				"val": token.id,
+				"val": parser.token.id,
 			}];
 			this.type = "var";
-			nexttoken();
-		},
+			parser.nexttoken();
+		}),
 	},
 	"-": {
 		"type": "int",
 		"lbp": 400,
-		"nud": function () {
+		"nud": (function () {
 			this.args = [parse()];
 			this.id = "(sign)";
-		},
-		"led": function (left) {
+		}),
+		"led": (function (left) {
 			this.args = [left, parse_rbp(this.lbp)];
 			this.id = "(minus)";
-		},
+		}),
 	},
 	"+": {
 		"lbp": 400,
@@ -588,9 +588,9 @@ parsers = {
 		"lbp": 300,
 		"id": "(less)",
 		"type": "bool",
-		"led": function (left) {
+		"led": (function (left) {
 			this.args = [parse_rbp(this.lbp), left];
-		},
+		}),
 	},
 	"<=": {
 		"led": binop,
@@ -602,35 +602,35 @@ parsers = {
 		"lbp": 300,
 		"id": "(less or equal)",
 		"type": "bool",
-		"led": function (left) {
+		"led": (function (left) {
 			this.args = [parse_rbp(this.lbp), left];
-		},
+		}),
 	},
 };
-clean_prop = function (obj) {
+clean_prop = (function (obj) {
 	delete obj.nud;
 	delete obj.lbp;
 	delete obj.led;
 
 
 //delete obj.line;
-};
+});
 
 
 // The parser itself
-parse = function () {
+parse = (function () {
 	return parse_rbp(0);
-};
-parse_rbp = function (rbp) {
+});
+parse_rbp = (function (rbp) {
 	var prev, t;
-	t = token;
-	nexttoken();
+	t = parser.token;
+	parser.nexttoken();
 	t.nud();
-	while (((rbp < token.lbp) && (!t.sep))) {
+	while (((rbp < parser.token.lbp) && (!t.sep))) {
 		clean_prop(t);
 		prev = t;
-		t = token;
-		nexttoken();
+		t = parser.token;
+		parser.nexttoken();
 		t.led(prev);
 	};
 	clean_prop(t);
@@ -638,19 +638,19 @@ parse_rbp = function (rbp) {
 		return undefined;
 	};
 	return t;
-};
+});
 
 
 //////////////////////////////
 // initialisation
 ////
-nexttoken();
+parser.nexttoken();
 
 
 /////////////////////////////
 // to js-compiler
 ////
-tab = function (i) {
+tab = (function (i) {
 	var str;
 	str = "";
 	while ((0 < i)) {
@@ -658,8 +658,8 @@ tab = function (i) {
 		i = (i - 1);
 	};
 	return str;
-};
-printblock = function (arr, indent, acc) {
+});
+printblock = (function (arr, indent, acc) {
 	var prevcomment;
 	prevcomment = false;
 
@@ -688,8 +688,8 @@ printblock = function (arr, indent, acc) {
 		};
 	};
 	return acc;
-};
-node2js = function (elem, indent, acc) {
+});
+node2js = (function (elem, indent, acc) {
 	var i, t, x;
 
 
@@ -826,7 +826,7 @@ node2js = function (elem, indent, acc) {
 		arrpush(acc, " = ");
 		node2js(elem.args[2], indent, acc);
 	} else if ((elem.id === "(function)")) {
-		arrpush(acc, "function (");
+		arrpush(acc, "(function (");
 		t = [];
 		for (i in elem.parameters) {
 			arrpush(t, elem.parameters[i]);
@@ -864,7 +864,7 @@ node2js = function (elem, indent, acc) {
 		printblock(elem.args, indent, acc);
 		indent = (indent - 1);
 		arrpush(acc, tab(indent));
-		arrpush(acc, "}");
+		arrpush(acc, "})");
 	} else if ((elem.id === "(function call)")) {
 		t = [];
 		node2js(elem.args[0], indent, acc);
@@ -943,8 +943,8 @@ node2js = function (elem, indent, acc) {
 		std.io.printerror(elem);
 	};
 	return acc;
-};
-toJS = function (parser) {
+});
+toJS = (function (parser) {
 	var node, nodes, acc;
 	nodes = [];
 	node = parser();
@@ -953,7 +953,7 @@ toJS = function (parser) {
 		node = parser();
 	};
 	return arrjoin(printblock(nodes, 0, []), "");
-};
+});
 
 
 ////////////////////////////////
