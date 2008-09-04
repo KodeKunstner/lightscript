@@ -1,7 +1,10 @@
+
+
 /////////////////////////////
 // to js-compiler
 ////
-tab = (function (i) {
+backend_js = {};
+backend_js.tab = (function (i) {
 	var str;
 	str = "";
 	while ((0 < i)) {
@@ -10,7 +13,7 @@ tab = (function (i) {
 	};
 	return str;
 });
-printblock = (function (arr, indent, acc) {
+backend_js.printblock = (function (arr, indent, acc) {
 	var prevcomment;
 	prevcomment = false;
 
@@ -18,8 +21,8 @@ printblock = (function (arr, indent, acc) {
 //std.io.printerror(strcat("/", "*")); println("ARR:", arr); println(strcat("*", "/"));
 	for (i in arr) {
 		if ((arr[i].id !== "(noop)")) {
-			arrpush(acc, tab(indent));
-			node2js(arr[i], indent, acc);
+			arrpush(acc, this.tab(indent));
+			this.node2js(arr[i], indent, acc);
 			arrpush(acc, ";\n");
 			prevcomment = false;
 		} else if ((arr[i].val === "comment")) {
@@ -29,7 +32,7 @@ printblock = (function (arr, indent, acc) {
 			};
 
 
-//arrpush(acc, tab(indent));
+//arrpush(acc, this.tab(indent));
 			arrpush(acc, "//");
 			arrpush(acc, arr[i].content);
 			arrpush(acc, "\n");
@@ -40,7 +43,7 @@ printblock = (function (arr, indent, acc) {
 	};
 	return acc;
 });
-node2js = (function (elem, indent, acc) {
+backend_js.node2js = (function (elem, indent, acc) {
 	var i, t, x;
 
 
@@ -73,17 +76,17 @@ node2js = (function (elem, indent, acc) {
 	} else if ((elem.id === "(noop)")) {
 	} else if ((elem.id === "(if)")) {
 		arrpush(acc, "if (");
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 		arrpush(acc, ") ");
-		node2js(elem.args[1], indent, acc);
+		this.node2js(elem.args[1], indent, acc);
 		if ((3 === elem.args.length)) {
 			arrpush(acc, " else ");
-			node2js(elem.args[2], indent, acc);
+			this.node2js(elem.args[2], indent, acc);
 		};
 	} else if ((elem.id === "(block)")) {
 		arrpush(acc, "{\n");
-		printblock(elem.args, (indent + 1), acc);
-		arrpush(acc, tab(indent));
+		this.printblock(elem.args, (indent + 1), acc);
+		arrpush(acc, this.tab(indent));
 		arrpush(acc, "}");
 	} else if ((elem.id === "(object literal)")) {
 		if ((0 < elem.args.length)) {
@@ -91,15 +94,15 @@ node2js = (function (elem, indent, acc) {
 			indent = (indent + 1);
 			i = 0;
 			while ((i < elem.args.length)) {
-				arrpush(acc, tab(indent));
-				node2js(elem.args[i], indent, acc);
+				arrpush(acc, this.tab(indent));
+				this.node2js(elem.args[i], indent, acc);
 				arrpush(acc, ": ");
-				node2js(elem.args[(i + 1)], indent, acc);
+				this.node2js(elem.args[(i + 1)], indent, acc);
 				arrpush(acc, ",\n");
 				i = (i + 2);
 			};
 			indent = (indent - 1);
-			arrpush(acc, tab(indent));
+			arrpush(acc, this.tab(indent));
 			arrpush(acc, "}");
 		} else {
 			arrpush(acc, "{}");
@@ -110,7 +113,7 @@ node2js = (function (elem, indent, acc) {
 			arrpush(acc, "[");
 			for (i in elem.args) {
 				x = [];
-				node2js(elem.args[i], indent, x);
+				this.node2js(elem.args[i], indent, x);
 				arrpush(t, arrjoin(x, ""));
 			};
 			arrpush(acc, arrjoin(t, ", "));
@@ -120,62 +123,62 @@ node2js = (function (elem, indent, acc) {
 		};
 	} else if ((elem.id === "(for)")) {
 		arrpush(acc, "for (");
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 		arrpush(acc, " in ");
-		node2js(elem.args[1], indent, acc);
+		this.node2js(elem.args[1], indent, acc);
 		arrpush(acc, ") ");
-		node2js(elem.args[2], indent, acc);
+		this.node2js(elem.args[2], indent, acc);
 	} else if ((elem.id === "(while)")) {
 		arrpush(acc, "while (");
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 		arrpush(acc, ") ");
-		node2js(elem.args[1], indent, acc);
+		this.node2js(elem.args[1], indent, acc);
 	} else if ((elem.id === "(and)")) {
 		arrpush(acc, "(");
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 		arrpush(acc, " && ");
-		node2js(elem.args[1], indent, acc);
+		this.node2js(elem.args[1], indent, acc);
 		arrpush(acc, ")");
 	} else if ((elem.id === "(or)")) {
 		arrpush(acc, "(");
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 		arrpush(acc, " || ");
-		node2js(elem.args[1], indent, acc);
+		this.node2js(elem.args[1], indent, acc);
 		arrpush(acc, ")");
 	} else if ((elem.id === "(local)")) {
 		arrpush(acc, elem.val);
 	} else if ((elem.id === "(global)")) {
 		arrpush(acc, elem.val);
 	} else if ((elem.id === "(setglobal)")) {
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 		arrpush(acc, " = ");
-		node2js(elem.args[1], indent, acc);
+		this.node2js(elem.args[1], indent, acc);
 	} else if ((elem.id === "(setlocal)")) {
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 		arrpush(acc, " = ");
-		node2js(elem.args[1], indent, acc);
+		this.node2js(elem.args[1], indent, acc);
 	} else if ((elem.id === "(subscript)")) {
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 		if ((elem.args[1].id === "(string literal)")) {
 			arrpush(acc, ".");
 			arrpush(acc, elem.args[1].val);
 		} else {
 			arrpush(acc, "[");
-			node2js(elem.args[1], indent, acc);
+			this.node2js(elem.args[1], indent, acc);
 			arrpush(acc, "]");
 		};
 	} else if ((elem.id === "(put)")) {
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 		if ((elem.args[1].id === "(string literal)")) {
 			arrpush(acc, ".");
 			arrpush(acc, elem.args[1].val);
 		} else {
 			arrpush(acc, "[");
-			node2js(elem.args[1], indent, acc);
+			this.node2js(elem.args[1], indent, acc);
 			arrpush(acc, "]");
 		};
 		arrpush(acc, " = ");
-		node2js(elem.args[2], indent, acc);
+		this.node2js(elem.args[2], indent, acc);
 	} else if ((elem.id === "(function)")) {
 		arrpush(acc, "(function (");
 		t = [];
@@ -197,7 +200,7 @@ node2js = (function (elem, indent, acc) {
 			for (i in t.var) {
 				arrpush(x, t.var[i]);
 			};
-			arrpush(acc, tab(indent));
+			arrpush(acc, this.tab(indent));
 			arrpush(acc, "var ");
 			arrpush(acc, arrjoin(x, ", "));
 			arrpush(acc, ";\n");
@@ -207,75 +210,75 @@ node2js = (function (elem, indent, acc) {
 			for (i in t.shared) {
 				arrpush(x, t.shared[i]);
 			};
-			arrpush(acc, tab(indent));
+			arrpush(acc, this.tab(indent));
 			arrpush(acc, "var ");
 			arrpush(acc, arrjoin(x, ", "));
 			arrpush(acc, ";\n");
 		};
-		printblock(elem.args, indent, acc);
+		this.printblock(elem.args, indent, acc);
 		indent = (indent - 1);
-		arrpush(acc, tab(indent));
+		arrpush(acc, this.tab(indent));
 		arrpush(acc, "})");
 	} else if ((elem.id === "(function call)")) {
 		t = [];
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 		arrpush(acc, "(");
 		i = 1;
 		while ((i < elem.args.length)) {
-			arrpush(t, arrjoin(node2js(elem.args[i], indent, []), ""));
+			arrpush(t, arrjoin(this.node2js(elem.args[i], indent, []), ""));
 			i = (i + 1);
 		};
 		arrpush(acc, arrjoin(t, ", "));
 		arrpush(acc, ")");
 	} else if ((elem.id === "(delete)")) {
 		arrpush(acc, "delete ");
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 	} else if ((elem.id === "(return)")) {
 		arrpush(acc, "return ");
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 	} else if ((elem.id === "(sign)")) {
 		arrpush(acc, "(-");
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 		arrpush(acc, ")");
 	} else if ((elem.id === "(plus)")) {
 		arrpush(acc, "(");
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 		arrpush(acc, " + ");
-		node2js(elem.args[1], indent, acc);
+		this.node2js(elem.args[1], indent, acc);
 		arrpush(acc, ")");
 	} else if ((elem.id === "(minus)")) {
 		arrpush(acc, "(");
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 		arrpush(acc, " - ");
-		node2js(elem.args[1], indent, acc);
+		this.node2js(elem.args[1], indent, acc);
 		arrpush(acc, ")");
 	} else if ((elem.id === "(equals)")) {
 		arrpush(acc, "(");
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 		arrpush(acc, " === ");
-		node2js(elem.args[1], indent, acc);
+		this.node2js(elem.args[1], indent, acc);
 		arrpush(acc, ")");
 	} else if ((elem.id === "(not equals)")) {
 		arrpush(acc, "(");
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 		arrpush(acc, " !== ");
-		node2js(elem.args[1], indent, acc);
+		this.node2js(elem.args[1], indent, acc);
 		arrpush(acc, ")");
 	} else if ((elem.id === "(not)")) {
 		arrpush(acc, "(!");
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 		arrpush(acc, ")");
 	} else if ((elem.id === "(less)")) {
 		arrpush(acc, "(");
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 		arrpush(acc, " < ");
-		node2js(elem.args[1], indent, acc);
+		this.node2js(elem.args[1], indent, acc);
 		arrpush(acc, ")");
 	} else if ((elem.id === "(less or equal)")) {
 		arrpush(acc, "(");
-		node2js(elem.args[0], indent, acc);
+		this.node2js(elem.args[0], indent, acc);
 		arrpush(acc, " <= ");
-		node2js(elem.args[1], indent, acc);
+		this.node2js(elem.args[1], indent, acc);
 		arrpush(acc, ")");
 	} else if ((elem.id === "(globals)")) {
 		std.io.printerror(strcat("The globals variable is not supported yet in the JS-backend"));
@@ -295,7 +298,7 @@ node2js = (function (elem, indent, acc) {
 	};
 	return acc;
 });
-toJS = (function (parser) {
+backend_js.toJS = (function (parser) {
 	var node, nodes, acc;
 	nodes = [];
 	node = parser();
@@ -303,12 +306,12 @@ toJS = (function (parser) {
 		arrpush(nodes, node);
 		node = parser();
 	};
-	return arrjoin(printblock(nodes, 0, []), "");
+	return arrjoin(this.printblock(nodes, 0, []), "");
 });
 
 
 ////////////////////////////////
 // Test code
 ////
-std.io.println(toJS(parser.parse));
+std.io.println(backend_js.toJS(parser.parse));
 
