@@ -1,4 +1,4 @@
-load("stdmob3.js");
+load("stdmob.js");
 
 
 /////////////
