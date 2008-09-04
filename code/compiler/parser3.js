@@ -163,9 +163,9 @@ parser.nexttoken = (function () {
 });
 
 
-/////////////////////////////////
-// The parser
-////
+//////////////////////
+// Parsing context //
+////////////////////
 parser.ctx_stack = [];
 parser.ctx = {
 	"locals": {},
@@ -173,456 +173,457 @@ parser.ctx = {
 };
 
 
-// The parsing functions
-expect = (function (str) {
-	if ((str !== parser.token.id)) {
-		std.io.printerror(arrjoin(["Unexpected token: \"", parser.token.id, "\" at line ", parser.token.line], ""));
-		std.io.printerror(arrjoin(["Expected: \"", str, "\""], ""));
-	};
-	parser.nexttoken();
-});
-register_local = (function (name, type) {
-	parser.ctx.locals[name] = type;
-	parser.ctx.prev[name] = parser.handlers[name];
-	parser.handlers[name] = localvar;
-	parser.handlers[name].type = type;
-});
-decl = (function () {
-	var type, args;
-	type = this.id;
-	args = [parser.token.id];
-	register_local(parser.token.id, type);
-	parser.nexttoken();
-	while ((parser.token.val !== ";")) {
-		expect(",");
-		arrpush(args, parser.token.id);
+////////////////////////////
+// The parsing functions //
+//////////////////////////
+parser.handlers = (function () {
+	var expect, register_local, decl, pass, prefix, localvarnud, localvar, readlist, binop, unop, infixr;
+	expect = (function (str) {
+		if ((str !== parser.token.id)) {
+			std.io.printerror(arrjoin(["Unexpected token: \"", parser.token.id, "\" at line ", parser.token.line], ""));
+			std.io.printerror(arrjoin(["Expected: \"", str, "\""], ""));
+		};
+		parser.nexttoken();
+	});
+	register_local = (function (name, type) {
+		parser.ctx.locals[name] = type;
+		parser.ctx.prev[name] = parser.handlers[name];
+		parser.handlers[name] = localvar;
+		parser.handlers[name].type = type;
+	});
+	decl = (function () {
+		var type, args;
+		type = this.id;
+		args = [parser.token.id];
 		register_local(parser.token.id, type);
 		parser.nexttoken();
-	};
-	this.id = "(noop)";
-	this.val = strcat("decl-", type);
-	this.elems = args;
-});
-pass = (function () {
-});
-prefix = (function () {
-	this.args = [parse()];
-});
-localvarnud = (function () {
-	this.type = parser.ctx.locals[this.id];
-	this.val = this.id;
-	this.id = "(local)";
-});
-localvar = {
-	"nud": localvarnud,
-};
-readlist = (function (arr) {
-	var t;
-	t = parse();
-	while (t) {
-		if ((!t.sep)) {
-			arrpush(arr, t);
+		while ((parser.token.val !== ";")) {
+			expect(",");
+			arrpush(args, parser.token.id);
+			register_local(parser.token.id, type);
+			parser.nexttoken();
 		};
-		t = parse();
+		this.id = "(noop)";
+		this.val = strcat("decl-", type);
+		this.elems = args;
+	});
+	pass = (function () {
+	});
+	prefix = (function () {
+		this.args = [parser.parse()];
+	});
+	localvarnud = (function () {
+		this.type = parser.ctx.locals[this.id];
+		this.val = this.id;
+		this.id = "(local)";
+	});
+	localvar = {
+		"nud": localvarnud,
 	};
-});
-binop = (function (left) {
-	this.args = [left, parse_rbp(this.lbp)];
-});
-unop = (function () {
-	this.args = [parse()];
-});
-infixr = (function (left) {
-	this.args = [left, parse_rbp((this.lbp - 1))];
-});
-
-
-// The table of parser functions
-parser.handlers = {
-	"var": {
-		"nud": decl,
-	},
-	"undefined": {
-		"nud": pass,
-		"type": "nil",
-		"id": "(nil)",
-	},
-	"globals": {
-		"nud": pass,
-		"id": "(globals)",
-	},
-	"strcat": {
-		"nud": pass,
-		"id": "(string concat)",
-	},
-	"arrjoin": {
-		"nud": pass,
-		"id": "(array join)",
-	},
-	"arrpop": {
-		"nud": pass,
-		"id": "(array pop)",
-	},
-	"arrpush": {
-		"nud": pass,
-		"id": "(array push)",
-	},
-	"this": {
-		"nud": pass,
-		"id": "(this)",
-	},
-	"true": {
-		"nud": pass,
-		"type": "bool",
-		"id": "(true)",
-		"val": true,
-	},
-	"false": {
-		"nud": pass,
-		"type": "bool",
-		"id": "(false)",
-		"val": false,
-	},
-	"return": {
-		"nud": prefix,
-		"type": "void",
-		"id": "(return)",
-	},
-	"delete": {
-		"nud": prefix,
-		"type": "void",
-		"id": "(delete)",
-	},
-	"function": {
-		"id": "(function)",
-		"nud": (function () {
-			var key, t, assign;
-			assign = undefined;
-			arrpush(parser.ctx_stack, parser.ctx);
-			parser.ctx = {
-				"locals": {},
-				"prev": {},
+	readlist = (function (arr) {
+		var t;
+		t = parser.parse();
+		while (t) {
+			if ((!t.sep)) {
+				arrpush(arr, t);
 			};
-			if ((parser.token.id !== "(")) {
-				assign = parser.token.id;
-				parser.nexttoken();
-			};
-			expect("(");
-			this.parameters = [];
-			while ((parser.token.id !== "(end)")) {
-				if ((parser.token.id !== ",")) {
-					register_local(parser.token.id, "param");
-					arrpush(this.parameters, parser.token.id);
+			t = parser.parse();
+		};
+	});
+	binop = (function (left) {
+		this.args = [left, parser.parse_rbp(this.lbp)];
+	});
+	unop = (function () {
+		this.args = [parser.parse()];
+	});
+	infixr = (function (left) {
+		this.args = [left, parser.parse_rbp((this.lbp - 1))];
+	});
+	return {
+		"var": {
+			"nud": decl,
+		},
+		"undefined": {
+			"nud": pass,
+			"type": "nil",
+			"id": "(nil)",
+		},
+		"globals": {
+			"nud": pass,
+			"id": "(globals)",
+		},
+		"strcat": {
+			"nud": pass,
+			"id": "(string concat)",
+		},
+		"arrjoin": {
+			"nud": pass,
+			"id": "(array join)",
+		},
+		"arrpop": {
+			"nud": pass,
+			"id": "(array pop)",
+		},
+		"arrpush": {
+			"nud": pass,
+			"id": "(array push)",
+		},
+		"this": {
+			"nud": pass,
+			"id": "(this)",
+		},
+		"true": {
+			"nud": pass,
+			"type": "bool",
+			"id": "(true)",
+			"val": true,
+		},
+		"false": {
+			"nud": pass,
+			"type": "bool",
+			"id": "(false)",
+			"val": false,
+		},
+		"return": {
+			"nud": prefix,
+			"type": "void",
+			"id": "(return)",
+		},
+		"delete": {
+			"nud": prefix,
+			"type": "void",
+			"id": "(delete)",
+		},
+		"function": {
+			"id": "(function)",
+			"nud": (function () {
+				var key, t, assign;
+				assign = undefined;
+				arrpush(parser.ctx_stack, parser.ctx);
+				parser.ctx = {
+					"locals": {},
+					"prev": {},
 				};
-				parser.nexttoken();
-			};
-			parser.nexttoken();
-			this.args = [];
-			expect("{");
-			readlist(this.args);
-			this.locals = parser.ctx.locals;
-			for (key in parser.ctx.prev) {
-				parser.handlers[key] = parser.ctx.prev[key];
-			};
-			parser.ctx = arrpop(parser.ctx_stack);
-			if ((assign !== undefined)) {
-				this.args = [{
-					"id": "(global)",
-					"val": assign,
-				}, {
-					"id": this.id,
-					"locals": this.locals,
-					"nud": this.nud,
-					"args": this.args,
-					"parameters": this.parameters,
-				}];
-				this.id = "(setglobal)";
-				delete this.locals;
-				delete this.parameters;
-			};
-		}),
-	},
-	"if": {
-		"id": "(if)",
-		"type": "void",
-		"nud": (function () {
-			var t;
-			t = [];
-			this.args = [parse(), {
-				"id": "(block)",
-				"args": t,
-			}];
-			expect("{");
-			readlist(t);
-			if ((parser.token.id === "else")) {
-				t = [];
-				parser.nexttoken();
-				if ((parser.token.id === "{")) {
+				if ((parser.token.id !== "(")) {
+					assign = parser.token.id;
 					parser.nexttoken();
-					readlist(t);
-					arrpush(this.args, {
-						"id": "(block)",
-						"args": t,
-					});
-				} else {
-					arrpush(this.args, parse());
 				};
-			};
-		}),
-	},
-	"for": {
-		"id": "(for)",
-		"type": "void",
-		"nud": (function () {
-			var t, t2;
-			t = [];
-			expect("(");
-			arrpush(t, parse());
-			t2 = parse();
-			if ((t2.val !== "in")) {
-				std.io.printerror(strcat("\"for\" missing \"in\", in line ", this.line));
-				std.io.printerror(t2);
-			};
-			arrpush(t, parse());
-			expect("(end)");
-			expect("{");
-			this.args = t;
-			t = [];
-			readlist(t);
-			arrpush(this.args, {
-				"id": "(block)",
-				"args": t,
-			});
-		}),
-	},
-	"while": {
-		"id": "(while)",
-		"type": "void",
-		"nud": (function () {
-			var t;
-			this.args = [parse()];
-			expect("{");
-			t = [];
-			readlist(t);
-			arrpush(this.args, {
-				"id": "(block)",
-				"args": t,
-			});
-		}),
-	},
-	"{": {
-		"type": "obj",
-		"nud": (function () {
-			this.id = "(object literal)";
-			this.args = [];
-			readlist(this.args);
-		}),
-	},
-	"[": {
-		"lbp": 600,
-		"led": (function (left) {
-			this.id = "(subscript)";
-			this.args = [left, parse()];
-			this.type = "var";
-			expect("(end)");
-		}),
-		"nud": (function () {
-			this.id = "(array literal)";
-			this.args = [];
-			this.type = "arr";
-			readlist(this.args);
-		}),
-	},
-	"(": {
-		"lbp": 600,
-		"led": (function (left) {
-			this.type = "var";
-			this.id = "(function call)";
-			this.args = [left];
-			readlist(this.args);
-		}),
-		"nud": (function () {
-			var t;
-			t = parse();
-			for (key in t) {
-				this[key] = t[key];
-			};
-			expect("(end)");
-		}),
-	},
-	")": {
-		"nud": pass,
-		"id": "(end)",
-		"val": ")",
-		"lbp": (-300),
-		"sep": true,
-	},
-	"}": {
-		"nud": pass,
-		"id": "(end)",
-		"val": "}",
-		"lbp": (-300),
-		"sep": true,
-	},
-	"]": {
-		"nud": pass,
-		"id": "(end)",
-		"val": "]",
-		"lbp": (-300),
-		"sep": true,
-	},
-	";": {
-		"nud": pass,
-		"id": "(noop)",
-		"val": ";",
-		"lbp": (-200),
-		"sep": true,
-	},
-	"(noop)": {
-		"nud": pass,
-	},
-	"(end)": {
-		"nud": pass,
-	},
-	"(string literal)": {
-		"nud": pass,
-	},
-	"(integer literal)": {
-		"nud": pass,
-	},
-	"=": {
-		"lbp": 100,
-		"type": "void",
-		"led": (function (left) {
-			if ((left.id === "(subscript)")) {
-				this.id = "(put)";
-				this.args = [left.args[0], left.args[1], parse()];
-			} else if ((left.id === "(global)")) {
-				this.id = "(setglobal)";
-				this.args = [left, parse()];
-			} else if ((left.id === "(local)")) {
-				this.id = "(setlocal)";
-				this.args = [left, parse()];
-			} else {
-				std.io.printerror(strcat("Error, wrong lval for assignment in line ", this.line));
-			};
-		}),
-	},
-	".": {
-		"lbp": 700,
-		"led": (function (left) {
-			this.id = "(subscript)";
-			this.args = [left, {
-				"id": "(string literal)",
-				"val": parser.token.id,
-			}];
-			this.type = "var";
-			parser.nexttoken();
-		}),
-	},
-	"-": {
-		"type": "int",
-		"lbp": 400,
-		"nud": (function () {
-			this.args = [parse()];
-			this.id = "(sign)";
-		}),
-		"led": (function (left) {
-			this.args = [left, parse_rbp(this.lbp)];
-			this.id = "(minus)";
-		}),
-	},
-	"+": {
-		"lbp": 400,
-		"type": "int",
-		"led": binop,
-		"id": "(plus)",
-	},
-	",": {
-		"nud": pass,
-		"sep": true,
-		"lbp": (-100),
-	},
-	":": {
-		"nud": pass,
-		"sep": true,
-		"lbp": (-100),
-	},
-	"||": {
-		"led": infixr,
-		"id": "(or)",
-		"lbp": 200,
-		"type": "bool",
-	},
-	"&&": {
-		"led": infixr,
-		"id": "(and)",
-		"lbp": 200,
-		"type": "bool",
-	},
-	"!": {
-		"nud": unop,
-		"id": "(not)",
-		"lbp": 300,
-		"type": "bool",
-	},
-	"===": {
-		"led": binop,
-		"lbp": 300,
-		"type": "bool",
-		"id": "(equals)",
-	},
-	"!==": {
-		"lbp": 300,
-		"id": "(not equals)",
-		"type": "bool",
-		"led": binop,
-	},
-	"<": {
-		"led": binop,
-		"lbp": 300,
-		"type": "bool",
-		"id": "(less)",
-	},
-	">": {
-		"lbp": 300,
-		"id": "(less)",
-		"type": "bool",
-		"led": (function (left) {
-			this.args = [parse_rbp(this.lbp), left];
-		}),
-	},
-	"<=": {
-		"led": binop,
-		"lbp": 300,
-		"type": "bool",
-		"id": "(less or equal)",
-	},
-	">=": {
-		"lbp": 300,
-		"id": "(less or equal)",
-		"type": "bool",
-		"led": (function (left) {
-			this.args = [parse_rbp(this.lbp), left];
-		}),
-	},
-};
-clean_prop = (function (obj) {
-	delete obj.nud;
-	delete obj.lbp;
-	delete obj.led;
+				expect("(");
+				this.parameters = [];
+				while ((parser.token.id !== "(end)")) {
+					if ((parser.token.id !== ",")) {
+						register_local(parser.token.id, "param");
+						arrpush(this.parameters, parser.token.id);
+					};
+					parser.nexttoken();
+				};
+				parser.nexttoken();
+				this.args = [];
+				expect("{");
+				readlist(this.args);
+				this.locals = parser.ctx.locals;
+				for (key in parser.ctx.prev) {
+					parser.handlers[key] = parser.ctx.prev[key];
+				};
+				parser.ctx = arrpop(parser.ctx_stack);
+				if ((assign !== undefined)) {
+					this.args = [{
+						"id": "(global)",
+						"val": assign,
+					}, {
+						"id": this.id,
+						"locals": this.locals,
+						"nud": this.nud,
+						"args": this.args,
+						"parameters": this.parameters,
+					}];
+					this.id = "(setglobal)";
+					delete this.locals;
+					delete this.parameters;
+				};
+			}),
+		},
+		"if": {
+			"id": "(if)",
+			"type": "void",
+			"nud": (function () {
+				var t;
+				t = [];
+				this.args = [parser.parse(), {
+					"id": "(block)",
+					"args": t,
+				}];
+				expect("{");
+				readlist(t);
+				if ((parser.token.id === "else")) {
+					t = [];
+					parser.nexttoken();
+					if ((parser.token.id === "{")) {
+						parser.nexttoken();
+						readlist(t);
+						arrpush(this.args, {
+							"id": "(block)",
+							"args": t,
+						});
+					} else {
+						arrpush(this.args, parser.parse());
+					};
+				};
+			}),
+		},
+		"for": {
+			"id": "(for)",
+			"type": "void",
+			"nud": (function () {
+				var t, t2;
+				t = [];
+				expect("(");
+				arrpush(t, parser.parse());
+				t2 = parser.parse();
+				if ((t2.val !== "in")) {
+					std.io.printerror(strcat("\"for\" missing \"in\", in line ", this.line));
+					std.io.printerror(t2);
+				};
+				arrpush(t, parser.parse());
+				expect("(end)");
+				expect("{");
+				this.args = t;
+				t = [];
+				readlist(t);
+				arrpush(this.args, {
+					"id": "(block)",
+					"args": t,
+				});
+			}),
+		},
+		"while": {
+			"id": "(while)",
+			"type": "void",
+			"nud": (function () {
+				var t;
+				this.args = [parser.parse()];
+				expect("{");
+				t = [];
+				readlist(t);
+				arrpush(this.args, {
+					"id": "(block)",
+					"args": t,
+				});
+			}),
+		},
+		"{": {
+			"type": "obj",
+			"nud": (function () {
+				this.id = "(object literal)";
+				this.args = [];
+				readlist(this.args);
+			}),
+		},
+		"[": {
+			"lbp": 600,
+			"led": (function (left) {
+				this.id = "(subscript)";
+				this.args = [left, parser.parse()];
+				this.type = "var";
+				expect("(end)");
+			}),
+			"nud": (function () {
+				this.id = "(array literal)";
+				this.args = [];
+				this.type = "arr";
+				readlist(this.args);
+			}),
+		},
+		"(": {
+			"lbp": 600,
+			"led": (function (left) {
+				this.type = "var";
+				this.id = "(function call)";
+				this.args = [left];
+				readlist(this.args);
+			}),
+			"nud": (function () {
+				var t;
+				t = parser.parse();
+				for (key in t) {
+					this[key] = t[key];
+				};
+				expect("(end)");
+			}),
+		},
+		")": {
+			"nud": pass,
+			"id": "(end)",
+			"val": ")",
+			"lbp": (-300),
+			"sep": true,
+		},
+		"}": {
+			"nud": pass,
+			"id": "(end)",
+			"val": "}",
+			"lbp": (-300),
+			"sep": true,
+		},
+		"]": {
+			"nud": pass,
+			"id": "(end)",
+			"val": "]",
+			"lbp": (-300),
+			"sep": true,
+		},
+		";": {
+			"nud": pass,
+			"id": "(noop)",
+			"val": ";",
+			"lbp": (-200),
+			"sep": true,
+		},
+		"(noop)": {
+			"nud": pass,
+		},
+		"(end)": {
+			"nud": pass,
+		},
+		"(string literal)": {
+			"nud": pass,
+		},
+		"(integer literal)": {
+			"nud": pass,
+		},
+		"=": {
+			"lbp": 100,
+			"type": "void",
+			"led": (function (left) {
+				if ((left.id === "(subscript)")) {
+					this.id = "(put)";
+					this.args = [left.args[0], left.args[1], parser.parse()];
+				} else if ((left.id === "(global)")) {
+					this.id = "(setglobal)";
+					this.args = [left, parser.parse()];
+				} else if ((left.id === "(local)")) {
+					this.id = "(setlocal)";
+					this.args = [left, parser.parse()];
+				} else {
+					std.io.printerror(strcat("Error, wrong lval for assignment in line ", this.line));
+				};
+			}),
+		},
+		".": {
+			"lbp": 700,
+			"led": (function (left) {
+				this.id = "(subscript)";
+				this.args = [left, {
+					"id": "(string literal)",
+					"val": parser.token.id,
+				}];
+				this.type = "var";
+				parser.nexttoken();
+			}),
+		},
+		"-": {
+			"type": "int",
+			"lbp": 400,
+			"nud": (function () {
+				this.args = [parser.parse()];
+				this.id = "(sign)";
+			}),
+			"led": (function (left) {
+				this.args = [left, parser.parse_rbp(this.lbp)];
+				this.id = "(minus)";
+			}),
+		},
+		"+": {
+			"lbp": 400,
+			"type": "int",
+			"led": binop,
+			"id": "(plus)",
+		},
+		",": {
+			"nud": pass,
+			"sep": true,
+			"lbp": (-100),
+		},
+		":": {
+			"nud": pass,
+			"sep": true,
+			"lbp": (-100),
+		},
+		"||": {
+			"led": infixr,
+			"id": "(or)",
+			"lbp": 200,
+			"type": "bool",
+		},
+		"&&": {
+			"led": infixr,
+			"id": "(and)",
+			"lbp": 200,
+			"type": "bool",
+		},
+		"!": {
+			"nud": unop,
+			"id": "(not)",
+			"lbp": 300,
+			"type": "bool",
+		},
+		"===": {
+			"led": binop,
+			"lbp": 300,
+			"type": "bool",
+			"id": "(equals)",
+		},
+		"!==": {
+			"lbp": 300,
+			"id": "(not equals)",
+			"type": "bool",
+			"led": binop,
+		},
+		"<": {
+			"led": binop,
+			"lbp": 300,
+			"type": "bool",
+			"id": "(less)",
+		},
+		">": {
+			"lbp": 300,
+			"id": "(less)",
+			"type": "bool",
+			"led": (function (left) {
+				this.args = [parser.parse_rbp(this.lbp), left];
+			}),
+		},
+		"<=": {
+			"led": binop,
+			"lbp": 300,
+			"type": "bool",
+			"id": "(less or equal)",
+		},
+		">=": {
+			"lbp": 300,
+			"id": "(less or equal)",
+			"type": "bool",
+			"led": (function (left) {
+				this.args = [parser.parse_rbp(this.lbp), left];
+			}),
+		},
+	};
+})();
 
 
-//delete obj.line;
+////////////////////////
+// The parser itself //
+//////////////////////
+parser.parse = (function () {
+	return parser.parse_rbp(0);
 });
-
-
-// The parser itself
-parse = (function () {
-	return parse_rbp(0);
-});
-parse_rbp = (function (rbp) {
-	var prev, t;
+parser.parse_rbp = (function (rbp) {
+	var prev, t, clean_prop;
+	clean_prop = (function (obj) {
+		delete obj.nud;
+		delete obj.lbp;
+		delete obj.led;
+	});
 	t = parser.token;
 	parser.nexttoken();
 	t.nud();
@@ -959,13 +960,5 @@ toJS = (function (parser) {
 ////////////////////////////////
 // Test code
 ////
-//var tree, st;
-//st = [];
-//while(tree = parse()) {
-//	std.io.printerror(tree);
-// arrpush(st, tree);
-// }
-// std.io.printerror(arrjoin(printblock(st, 0, []), ""));
-//
-std.io.println(toJS(parse));
+std.io.println(toJS(parser.parse));
 
