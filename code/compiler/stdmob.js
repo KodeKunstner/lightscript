@@ -1,3 +1,4 @@
+
 strcat = function(a, b) {
         return a+b;
 }
@@ -19,7 +20,7 @@ std._ = {};
 
 std._.line = "";
 std._.line_pos = -1;
-std._.line_nr = 1;
+std._.line_nr = 0;
 std._.empty_line_count = 0;
 
 std.io = {};
@@ -53,12 +54,13 @@ std.io.println = function(obj) {
 }
 
 std.io.printerror = function(obj) {
+	var genstr;
 	if(typeof(obj) === "string") {
 		print(obj);
 		return;
 	}
 
-	var genstr = function(obj, acc) {
+	genstr = function(obj, acc) {
 		var t, i;
 		if(typeof(obj) === "string") {
 			return "\""+obj+"\"";
