@@ -32,7 +32,7 @@ concat = function(a, b) {
         return a+b;
 }
 
-toStr = function(o) {
+int2str= function(o) {
         return concat("", o);
 }
 toFun = function(o) { return o; }
