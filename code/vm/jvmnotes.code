@@ -1,0 +1,30 @@
+
+function run() {
+	int ipos;
+	int istack[];
+	int opos;
+	object ostack[];
+	byte code[];
+	int pc = 0;
+	int codelength = code.length;
+
+	while(pc < codelength) {
+		try {
+			while(pc < codelength) {
+				switch(pc) {
+					case ...
+
+				}
+				pc = pc + 1;
+			}
+		} catch(OutOfBoundError) {
+			if(opos > ostack.length - 5) {
+				grow ostack;
+			}
+			if(ipos > istack.length - 5) {
+				grow istack;
+			}
+			
+		}
+	}
+}
