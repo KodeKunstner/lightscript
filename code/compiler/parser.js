@@ -1,14 +1,16 @@
+//\begin{verbatim}
 
+//\end{verbatim}
+//\subsection{Parser}
+//\begin{verbatim}
 
-/////////////
-// Parser //
-///////////
 parser = {};
 
 
-//////////////////
-// Char reader //
-////////////////
+//\end{verbatim}
+//\subsubsection{Character reader}
+//\begin{verbatim}
+
 parser.char_reader = {
 	"str": " ",
 	"is_multisymb": (function () {
@@ -37,33 +39,29 @@ parser.char_reader = {
 };
 
 
-///////////////////
-// Token reader //
-/////////////////
+//\end{verbatim}
+//\subsubsection{Token reader}
+//\begin{verbatim}
 parser.nexttoken = (function () {
 	var key, str, default_token, t, c, error_mesg;
 	c = parser.char_reader;
 
 
-// Skip whitespaces
 	while (c.is_ws()) {
 		c.next();
 	};
 
 
-// Initialisation;
 	parser.token = {};
 	parser.token.line = std.io.currentline();
 	str = c.str;
 
 
-// Create token
-// End-token
 	if ((c.str === undefined)) {
 		str = "(end)";
 
 
-// Number literal
+//// Number literal
 	} else if (c.is_num()) {
 		c.next();
 		while (c.is_num()) {
@@ -74,7 +72,7 @@ parser.nexttoken = (function () {
 		str = "(integer literal)";
 
 
-// Identifier
+//// Identifier
 	} else if (c.is_alphanum()) {
 		c.next();
 		while (c.is_alphanum()) {
@@ -83,7 +81,7 @@ parser.nexttoken = (function () {
 		};
 
 
-// String literal
+//// String literal
 	} else if ((c.str === "\"")) {
 		c.next();
 		str = "";
@@ -107,7 +105,7 @@ parser.nexttoken = (function () {
 		str = "(string literal)";
 
 
-// Comment (and division passhtrough)
+//// Comment (and division passhtrough)
 	} else if ((c.str === "/")) {
 		c.next();
 		if ((c.str === "/")) {
@@ -123,7 +121,7 @@ parser.nexttoken = (function () {
 		};
 
 
-// Symbol consisting of several chars
+//// Symbol consisting of several chars
 	} else if (c.is_multisymb()) {
 		c.next();
 		while (c.is_multisymb()) {
@@ -132,13 +130,13 @@ parser.nexttoken = (function () {
 		};
 
 
-// Single symbol
+//// Single symbol
 	} else {
 		c.next();
 	};
 
 
-// Add properties to token
+//// Add properties to token
 	parser.token.id = str;
 	parser.token.lbp = 0;
 	error_mesg = (function () {
@@ -161,9 +159,10 @@ parser.nexttoken = (function () {
 });
 
 
-//////////////////////
-// Parsing context //
-////////////////////
+//\end{verbatim}
+//\subsubsection{Parsing functions}
+// First we have a context for the parser, used for...
+//\begin{verbatim}
 parser.ctx_stack = [];
 parser.ctx = {
 	"locals": {},
@@ -171,9 +170,9 @@ parser.ctx = {
 };
 
 
-////////////////////////////
-// The parsing functions //
-//////////////////////////
+//\end{verbatim}
+// Then there are the definitions of the parsing functions...
+//\begin{verbatim}
 parser.handlers = (function () {
 	var expect, register_local, decl, pass, prefix, localvarnud, localvar, readlist, binop, unop, infixr;
 	expect = (function (str) {
@@ -582,9 +581,9 @@ parser.handlers = (function () {
 })();
 
 
-////////////////////////
-// The parser itself //
-//////////////////////
+//\end{verbatim}
+//\subsubsection{The core parser}
+//\begin{verbatim}
 parser.parse = (function () {
 	return parser.parse_rbp(0);
 });
@@ -613,8 +612,9 @@ parser.parse_rbp = (function (rbp) {
 });
 
 
-//////////////////////////////
-// initialisation
-////
+//\end{verbatim}
+//\subsubsection{Initialisation}
+//\begin{verbatim}
 parser.nexttoken();
 
+//\end{verbatim}

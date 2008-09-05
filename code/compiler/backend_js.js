@@ -1,4 +1,4 @@
-
+//\begin{verbatim}
 
 /////////////////////////////
 // to js-compiler
@@ -280,8 +280,6 @@ backend_js.node2js = (function (elem, indent, acc) {
 		arrpush(acc, " <= ");
 		this.node2js(elem.args[1], indent, acc);
 		arrpush(acc, ")");
-	} else if ((elem.id === "(globals)")) {
-		std.io.printerror(strcat("The globals variable is not supported yet in the JS-backend"));
 	} else if ((elem.id === "(string concat)")) {
 		arrpush(acc, "strcat");
 	} else if ((elem.id === "(array join)")) {
@@ -312,3 +310,4 @@ backend_js.toJS = (function (parser) {
 	return arrjoin(this.printblock(nodes, 0, []), "");
 });
 
+//\end{verbatim}

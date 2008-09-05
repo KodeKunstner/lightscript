@@ -1,0 +1,45 @@
+language:
+  - types... dynamic, possibly derivered:
+    - any	- any/dynamic type
+    - int	- integer
+    - arr	- any-array
+    - obj	- hash table
+    - str	- immutable string
+    - bin 	- byte-array, mutable, fixed length
+    - fun	- function
+    - bool	- boolean
+    - nil	- null/unknown
+  - scope:
+    - "local" values prefixed with "$"
+    - local variables - any by default
+  - first class functions:
+    - contains a copy pointer to the global as creation time.
+
+
+--------------------------------------------------
+how to implement modifiable-global-scope in JS, and similarly scoped languages
+
+globals = {}
+
+_getglob = function() {
+	return globals;
+}
+
+... function(..) {
+
+	y = getglobals();
+
+	setglobals(x);
+}
+
+... function(..) {
+	// header needed if globals is set //
+	var globals; 
+	globals = _getglob();
+	////////////////////////////////////
+
+	y = globals;
+
+	globals = x;
+}
+
