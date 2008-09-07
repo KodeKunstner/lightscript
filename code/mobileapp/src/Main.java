@@ -19,8 +19,7 @@ final public class Main extends MIDlet {
 		}
 
 		MobyVM vm = new MobyVM();
-		MobyFunction f = new MobyCode(o);
-		vm.call(f);
+		Print.print(o);
 
 	};
 	public void print(Object o) {

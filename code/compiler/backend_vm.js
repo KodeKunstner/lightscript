@@ -23,10 +23,10 @@ literalid = (function (val) {
 	return id;
 });
 opcode = {
-	"array_put": 0,
+	"arrpush": 0,
 	"arrjoin": 1,
 	"arrpop": 2,
-	"arrput": 3,
+	"???": 3,
 	"eq": 4,
 	"getlocal": 5,
 	"global_get": 6,
@@ -90,7 +90,7 @@ node2vm = (function (withresult, elem, acc) {
 		arrpush(acc, "push_emptyarray");
 		for (i in elem.args) {
 			node2vm(true, elem.args[i], acc);
-			arrpush(acc, "array_put");
+			arrpush(acc, "arrpush");
 		};
 	} else if ((elem.id === "(for)")) {
 
@@ -148,6 +148,22 @@ node2vm = (function (withresult, elem, acc) {
 //	TODO
 //
 	} else if ((elem.id === "(function call)")) {
+		if (elem.args[0].val === "arrjoin") {
+			node2vm(true, elem.args[1], acc);
+			node2vm(true, elem.args[2], acc);
+			arrpush(acc, "arrjoin");
+		} else {
+			i = 1;
+			while(i < elem.args.length) {
+				node2vm(true, elem.args[i], acc);
+				i = i + 1;
+			}
+			arrpush(acc, "fncall");
+			arrpush(acc, i);
+		}
+
+		//arrpush(acc, "arrjoin");
+		//arrpush(acc, "arrpush");
 
 
 //	TODO
@@ -196,14 +212,6 @@ node2vm = (function (withresult, elem, acc) {
 		node2vm(true, elem.args[0], acc);
 		node2vm(true, elem.args[1], acc);
 		arrpush(acc, "strcat");
-	} else if ((elem.id === "(array join)")) {
-		node2vm(true, elem.args[0], acc);
-		node2vm(true, elem.args[1], acc);
-		arrpush(acc, "arrjoin");
-	} else if ((elem.id === "(array push)")) {
-		node2vm(true, elem.args[0], acc);
-		node2vm(true, elem.args[1], acc);
-		arrpush(acc, "arrput");
 	} else if ((elem.id === "(array pop)")) {
 		node2vm(true, elem.args[0], acc);
 		arrpush(acc, "arrpop");

@@ -242,26 +242,6 @@ parser.handlers = (function () {
 			"nud": pass,
 			"id": "(nil)",
 		},
-		"globals": {
-			"nud": pass,
-			"id": "(globals)",
-		},
-		"strcat": {
-			"nud": pass,
-			"id": "(string concat)",
-		},
-		"arrjoin": {
-			"nud": pass,
-			"id": "(array join)",
-		},
-		"arrpop": {
-			"nud": pass,
-			"id": "(array pop)",
-		},
-		"arrpush": {
-			"nud": pass,
-			"id": "(array push)",
-		},
 		"this": {
 			"nud": pass,
 			"id": "(this)",

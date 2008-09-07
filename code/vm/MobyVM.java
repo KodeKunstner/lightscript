@@ -23,17 +23,48 @@ final class MobyVM extends Stack {
 
 		int clen = m.code.length;
 		for(;;) {
+			Print.print("" + pc + ": " + code[pc] + ", " + code[pc +1]);
 			switch(code[pc]) {
-case 0: // array_put
+case 0: // arrpush
+	tmp = pop();
+	((Stack)peek()).push(tmp);
+	break;
 case 1: // arrjoin
+{
+	StringBuffer str = new StringBuffer("");
+	tmp = (String)pop();
+	Stack s = (Stack)pop();
+	int sz;
+	sz = s.size();
+	if(sz > 0) {
+		str.append(s.elementAt(0));
+		for(int i = 1;i < sz;i++) {
+			str.append(tmp);
+			str.append(s.elementAt(i));
+		}
+
+	}
+	push(str.toString());
+}
+	break;
 case 2: // arrpop
-case 3: // arrput
+	push(((Stack)pop()).pop());
+	break;
 case 4: // eq
 	push(pop().equals(pop())?t:f);
 	break;
 case 5: // getlocal
+	pc++;
+	push(elementAt(size() - code[pc]));
+	break;
 case 6: // global_get
+	pc++;
+	push(globals.get(m.literals[code[pc]]));
+	break;
 case 7: // global_set
+	pc++;
+	globals.put(m.literals[code[pc]], pop());
+	break;
 case 8: // iadd
 	push(new Integer(((Integer)pop()).intValue() + ((Integer)pop()).intValue()));
 	break;
@@ -117,6 +148,9 @@ case 26: // return n
 	return o;
 	}
 case 27: // setlocal
+	pc++;
+	setElementAt(pop(), size() - code[pc]);
+	break;
 case 28: // strcat
 	
 default: 

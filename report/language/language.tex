@@ -1,4 +1,62 @@
 \chapter{Language}
+\section{Language design}
+
+
+The design criterias for the language is the following:
+\begin{itemize}
+\item Small language runtime, possibly piggybacking on host environment
+\item Embeddable with easy to use foreign function interface
+\item Portable - platform and host language independence
+\item Small compiler
+\end{itemize}
+
+
+
+
+With every language feature
+
+\begin{itemize}
+\item First class functions
+\item Object notation
+\item Runtime loading of code
+\item Garbage collection
+\item EcmaScript like syntax
+\end{itemize}
+
+\subsection{Relation to EcmaScript}
+
+\subsection{Object oriented programming}
+prototyping
+constructors
+objects
+this
+
+\subsection{Functions}
+closure and instantation
+
+\subsection{Scope and the funarg problem}
+
+Variables are either local to the current function, or global.
+Inner functions cannot access locale variables of the enclosing function, which is a simplification compared to EcmaScript.
+
+The reason is that if inner functions may contain references to locale variables, these variables could be accessed after the function has returned, and thus some of the local variables would have to be allocated on the heap rather than the stack.
+
+Other options would be to allocate activation records on the heap or to do closure conversion.
+
+A difficulty with closure conversion is that it is not sufficient to copy the local variable into the closure of the inner function, as the inner function might write back to the variable. Thus the local variable would have to be allocated on the heap, and both outer and inner function would need to access it through a reference, which would need slightly more complex compiler and virtual machine. 
+Placing activation records on the heap is another solution, and can also have good performance, as investigated in \cite{appel94stack}. 
+Unfortunately this depends on that there is a good garbage collector, which might not be the case on low end platforms. 
+Heap allocation also has an extra memory overhead per activation record, in addition to the fragmentation which is also the case with the stack.
+
+To eliminate these difficulties, the solution is only to have the current functions local scope and the global scope. 
+
+Closures are possible by manually adding the variables to the function object.
+
+\subsection{Type system}
+NOTES:
+I will start out with an untyped version of the language. 
+When this is up and running, explicit typing and optimisations can be added.
+
 \section{Language specification}
 
 This section describes the MobyScript language.

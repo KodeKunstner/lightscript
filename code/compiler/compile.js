@@ -13,7 +13,9 @@ while (node) {
 };
 
 var result = {"locals": locals, "literals": literalarray, "code": acc};
+result.code2 = [];
 for(i in result.code) {
+	result.code2[i] = result.code[i];
 	t = opcode[result.code[i]];
 	if(t !== undefined) {
 		result.code[i] = t;
