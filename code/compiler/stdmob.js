@@ -1,3 +1,6 @@
+str2int = function(s) {
+	parseInt(s, 10);
+}
 is_int = function(o) {
 	return typeof(o) === "number";
 }

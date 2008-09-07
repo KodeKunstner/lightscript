@@ -10,17 +10,19 @@ localid = (function (val) {
 	return id;
 });
 literals = {};
+literalarray = [];
 nextliteral = 0;
 literalid = (function (val) {
 	id = literals[val];
 	if ((id === undefined)) {
 		id = nextliteral;
+		literalarray.push(val);
 		nextliteral = (nextliteral + 1);
 		literals[val] = id;
 	};
 	return id;
 });
-ops = {
+opcode = {
 	"array_put": 0,
 	"arrjoin": 1,
 	"arrpop": 2,
@@ -45,7 +47,7 @@ ops = {
 	"pushfalse": 21,
 	"pushliteral": 22,
 	"pushnil": 23,
-	"pushnil": 24,
+	"???": 24,
 	"pushtrue": 25,
 	"return": 26,
 	"setlocal": 27,
@@ -58,7 +60,7 @@ node2vm = (function (withresult, elem, acc) {
 		arrpush(acc, literalid(elem.val));
 	} else if ((elem.id === "(integer literal)")) {
 		arrpush(acc, "pushliteral");
-		arrpush(acc, literalid(elem.val));
+		arrpush(acc, literalid(parseInt(elem.val, 10)));
 	} else if ((elem.id === "(nil)")) {
 		arrpush(acc, "pushnil");
 	} else if ((elem.id === "(true)")) {
@@ -66,6 +68,7 @@ node2vm = (function (withresult, elem, acc) {
 	} else if ((elem.id === "(false)")) {
 		arrpush(acc, "pushfalse");
 	} else if ((elem.id === "(noop)")) {
+		withresult = true;
 	} else if ((elem.id === "(if)")) {
 
 
@@ -109,12 +112,16 @@ node2vm = (function (withresult, elem, acc) {
 		arrpush(acc, "getlocal");
 		arrpush(acc, (nextlocal - localid(elem.val)));
 	} else if ((elem.id === "(global)")) {
-		node2vm(true, elem.args[0], acc);
 		arrpush(acc, "global_get");
+		arrpush(acc, literalid(elem.val));
 	} else if ((elem.id === "(setglobal)")) {
-		node2vm(true, elem.args[0], acc);
 		node2vm(true, elem.args[1], acc);
 		arrpush(acc, "global_set");
+		arrpush(acc, literalid(elem.args[0].val));
+		if (withresult) {
+			arrpush(acc, "pushnil");
+		};
+		withresult = true;
 	} else if ((elem.id === "(setlocal)")) {
 		node2vm(true, elem.args[1], acc);
 		i = (nextlocal - localid(elem.args[0].val));
@@ -154,6 +161,7 @@ node2vm = (function (withresult, elem, acc) {
 		node2vm(true, elem.args[0], acc);
 		arrpush(acc, "return");
 		arrpush(acc, nextlocal);
+		withresult = true;
 	} else if ((elem.id === "(sign)")) {
 		node2vm(true, elem.args[0], acc);
 		arrpush(acc, "neg");
@@ -162,8 +170,8 @@ node2vm = (function (withresult, elem, acc) {
 		node2vm(true, elem.args[1], acc);
 		arrpush(acc, "iadd");
 	} else if ((elem.id === "(minus)")) {
-		node2vm(true, elem.args[0], acc);
 		node2vm(true, elem.args[1], acc);
+		node2vm(true, elem.args[0], acc);
 		arrpush(acc, "isub");
 	} else if ((elem.id === "(equals)")) {
 		node2vm(true, elem.args[0], acc);

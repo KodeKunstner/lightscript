@@ -6,12 +6,10 @@ final class MobyCode extends Hashtable {
 	public Object[] literals;
 
 	public MobyCode(Object o) {
-		Hashtable h;
 		Stack v;
 		int i;
-		h = (Hashtable) o;
 
-		v = (Stack) h.get("code");
+		v = (Stack) ((Hashtable) o).get("code");
 		i = v.size();
 		code = new byte[i];
 		do {
@@ -19,7 +17,7 @@ final class MobyCode extends Hashtable {
 			code[i] = ((Integer)v.elementAt(i)).byteValue();
 		} while(i>0);
 
-		v = (Stack) h.get("literals");
+		v = (Stack) ((Hashtable) o).get("literals");
 		literals = new Object[v.size()];
 		v.copyInto(literals);
 	}
