@@ -51,7 +51,6 @@ opcode = {
 	"pushtrue": 25,
 	"return": 26,
 	"setlocal": 27,
-	"strcat": 28,
 };
 node2vm = (function (withresult, elem, acc) {
 	var i;
@@ -134,14 +133,18 @@ node2vm = (function (withresult, elem, acc) {
 		};
 		withresult = true;
 	} else if ((elem.id === "(subscript)")) {
-		node2vm(true, elem.args[0], acc);
 		node2vm(true, elem.args[1], acc);
+		node2vm(true, elem.args[0], acc);
 		arrpush(acc, "multiget");
 	} else if ((elem.id === "(put)")) {
-		node2vm(true, elem.args[0], acc);
-		node2vm(true, elem.args[1], acc);
 		node2vm(true, elem.args[2], acc);
+		node2vm(true, elem.args[1], acc);
+		node2vm(true, elem.args[0], acc);
 		arrpush(acc, "multiput");
+		if (withresult) {
+			arrpush(acc, "pushnil");
+		};
+		withresult = true;
 	} else if ((elem.id === "(function)")) {
 
 
@@ -152,6 +155,10 @@ node2vm = (function (withresult, elem, acc) {
 			node2vm(true, elem.args[1], acc);
 			node2vm(true, elem.args[2], acc);
 			arrpush(acc, "arrjoin");
+		} else if (elem.args[0].val === "arrpush") {
+			node2vm(true, elem.args[2], acc);
+			node2vm(true, elem.args[1], acc);
+			arrpush(acc, "arrpush");
 		} else {
 			i = 1;
 			while(i < elem.args.length) {
@@ -162,13 +169,6 @@ node2vm = (function (withresult, elem, acc) {
 			arrpush(acc, i);
 		}
 
-		//arrpush(acc, "arrjoin");
-		//arrpush(acc, "arrpush");
-
-
-//	TODO
-//
-	} else if ((elem.id === "(delete)")) {
 
 
 //	TODO
@@ -208,16 +208,10 @@ node2vm = (function (withresult, elem, acc) {
 		node2vm(true, elem.args[0], acc);
 		node2vm(true, elem.args[1], acc);
 		arrpush(acc, "leq");
-	} else if ((elem.id === "(string concat)")) {
-		node2vm(true, elem.args[0], acc);
-		node2vm(true, elem.args[1], acc);
-		arrpush(acc, "strcat");
 	} else if ((elem.id === "(array pop)")) {
 		node2vm(true, elem.args[0], acc);
 		arrpush(acc, "arrpop");
 	} else if ((elem.id === "(this)")) {
-
-
 //	TODO
 //
 	} else {

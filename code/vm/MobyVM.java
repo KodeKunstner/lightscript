@@ -16,12 +16,34 @@ final class MobyVM extends Stack {
 		globals = new Hashtable();
 	}
 
-	public Object eval(MobyCode m) {
+	public Object[] json2code(Object o) {
+		Stack v;
+		Object [] result;
+		short []code;
+		int i;
+
+		v = (Stack) ((Hashtable) o).get("code");
+		i = v.size();
+		code = new short[i];
+		do {
+			i--;
+			code[i] = ((Integer)v.elementAt(i)).shortValue();
+		} while(i>0);
+
+		v = (Stack) ((Hashtable) o).get("literals");
+		result = new Object[v.size() + 1];
+		v.copyInto(result);
+		result[result.length - 1] = code;
+		return result;
+		
+	}
+
+	public Object eval(Object[] literals) {
+		short[] code = (short[])literals[literals.length - 1];
 		int pc = 0;
-		byte[] code = m.code;
 		Object tmp;
 
-		int clen = m.code.length;
+		int clen = code.length;
 		for(;;) {
 			Print.print("" + pc + ": " + code[pc] + ", " + code[pc +1]);
 			switch(code[pc]) {
@@ -59,11 +81,11 @@ case 5: // getlocal
 	break;
 case 6: // global_get
 	pc++;
-	push(globals.get(m.literals[code[pc]]));
+	push(globals.get(literals[code[pc]]));
 	break;
 case 7: // global_set
 	pc++;
-	globals.put(m.literals[code[pc]], pop());
+	globals.put(literals[code[pc]], pop());
 	break;
 case 8: // iadd
 	push(new Integer(((Integer)pop()).intValue() + ((Integer)pop()).intValue()));
@@ -98,7 +120,41 @@ case 11: // less than
 	break;
 
 case 12: // multiget
+{
+	tmp = pop();
+	if(tmp instanceof Stack) {
+		try {
+			push(((Stack)tmp).elementAt(((Integer)pop()).intValue()));
+		} catch(IndexOutOfBoundsException e) {
+			push(null);
+		}
+	} else {
+		push(((Hashtable)tmp).get(pop()));
+	}
+}
+	break;
 case 13: // multiput
+{
+	Object t2, t3;
+	tmp = pop();
+	t2 = pop();
+	t3 = pop();
+	if(tmp instanceof Stack) {
+		try {
+			((Stack)tmp).setElementAt(t3, ((Integer)t2).intValue());
+		} catch(IndexOutOfBoundsException e) {
+			((Stack)tmp).setSize(((Integer)t2).intValue() + 1);
+			((Stack)tmp).setElementAt(t3, ((Integer)t2).intValue());
+		}
+	} else /* hash table */ {
+		if(t3 == null) {
+			((Hashtable)tmp).remove(t2);
+		} else {
+			((Hashtable)tmp).put(t2, t3);
+		}
+	}
+}
+	break;
 case 14: // neg
 	push(new Integer(- ((Integer)pop()).intValue()));
 	break;
@@ -131,7 +187,7 @@ case 21: // pushfalse
 	break;
 case 22: // pushliteral
 	pc++;
-	push(m.literals[code[pc]]);
+	push(literals[code[pc]]);
 	break;
 case 23: // pushnil
 	push(null);
@@ -151,8 +207,6 @@ case 27: // setlocal
 	pc++;
 	setElementAt(pop(), size() - code[pc]);
 	break;
-case 28: // strcat
-	
 default: 
 			}
 			pc++;
