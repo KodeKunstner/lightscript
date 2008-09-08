@@ -1,0 +1,75 @@
+On Mon, Sep 8, 2008 at 10:09 AM, Julia Lawall <julia@diku.dk> wrote:
+> [...] Has anything changed in the pdf file (I didn't memorize
+> the previous one)?
+>
+
+The change is that instead of making a "dialect of EcmaScript", I just
+make a scripting language which is EcmaScript-like.
+
+> [...]
+> What do you mean by "different scoping [...]
+>
+
+
+The changes to scoping is motivated by the funarg-problem, e.g. if you
+call the function:
+
+var f = function() {
+    var x = 42;
+    return function() { return x; };
+}
+
+then the variable x cannot be allocated on a linear stack, as f()(),
+would access a stack frame which at that time would have been deallocated.
+If the language was pure functional, adding the used variables from the
+outer scope to the closure of the new function would solve the problem
+(e.g. closure conversion).  This does not work as function might also
+write back to outer variables, e.g:
+
+var f = function() {
+    var x = 42;
+    return {
+        "g": function() { return x; },
+        "h": function() { x = x + 1; }};
+}
+
+where the functions "g" and "h" reads and writes to the same variable.
+This forces x to be allocated on the heap and that the values in
+the closure of f, g, and h for x are references, which adds a little
+bit of complexity to the compiler and runtime. Of course all of the
+activation records could just be placed on heap and the x's in g and h
+could then just be references to the value in the activation record of f.
+Activation records on the heap will likely give some performance overhead,
+unless there is a good generational garbage collector, which is unlikely,
+and in addition here is also a bit of added complexity to the compiler
+and vm.  Another more primitive solution is just to make the closure
+explicit and not have local variables automatically added to closure of
+inner functions, which is the choosen solution because that reduces the
+memory footprint of the vm and compiler.
+
+> [...]
+> and different object inheritance model"?
+> [...]
+
+EcmaScript has prototypal inheritance a la self, combined with a Java
+inspired instantiation syntax. Objects in EcmaScript are essentially
+property mappings (f.x. hashtables) with a pointer to the prototype. I
+would like to be able to piggyback on the host language mapping
+implementation (where available) both for performance, size of the vm
+and better integration with host language. Therefore I want to omit the
+prototype pointer and just let objects be mappings from properties to
+values. This makes the language a less suited for large scale object
+oriented programming as objects becomes more expensive, but the focus
+for the language is more scripting+functional rather than oop, and at
+the same time this simplifies the vm.
+
+Inheritance can still be done a la:
+
+var ClassConstructor = function(...) {
+    var instance = SuperClassConstructor(...);
+    instance.addedMethod = function(..)  {..};
+    ....
+    return instance;
+}
+
+Rasmus

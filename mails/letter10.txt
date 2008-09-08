@@ -1,0 +1,21 @@
+Hi Julia,
+
+I will focus more on reducing memory requirements of the language
+implementation, while it is still a relatively high level language.
+That will require major changes to the language such that it probably
+cannot be called an EcmaScript-dialect anymore, even though I use
+EcmaScript as a base for defining the syntax and semantics. I have
+updated the synopsis correspondingly, and attached it.
+
+The syntax will still be mostly similar, and the semantics will definitely
+support first class functions, the object notation, and loading of scripts
+at runtime.  Some changes will be: different scoping and different
+object inheritance model for a more compact vm, different string-type
+to support more compact representation, integer instead of float number
+type to run on devices without fpu, arrays and functions will not also
+be objects for a more compact vm, builtin functions will probably not be
+'proper' functions for better performance, exceptions will probably be
+omitted for simplicity and size of the runtime, and there will probably
+be optional static typing for better optimisations.
+
+Rasmus

@@ -72,6 +72,10 @@ case 1: // arrjoin
 case 2: // arrpop
 	push(((Stack)pop()).pop());
 	break;
+case 3: // jump
+	pc++;
+	pc += code[pc];
+	break;
 case 4: // eq
 	push(pop().equals(pop())?t:f);
 	break;
@@ -192,7 +196,13 @@ case 22: // pushliteral
 case 23: // pushnil
 	push(null);
 	break;
-case 24: // ???
+case 24: // condjumpfalse
+	pc++;
+	tmp = pop();
+	if(tmp == null || tmp == f) {
+		pc += code[pc];
+	}
+	break;
 case 25: // pushtrue
 	push(t);
 	break;

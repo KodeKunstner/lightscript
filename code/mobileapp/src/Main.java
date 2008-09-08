@@ -19,6 +19,7 @@ final public class Main extends MIDlet {
 		}
 
 		MobyVM vm = new MobyVM();
+		vm.eval(vm.json2code(o));
 		Print.print(o);
 
 	};

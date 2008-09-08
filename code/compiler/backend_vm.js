@@ -26,7 +26,7 @@ opcode = {
 	"arrpush": 0,
 	"arrjoin": 1,
 	"arrpop": 2,
-	"???": 3,
+	"jump": 3,
 	"eq": 4,
 	"getlocal": 5,
 	"global_get": 6,
@@ -47,13 +47,13 @@ opcode = {
 	"pushfalse": 21,
 	"pushliteral": 22,
 	"pushnil": 23,
-	"???": 24,
+	"condjumpfalse": 24,
 	"pushtrue": 25,
 	"return": 26,
 	"setlocal": 27,
 };
 node2vm = (function (withresult, elem, acc) {
-	var i;
+	var i, jumpadr_pos, startpos;
 	if ((elem.id === "(string literal)")) {
 		arrpush(acc, "pushliteral");
 		arrpush(acc, literalid(elem.val));
@@ -69,13 +69,35 @@ node2vm = (function (withresult, elem, acc) {
 	} else if ((elem.id === "(noop)")) {
 		withresult = true;
 	} else if ((elem.id === "(if)")) {
-
-
-//TODO
+		node2vm(true, elem.args[0], acc);
+                arrpush(acc, "condjumpfalse");
+                jumpadr_pos = acc.length;
+                arrpush(acc, 0);
+		node2vm(false, elem.args[1], acc);
+		// else
+		if(elem.args[2] !== undefined) {
+                	arrpush(acc, "jump");
+                	startpos = acc.length;
+                	arrpush(acc, 0);
+		}
+                acc[jumpadr_pos] = acc.length - jumpadr_pos - 1;
+		// else
+		if(elem.args[2] !== undefined) {
+			node2vm(false, elem.args[2], acc);
+                	acc[startpos] = acc.length - startpos - 1;
+		}
+		if (withresult) {
+			arrpush(acc, "pushnil");
+		};
+		withresult = true;
 	} else if ((elem.id === "(block)")) {
-
-
-//TODO
+		for(i in elem.args) {
+			node2vm(false, elem.args[i], acc);
+		}
+		if (withresult) {
+			arrpush(acc, "pushnil");
+		};
+		withresult = true;
 	} else if ((elem.id === "(object literal)")) {
 		arrpush(acc, "push_emptyobject");
 		i = 0;
@@ -96,9 +118,19 @@ node2vm = (function (withresult, elem, acc) {
 
 //TODO
 	} else if ((elem.id === "(while)")) {
-
-
-//TODO
+                startpos = acc.length - 1;
+		node2vm(true, elem.args[0], acc);
+                arrpush(acc, "condjumpfalse");
+                jumpadr_pos = acc.length;
+                arrpush(acc, 0);
+		node2vm(false, elem.args[1], acc);
+                arrpush(acc, "jump");
+                arrpush(acc, startpos - acc.length);
+                acc[jumpadr_pos] = acc.length - jumpadr_pos - 1;
+		if (withresult) {
+			arrpush(acc, "pushnil");
+		};
+		withresult = true;
 	} else if ((elem.id === "(and)")) {
 
 
@@ -151,7 +183,29 @@ node2vm = (function (withresult, elem, acc) {
 //	TODO
 //
 	} else if ((elem.id === "(function call)")) {
-		if (elem.args[0].val === "arrjoin") {
+// Calling convention:
+//  fncall(argn):
+//  this, fn, args... -> result
+		if(elem.args[0].id === "(subscript)") {
+			// get the this-object
+			node2vm(true, elem.args[0].args[0], acc);
+			// get the function
+			node2vm(true, elem.args[0].args[1], acc);
+			// duplicate elem.args[0].args[0] 
+			arrpush(acc, "getlocal");
+			arrpush(acc, 2);
+			// get the function
+			arrpush(acc, "multiget");
+			//get the arguments
+			i = 1;
+			while(i < elem.args.length) {
+				node2vm(true, elem.args[i], acc);
+				i = i + 1;
+			}
+			// call the function with i arguments
+			arrpush(acc, "fncall");
+			arrpush(acc, i - 1);
+		} else if (elem.args[0].val === "arrjoin") {
 			node2vm(true, elem.args[1], acc);
 			node2vm(true, elem.args[2], acc);
 			arrpush(acc, "arrjoin");
@@ -160,13 +214,17 @@ node2vm = (function (withresult, elem, acc) {
 			node2vm(true, elem.args[1], acc);
 			arrpush(acc, "arrpush");
 		} else {
-			i = 1;
+			// push empty this
+			arrpush(acc, "pushnil");
+			// push arguments
+			i = 0;
 			while(i < elem.args.length) {
 				node2vm(true, elem.args[i], acc);
 				i = i + 1;
 			}
+			// call the function with i arguments
 			arrpush(acc, "fncall");
-			arrpush(acc, i);
+			arrpush(acc, i - 1);
 		}
 
 

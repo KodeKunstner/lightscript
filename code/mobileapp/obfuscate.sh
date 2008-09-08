@@ -6,4 +6,3 @@ proguard \
 -overloadaggressively \
 -allowaccessmodification \
 -keep public class Main \
-

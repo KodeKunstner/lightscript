@@ -10,9 +10,10 @@ node = parser.parse();
 while (node) {
 	node2vm(false, node, acc);
 	node = parser.parse();
+	arrpush(nodes, node);
 };
 
-var result = {"locals": locals, "literals": literalarray, "code": acc};
+var result = {"locals": locals, "literals": literalarray, "code": acc, "nodes": nodes};
 result.code2 = [];
 for(i in result.code) {
 	result.code2[i] = result.code[i];
