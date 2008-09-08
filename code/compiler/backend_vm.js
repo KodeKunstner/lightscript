@@ -1,3 +1,4 @@
+argc = 0;
 locals = {};
 nextlocal = 0;
 localid = (function (val) {
@@ -113,7 +114,10 @@ node2vm = (function (withresult, elem, acc) {
 			node2vm(true, elem.args[i], acc);
 			arrpush(acc, "arrpush");
 		};
-	} else if ((elem.id === "(for)")) {
+	} else if ((elem.id === "(iter)")) {
+		node2vm(true, elem.args[i], acc);
+		arrpush(acc, "getiter");
+
 
 
 //TODO
@@ -132,13 +136,26 @@ node2vm = (function (withresult, elem, acc) {
 		};
 		withresult = true;
 	} else if ((elem.id === "(and)")) {
-
-
-//TODO
+		node2vm(true, elem.args[0], acc);
+                arrpush(acc, "getlocal");
+                arrpush(acc, 1);
+                arrpush(acc, "condjumpfalse");
+                jumpadr_pos = acc.length;
+                arrpush(acc, 0);
+                arrpush(acc, "pop");
+		node2vm(true, elem.args[1], acc);
+                acc[jumpadr_pos] = acc.length - jumpadr_pos - 1;
 	} else if ((elem.id === "(or)")) {
-
-
-//TODO
+		node2vm(true, elem.args[0], acc);
+                arrpush(acc, "getlocal");
+                arrpush(acc, 1);
+                arrpush(acc, "not");
+                arrpush(acc, "condjumpfalse");
+                jumpadr_pos = acc.length;
+                arrpush(acc, 0);
+                arrpush(acc, "pop");
+		node2vm(true, elem.args[1], acc);
+                acc[jumpadr_pos] = acc.length - jumpadr_pos - 1;
 	} else if ((elem.id === "(local)")) {
 		arrpush(acc, "getlocal");
 		arrpush(acc, (nextlocal - localid(elem.val)));
@@ -178,8 +195,6 @@ node2vm = (function (withresult, elem, acc) {
 		};
 		withresult = true;
 	} else if ((elem.id === "(function)")) {
-
-
 //	TODO
 //
 	} else if ((elem.id === "(function call)")) {
@@ -226,11 +241,6 @@ node2vm = (function (withresult, elem, acc) {
 			arrpush(acc, "fncall");
 			arrpush(acc, i - 1);
 		}
-
-
-
-//	TODO
-//
 	} else if ((elem.id === "(return)")) {
 		node2vm(true, elem.args[0], acc);
 		arrpush(acc, "return");
@@ -270,8 +280,8 @@ node2vm = (function (withresult, elem, acc) {
 		node2vm(true, elem.args[0], acc);
 		arrpush(acc, "arrpop");
 	} else if ((elem.id === "(this)")) {
-//	TODO
-//
+		arrpush(acc, "getlocal");
+		arrpush(acc, nextlocal + argc + 1);
 	} else {
 		std.io.printerror(strcat("Unknown id: ", elem.id));
 		std.io.printerror(elem);

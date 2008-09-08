@@ -1,3 +1,1 @@
-var x;
-x = "foo";
-return x;
+return 1 && 2;
