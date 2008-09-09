@@ -304,12 +304,12 @@ ops = {
 	"(get)" : 32,
 	"(new array)" : 33,
 	"(new object)" : 34,
-	"(get static)" : 35,
+	"(get literal)" : 35,
 }
 
 
-"NB: special handling of unary/binary -";
-"ignore load and comment-functions";
+// "NB: special handling of unary/binary -";
+// "ignore load and comment-functions";
 
 
 
