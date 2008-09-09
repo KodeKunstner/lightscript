@@ -30,13 +30,13 @@ iterator = function(x) {
 	var key, result;
 	result = [];
 	for(key in x) {
-		if(x instanceof Object) {
-			push(result, key);
-		} else {
+		if(x instanceof Array) {
 			push(result, x[key]);
+		} else {
+			push(result, key);
 		}
 	}
-	result.reverse();
+	return result.reverse();
 };
 next = pop;
 

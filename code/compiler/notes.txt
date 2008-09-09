@@ -3,20 +3,14 @@ core functions:
         load(x) // dummy
 	str2int(x)
         println(x)
-        gettype(x)
+        is_a(x, y)
         getch(x)
-	current_line();
         push(a, b)
         pop(a)
         join(a)
 	length(a)
         iterator(x)
         next(iter)
-	getclosure(function)
-        aput(a, b, c) (a[b] = c) // Arrays
-        aget(a, b) (a[b]) // Arrays
-        oput(a, b, c) (a[b] = c) // Objects
-        oget(a, b) (a[b]) // Objects
         binary===
         binary!==
         binary+
@@ -28,8 +22,6 @@ core functions:
         undefined()
         true()
         false()
-        object()
-        array()
     other:
         locals: set_local get_local
 	globals: set_global get_global

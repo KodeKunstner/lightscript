@@ -1,19 +1,30 @@
 load("stdmob.js");
 
-is_num = function(c) {
+//
+// Utility functions for tokeniser
+//
+
+var is_num = function(c) {
 	return "0" <= c && c <= "9";
 }
 
-is_alphanum = function(c) {
+var is_alphanum = function(c) {
 	return is_num(c) || c === "_" || ("a" <= c && c <= "z") || ("A" <= c && c <= "Z");
 }
 
-is_symb = function(c) {
+var is_symb = function(c) {
 	return c === "=" || c === "!" || c === "<" || c === "&" || c === "|";
 }
 
+// 
+// Tokeniser state
+//
 
 token_c = " ";
+
+//
+// Tokeniser
+// 
 next_token = function() {
 	var c = token_c;
 	var val = undefined;
@@ -56,42 +67,58 @@ next_token = function() {
 			push(str, c);
 			c = getch();
 		}
+	} else if(c === "/") {
+		c = getch();
+		if(c === "/") {
+			while(c !== "\n") {
+				c = getch();
+			}
+			token_c = getch();
+			return next_token();
+		} else {
+			push(str, "/");
+		}
 	} else {
 		push(str, c);
 		c = getch();
 	}
 
 	token_c = c;
-	str = join(str, "");
 	token = {};
+
+	if(str[0] === undefined) {
+		str = "(end)";
+	} else {
+		str = join(str, "");
+	}
 	token.str = str;
-	token.nud = nuds[str] || defaultnud;
+	token.nud = nuds[str] || function() { return [this.str]; };
 	if(leds[str] === undefined) {
 		token.bp = 0;
 	} else {
 		token.led = leds[str].fn;
 		token.bp = leds[str].bp;
-	}
+	};
 	token.sep = seps[str];
 	token.val = val;
 	return token;
 }
 
+//
+// tables of parsing functions and options for a given token string
+//
 nuds = {};
 leds = {};
 seps = {};
 
-defaultnud = function() {
-	return ["(symb)", this.str];
-}
-
-defaultled = { "bp": 0 }
-
+//
+// functions for defining operator precedence and type
+//
 infix = function(str, bp) {
 	leds[str] = {};
 	leds[str].bp = bp;
 	leds[str].fn = function(left) {
-		return ["(binop)", this.str, left, parsep(this.led.bp)];
+		return [this.str, left, parsep(this.bp)];
 	}
 }
 
@@ -99,7 +126,7 @@ infixr = function(str, bp) {
 	leds[str] = {};
 	leds[str].bp = bp;
 	leds[str].fn = function(left) {
-		return ["(binop)", this.str, left, parsep(this.led.bp - 1)];
+		return [this.str, left, parsep(this.bp - 1)];
 	}
 }
 
@@ -107,7 +134,7 @@ infixl = function(str, bp) {
 	leds[str] = {};
 	leds[str].bp = bp;
 	leds[str].fn = function(left) {
-		return readlist(["(apply)", this.str, left]);
+		return readlist([join(["apply ", this.str], ""), left]);
 	}
 }
 
@@ -139,25 +166,25 @@ seperator = function(str) {
 
 list = function(str) {
 	nuds[str] = function() {
-		return readlist(["(list)", str]);
+		return readlist([str]);
 	}
 }
 
 atom = function(str) {
 	nuds[str] = function() {
-		return ["(atom)", this.str];
+		return [this.str];
 	}
 }
 
 prefix = function(str) {
 	nuds[str] = function() {
-		return ["(unary)", this.str, parse()];
+		return [this.str, parse()];
 	}
 }
 
 prefix2 = function(str) {
 	nuds[str] = function() {
-		return ["(control)", this.str, parse(), parse()];
+		return [this.str, parse(), parse()];
 	}
 }
 
@@ -169,6 +196,21 @@ nuds["(number)"] = function() {
 	return [this.str, this.val];
 }
 
+nuds["var"] = function() {
+	var acc = ["var"];
+	var p = parse();
+	while(p[0] !== "(end)" && p[1] !== ";") {
+		if(p[0] !== "(sep)") {
+			push(acc, p);
+		}
+		p = parse();
+	}
+	return acc;
+}
+
+//
+// Definition of operator precedence and type
+//
 infix(".", 700);
 infixl("(", 600);
 infixl("[", 600);
@@ -189,11 +231,9 @@ end(undefined);
 seperator(":");
 seperator(";");
 seperator(",");
-	
 list("(");
 list("{");
 list("[");
-
 prefix("return");
 prefix2("function");
 prefix2("if");
@@ -202,6 +242,9 @@ atom("undefined");
 atom("true");
 atom("false");
 
+//
+// The core parser
+//
 var parse = function() {
 	return parsep(0);
 };
@@ -219,6 +262,60 @@ var parsep = function(rbp) {
 	return left
 }
 
-while(token_c !== undefined) {
-	println(parse());
+
+//
+// Compiler
+//
+ops = {
+	"(jump)": 0,
+	"(jump if false)": 1,
+	"(get local)": 2,
+	"(set local)": 3,
+	"(set global)": 4,
+	"(get global)": 5,
+	"(call function)": 6,
+	"(call method)": 7,
+	"(json to function)": 8,
+	"===" : 9,
+	"!==" : 10,
+	"<" : 11,
+	"<=" : 12,
+	"!" : 13,
+	"+" : 14,
+	// not handling unary minus yet
+	// "(neg)": 15,
+	// "(minus)": 16,
+	"-" : 16, 
+	"!" : 17,
+	"undefined" : 18,
+	"true" : 19,
+	"false" : 20,
+	"next" : 21,
+	"iterator" : 22,
+	"length" : 23,
+	"join" : 24,
+	"pop" : 25,
+	"push" : 26,
+	"getch" : 27,
+	"is_a" : 28,
+	"println" : 29,
+	"str2int" : 30,
+	"(put)" : 31,
+	"(get)" : 32,
+	"(new array)" : 33,
+	"(new object)" : 34,
+	"(get static)" : 35,
+}
+
+
+"NB: special handling of unary/binary -";
+"ignore load and comment-functions";
+
+
+
+
+t = iterator(readlist([]));
+var x = 17, z, y = 32;
+while(x = next(t)) {
+	println(x);
 }
