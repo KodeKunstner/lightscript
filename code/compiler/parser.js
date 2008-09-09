@@ -219,7 +219,7 @@ parser.handlers = (function () {
 		var t;
 		t = parser.parse();
 		while (t) {
-			if ((!t.sep)) {
+			if ((t.sep !== true)) {
 				arrpush(arr, t);
 			};
 			t = parser.parse();
@@ -518,11 +518,6 @@ parser.handlers = (function () {
 			"id": "(and)",
 			"lbp": 200,
 		},
-		"!": {
-			"nud": unop,
-			"id": "(not)",
-			"lbp": 300,
-		},
 		"===": {
 			"led": binop,
 			"lbp": 300,
@@ -538,24 +533,10 @@ parser.handlers = (function () {
 			"lbp": 300,
 			"id": "(less)",
 		},
-		">": {
-			"lbp": 300,
-			"id": "(less)",
-			"led": (function (left) {
-				this.args = [parser.parse_rbp(this.lbp), left];
-			}),
-		},
 		"<=": {
 			"led": binop,
 			"lbp": 300,
 			"id": "(less or equal)",
-		},
-		">=": {
-			"lbp": 300,
-			"id": "(less or equal)",
-			"led": (function (left) {
-				this.args = [parser.parse_rbp(this.lbp), left];
-			}),
 		},
 	};
 })();
@@ -577,7 +558,7 @@ parser.parse_rbp = (function (rbp) {
 	t = parser.token;
 	parser.nexttoken();
 	t.nud();
-	while (((rbp < parser.token.lbp) && (!t.sep))) {
+	while (((rbp < parser.token.lbp) && (t.sep !== true))) {
 		clean_prop(t);
 		prev = t;
 		t = parser.token;
