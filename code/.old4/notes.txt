@@ -1,39 +1,45 @@
-core functions:
-    builtin functions:
-        print(x)
-        getch(x)
-	current_line();
-        push(a, b)
-        pop(a)
-        join(a)
-	length(a)
-        iterator(x)
-        next(iter)
-	tofunction({"code": [...], "static": [...]})
-	getclosure(function)
-        aput(a, b, c) (a[b] = c) // Arrays
-        aget(a, b) (a[b]) // Arrays
-        oput(a, b, c) (a[b] = c) // Objects
-        oget(a, b) (a[b]) // Objects
-        binary===
-        binary!==
-        binary+
-        binary-
-        binary<
-        binary<=
-        unary-
-        unary!
-        undefined()
-        true()
-        false()
-        object()
-        array()
-    other:
-        locals: set_local get_local
-	globals: set_global get_global
-	closure: set_static get_static
-        function-call [arg1, arg2, ... argn, function]
-        jump_if_false, jump (if, while)
-	return
-compiler:
-    compile(nexttoken, tokeniser, locals{"this": -2, "arg": -3, ...});
+language:
+  - types... dynamic, possibly derivered:
+    - any	- any/dynamic type
+    - int	- integer
+    - arr	- any-array
+    - obj	- hash table
+    - str	- immutable string
+    - bin 	- byte-array, mutable, fixed length
+    - fun	- function
+    - bool	- boolean
+    - nil	- null/unknown
+  - scope:
+    - "local" values prefixed with "$"
+    - local variables - any by default
+  - first class functions:
+    - contains a copy pointer to the global as creation time.
+
+
+--------------------------------------------------
+how to implement modifiable-global-scope in JS, and similarly scoped languages
+
+globals = {}
+
+_getglob = function() {
+	return globals;
+}
+
+... function(..) {
+
+	y = getglobals();
+
+	setglobals(x);
+}
+
+... function(..) {
+	// header needed if globals is set //
+	var globals; 
+	globals = _getglob();
+	////////////////////////////////////
+
+	y = globals;
+
+	globals = x;
+}
+
