@@ -46,7 +46,7 @@ _input_line_pos = -1;
 _input_line_nr = 0;
 _input_empty_line_count = 0;
 
-getchar = function() {
+getch = function() {
         _input_line_pos = _input_line_pos + 1;
 	_input_line = _input_line;
         if(_input_line[_input_line_pos] !== undefined) {
