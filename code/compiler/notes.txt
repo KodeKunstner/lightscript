@@ -1,6 +1,9 @@
 core functions:
     builtin functions:
-        print(x)
+        load(x) // dummy
+	str2int(x)
+        println(x)
+        gettype(x)
         getch(x)
 	current_line();
         push(a, b)
@@ -9,7 +12,6 @@ core functions:
 	length(a)
         iterator(x)
         next(iter)
-	tofunction({"code": [...], "static": [...]})
 	getclosure(function)
         aput(a, b, c) (a[b] = c) // Arrays
         aget(a, b) (a[b]) // Arrays

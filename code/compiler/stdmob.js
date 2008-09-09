@@ -1,73 +1,75 @@
-str2int = function(s) {
+str2int= function(s) {
 	parseInt(s, 10);
-}
-is_int = function(o) {
-	return typeof(o) === "number";
-}
+};
 
-is_str = function(o) {
-	return typeof(o) === "string";
-}
+is_a = function(o, t) {
+	return (typeof(o) === t)
+	|| (t === "array" && o instanceof Array)
+	|| (t === "function" && o instanceof Function)
+	|| (t === "object" && o instanceof Object);
+};
 
-is_arr = function(o) {
-	return o instanceof Array;
-}
+length = function(x) {
+	return x.length;
+};
 
-is_obj = function(o) {
-	return o instanceof Object;
-}
-
-strcat = function(a, b) {
-        return a+b;
-}
-
-arrjoin = function(a, b) {
+join = function(a, b) {
         return a.join(b);
-}
+};
 
-arrpop = function(s) {
+pop = function(s) {
         return s.pop();
-}
+};
 
-arrpush = function(s, val) {
+push = function(s, val) {
         return s.push(val);
-}
+};
 
-std = {};
-std._ = {};
 
-std._.line = "";
-std._.line_pos = -1;
-std._.line_nr = 0;
-std._.empty_line_count = 0;
+iterator = function(x) {
+	var key, result;
+	result = [];
+	for(key in x) {
+		if(x instanceof Object) {
+			push(result, key);
+		} else {
+			push(result, x[key]);
+		}
+	}
+	result.reverse();
+};
+next = pop;
 
-std.io = {};
-std.io.getchar = function() {
-	var _;
-	_ = std._;
-        _.line_pos = _.line_pos + 1;
-	_.line = _.line;
-        if(_.line[_.line_pos] !== undefined) {
-                _.empty_line_count = 0;
-                return _.line[_.line_pos];
+_ = {};
+_input_line = "";
+_input_line_pos = -1;
+_input_line_nr = 0;
+_input_empty_line_count = 0;
+
+getchar = function() {
+        _input_line_pos = _input_line_pos + 1;
+	_input_line = _input_line;
+        if(_input_line[_input_line_pos] !== undefined) {
+                _input_empty_line_count = 0;
+                return _input_line[_input_line_pos];
         } else {
-                _.line_nr = _.line_nr + 1;
-                _.line_pos = -1;
-                _.line = readline();
-                _.empty_line_count = _.empty_line_count + 1;
-                if(_.empty_line_count > 10) {
+                _input_line_nr = _input_line_nr + 1;
+                _input_line_pos = -1;
+                _input_line = readline();
+                _input_empty_line_count = _input_empty_line_count + 1;
+                if(_input_empty_line_count > 10) {
                         return undefined;
                 } else {
                         return "\n";
                 } 
         }
-}
+};
 
-std.io.currentline = function() {
-	return std._.line_nr;
-}
+current_line = function() {
+	return _input_line_nr;
+};
 
-std.io.println = function(obj) {
+println = function(obj) {
 	var genstr;
 	if(typeof(obj) === "string") {
 		print(obj);
@@ -101,8 +103,5 @@ std.io.println = function(obj) {
 
 	}
 	print(genstr(obj, []));
-}
-std.io.printerror = function(obj) {
-	std.io.println(obj);
 };
 
