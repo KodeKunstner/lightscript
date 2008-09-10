@@ -1,21 +1,5 @@
 load("stdmob.js");
 
-//
-// Utility functions for tokeniser
-//
-
-var is_num = function(c) {
-	return "0" <= c && c <= "9";
-}
-
-var is_alphanum = function(c) {
-	return is_num(c) || c === "_" || ("a" <= c && c <= "z") || ("A" <= c && c <= "Z");
-}
-
-var is_symb = function(c) {
-	return c === "=" || c === "!" || c === "<" || c === "&" || c === "|";
-}
-
 // 
 // Tokeniser state
 //
@@ -29,10 +13,24 @@ next_token = function() {
 	var c = token_c;
 	var val = undefined;
 	var token;
+
+	var is_num = function(c) {
+		return "0" <= c && c <= "9";
+	};
+
+	var is_alphanum = function(c) {
+		return is_num(c) || c === "_" || ("a" <= c && c <= "z") || ("A" <= c && c <= "Z");
+	};
+
+	var is_symb = function(c) {
+		return c === "=" || c === "!" || c === "<" || c === "&" || c === "|";
+	};
+
+	var str = [];
+
 	while(c === " " || c === "\n" || c === "\t") {
 		c = getch();
 	}
-	var str = [];
 	if(c === "\"") {
 		c = getch();
 		while(c !== undefined && c !== "\"") {
@@ -90,7 +88,7 @@ next_token = function() {
 		str = "(end)";
 	} else {
 		str = join(str, "");
-	}
+	};
 	token.str = str;
 	token.nud = nuds[str] || function() { return [this.str]; };
 	if(leds[str] === undefined) {
@@ -102,7 +100,7 @@ next_token = function() {
 	token.sep = seps[str];
 	token.val = val;
 	return token;
-}
+};
 
 //
 // tables of parsing functions and options for a given token string
@@ -119,24 +117,24 @@ infix = function(str, bp) {
 	leds[str].bp = bp;
 	leds[str].fn = function(left) {
 		return [this.str, left, parsep(this.bp)];
-	}
-}
+	};
+};
 
 infixr = function(str, bp) {
 	leds[str] = {};
 	leds[str].bp = bp;
 	leds[str].fn = function(left) {
 		return [this.str, left, parsep(this.bp - 1)];
-	}
-}
+	};
+};
 
 infixl = function(str, bp) {
 	leds[str] = {};
 	leds[str].bp = bp;
 	leds[str].fn = function(left) {
 		return readlist([join(["apply ", this.str], ""), left]);
-	}
-}
+	};
+};
 
 
 readlist = function(acc) {
@@ -148,53 +146,53 @@ readlist = function(acc) {
 		p = parse();
 	}
 	return acc;
-}
+};
 
 end = function(str) {
 	seps[str] = true;
 	nuds[str] = function() {
 		return ["(end)", this.str];
 	}
-}
+};
 
 seperator = function(str) {
 	seps[str] = true;
 	nuds[str] = function() {
 		return ["(sep)", this.str];
 	}
-}
+};
 
 list = function(str) {
 	nuds[str] = function() {
 		return readlist([str]);
 	}
-}
+};
 
 atom = function(str) {
 	nuds[str] = function() {
 		return [this.str];
 	}
-}
+};
 
 prefix = function(str) {
 	nuds[str] = function() {
 		return [this.str, parse()];
 	}
-}
+};
 
 prefix2 = function(str) {
 	nuds[str] = function() {
 		return [this.str, parse(), parse()];
 	}
-}
+};
 
 nuds["(string)"] = function() {
 	return [this.str, this.val];
-}
+};
 
 nuds["(number)"] = function() {
 	return [this.str, this.val];
-}
+};
 
 nuds["var"] = function() {
 	var acc = ["var"];
@@ -206,7 +204,7 @@ nuds["var"] = function() {
 		p = parse();
 	}
 	return acc;
-}
+};
 
 //
 // Definition of operator precedence and type
@@ -260,7 +258,7 @@ var parsep = function(rbp) {
 		left = t.led(left);
 	}
 	return left
-}
+};
 
 
 //
@@ -305,7 +303,7 @@ ops = {
 	"(new array)" : 33,
 	"(new object)" : 34,
 	"(get literal)" : 35,
-}
+};
 
 
 // "NB: special handling of unary/binary -";
@@ -315,6 +313,9 @@ nummap = {
 	"table": {},
 	"list": [],
 	"lookup": function(o) {
+		return this.table[o];
+	},
+	"add": function(o) {
 		var key;
 		key = this.table[o];
 		if(key === undefined) {
@@ -328,54 +329,71 @@ nummap = {
 literals = copyobj(nummap);
 
 
-compile = function(expr, acc, locals) {
+compile = function(withresult, expr, acc, locals, depth) {
 	var id = expr[0];
+	var i;
 	
-	if (id === "<=") {
-	} else if (id === "<") {
-	} else if (id === "===") {
-	} else if (id === "=") {
+	if (id === "=") {
 	} else if (id === "||") {
-	} else if (id === "-") {
-	} else if (id === "!==") {
-	} else if (id === "!") {
 	} else if (id === ".") {
 	} else if (id === "(") {
 	} else if (id === "[") {
 	} else if (id === "{") {
 	} else if (id === "&&") {
-	} else if (id === "+") {
 	} else if (id === "apply (") {
 	} else if (id === "apply [") {
-	} else if (id === "copyobj") {
 	} else if (id === "else") {
 	} else if (id === "function") {
-	} else if (id === "getch") {
 	} else if (id === "if") {
-	} else if (id === "is_a") {
-	} else if (id === "iterator") {
-	} else if (id === "join") {
-	} else if (id === "length") {
 	} else if (id === "load") {
-	} else if (id === "next") {
 	} else if (id === "(number)") {
-	} else if (id === "println") {
-	} else if (id === "push") {
 	} else if (id === "return") {
 	} else if (id === "(string)") {
-	} else if (id === "this") {
-	} else if (id === "true") {
-	} else if (id === "undefined") {
 	} else if (id === "var") {
+		i = 1;
+		while(i < expr.length) {
+			if(expr[i][0] === "=") {
+				locals.add(expr[i][1]);
+				compile(true, expr[i], acc, locals, depth + i - 1);
+			} else {
+				locals.add(expr[i][0]);
+			}
+			i = i + 1;
+		}
+		push(acc, id);
+
 	} else if (id === "while") {
+	} else {
+		if(ops[id]) {
+			i = 1;
+			while(i < expr.length) {
+				compile(true, expr[i], acc, locals, depth + i - 1);
+				i = i + 1;
+			}
+			push(acc, id);
+		}
+		println("UNEXPECTED TOKEN");
+		println(expr);
 	}
 
-}
+	if(withresult === false) {
+		push(acc, "pop");
+	}
+	return [acc, locals];
+};
 
 
 t = iterator(readlist([]));
+localvars = copyobj(nummap);
 while(x = next(t)) {
-	//println(x);
-	println(compile(x, [], copyobj(nummap)));
-}
+	println(x);
+	println(compile(true, x, [], localvars, 0));
+};
 
+if(true) {
+	1;
+} else if(false) {
+	2;
+} else {
+	3;
+};
