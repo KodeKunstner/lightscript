@@ -275,7 +275,7 @@ ops = {
 	"(get global)": 5,
 	"(call function)": 6,
 	"(call method)": 7,
-	"(json to function)": 8,
+	//"(json to function)": 8,
 	"===" : 9,
 	"!==" : 10,
 	"<" : 11,
@@ -311,11 +311,71 @@ ops = {
 // "NB: special handling of unary/binary -";
 // "ignore load and comment-functions";
 
+nummap = {
+	"table": {},
+	"list": [],
+	"lookup": function(o) {
+		var key;
+		key = this.table[o];
+		if(key === undefined) {
+			key = this.list.length;
+			push(this.list, o);
+			this.table[o] = key;
+		}
+	}
+}
 
+literals = copyobj(nummap);
+
+
+compile = function(expr, acc, locals) {
+	var id = expr[0];
+	
+	if (id === "<=") {
+	} else if (id === "<") {
+	} else if (id === "===") {
+	} else if (id === "=") {
+	} else if (id === "||") {
+	} else if (id === "-") {
+	} else if (id === "!==") {
+	} else if (id === "!") {
+	} else if (id === ".") {
+	} else if (id === "(") {
+	} else if (id === "[") {
+	} else if (id === "{") {
+	} else if (id === "&&") {
+	} else if (id === "+") {
+	} else if (id === "apply (") {
+	} else if (id === "apply [") {
+	} else if (id === "copyobj") {
+	} else if (id === "else") {
+	} else if (id === "function") {
+	} else if (id === "getch") {
+	} else if (id === "if") {
+	} else if (id === "is_a") {
+	} else if (id === "iterator") {
+	} else if (id === "join") {
+	} else if (id === "length") {
+	} else if (id === "load") {
+	} else if (id === "next") {
+	} else if (id === "(number)") {
+	} else if (id === "println") {
+	} else if (id === "push") {
+	} else if (id === "return") {
+	} else if (id === "(string)") {
+	} else if (id === "this") {
+	} else if (id === "true") {
+	} else if (id === "undefined") {
+	} else if (id === "var") {
+	} else if (id === "while") {
+	}
+
+}
 
 
 t = iterator(readlist([]));
-var x = 17, z, y = 32;
 while(x = next(t)) {
-	println(x);
+	//println(x);
+	println(compile(x, [], copyobj(nummap)));
 }
+

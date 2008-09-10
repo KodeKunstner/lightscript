@@ -2,6 +2,14 @@ str2int= function(s) {
 	parseInt(s, 10);
 };
 
+copyobj = function(o) {
+	var result = {};
+	for(key in o) {
+		result[key] = o[key]
+	}
+	return result;
+}
+
 is_a = function(o, t) {
 	return (typeof(o) === t)
 	|| (t === "array" && o instanceof Array)
