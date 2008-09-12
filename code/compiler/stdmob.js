@@ -2,12 +2,19 @@ str2int= function(s) {
 	parseInt(s, 10);
 };
 
-copyobj = function(o) {
-	var result = {};
-	for(key in o) {
-		result[key] = o[key]
+map = function(fn, set) {
+	var i;
+	for(i in set) {
+		set[i] = fn(set[i]);
 	}
-	return result;
+	return set;
+}
+
+copyobj = function(src, dst) {
+	for(key in src) {
+		dst[key] = src[key]
+	}
+	return dst;
 }
 
 is_a = function(o, t) {
@@ -83,8 +90,17 @@ println = function(obj) {
 		print(obj);
 		return;
 	}
+	 
+	var tab = function(n) {
+		var s = ""; 
+		while(n>0) {
+			s+= "    ";
+			n--;
+		}
+		return s;
+	}
 
-	genstr = function(obj, acc) {
+	genstr = function(obj, acc, indent) {
 		var t, i;
 		if(typeof(obj) === "string") {
 			return "\""+obj+"\"";
@@ -92,7 +108,7 @@ println = function(obj) {
 			acc.push("[");
 			t = [];
 			for(i=0;i<obj.length;i++) {
-				t.push(genstr(obj[i], []));
+				t.push(genstr(obj[i], [], indent));
 			}
 			acc.push(t.join(", "));
 			acc.push("]");
@@ -100,9 +116,11 @@ println = function(obj) {
 			acc.push("{");
 			t = [];
 			for(key in obj) {
-				t.push( "\"" + key + "\": "+ genstr(obj[key], []));
+				t.push( "\"" + key + "\": "+ genstr(obj[key], [], indent + 1));
 			}
-			acc.push(t.join(", "));
+			acc.push(",\n" + tab(indent));
+			acc.push(t.join(",\n" + tab(indent)));
+			acc.push(",\n" + tab(indent-1));
 			acc.push("}");
 		} else {
 			acc.push(obj);
@@ -110,6 +128,6 @@ println = function(obj) {
 		return acc.join("");
 
 	}
-	print(genstr(obj, []));
+	print(genstr(obj, [], 1));
 };
 

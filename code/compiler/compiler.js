@@ -19,7 +19,7 @@ next_token = function() {
 	};
 
 	var is_alphanum = function(c) {
-		return is_num(c) || c === "_" || ("a" <= c && c <= "z") || ("A" <= c && c <= "Z");
+		return ("0" <= c && c <= "9") || c === "_" || ("a" <= c && c <= "z") || ("A" <= c && c <= "Z");
 	};
 
 	var is_symb = function(c) {
@@ -90,7 +90,7 @@ next_token = function() {
 		str = join(str, "");
 	};
 	token.str = str;
-	token.nud = nuds[str] || function() { return [this.str]; };
+	token.nud = nuds[str] || function() { return {"id": this.str}; };
 	if(leds[str] === undefined) {
 		token.bp = 0;
 	} else {
@@ -116,7 +116,7 @@ infix = function(str, bp) {
 	leds[str] = {};
 	leds[str].bp = bp;
 	leds[str].fn = function(left) {
-		return [this.str, left, parsep(this.bp)];
+		return {"id": this.str, "args": [left, parsep(this.bp)]};
 	};
 };
 
@@ -124,7 +124,7 @@ infixr = function(str, bp) {
 	leds[str] = {};
 	leds[str].bp = bp;
 	leds[str].fn = function(left) {
-		return [this.str, left, parsep(this.bp - 1)];
+		return {"id": this.str, "args": [left, parsep(this.bp - 1)]};
 	};
 };
 
@@ -132,15 +132,15 @@ infixl = function(str, bp) {
 	leds[str] = {};
 	leds[str].bp = bp;
 	leds[str].fn = function(left) {
-		return readlist([join(["apply ", this.str], ""), left]);
+		return {"id": join(["apply ", this.str], ""), "args": readlist([left])};
 	};
 };
 
 
 readlist = function(acc) {
 	var p = parse();
-	while(p[0] !== "(end)") {
-		if(p[0] !== "(sep)") {
+	while(p.id !== "(end)") {
+		if(p.id !== "(sep)") {
 			push(acc, p);
 		}
 		p = parse();
@@ -151,59 +151,59 @@ readlist = function(acc) {
 end = function(str) {
 	seps[str] = true;
 	nuds[str] = function() {
-		return ["(end)", this.str];
+		return {"id": "(end)", "val": this.str};
 	}
 };
 
 seperator = function(str) {
 	seps[str] = true;
 	nuds[str] = function() {
-		return ["(sep)", this.str];
+		return {"id": "(sep)", "val": this.str};
 	}
 };
 
 list = function(str) {
 	nuds[str] = function() {
-		return readlist([str]);
+		return {"id": str, "args": readlist([])};
 	}
 };
 
 atom = function(str) {
 	nuds[str] = function() {
-		return [this.str];
+		return {"id": this.str};
 	}
 };
 
 prefix = function(str) {
 	nuds[str] = function() {
-		return [this.str, parse()];
+		return {"id": this.str, "args": [parse()]};
 	}
 };
 
 prefix2 = function(str) {
 	nuds[str] = function() {
-		return [this.str, parse(), parse()];
+		return {"id": this.str, "args": [parse(), parse()]};
 	}
 };
 
 nuds["(string)"] = function() {
-	return [this.str, this.val];
+	return {"id": this.str, "val": this.val};
 };
 
 nuds["(number)"] = function() {
-	return [this.str, this.val];
+	return {"id": this.str, "val": this.val};
 };
 
 nuds["var"] = function() {
-	var acc = ["var"];
+	var acc = [];
 	var p = parse();
-	while(p[0] !== "(end)" && p[1] !== ";") {
-		if(p[0] !== "(sep)") {
+	while(p.id !== "(end)" && p.val !== ";") {
+		if(p.id !== "(sep)") {
 			push(acc, p);
 		}
 		p = parse();
 	}
-	return acc;
+	return {"id": this.str, "args": acc};
 };
 
 //
@@ -233,6 +233,8 @@ list("(");
 list("{");
 list("[");
 prefix("return");
+prefix("-");
+prefix("!");
 prefix2("function");
 prefix2("if");
 prefix2("while");
@@ -281,11 +283,11 @@ ops = {
 	"!" : 13,
 	"+" : 14,
 	// not handling unary minus yet
-	// "(neg)": 15,
-	// "(minus)": 16,
-	"-" : 16, 
+	 "(neg)": 15,
+	 "(minus)": 16,
+	//"-" : 16, 
 	"!" : 17,
-	"undefined" : 18,
+	"(pushnil)" : 18,
 	"true" : 19,
 	"false" : 20,
 	"next" : 21,
@@ -303,97 +305,263 @@ ops = {
 	"(new array)" : 33,
 	"(new object)" : 34,
 	"(get literal)" : 35,
+	"this" : 36,
+	"(set this)" : 37,
+	"map" : 38,
 };
 
+local = {}
 
-// "NB: special handling of unary/binary -";
-// "ignore load and comment-functions";
-
-nummap = {
-	"table": {},
-	"list": [],
-	"lookup": function(o) {
-		return this.table[o];
-	},
-	"add": function(o) {
-		var key;
-		key = this.table[o];
-		if(key === undefined) {
-			key = this.list.length;
-			push(this.list, o);
-			this.table[o] = key;
-		}
-	}
-}
-
-literals = copyobj(nummap);
-
-
-compile = function(withresult, expr, acc, locals, depth) {
-	var id = expr[0];
-	var i;
-	
+simplify = function(elem) {
+	var i, t;
+	var id = elem.id;
+	var args = elem.args;
 	if (id === "=") {
+		map(simplify, args);
+		if(args[0].id === "(get)") {
+			elem.id = "(put)";
+		} else {
+			if(local[args[0].val] === true) {
+				elem.id = "[set local]";
+			} else {
+				elem.id = "[set global]";
+			}
+			args[0].id = "(string)";
+		}
 	} else if (id === "||") {
+		elem.id = "[or]"
+		map(simplify, args);
 	} else if (id === ".") {
+		elem.id = "(get)";
+		args[1].val = args[1].id;
+		args[1].id = "(string)";
+		map(simplify, args);
+	} else if (id === "-") {
+		if(args.length === 1) {
+			elem.id = "(neg)";
+		} else {
+			elem.id = "(minus)";
+		}
 	} else if (id === "(") {
+		if(args.length !== 1) {
+			println("Error: multiparen");
+		} else {
+			copyobj(args[0], elem);
+		}
+		simplify(elem);
 	} else if (id === "[") {
+		elem.id = "[array literal]";
+		map(simplify, args);
 	} else if (id === "{") {
+		elem.id = "[object literal]";
+		map(simplify, args);
 	} else if (id === "&&") {
+		elem.id = "[and]";
+		map(simplify, args);
 	} else if (id === "apply (") {
+		elem.id = "[call]";
+		if(ops[args[0].id] !== undefined) {
+			elem.id = args[0].id;
+			args[0].id = "[noop]";
+			return simplify(elem);
+		} 
+		map(simplify, args);
+		if(args[0].id === "(get)") {
+			elem.method = true;
+		} 
 	} else if (id === "apply [") {
+		elem.id = "(get)";
+		map(simplify, args);
+	} else if (id === "[arg-list]") {
+	} else if (id === "[block]") {
+		map(simplify, args);
+	} else if (id === "undefined") {
+		elem.id = "(pushnil)";
 	} else if (id === "else") {
+		println("Error: unexpected-else");
+		println(elem);
+		println("\n\n\n");
 	} else if (id === "function") {
+		var l = local;
+		local = {};
+		var iter = iterator(args[0].args);
+		var t = next(iter); 
+		while(t !== undefined) {
+			local[t.id] = true;
+			t = next(iter);
+		}
+		args[0].id = "[arg-list]";
+		args[1].id = "[block]";
+		map(simplify, args);
+		elem.locals = local;
+		local = l;
 	} else if (id === "if") {
-	} else if (id === "load") {
+		if(args[1].id === "else") {
+			elem.has_else = true;
+			args[2] = args[1].args[1];
+			args[1] = args[1].args[0];
+			if(args[2].id === "{") {
+				args[2].id = "[block]";
+			}
+		}
+		if(args[1].id === "{") {
+			args[1].id = "[block]";
+		}
+		map(simplify, args);
+	} else if (id === "[noop]") {
 	} else if (id === "(number)") {
 	} else if (id === "return") {
+		map(simplify, args);
 	} else if (id === "(string)") {
 	} else if (id === "var") {
-		i = 1;
-		while(i < expr.length) {
-			if(expr[i][0] === "=") {
-				locals.add(expr[i][1]);
-				compile(true, expr[i], acc, locals, depth + i - 1);
+		t = [];
+		i = 0;
+		while(i<args.length) {
+			if(args[i].id === "=") {
+				push(t, args[i]);
+				local[args[i].args[0].id] = true;
 			} else {
-				locals.add(expr[i][0]);
+				local[args[i].id] = true;
 			}
 			i = i + 1;
 		}
-		push(acc, id);
-
+		elem.id = "[block]";
+		elem.args = t;
+		map(simplify, elem.args);
 	} else if (id === "while") {
+		args[1].id = "[block]";
+		map(simplify, args);
 	} else {
 		if(ops[id]) {
-			i = 1;
-			while(i < expr.length) {
-				compile(true, expr[i], acc, locals, depth + i - 1);
+			map(simplify, args);
+		} else if(local[id]) {
+			elem.val = id;
+			elem.id = "[get local]";
+		} else {
+			elem.val = id;
+			elem.id = "[get global]";
+		}
+	}
+	return elem;
+}
+
+// const pool, and stack positions
+
+nummap = {
+	"ids": {},
+	"nextid": 0,
+	"get": function(val) {
+		var id = this.ids[val];
+		if(id === undefined) {
+			id = this.nextid;
+			this.nextid = id + 1;
+			this.ids[val] = id;
+		}
+		return [id, val];
+	}
+}
+
+locals = copyobj(nummap, {});
+literals = copyobj(nummap, {});
+
+functions = [];
+
+
+compile = function(withresult, elem, acc) {
+	var id = elem.id;
+	var args = elem.args;
+	var i;
+	if(ops[id] !== undefined) {
+		i = 0;
+		if(args !== undefined) {
+			while(i<args.length) {
+				compile(withresult, args[i],acc);
 				i = i + 1;
 			}
-			push(acc, id);
 		}
-		println("UNEXPECTED TOKEN");
-		println(expr);
-	}
-
-	if(withresult === false) {
+		push(acc, id);
+	} else if(id === "[set global]") {
+		compile(true, args[1], acc);
+		push(acc, "(set global)");
+		push(acc, literals.get(args[0].val));
+		if(withresult) {
+			push(acc, "undefined");
+		}
+		withresult = true;
+	} else if(id === "[get global]") {
+		push(acc, "(get global)");
+		push(acc, literals.get(elem.val));
+	} else if(id === "(string)") {
+		push(acc, "(get literal)");
+		push(acc, literals.get(elem.val));
+	} else if(id === "[call]") {
+		i = 1;
+		while(i<args.length) {
+			compile(true, args[i], acc);
+			i = i + 1;
+		}
+		if(elem.method) {
+			println("Method call not implemented yet");
+		} else {
+			compile(true, args[0],acc);
+			push(acc, "(function call)");
+			push(acc, args.length - 1);
+		}
+	} else if(id === "while") {
+		var startpos = acc.length - 1;
+		compile(true, args[0], acc);
+		push(acc, "condjumpfalse");
+		var jumpadr_pos = acc.length;
+		push(acc, 0);
+		compile(false, elem.args[1], acc);
+		push(acc, "jump");
+		push(acc, startpos - acc.length);
+		acc[jumpadr_pos] = acc.length - jumpadr_pos - 1;
+		if (withresult) { push(acc, "(pushnil)"); }; withresult = true;
+	} else if(id === "[block]") {
+		i = 0;
+		if(args !== undefined) {
+			while(i<args.length) {
+				compile(false, args[i],acc);
+				i = i + 1;
+			}
+		}
+		if (withresult) { push(acc, "(pushnil)"); }; withresult = true;
+	} else if(id === "[noop]") {
+		if (withresult) { push(acc, "(pushnil)"); }; withresult = true;
+	} else if(id === "[array literal]") {
+		push(acc, "(new array)");
+		i = 0;
+		while(i<args.length) {
+			compile(true, args[i],acc);
+			push(acc, "push");
+			i = i + 1;
+		}
+	} else if(id === "[object literal]") {
+		push(acc, "(new object)");
+		i = 0;
+		while(i<args.length) {
+			compile(true, args[i],acc);
+			compile(true, args[i+1],acc);
+			push(acc, "(put)");
+			i = i + 2;
+		}
+	} else if(id === "") {
+	} else {
+		println(join(["\nUnknown node:", "\n"], id));
+	};
+	if ((!withresult)) {
 		push(acc, "pop");
-	}
-	return [acc, locals];
-};
+	};
+	return acc;
+}
 
 
 t = iterator(readlist([]));
-localvars = copyobj(nummap);
-while(x = next(t)) {
-	println(x);
-	println(compile(true, x, [], localvars, 0));
-};
-
-if(true) {
-	1;
-} else if(false) {
-	2;
-} else {
-	3;
+x = next(t);
+while(x !== undefined) {
+	println(simplify(x));
+	println(compile(false, x, []));
+	println("\n\n");
+	x = next(t);
 };
