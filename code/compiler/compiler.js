@@ -245,12 +245,12 @@ atom("false");
 //
 // The core parser
 //
-var parse = function() {
+parse = function() {
 	return parsep(0);
 };
 
 token = next_token();
-var parsep = function(rbp) {
+parsep = function(rbp) {
 	var t = token;
 	token = next_token();
 	var left = t.nud();
@@ -340,6 +340,7 @@ simplify = function(elem) {
 		args[1].id = "(string)";
 		map(simplify, args);
 	} else if (id === "-") {
+		map(simplify, args);
 		if(args.length === 1) {
 			elem.id = "(neg)";
 		} else {
@@ -474,96 +475,126 @@ literals = Nummap();
 functions = [];
 
 
-compile = function(withresult, elem, acc, stackpos) {
+stackpos = 0;
+
+compile = function(popresult, elem, acc) {
 	var id = elem.id;
 	var args = elem.args;
 	var i;
-	println([id, stackpos]);
+	println(["Begin", id, stackpos]);
 	if(ops[id] !== undefined) {
 		i = 0;
+		var origpos = stackpos;
 		if(args !== undefined) {
 			while(i<args.length) {
-				compile(true, args[i],acc, stackpos + i);
+				compile(false, args[i],acc);
 				i = i + 1;
 			}
 		}
 		push(acc, id);
+		stackpos = origpos + 1;
 	} else if(id === "[set local]") {
-		compile(true, args[1], acc, stackpos);
-		push(acc, "(set local)");
+		compile(false, args[1], acc);
 		var t = locals.get(args[0].val);
-		push(acc, [stackpos - t[0], t[1]]);
-		if(withresult) { push(acc, "undefined"); } withresult = true;
+		stackpos = stackpos - 1;
+		var depth = stackpos - t[0];
+		if(depth !== 0) {
+			push(acc, "(set local)");
+			push(acc, [stackpos - t[0], t[1]]);
+		} else {
+			stackpos = stackpos + 1;
+		}
+		popresult = false;
 	} else if(id === "[get local]") {
 		push(acc, "(get local)");
 		var t = locals.get(elem.val);
 		push(acc, [stackpos - t[0], t[1]]);
+		stackpos = stackpos + 1;
 	} else if(id === "[set global]") {
-		compile(true, args[1], acc, stackpos);
+		compile(false, args[1], acc);
 		push(acc, "(set global)");
 		push(acc, literals.get(args[0].val));
-		if(withresult) { push(acc, "undefined"); } withresult = true;
+		stackpos = stackpos - 1;
+		popresult = false;
 	} else if(id === "[get global]") {
 		push(acc, "(get global)");
 		push(acc, literals.get(elem.val));
+		stackpos = stackpos + 1;
 	} else if(id === "(string)") {
 		push(acc, "(get literal)");
 		push(acc, literals.get(elem.val));
+		stackpos = stackpos + 1;
 	} else if(id === "[number]") {
 		push(acc, "(number)");
 		push(acc, str2int(elem.val));
+		stackpos = stackpos + 1;
 	} else if(id === "[call]") {
 		i = 1;
+		var origpos = stackpos;
 		while(i<args.length) {
-			compile(true, args[i], acc, stackpos + i - 1);
+			stackpos = origpos + i - 1;
+			compile(false, args[i], acc);
 			i = i + 1;
 		}
 		if(elem.method) {
-			println("Unknown error: Method call not implemented yet");
+			stackpos = origpos + i - 1;
+			compile(false, args[0].args[0], acc);
+			// dup
+			push(acc, "(get local)");
+			push(acc, 1);
+			compile(false, args[0].args[1], acc);
+			push(acc, "(get)");
+			push(acc, "(method call)");
+			push(acc, args.length - 1);
 		} else {
-			compile(true, args[0],acc, stackpos + i - 1);
+			stackpos = origpos + i - 1;
+			compile(false, args[0],acc);
 			push(acc, "(function call)");
 			push(acc, args.length - 1);
 		}
+		stackpos = origpos + 1;
 	} else if(id === "while") {
 		var startpos = acc.length - 1;
-		compile(true, args[0], acc, stackpos);
-		push(acc, "condjumpfalse");
+		compile(false, args[0], acc);
+		push(acc, "(jump if false)");
 		var jumpadr_pos = acc.length;
+		stackpos = stackpos - 1;
 		push(acc, 0);
-		compile(false, elem.args[1], acc, stackpos);
+		compile(true, elem.args[1], acc);
 		push(acc, "jump");
 		push(acc, startpos - acc.length);
 		acc[jumpadr_pos] = acc.length - jumpadr_pos - 1;
-		if (withresult) { push(acc, "(pushnil)"); }; withresult = true;
+		popresult = false;
 	} else if(id === "[block]") {
 		i = 0;
 		if(args !== undefined) {
 			while(i<args.length) {
-				compile(false, args[i],acc, stackpos);
+				compile(true, args[i],acc);
 				i = i + 1;
 			}
 		}
-		//if (withresult) { push(acc, "(pushnil)"); }; 
-		withresult = true;
+		popresult = false;
 	} else if(id === "[noop]") {
-		//if (withresult) { push(acc, "(pushnil)"); }; 
-		withresult = true;
+		popresult = false;
 	} else if(id === "[array literal]") {
 		push(acc, "(new array)");
+		stackpos = stackpos + 1;
 		i = 0;
 		while(i<args.length) {
-			compile(true, args[i],acc, stackpos + 1);
+			compile(false, args[i],acc);
 			push(acc, "push");
 			i = i + 1;
+			stackpos = stackpos - 1;
 		}
 	} else if(id === "[object literal]") {
 		push(acc, "(new object)");
+		stackpos = stackpos + 1;
 		i = 0;
 		while(i<args.length) {
-			compile(true, args[i],acc, stackpos + 1);
-			compile(true, args[i+1],acc, stackpos + 2);
+			compile(false, args[i],acc, stackpos + 1);
+			compile(false, args[i+1],acc, stackpos + 2);
 			push(acc, "(put)");
+			stackpos = stackpos - 2;
 			i = i + 2;
 		}
 	} else if(id === "function") {
@@ -571,28 +602,75 @@ compile = function(withresult, elem, acc, stackpos) {
 		var tlocals = locals;
 		locals = Nummap();
 		var i = 0;
+		var origpos = stackpos;
 		while(i < elem.param.length) {
 			locals.ids[elem.param[i]] = i - elem.param.length;
 			i = i + 1;
 		}
-		var code = compile(true, args[1], [], 0);
+		stackpos = 0;
+		var code = compile(false, args[1], []);
 		push(functions, {"id": functions.length, "code": code, "locals": locals});
 		locals = tlocals;
 		push(acc, "(function)");
-		push(acc, functions.length - 1);
-		// NB: bug in get/set locals?
+		push(acc, [functions.length - 1, code]);
+		stackpos = origpos + 1;
+	} else if(id === "return") {
+		compile(false, args[0], acc);
+		push(acc, "(return)");
+		push(acc, stackpos - 1);
+	} else if(id === "[and]") {
+		compile(false, args[0], acc);
+		// dup
+		push(acc, "(get local)");
+		push(acc, 1);
+		push(acc, "(jump if false)");
+		var jumpadr_pos = acc.length;
+		push(acc, 0);
+		push(acc, "[pop]");
+		stackpos = stackpos -1;
+		compile(false, args[1], acc);
+		acc[jumpadr_pos] = acc.length - jumpadr_pos - 1;
+	} else if(id === "[or]") {
+		compile(false, args[0], acc);
+		//dup
+		push(acc, "(get local)");
+		push(acc, 1);
+		push(acc, "!");
+		push(acc, "(jump if false)");
+		var jumpadr_pos = acc.length;
+		push(acc, 0);
+		push(acc, "[pop]");
+		stackpos = stackpos -1;
+		compile(false, args[1], acc);
+		acc[jumpadr_pos] = acc.length - jumpadr_pos - 1;
+	} else if(id === "if") {
+		compile(false, args[0], acc);
+		push(acc, "(jump if false)");
+		var jumpadr_pos = acc.length;
+		push(acc, 0);
+		stackpos = stackpos -1;
+		compile(true, args[1], acc);
+		if(elem.has_else) {
+			push(acc, "(jump)");
+			push(acc, 0);
+			acc[jumpadr_pos] = acc.length - jumpadr_pos - 1;
+			jumpadr_pos = acc.length - 1;
+			compile(true, args[2], acc);
+			acc[jumpadr_pos] = acc.length - jumpadr_pos - 1;
+		} else {
+			acc[jumpadr_pos] = acc.length - jumpadr_pos - 1;
+		}
 
-	} else if(id === "") {
-	} else if(id === "") {
-	} else if(id === "") {
 	} else if(id === "") {
 	} else if(id === "") {
 	} else {
 		println(join(["\nUnknown node:", "\n"], id));
 	};
-	if ((!withresult)) {
+	if (popresult) {
 		push(acc, "pop");
+		stackpos = stackpos - 1;
 	};
+	println(["End", id, stackpos]);
 	return acc;
 }
 
@@ -601,10 +679,10 @@ t = iterator(readlist([]));
 x = next(t);
 while(x !== undefined) {
 	println(simplify(x));
-	println(compile(false, x, [], 0));
+	println(compile(true, x, [], 0));
 	println("\n\n");
 	x = next(t);
 };
 
 x = function(y, z) { var i = y + y, j = 3; println([y, i+j]); };
-println(functions[32]);
+println(functions[33]);
