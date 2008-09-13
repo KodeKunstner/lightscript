@@ -1,7 +1,10 @@
 str2int= function(s) {
-	parseInt(s, 10);
+	return parseInt(s, 10);
 };
 
+popfront = function(arr) {
+	return arr.shift();
+}
 map = function(fn, set) {
 	var i;
 	for(i in set) {

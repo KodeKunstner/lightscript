@@ -54,7 +54,7 @@ next_token = function() {
 			c = getch();
 		}
 		val = join(str, "");
-		str = ["(number)"];
+		str = ["[number]"];
 	} else if(is_alphanum(c)) {
 		while(is_alphanum(c)) {
 			push(str, c);
@@ -190,7 +190,7 @@ nuds["(string)"] = function() {
 	return {"id": this.str, "val": this.val};
 };
 
-nuds["(number)"] = function() {
+nuds["[number]"] = function() {
 	return {"id": this.str, "val": this.val};
 };
 
@@ -308,6 +308,9 @@ ops = {
 	"this" : 36,
 	"(set this)" : 37,
 	"map" : 38,
+	"(number)" : 39,
+	"str2int" : 40,
+	"popfront" : 41,
 };
 
 local = {}
@@ -362,7 +365,7 @@ simplify = function(elem) {
 		elem.id = "[call]";
 		if(ops[args[0].id] !== undefined) {
 			elem.id = args[0].id;
-			args[0].id = "[noop]";
+			popfront(elem.args);
 			return simplify(elem);
 		} 
 		map(simplify, args);
@@ -384,11 +387,13 @@ simplify = function(elem) {
 	} else if (id === "function") {
 		var l = local;
 		local = {};
-		var iter = iterator(args[0].args);
-		var t = next(iter); 
-		while(t !== undefined) {
-			local[t.id] = true;
-			t = next(iter);
+		elem.param = [];
+		var i = 0;
+		var t = args[0].args;
+		while(i < t.length) {
+			local[t[i].id] = true;
+			push(elem.param, t[i].id);
+			i = i + 1;
 		}
 		args[0].id = "[arg-list]";
 		args[1].id = "[block]";
@@ -409,7 +414,7 @@ simplify = function(elem) {
 		}
 		map(simplify, args);
 	} else if (id === "[noop]") {
-	} else if (id === "(number)") {
+	} else if (id === "[number]") {
 	} else if (id === "return") {
 		map(simplify, args);
 	} else if (id === "(string)") {
@@ -447,10 +452,11 @@ simplify = function(elem) {
 
 // const pool, and stack positions
 
-nummap = {
-	"ids": {},
-	"nextid": 0,
-	"get": function(val) {
+Nummap = function() {
+	var obj = {};
+	obj.ids = {};
+	obj.nextid = 0;
+	obj.get = function(val) {
 		var id = this.ids[val];
 		if(id === undefined) {
 			id = this.nextid;
@@ -459,61 +465,73 @@ nummap = {
 		}
 		return [id, val];
 	}
+	return obj;
 }
 
-locals = copyobj(nummap, {});
-literals = copyobj(nummap, {});
+locals = Nummap();
+literals = Nummap();
 
 functions = [];
 
 
-compile = function(withresult, elem, acc) {
+compile = function(withresult, elem, acc, stackpos) {
 	var id = elem.id;
 	var args = elem.args;
 	var i;
+	println([id, stackpos]);
 	if(ops[id] !== undefined) {
 		i = 0;
 		if(args !== undefined) {
 			while(i<args.length) {
-				compile(withresult, args[i],acc);
+				compile(true, args[i],acc, stackpos + i);
 				i = i + 1;
 			}
 		}
 		push(acc, id);
+	} else if(id === "[set local]") {
+		compile(true, args[1], acc, stackpos);
+		push(acc, "(set local)");
+		var t = locals.get(args[0].val);
+		push(acc, [stackpos - t[0], t[1]]);
+		if(withresult) { push(acc, "undefined"); } withresult = true;
+	} else if(id === "[get local]") {
+		push(acc, "(get local)");
+		var t = locals.get(elem.val);
+		push(acc, [stackpos - t[0], t[1]]);
 	} else if(id === "[set global]") {
-		compile(true, args[1], acc);
+		compile(true, args[1], acc, stackpos);
 		push(acc, "(set global)");
 		push(acc, literals.get(args[0].val));
-		if(withresult) {
-			push(acc, "undefined");
-		}
-		withresult = true;
+		if(withresult) { push(acc, "undefined"); } withresult = true;
 	} else if(id === "[get global]") {
 		push(acc, "(get global)");
 		push(acc, literals.get(elem.val));
 	} else if(id === "(string)") {
 		push(acc, "(get literal)");
 		push(acc, literals.get(elem.val));
+	} else if(id === "[number]") {
+		push(acc, "(number)");
+		push(acc, str2int(elem.val));
 	} else if(id === "[call]") {
 		i = 1;
 		while(i<args.length) {
-			compile(true, args[i], acc);
+			compile(true, args[i], acc, stackpos + i - 1);
 			i = i + 1;
 		}
 		if(elem.method) {
-			println("Method call not implemented yet");
+			println("Unknown error: Method call not implemented yet");
 		} else {
-			compile(true, args[0],acc);
+			compile(true, args[0],acc, stackpos + i - 1);
 			push(acc, "(function call)");
 			push(acc, args.length - 1);
 		}
 	} else if(id === "while") {
 		var startpos = acc.length - 1;
-		compile(true, args[0], acc);
+		compile(true, args[0], acc, stackpos);
 		push(acc, "condjumpfalse");
 		var jumpadr_pos = acc.length;
 		push(acc, 0);
-		compile(false, elem.args[1], acc);
+		compile(false, elem.args[1], acc, stackpos);
 		push(acc, "jump");
 		push(acc, startpos - acc.length);
 		acc[jumpadr_pos] = acc.length - jumpadr_pos - 1;
@@ -522,18 +540,20 @@ compile = function(withresult, elem, acc) {
 		i = 0;
 		if(args !== undefined) {
 			while(i<args.length) {
-				compile(false, args[i],acc);
+				compile(false, args[i],acc, stackpos);
 				i = i + 1;
 			}
 		}
-		if (withresult) { push(acc, "(pushnil)"); }; withresult = true;
+		//if (withresult) { push(acc, "(pushnil)"); }; 
+		withresult = true;
 	} else if(id === "[noop]") {
-		if (withresult) { push(acc, "(pushnil)"); }; withresult = true;
+		//if (withresult) { push(acc, "(pushnil)"); }; 
+		withresult = true;
 	} else if(id === "[array literal]") {
 		push(acc, "(new array)");
 		i = 0;
 		while(i<args.length) {
-			compile(true, args[i],acc);
+			compile(true, args[i],acc, stackpos + 1);
 			push(acc, "push");
 			i = i + 1;
 		}
@@ -541,11 +561,31 @@ compile = function(withresult, elem, acc) {
 		push(acc, "(new object)");
 		i = 0;
 		while(i<args.length) {
-			compile(true, args[i],acc);
-			compile(true, args[i+1],acc);
+			compile(true, args[i],acc, stackpos + 1);
+			compile(true, args[i+1],acc, stackpos + 2);
 			push(acc, "(put)");
 			i = i + 2;
 		}
+	} else if(id === "function") {
+		var funcid = functions.length;
+		var tlocals = locals;
+		locals = Nummap();
+		var i = 0;
+		while(i < elem.param.length) {
+			locals.ids[elem.param[i]] = i - elem.param.length;
+			i = i + 1;
+		}
+		var code = compile(true, args[1], [], 0);
+		push(functions, {"id": functions.length, "code": code, "locals": locals});
+		locals = tlocals;
+		push(acc, "(function)");
+		push(acc, functions.length - 1);
+		// NB: bug in get/set locals?
+
+	} else if(id === "") {
+	} else if(id === "") {
+	} else if(id === "") {
+	} else if(id === "") {
 	} else if(id === "") {
 	} else {
 		println(join(["\nUnknown node:", "\n"], id));
@@ -561,7 +601,10 @@ t = iterator(readlist([]));
 x = next(t);
 while(x !== undefined) {
 	println(simplify(x));
-	println(compile(false, x, []));
+	println(compile(false, x, [], 0));
 	println("\n\n");
 	x = next(t);
 };
+
+x = function(y, z) { var i = y + y, j = 3; println([y, i+j]); };
+println(functions[32]);
