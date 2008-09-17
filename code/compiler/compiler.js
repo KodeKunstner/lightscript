@@ -304,12 +304,10 @@ ops = {
 	"(new object)" : 34,
 	"(get literal)" : 35,
 	"this" : 36,
-	"(set this)" : 37,
+	"popfront" : 37,
 	"map" : 38,
 	"(number)" : 39,
-	"str2int" : 40,
-	"popfront" : 41,
-	"(function)" : 42,
+	"(function)" : 40,
 };
 
 local = {}
@@ -322,6 +320,7 @@ simplify = function(elem) {
 		map(simplify, args);
 		if(args[0].id === "(get)") {
 			elem.id = "(put)";
+			elem.args = [args[0].args[0], args[0].args[1], args[1]];
 		} else {
 			if(local[args[0].val] === true) {
 				elem.id = "[set local]";
@@ -544,12 +543,10 @@ compile = function(popresult, elem, acc) {
 			compile(false, args[0].args[1], acc);
 			push(acc, "(get)");
 			push(acc, "(call method)");
-			push(acc, args.length - 1);
 		} else {
 			stackpos = origpos + i - 1;
 			compile(false, args[0],acc);
 			push(acc, "(call function)");
-			push(acc, args.length - 1);
 		}
 		stackpos = origpos + 1;
 	} else if(id === "while") {
@@ -603,11 +600,15 @@ compile = function(popresult, elem, acc) {
 		var i = 0;
 		var origpos = stackpos;
 		while(i < elem.param.length) {
-			locals.ids[elem.param[i]] = i - elem.param.length;
+			locals.ids[elem.param[i]] = i;
 			i = i + 1;
 		}
-		stackpos = 0;
+		stackpos = elem.param.length;
 		var code = compile(false, args[1], []);
+		push(code, "(pushnil)");
+		push(code, "(return)");
+		push(code, stackpos);
+
 		push(functions, {"id": functions.length, "code": code, "locals": locals});
 		locals = tlocals;
 		push(acc, "(function)");
@@ -697,6 +698,9 @@ while(x !== undefined) {
 };
 
 
+push(code, "(pushnil)");
+push(code, "(return)");
+push(code, stackpos);
 map(code2bytecode, code);
 map( function(x) { 
 		return map(code2bytecode, x.code);

@@ -1,5 +1,6 @@
 import java.util.Hashtable;
 import java.util.Stack;
+import java.io.Reader;
 import java.util.Enumeration;
 
 final class MobyVM extends Stack {
@@ -44,11 +45,11 @@ final class MobyVM extends Stack {
 		call(functions[functions.length - 1]);
 	}
 
-	private void call(short[] code) {
+	private Object call(short[] code) {
 		int pc = -1;
 		for(;;) {
 			pc++;
-			System.out.println("pc: " + pc + "   code: " + code[pc]);
+			System.out.println("pc: " + pc + " code: " + code[pc] + " stack: " + toString());
 			switch(code[pc]) {
 	/* (jump) */ case 0: {
 		pc++;
@@ -72,7 +73,13 @@ final class MobyVM extends Stack {
 		pc++;
 		push(globals.get(literals[code[pc]]));
 	/* (call function) */ break; } case 6: {
+		push(call((short [])pop()));
 	/* (call method) */ break; } case 7: {
+		short[] c = (short [])pop();
+		Object prev = that;
+		that = pop();
+		push(call(c));
+		that = prev;
 	/* (pop) */ break; } case 8: {
 		pop();
 	/* === */ break; } case 9: {
@@ -84,8 +91,8 @@ final class MobyVM extends Stack {
 		Object t2 = pop();
 		push(t1.equals(t2)?f:t);
 	/* < */ break; } case 11: {
-		Object t1 = pop();
 		Object t2 = pop();
+		Object t1 = pop();
 		boolean b;
 		if(t1 instanceof Integer && t2 instanceof Integer) {
 			b = ((Integer)t1).intValue() < ((Integer)t2).intValue();
@@ -94,8 +101,8 @@ final class MobyVM extends Stack {
 		}
 		push(b?t:f);
 	/* <= */ break; } case 12: {
-		Object t1 = pop();
 		Object t2 = pop();
+		Object t1 = pop();
 		boolean b;
 		if(t1 instanceof Integer && t2 instanceof Integer) {
 			b = ((Integer)t1).intValue() <= ((Integer)t2).intValue();
@@ -113,7 +120,10 @@ final class MobyVM extends Stack {
 	/* (minus) */ break; } case 16: {
 		push(new Integer(-((Integer)pop()).intValue() + ((Integer)pop()).intValue()));
 	/* return */ break; } case 17: {
-		return;
+		Object obj = pop();
+		pc++;
+		setSize(size() - code[pc]);
+		return obj;
 	/* (pushnil) */ } case 18: {
 		push(undefined);
 	/* true */ break; } case 19: {
@@ -159,26 +169,80 @@ final class MobyVM extends Stack {
 		Object tmp = pop();
 		((Stack)peek()).push(tmp);
 	/* getch */ break; } case 27: {
+		try { 
+			push(String.valueOf((char)System.in.read()));
+		} catch(java.io.IOException e) {
+			System.out.println("VM error: " +e.toString());
+		}
 	/* is_a */ break; } case 28: {
+		String type = (String)pop();
+		Object o = pop();
+		boolean b;
+		if(type.equals("string")) {
+			b = o instanceof String;
+		} else if(type.equals("array")) {
+			b = o instanceof Stack;
+		} else if(type.equals("object")) {
+			b = o instanceof Hashtable;
+		} else if(type.equals("number")) {
+			b = o instanceof Integer;
+		} else {
+			b = false;
+		}
+		push(b?t:f);
 	/* println */ break; } case 29: {
 		System.out.println(peek());
 	/* str2int */ break; } case 30: {
+		push(new Integer(Integer.parseInt((String)pop())));
 	/* (put) */ break; } case 31: {
+		Object val = pop();
+		Object pos = pop();
+		Object dst = peek();
+		if(dst instanceof Hashtable) {
+			((Hashtable)dst).put(pos, val);
+		} else {
+			int p = ((Integer)pos).intValue();
+			Stack s = (Stack)dst;
+			if(p>=s.size()) {
+				s.setSize(p+1);
+			}
+			((Stack)dst).setElementAt(val, p);
+		}
 	/* (get) */ break; } case 32: {
+		Object pos = pop();
+		Object src = peek();
+		if(src instanceof Hashtable) {
+			((Hashtable)src).get(pos);
+		} else {
+			((Stack)src).elementAt(((Integer)pos).intValue());
+		}
 	/* (new array) */ break; } case 33: {
+		push(new Stack());
 	/* (new object) */ break; } case 34: {
+		push(new Hashtable());
 	/* (get literal) */ break; } case 35: {
 		pc++;
 		push(literals[code[pc]]);
 	/* this */ break; } case 36: {
-	/* (set this) */ break; } case 37: {
+		push(that);
+	/* popfront */ break; } case 37: {
+		Stack s = (Stack)pop();
+		push(s.elementAt(0));
+		s.removeElementAt(0);
 	/* map */ break; } case 38: {
+		int i;
+		Stack s = (Stack) pop();
+		short[] c = (short [])pop();
+		for(i=0;i<s.size();i++) {
+			push(s.elementAt(i));
+			s.setElementAt(call(c), i);
+		}
 	/* (number) */ break; } case 39: {
 		pc++;
 		push(new Integer(code[pc]));
-	/* str2int */ break; } case 40: {
-	/* popfront */ break; } case 41: {
-	/* (function) */ break; } case 42: {
+	/* (function) */ break; } case 40: {
+		pc++;
+		push(functions[code[pc]]);
 	}
 			}
 		}
