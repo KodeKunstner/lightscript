@@ -311,6 +311,9 @@ ops = {
 	"(number)" : 39,
 	"str2int" : 40,
 	"popfront" : 41,
+	"(function)" : 42,
+	"(return)" : 43,
+	"(pop)" : 44,
 };
 
 local = {}
@@ -481,7 +484,7 @@ compile = function(popresult, elem, acc) {
 	var id = elem.id;
 	var args = elem.args;
 	var i;
-	println(["Begin", id, stackpos]);
+	//println(["Begin", id, stackpos]);
 	if(ops[id] !== undefined) {
 		i = 0;
 		var origpos = stackpos;
@@ -544,12 +547,12 @@ compile = function(popresult, elem, acc) {
 			push(acc, 1);
 			compile(false, args[0].args[1], acc);
 			push(acc, "(get)");
-			push(acc, "(method call)");
+			push(acc, "(call method)");
 			push(acc, args.length - 1);
 		} else {
 			stackpos = origpos + i - 1;
 			compile(false, args[0],acc);
-			push(acc, "(function call)");
+			push(acc, "(call function)");
 			push(acc, args.length - 1);
 		}
 		stackpos = origpos + 1;
@@ -561,7 +564,7 @@ compile = function(popresult, elem, acc) {
 		stackpos = stackpos - 1;
 		push(acc, 0);
 		compile(true, elem.args[1], acc);
-		push(acc, "jump");
+		push(acc, "(jump)");
 		push(acc, startpos - acc.length);
 		acc[jumpadr_pos] = acc.length - jumpadr_pos - 1;
 		popresult = false;
@@ -626,7 +629,7 @@ compile = function(popresult, elem, acc) {
 		push(acc, "(jump if false)");
 		var jumpadr_pos = acc.length;
 		push(acc, 0);
-		push(acc, "[pop]");
+		push(acc, "(pop)");
 		stackpos = stackpos -1;
 		compile(false, args[1], acc);
 		acc[jumpadr_pos] = acc.length - jumpadr_pos - 1;
@@ -639,7 +642,7 @@ compile = function(popresult, elem, acc) {
 		push(acc, "(jump if false)");
 		var jumpadr_pos = acc.length;
 		push(acc, 0);
-		push(acc, "[pop]");
+		push(acc, "(pop)");
 		stackpos = stackpos -1;
 		compile(false, args[1], acc);
 		acc[jumpadr_pos] = acc.length - jumpadr_pos - 1;
@@ -667,22 +670,52 @@ compile = function(popresult, elem, acc) {
 		println(join(["\nUnknown node:", "\n"], id));
 	};
 	if (popresult) {
-		push(acc, "pop");
+		push(acc, "(pop)");
 		stackpos = stackpos - 1;
 	};
-	println(["End", id, stackpos]);
+	//println(["End", id, stackpos]);
 	return acc;
 }
 
+function code2bytecode(elem) {
+	var code = ops[elem];
+	if(code !== undefined) {
+		return code;
+	} 
 
-t = iterator(readlist([]));
-x = next(t);
+	if(is_a(elem, "array")) {
+		return elem[0];
+	}
+	return elem;
+}
+
+
+
+code = [];
+var t = iterator(readlist([]));
+var x = next(t);
 while(x !== undefined) {
-	println(simplify(x));
-	println(compile(true, x, [], 0));
-	println("\n\n");
+	simplify(x);
+	compile(true, x, code, 0);
 	x = next(t);
 };
+
+
+map(code2bytecode, code);
+map( function(x) { 
+		return map(code2bytecode, x.code);
+}, functions);
+
+newliterals = [];
+var t = iterator(literals.ids);
+var x = next(t);
+while(x !== undefined) {
+	newliterals[literals.ids[x]] = x;
+	x = next(t);
+};
+literals = newliterals;
+
+println({"code": code, "literals": literals, "functions": functions});
 
 x = function(y, z) { var i = y + y, j = 3; println([y, i+j]); };
 println(functions[33]);
