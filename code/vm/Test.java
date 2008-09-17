@@ -9,8 +9,8 @@ class Test {
 		JSON.print(o, System.out);
 		System.out.println("");
 
-		MobyVM vm = new MobyVM();
-		JSON.print(vm.eval(vm.json2code(o)), System.out);
+		MobyVM vm = new MobyVM(o);
+		JSON.print(vm, System.out);
 		System.out.println("");
 		System.out.println("");
 	}

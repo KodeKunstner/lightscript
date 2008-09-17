@@ -1,5 +1,5 @@
 run: 
-	cd compiler && ./compile.js < ../test/test.js > ../test/test.json
+	cd compiler && js compiler.js < ../test/test.js > ../test/test.json
 	cd vm && make run
 all:
 	cd vm && make all

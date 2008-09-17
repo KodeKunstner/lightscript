@@ -1,4 +1,4 @@
-CLASSES=JSON.class MobyVM.class Test.class MobyObj.class
+CLASSES=JSON.class MobyVM.class Test.class 
 
 all: $(CLASSES)
 

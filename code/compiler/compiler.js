@@ -275,18 +275,16 @@ ops = {
 	"(get global)": 5,
 	"(call function)": 6,
 	"(call method)": 7,
-	//"(json to function)": 8,
+	"(pop)" : 8,
 	"===" : 9,
 	"!==" : 10,
 	"<" : 11,
 	"<=" : 12,
 	"!" : 13,
 	"+" : 14,
-	// not handling unary minus yet
 	 "(neg)": 15,
 	 "(minus)": 16,
-	//"-" : 16, 
-	"!" : 17,
+	"(return)" : 17,
 	"(pushnil)" : 18,
 	"true" : 19,
 	"false" : 20,
@@ -312,8 +310,6 @@ ops = {
 	"str2int" : 40,
 	"popfront" : 41,
 	"(function)" : 42,
-	"(return)" : 43,
-	"(pop)" : 44,
 };
 
 local = {}
@@ -705,6 +701,7 @@ map(code2bytecode, code);
 map( function(x) { 
 		return map(code2bytecode, x.code);
 }, functions);
+push(functions, code);
 
 newliterals = [];
 var t = iterator(literals.ids);
@@ -715,7 +712,4 @@ while(x !== undefined) {
 };
 literals = newliterals;
 
-println({"code": code, "literals": literals, "functions": functions});
-
-x = function(y, z) { var i = y + y, j = 3; println([y, i+j]); };
-println(functions[33]);
+println({"literals": literals, "functions": functions});
