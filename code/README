@@ -3,3 +3,5 @@
 .old3 experiments with boehm gc
 .old4 second parser/compiler prototype
 .old5 second vm prototype
+.old6 third parser/compiler prototype
+.old7 third vm prototype

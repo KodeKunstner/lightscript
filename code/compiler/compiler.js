@@ -212,6 +212,8 @@ nuds["var"] = function() {
 infix(".", 700);
 infixl("(", 600);
 infixl("[", 600);
+infix("*", 500);
+infix("%", 500);
 infix("+", 400);
 infix("-", 400);
 infix("===", 300);
@@ -308,6 +310,8 @@ ops = {
 	"map" : 38,
 	"(number)" : 39,
 	"(function)" : 40,
+	"*" : 41,
+	"%" : 42,
 };
 
 local = {}

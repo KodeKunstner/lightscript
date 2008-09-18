@@ -243,6 +243,14 @@ final class MobyVM extends Stack {
 	/* (function) */ break; } case 40: {
 		pc++;
 		push(functions[code[pc]]);
+	/* * */ break; } case 41: {
+		int i = ((Integer)pop()).intValue();
+		int j = ((Integer)pop()).intValue();
+		push(new Integer(j * i));
+	/* % */ break; } case 42: {
+		int i = ((Integer)pop()).intValue();
+		int j = ((Integer)pop()).intValue();
+		push(new Integer(j % i));
 	}
 			}
 		}
