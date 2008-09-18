@@ -1,6 +1,6 @@
 CLASSES=Yolan.class Test.class
 
-run: $(CLASSES) test.yl
+run: $(CLASSES)
 	java Test test.yl
 
 all: $(CLASSES)

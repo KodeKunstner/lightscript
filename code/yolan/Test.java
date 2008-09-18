@@ -7,11 +7,8 @@ import java.io.FileInputStream;
 
 class Test{
 	public static void main(String[] args) throws Exception {
-		InputStream is = new FileInputStream(new File(args[0]));
-		StringBuffer sb = new StringBuffer();
-		Yolan yl = new Yolan(is);
-		Object o = yl.parse();
-		yl.yol2str(o, sb, 0);
-		System.out.println(sb.toString());
+		Yolan yl = new Yolan();
+		yl.eval("'Hello World!' print 3 5 < { 'xxx' print } { 5 4 3 2 1 + + + + } if-else 'foo' 'bar' ");
+		System.out.println(yl.toString());
 	}
 }

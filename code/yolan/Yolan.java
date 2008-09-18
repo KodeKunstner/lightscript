@@ -2,89 +2,130 @@ import java.util.Stack;
 import java.util.Hashtable;
 import java.io.InputStream;
 
-class Yolan {
-	Hashtable globals; // globals
-	int fp; // frame pointer
-	Stack stack; // data stack
-	static int c;
-	static InputStream is;
-	static Stack functions = new Stack();
-	static Stack literals = new Stack();
-	static Hashtable literals_ids = new Hashtable();
-	static Hashtable opcodes;
+class Yolan extends Stack {
+	Hashtable symbol; // globals
+	static Stack literal = new Stack();
+	static Hashtable literalid = new Hashtable();
+	static char cs[];
+	static int pos;
+	static final char firstliteral = 5000;
+	static String[] builtin = { "}", "print", "+", "<", "if-else"};
 
-	static {
-		opcodes = new Hashtable();
-		String str[] = {"get-arg", "arg-count"};
-		for(int i=0;i<str.length;i++) {
-			opcodes.put(str[i], new Integer(i));
-		}
-	}
-
-	public Yolan(InputStream is) {
-		this.is = is;
-		c = ' ';
-	}
-
-	static int getLiteral(Object literal) {
-		Object oid = literals_ids.get(literal);
+	char getid(Object val) {
+		Object oid = literalid.get(val);
+		char id;
 		if(oid == null) {
-			int id = literals.size();
-			literals_ids.put(literal, new Integer(id));
-			literals.push(literal);
+			id = (char)(literal.size()+firstliteral);
+			literal.push(val);
+			literalid.put(new Character(id), literal);
 			return id;
 		} else {
-			return ((Integer)oid).intValue();
+			return ((Character)oid).charValue();
 		}
+
 	}
 
-	public Object parse() throws Exception {
-		while(c <= ' ') {
-			if(c == -1) {
-				return null;
-			}
-			c = is.read();
+	public void compile(StringBuffer acc) {
+		StringBuffer sb = new StringBuffer();
+		char c;
+
+		while(cs[pos] <= ' ') {
+			pos++;
 		}
 
-		if(c == '(') {
-			Stack s = new Stack();
-			c = is.read();
-			Object o = parse();
-			while(o != null) {
-				s.push(o);
-				o = parse();
+		c = cs[pos];
+		if(c == '\'') {
+			pos++;
+			while(cs[pos] != '\'') {
+				sb.append(cs[pos]);
+				pos++;
 			}
-			return s;
-		} else if(c == ')') {
-			c = is.read();
-			return null;
-		} else {
-			StringBuffer sb = new StringBuffer();
+			pos++;
+			acc.append(getid(sb.toString()));
+			
+		} else if(c == '{') {
+			pos++;
 			do {
-				if(c == '\\') {
-					c = is.read();
-				}
-				sb.append((char) c);
-				c = is.read();
-			} while(c > ')');
-			return sb.toString();
+				compile(sb);
+			} while(sb.charAt(sb.length() - 1) != 0);
+			sb.setLength(sb.length() - 1);
+			acc.append(getid(sb.toString().toCharArray()));
+		} else {
+			do {
+				sb.append(c);
+				pos++;
+				c = cs[pos];
+			} while(c > ' ');
+			String s = sb.toString();
+			try {
+				int i = Integer.parseInt(s);
+				acc.append(getid(new Integer(i)));
+			} catch(Exception e) {
+				acc.append(((Character)symbol.get(sb.toString())).charValue());
+			}
 		}
 	}
 
-	public void yol2str(Object o, StringBuffer sb, int indent) {
-		if(o instanceof Stack) {
-			Stack s = (Stack) o;
-			sb.append("[");
-			indent = indent + 2;
-			for(int i=0;i<s.size();i++) {
-				if(i != 0) {
-					sb.append(" ");
-				}
-				yol2str(s.elementAt(i), sb, indent);
+	public Yolan() {
+		symbol = new Hashtable();
+		for(char i = 0; i < builtin.length; i++) {
+			symbol.put(builtin[i], new Character(i));
+		}
+	}
+
+	public void eval(String s) {
+		cs = s.toCharArray();
+		char [] cs2;
+		pos = 0;
+		for(;;) {
+			StringBuffer acc = new StringBuffer();
+			compile(acc);
+			cs2 = acc.toString().toCharArray();
+			for(int i=0;i<cs2.length;i++) {
+		//		System.out.println((int)(short)cs2[i]);
 			}
-			sb.append("]");
+			eval(cs2);
+			System.out.println(this.toString() + pos);
+		}
+	}
+	private void eval(char code[]) {
+		int pc;
+		for(pc = 0; pc < code.length; pc++) {
+			switch(code[pc]) {
+/* BEGIN SWITCH*/
+	/* print */ case 1: 
+	{
+		System.out.println(pop().toString());
+	}
+	/* + */ break; case 2: 
+	{
+		push(new Integer(
+			((Integer)pop()).intValue() +
+			((Integer)pop()).intValue()));
+	}
+	/* < */ break; case 3: 
+	{
+		push( (((Integer)pop()).intValue() >
+			((Integer)pop()).intValue())?code:null);
+	}
+	/* if-else */ break; case 4: 
+	{
+		Object else_expr = pop();
+		Object then_expr = pop();
+		if(pop() != null) {
+			eval((char[])then_expr);
 		} else {
-			sb.append(o.toString());
+			eval((char[])else_expr);
+		}
+	}
+	/* Literals or newly defined */ break; default:
+		if(code[pc] >= firstliteral) {
+			push(literal.get(code[pc] - firstliteral));
+		} else {
+			eval((char [])literal.get(code[pc]));
+		}
+/* END OF SWITCH */
+			}
 		}
 	}
 }
