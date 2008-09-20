@@ -205,6 +205,7 @@
 ###############################" drop
 
 "
+import java.util.Enumeration;
 import java.util.Stack;
 import java.util.Hashtable;
 import java.io.InputStream;
