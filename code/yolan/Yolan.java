@@ -2,22 +2,23 @@ import java.util.Stack;
 import java.util.Hashtable;
 import java.io.InputStream;
 
-class Yolan extends Stack {
-	Hashtable symbol; // globals
-	static Stack literal = new Stack();
-	static Hashtable literalid = new Hashtable();
-	static char cs[];
-	static int pos;
-	static final char firstliteral = 5000;
-	static String[] builtin = { "}", "print", "+", "<", "if-else"};
+final class Yolan extends Stack {
+	public Hashtable globals;
+	private Stack functions;
+	private Stack literals;
+	private Hashtable literalid;
+	private static final String builtins[] = { "print", "+", "<", "if-else", "pop", "defun"};
+	private static final int builtincount = builtins.length;
+	private static final char firstliteral = 5000;
+	public static final Boolean t = new Boolean(true);
 
 	char getid(Object val) {
 		Object oid = literalid.get(val);
 		char id;
 		if(oid == null) {
-			id = (char)(literal.size()+firstliteral);
-			literal.push(val);
-			literalid.put(new Character(id), literal);
+			id = (char)(literals.size()+firstliteral);
+			literals.push(val);
+			literalid.put(new Character(id), literals);
 			return id;
 		} else {
 			return ((Character)oid).charValue();
@@ -25,104 +26,131 @@ class Yolan extends Stack {
 
 	}
 
-	public void compile(StringBuffer acc) {
-		StringBuffer sb = new StringBuffer();
-		char c;
+	public char[] compile(InputStream is) throws Exception {
+		int c;
+		StringBuffer sb =  new StringBuffer();
+		while((c = nextSymb(is)) != -1) {
+			sb.append((char)c);
+		}
+		return sb.toString().toCharArray();
+	}
 
-		while(cs[pos] <= ' ') {
-			pos++;
+	public int nextSymb(InputStream is) throws Exception {
+		StringBuffer sb = new StringBuffer();
+		int c = is.read();
+
+
+		// skip whitespaces and comments
+		while(c <= ' ' /*|| c == '('*/) {
+			c = is.read();
+			if(c == -1) {
+				return -1;
+			}
 		}
 
-		c = cs[pos];
+		// parse string
 		if(c == '\'') {
-			pos++;
-			while(cs[pos] != '\'') {
-				sb.append(cs[pos]);
-				pos++;
+			while((((c = is.read()) == '\'' && (c = is.read()) <= ' ' )?-1:c) != -1) {
+				sb.append((char)c);
 			}
-			pos++;
-			acc.append(getid(sb.toString()));
-			
-		} else if(c == '{') {
-			pos++;
-			do {
-				compile(sb);
-			} while(sb.charAt(sb.length() - 1) != 0);
-			sb.setLength(sb.length() - 1);
-			acc.append(getid(sb.toString().toCharArray()));
-		} else {
-			do {
-				sb.append(c);
-				pos++;
-				c = cs[pos];
-			} while(c > ' ');
-			String s = sb.toString();
-			try {
-				int i = Integer.parseInt(s);
-				acc.append(getid(new Integer(i)));
-			} catch(Exception e) {
-				acc.append(((Character)symbol.get(sb.toString())).charValue());
-			}
+			return getid(sb.toString());
+		} 
+		
+		// compile lambda
+		if(c == '{') {
+			return getid(compile(is));
+		}
+
+		// end of lambda symbol
+		if(c == '}') {
+			return -1;
+		} 
+		
+		// parse integer or word
+		do {
+			sb.append((char)c);
+		} while((c = is.read()) > ' ');
+
+		String s = sb.toString();
+
+		// parse integer
+		try {
+			int i = Integer.parseInt(s);
+			return getid(new Integer(i));
+
+		// or parse word
+		} catch(Exception e) {
+			return ((Character)globals.get(s)).charValue();
 		}
 	}
 
 	public Yolan() {
-		symbol = new Hashtable();
-		for(char i = 0; i < builtin.length; i++) {
-			symbol.put(builtin[i], new Character(i));
+		globals = new Hashtable();
+		literalid = new Hashtable();
+		literals = new Stack();
+		functions = new Stack();
+		for(char i = 0; i < builtincount; i++) {
+			char fn[] = {i};
+			globals.put(builtins[i], new Character(i));
 		}
 	}
 
-	public void eval(String s) {
-		cs = s.toCharArray();
-		char [] cs2;
-		pos = 0;
-		for(;;) {
-			StringBuffer acc = new StringBuffer();
-			compile(acc);
-			cs2 = acc.toString().toCharArray();
-			for(int i=0;i<cs2.length;i++) {
-		//		System.out.println((int)(short)cs2[i]);
-			}
-			eval(cs2);
-			System.out.println(this.toString() + pos);
+	public void eval(InputStream is) throws Exception {
+		char expr[] = new char[1];
+		int i;
+		while((i = nextSymb(is)) != -1) {
+			expr[0] = (char) i;
+			eval(expr);
 		}
 	}
-	private void eval(char code[]) {
+
+	private void eval(char code[]) throws Exception {
 		int pc;
 		for(pc = 0; pc < code.length; pc++) {
 			switch(code[pc]) {
 /* BEGIN SWITCH*/
-	/* print */ case 1: 
+	/* print */ case 0: 
 	{
-		System.out.println(pop().toString());
+		Util.print(pop());
 	}
-	/* + */ break; case 2: 
+	/* + */ break; case 1: 
 	{
 		push(new Integer(
 			((Integer)pop()).intValue() +
 			((Integer)pop()).intValue()));
 	}
-	/* < */ break; case 3: 
+	/* < */ break; case 2: 
 	{
 		push( (((Integer)pop()).intValue() >
-			((Integer)pop()).intValue())?code:null);
+			((Integer)pop()).intValue())?t:null);
 	}
-	/* if-else */ break; case 4: 
+	/* if-else */ break; case 3: 
 	{
-		Object else_expr = pop();
-		Object then_expr = pop();
-		if(pop() != null) {
-			eval((char[])then_expr);
+		if(pop() == null) {
+			pop();
+			eval((char[])pop());
 		} else {
-			eval((char[])else_expr);
+			char [] expr = (char [])pop();
+			pop();
+			eval(expr);
 		}
 	}
-	/* Literals or newly defined */ break; default:
+	/* pop */ break; case 4: 
+	{
+		pop();
+	}
+	/* defun */ break; case 5: 
+	{
+		String name = (String) pop();
+		Object codetext = pop();
+		globals.put(name, new Character((char)(functions.size() + builtincount)));
+		functions.push(codetext);
+	}
+	/* Literals or userdefined */ break; default:
 		if(code[pc] >= firstliteral) {
-			push(literal.get(code[pc] - firstliteral));
+			push(literals.get(code[pc] - firstliteral));
 		} else {
-			eval((char [])literal.get(code[pc]));
+			eval((char [])functions.get(code[pc] - builtincount));
 		}
 /* END OF SWITCH */
 			}
