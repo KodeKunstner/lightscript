@@ -9,6 +9,5 @@ class Test{
 	public static void main(String[] args) throws Exception {
 		Yolan yl = new Yolan();
 		yl.eval(new FileInputStream(new File(args[0])));
-		System.out.println(yl.toString());
 	}
 }
