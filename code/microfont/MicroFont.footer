@@ -1,0 +1,32 @@
+	static void drawtext(int x0, int y0, String str, Graphics g, boolean slim) {
+		int i, c, x, b, y;
+		byte []font;
+		if(slim) {
+			font = slimfont;
+		} else {
+			font = monofont;
+		}
+
+		for(i=0;i<str.length();i++) {
+			c = str.charAt(i);
+			c -= 33;
+			if(c<0|| c > 90) {
+				x0 += slim?2:2;
+			} else {
+				x0++;
+				for(x=0;x<3;x++) {
+					b = font[c*3 + x];
+					if((b & 1) == 1) {
+						for(y = 0; y < 6; y++) {
+							b = b >>> 1;
+							if((b&1) == 1) {
+								g.drawLine(x0, y0+y, x0, y0+y);
+							}
+						}
+						x0++;
+					}
+				}
+			}
+		}
+	}
+}

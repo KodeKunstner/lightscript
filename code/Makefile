@@ -10,5 +10,7 @@ eval:
 
 clean:
 	rm -f test/*.json
-	cd vm && make clean
+	cd yolan && make clean
+	cd yolan2 && make clean
 	cd mobileapp && ant clean
+	cd microfont && make clean

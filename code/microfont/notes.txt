@@ -1,0 +1,1 @@
+NB: jvm-class internal string representation is utf8
