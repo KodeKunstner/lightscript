@@ -6,7 +6,7 @@ import java.io.IOException;
 public class Core extends Function {
 	private Hashtable globals;
 	private int fn;
-	private static String names[] = { "set-global", "get-global", "parse" };
+	private static String names[] = { "set-global", "get-global", "parse", "compile" };
 
 	private Core (int fn, Hashtable globals) {
 		this.fn = fn;
@@ -99,7 +99,9 @@ public class Core extends Function {
 /* parse */ case 2: {
 		s.push(parseNext((InputStream)s.pop()));
 } break;
-
+/* compile */ case 3: {
+		s.push(new Code((Stack)s.pop()));
+} break;
 		}
 	}
 

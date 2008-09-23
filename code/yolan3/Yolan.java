@@ -11,7 +11,6 @@ public class Yolan {
 		globals = new Hashtable();
 		stack = new Stack();
 		Core.loadTo(globals);
-		Builtin.loadTo(globals);
 		parse = (Function)globals.get("parse");
 	}
 

@@ -1,4 +1,4 @@
-CLASSES= Builtin.class Code.class Core.class Function.class Main.class Yolan.class
+CLASSES= Code.class Core.class Function.class Main.class
 
 run: $(CLASSES)
 	java Main test.sol
