@@ -1,16 +1,10 @@
 run: 
-	cd compiler && js compiler.js < ../test/test.js > ../test/test.json
-	cd vm && make run
+	cd sol && make run
+
 all:
-	cd vm && make all
+	cd sol && make sol
 	cd mobileapp && ant jar-all
 
-eval:
-	cd compiler && ./test-run.js < ../test/test.js 
-
 clean:
-	rm -f test/*.json
-	cd yolan && make clean
-	cd yolan2 && make clean
+	cd sol  && make clean
 	cd mobileapp && ant clean
-	cd microfont && make clean
