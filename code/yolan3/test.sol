@@ -1,6 +1,5 @@
-"Hello world" # comment
-{ 1 "foo" 2 "bar" 3 "baz" } # another comment
-compile
+"defun" { compile swap set-global } compile swap set-global
 
-"hello"
+"p" { print-stack } defun
 
+"Hello" p

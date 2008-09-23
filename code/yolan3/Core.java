@@ -80,7 +80,11 @@ public class Core extends Function {
 					sb.append((char)c);
 					c = is.read();
 				} while(c > ' ');
-				return globals.get(sb.toString());
+				Object o = globals.get(sb.toString());
+				if(o == null) {
+					System.out.println("Unknown symbol: " + sb);
+				}
+				return o;
 			}
 	
 		} catch(IOException e) {

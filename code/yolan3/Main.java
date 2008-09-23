@@ -28,11 +28,10 @@ class Main {
 		globals = new Hashtable();
 		stack = new Stack();
 		Core.loadTo(globals);
+		Builtin.loadTo(globals);
 		parse = (Function)globals.get("parse");
 		inputstream = new FileInputStream(new File(argc[0]));
 
-		while(readEval()) {
-			System.out.println(stack);
-		}
+		{ while(readEval()); }
 	}
 }
