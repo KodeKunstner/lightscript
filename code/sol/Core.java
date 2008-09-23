@@ -6,7 +6,7 @@ import java.io.IOException;
 public class Core extends Function {
 	private Hashtable globals;
 	private int fn;
-	private static String names[] = { "set-global", "get-global", "parse", "compile", "invoke"};
+	private static String names[] = { "set-global", "get-global", "parse", "defun"};
 
 	private Core (int fn, Hashtable globals) {
 		this.fn = fn;
@@ -57,7 +57,7 @@ public class Core extends Function {
 				return sb.toString();
 	
 			// array literal
-			} else if(c == '{') {
+			} else if(c == '(') {
 				Stack s = new Stack();
 				Object o = parseNext(is);
 				Object[] oa;
@@ -66,11 +66,13 @@ public class Core extends Function {
 					s.push(o);
 					o = parseNext(is);
 				}
-	
-				return s;
+	 
+				oa = new Object[s.size()];
+				s.copyInto(oa);
+				return oa;
 	
 			// terminator
-			} else if(c == '}' || c == -1) {
+			} else if(c == ')' || c == -1) {
 				return null;
 	
 			// word
@@ -103,19 +105,15 @@ public class Core extends Function {
 /* parse */ case 2: {
 		s.push(parseNext((InputStream)s.pop()));
 } break;
-/* compile */ case 3: {
-		s.push(new Code((Stack)s.pop()));
-} break;
-/* invoke */ case 4: {
-		((Function)s.pop()).apply(s);
+/* defun */ case 3: {
+		Object ops[] = (Object []) s.pop();
+		String name = (String) s.pop();
+		Code code = new Code(ops, name);
+		globals.put(name, code);
 } break;
 		}
 	}
 
-	/**
-	 * Factory, create functions for accessing the globals, 
-	 * and add them to the global-table/vm.
-	 */
 	public static void loadTo(Hashtable vm) {
 		int i;
 		for(i=0;i<names.length;i++) {

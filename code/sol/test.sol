@@ -1,5 +1,3 @@
-"defun" { compile swap set-global } compile swap set-global
-
-"." { print } defun
+"." ( print ) defun
 
 "Hello world" .

@@ -2,30 +2,36 @@ import java.util.Stack;
 
 public class Code extends Function {
 	private Object code[];
+	private String name;
 
-	public Code(Stack s) {
-		code = new Object[s.size()];
-		s.copyInto(code);
+	public Code(Object code[], String name) {
+		this.code = code;
+		this.name = name;
 	}
 
 	public void apply(Stack s) {
 		for(int i = 0; i < code.length; i++) {
-			if(code[i] instanceof Function) {
-				((Function)code[i]).apply(s);
+			Object obj = code[i];
+			if(obj instanceof Function) {
+				((Function)obj).apply(s);
 			} else {
-				s.push(code[i]);
+				s.push(obj);
+			}
+		}
+	}
+
+	public static void eval(Object code[], Stack s) {
+		for(int i = 0; i < code.length; i++) {
+			Object obj = code[i];
+			if(obj instanceof Function) {
+				((Function)obj).apply(s);
+			} else {
+				s.push(obj);
 			}
 		}
 	}
 
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
-		sb.append("{ ");
-		for(int i = 0; i < code.length; i++) {
-			sb.append(code[i].toString());
-			sb.append(" ");
-		}
-		sb.append("}");
-		return sb.toString();
+		return name;
 	}
 }
