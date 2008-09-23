@@ -1,0 +1,26 @@
+{ 	[] 
+	{ dup2 "next-code" get-global call dup } 
+	{ a.push } 
+	while put code-stack-to-function } 
+"compile" defun 
+{ 	[] dup 
+	{ drop dup2 nextc dup { dup ' ' <= } and } 
+	do-while 
+	{ 	{ dup '"' equals } 
+		{ } 
+		{ dup '{' equals } 
+		{ drop2 "compile" get-global call } 
+		{ dup '}' equals { dup not } or } 
+		{ dup3 nextc drop3 false } 
+		{ dup '9' <= { '0' dup2 <= } and } 
+		{ 	0 put2 
+			{ 	swap 10 * + '0' - dup2 nextc dup '9' <= 
+				{ '0' dup2 <= } and 
+			} do-while put1 } 
+		{ true } 
+		{ 	{ a.push dup2 nextc dup { '!' dup <= } and } 
+			do-while string-join get-global } } 
+	cond } 
+next-code defun 
+{ [] swap next-code } 
+"compile" defun 

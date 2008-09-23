@@ -1,0 +1,71 @@
+"Builtin functions
+    nextc : inputstream -> char-value or null
+    dup: 	... x 		-> ... x x
+    dup2: 	... y x 	-> ... y x y
+    dup3: 	... z y x 	-> ... z y x z
+    and: 	... p e1  	-> ... p (if p != null drop p and evaluate e1 else drop e1 )
+    do-while: 	... expr 	-> ... (evaluate expr and repeat while pop() != null)
+    []: 	...  		-> ... empty-list
+    false: 	...  		-> ... null
+    true: 	...  		-> ... non-null
+    drop: 	... x 		-> ...
+    drop2: 	... y x 	-> ...
+    drop3: 	... z y x 	-> ...
+    put: 	... y x 	-> ... x 
+    put2: 	... z y x 	-> ... x y
+    put3: 	... w z y x 	-> ... x z y
+    swap: 	... y x 	-> ... x y
+" comment
+
+"Function compile" comment
+{
+    [] 
+    { dup2 "next-code" get-global call dup }
+    { a.push }
+    while
+    put
+} "compile" defun
+
+"Function next-code
+gets the next code word from an input stream
+inputstream -> code block" comment
+{
+
+"accumulator variable" comment
+[]
+
+"skip white spaces" comment
+    dup
+    { drop dup2 nextc dup { dup ' ' <= } and
+    } do-while
+
+"conditional - determine type of token" comment
+{   { dup '"' equals } 
+	{}
+    { dup '{' equals } 
+  	{ drop2 "compile" get-global call }
+    { dup '}' equals { dup not } or } 
+        { dup3 nextc
+    	  drop3 false }
+    { dup '9' <= { '0' dup2 <= } and } 
+    	{ 0 put2
+      	    {   swap 10 * + '0' -
+	  	dup2 nextc
+	  	    dup '9' <= 
+		    { '0' dup2 <= } 
+		and 
+	    } do-while 
+	put1 }
+    { true } 
+    	{ 
+	    { a.push
+	      dup2 nextc dup { '!' dup <= } and
+	    } do-while
+	    string-join get-global
+	}
+} cond
+
+} next-code defun
+
+"Define a macro for compiling a statement into a codeblock" comment
+{ [] swap next-code } "compile" defun

@@ -1,0 +1,95 @@
+nextc: inputstream -> char-value
+
+compile: inputstream -> code-block
+
+
+
+
+nextCode: inputstream -> code
+nextCode:
+
+// skip white spaces
+do {
+	c = nextc();
+	if(c == EOF) {
+		return null;
+    	}
+} while(c <= ' ');
+
+acc = []
+
+// read string
+switch(c) {
+
+case '\"':
+	// while c is the next character in a string (terminated by a '"' followed by whitespace or eof)
+	while((((c = nextc()) == '\"' && (c = nextc()) <= ' ')? -1 : c) != -1) {
+		acc.push(char2str(c));
+	}
+	result = strjoin(acc);
+break; case '{':
+	while((t = nextCode()) != null) {
+		acc.push(t);
+	}
+	result = acc
+break; case '}':
+	result = null;
+break; default:
+	do {
+		acc.push(char2str(c));
+		c = nextc();
+	} while(c > ' ');
+	tmp = strjoin(acc);
+	tmp2 = parseInt(tmp);
+	if(tmp2 == null) {
+		result = tmp;
+	} else {
+		result = tmp2;
+	}
+}
+
+
+"
+##############################
+# Compiler:
+# inputstream -> code expression
+#
+# Typical stack content:
+# inputstream accumulator current_char
+" ! "
+
+# Initialise accumulator
+" ! [ ] "
+
+# Drop whitespaces
+" ! { dup2 nextc } { dup ' ' <= } do-while "
+
+# Condition depending on token type
+" ! { "
+
+# If String, then append char to result and 
+" ! { dup '"' equals } 
+    { 
+      { char-to-string a.push dup2 nextc } 
+      { dup '"' equals not } do-while}
+
+
+" ! { "
+
+  ### IF STRING ###
+" ! { dup '"'  equals }	{ { "
+
+  ### APPEND CHAR TO RESULT###
+" ! char-to-string a.push "
+
+  ### READ NEXT STRING ###" drop
+	    dup2 nextc } 
+	{ dup
+	do-while
+    }
+}
+cond
+
+{dup2 nextc} 		// read char
+{dup 32 <=} 
+
