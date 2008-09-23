@@ -1,3 +1,6 @@
+sol: forth-like language/vm
+
+
 .old1 first parser/compiler prototype
 .old2 first vm prototype
 .old3 experiments with boehm gc
@@ -5,3 +8,6 @@
 .old5 second vm prototype
 .old6 third parser/compiler prototype
 .old7 third vm prototype
+.old8 first forth-like vm-prototype
+.old9 second forth-like vm-prototype
+.old10 some experiments with fonts for ui
