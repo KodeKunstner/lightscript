@@ -4,12 +4,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
-class Yolan {
+class Sol {
 	public Hashtable globals;
 	public Stack stack;
 	private Function parse;
 
-	public Yolan() {
+	public Sol() {
 		globals = new Hashtable();
 		stack = new Stack();
 		Core.loadTo(globals);
@@ -24,7 +24,7 @@ class Yolan {
 	public static void main(String[] argc) throws Exception {
 		StringBuffer text = new StringBuffer();
 		InputStream is = new FileInputStream(new File(argc[0]));
-		Yolan yl = new Yolan();
+		Sol yl = new Sol();
 		Function f = (Function) yl.callUnaryFunction("parse", is);
 		while(f != null) {
 			text.append(f);

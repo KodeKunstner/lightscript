@@ -1,0 +1,22 @@
+This is the java implementation of sol,
+- a minimalistic stack oriented language. 
+
+The virtual machine has two parts which are just builtin classes:
+	'java.util.Stack' 	for parameter passing.
+	'java.util.Hashtable' 	for global values.
+
+Functions extends the class 'Function', which just requires that they
+has an 'apply'-method which works on the stack. This is an abstract class
+rather than an interface to make the dynamic dispatch faster. 
+
+There are the following classes
+	Sol		test class with main function
+	Function	interface for executable functions
+	Core		parser/compiler and functions for global values
+	Code		userdefined functions
+	Builtin		various builtin functions
+	Immediate	function that push a datum
+
+It is names after the fifth note, 
+following the untraditions of C, C#, D and forth.
+
