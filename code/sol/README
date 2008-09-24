@@ -1,7 +1,11 @@
-This is the java implementation of sol,
-- a minimalistic stack oriented language. 
+### DESCRIPTION ###
 
-The virtual machine has two parts which are just builtin classes:
+This is the java implementation of Sol and MobyScript.
+Sol is a minimalistic stack oriented language / virtual machine.
+MobyScript is an EcmaScript-like scripting language for 
+mobile devices implemented on top of Sol.
+
+The sol virtual machine consists of two parts which are just builtin classes:
 	'java.util.Stack' 	for parameter passing.
 	'java.util.Hashtable' 	for global values.
 
@@ -9,14 +13,26 @@ Functions extends the class 'Function', which just requires that they
 has an 'apply'-method which works on the stack. This is an abstract class
 rather than an interface to make the dynamic dispatch faster. 
 
-There are the following classes
+
+
+### CLASSES ###
+
+Replacable main class:
 	Sol		test class with main function
+
+Core Sol language:
 	Function	interface for executable functions
-	Core		parser/compiler and functions for global values
-	Code		userdefined functions
+	Globals		functions for global values including parser
+	Code		user defined functions
 	Builtin		various builtin functions
 	Immediate	function that push a datum
 
-It is names after the fifth note, 
-following the untraditions of C, C#, D and forth.
+MobyScript:
+	MobyCode	Sol-code with argc and none/single return value.
+
+
+### ETYMOLOGY ###
+ 
+Sol is is names after the fifth note, 
+following the non-traditions of C, C#, D and forth.
 

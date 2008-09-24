@@ -1,12 +1,10 @@
 import java.util.Stack;
 
 public class Code extends Function {
-	private Function code[];
-	private String name;
+	public Function code[];
 
-	public Code(Function code[], String name) {
+	public Code(Function code[]) {
 		this.code = code;
-		this.name = name;
 	}
 
 	public void apply(Stack s) {
@@ -19,9 +17,5 @@ public class Code extends Function {
 		for(int i = 0; i < code.length; i++) {
 			code[i].apply(s);
 		}
-	}
-
-	public String toString() {
-		return name;
 	}
 }

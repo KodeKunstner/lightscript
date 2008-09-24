@@ -1,4 +1,4 @@
-CLASSES= Code.class Core.class Function.class Sol.class Builtin.class Immediate.class MobyCode.class
+CLASSES= Code.class Globals.class Function.class Sol.class Builtin.class Immediate.class MobyCode.class
 
 run: $(CLASSES)
 	java Sol test.sol

@@ -1,10 +1,10 @@
 import java.util.Hashtable;
 import java.util.Stack;
 
-public class Builtin extends Function {
+public final class Builtin extends Function {
 	private Hashtable globals;
 	private int fn;
-	private static String names[] = { "swap", "print-stack", "print", "dup"};
+	private static String names[] = { "swap", "print-stack", "print", "dup", "compile", "apply", "eval"};
 
 	private Builtin(int fn) {
 		this.fn = fn;
@@ -36,6 +36,18 @@ public class Builtin extends Function {
 /* dup */ case 3:
 	{
 		s.push(s.peek());
+	} break;
+/* compile */ case 4:
+	{
+		s.push(new Code((Function [])s.pop()));
+	} break;
+/* apply */ case 5:
+	{
+		((Function)s.pop()).apply(s);
+	} break;
+/* eval */ case 6:
+	{
+		Code.eval((Function [])s.pop(), s);
 	} break;
 /* END OF BUILTIN FUNCTIONS */
 		}

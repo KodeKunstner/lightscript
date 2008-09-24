@@ -3,12 +3,12 @@ import java.util.Stack;
 import java.io.InputStream;
 import java.io.IOException;
 
-public class Core extends Function {
+public final class Globals extends Function {
 	private Hashtable globals;
 	private int fn;
-	private static String names[] = { "set-global", "get-global", "parse", "defun"};
+	private static String names[] = { "set-global", "get-global", "parse" };
 
-	private Core (int fn, Hashtable globals) {
+	private Globals (int fn, Hashtable globals) {
 		this.fn = fn;
 		this.globals = globals;
 	}
@@ -111,19 +111,13 @@ public class Core extends Function {
 /* parse */ case 2: {
 		s.push(parseNext((InputStream)s.pop()));
 } break;
-/* defun */ case 3: {
-		Function ops[] = (Function []) s.pop();
-		String name = (String) s.pop();
-		Code code = new Code(ops, name);
-		globals.put(name, code);
-} break;
 		}
 	}
 
 	public static void loadTo(Hashtable vm) {
 		int i;
 		for(i=0;i<names.length;i++) {
-			vm.put(names[i], new Core(i, vm));
+			vm.put(names[i], new Globals(i, vm));
 		}
 	}
 

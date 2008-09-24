@@ -3,8 +3,9 @@ import java.util.Hashtable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.IOException;
 
-class Sol {
+public final class Sol {
 	public Hashtable globals;
 	public Stack stack;
 	private Function parse;
@@ -12,8 +13,9 @@ class Sol {
 	public Sol() {
 		globals = new Hashtable();
 		stack = new Stack();
-		Core.loadTo(globals);
+		Globals.loadTo(globals);
 		Builtin.loadTo(globals);
+		runFile("stdlib.sol");
 	}
 	public Object callUnaryFunction(String name, Object arg) {
 		stack.push(arg);
@@ -21,17 +23,25 @@ class Sol {
 		return stack.pop();
 	}
 
-	public static void main(String[] argc) throws Exception {
-		StringBuffer text = new StringBuffer();
-		InputStream is = new FileInputStream(new File(argc[0]));
-		Sol yl = new Sol();
-		Function f = (Function) yl.callUnaryFunction("parse", is);
-		while(f != null) {
-			text.append(f);
-			text.append(" ");
-			f.apply(yl.stack);
-			f = (Function) yl.callUnaryFunction("parse", is);
+	public void runFile(String filename) {
+		InputStream is;
+		try {
+			is = new FileInputStream(new File(filename));
+		} catch(IOException e) {
+			System.out.println(e);
+			return;
 		}
-		System.out.println(text);
+		Function f = (Function) callUnaryFunction("parse", is);
+		while(f != null) {
+			f.apply(stack);
+			f = (Function) callUnaryFunction("parse", is);
+		}
+	}
+
+
+	public static void main(String[] args) throws Exception {
+
+		Sol sol = new Sol();
+		sol.runFile(args[0]);
 	}
 }
