@@ -1,7 +1,7 @@
-CLASSES= Code.class Core.class Function.class Yolan.class Builtin.class Immediate.class
+CLASSES= Code.class Core.class Function.class Sol.class Builtin.class Immediate.class MobyCode.class
 
 run: $(CLASSES)
-	java Yolan test.sol
+	java Sol test.sol
 
 all: $(CLASSES)
 
