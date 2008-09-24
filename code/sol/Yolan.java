@@ -9,34 +9,29 @@ class Yolan {
 	public Stack stack;
 	private Function parse;
 
-	boolean readEval(InputStream is) {
-		Object o;
-		stack.push(is);
-		parse.apply(stack);
-		o = stack.pop();
-		if(o == null) {
-			return false;
-		} else if(o instanceof Function) {
-			((Function)o).apply(stack);
-		} else {
-			stack.push(o);
-		}
-		return true;
-	}
-
 	public Yolan() {
 		globals = new Hashtable();
 		stack = new Stack();
 		Core.loadTo(globals);
 		Builtin.loadTo(globals);
-		parse = (Function)globals.get("parse");
+	}
+	public Object callUnaryFunction(String name, Object arg) {
+		stack.push(arg);
+		((Function)globals.get(name)).apply(stack);
+		return stack.pop();
 	}
 
 	public static void main(String[] argc) throws Exception {
-
+		StringBuffer text = new StringBuffer();
 		InputStream is = new FileInputStream(new File(argc[0]));
 		Yolan yl = new Yolan();
-
-		{ while(yl.readEval(is)); }
+		Function f = (Function) yl.callUnaryFunction("parse", is);
+		while(f != null) {
+			text.append(f);
+			text.append(" ");
+			f.apply(yl.stack);
+			f = (Function) yl.callUnaryFunction("parse", is);
+		}
+		System.out.println(text);
 	}
 }

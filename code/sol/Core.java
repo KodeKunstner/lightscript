@@ -13,7 +13,7 @@ public class Core extends Function {
 		this.globals = globals;
 	}
 
-	private Object parseNext(InputStream is) {
+	private Function parseNext(InputStream is) {
 		try {
 			int c;
 	
@@ -40,7 +40,7 @@ public class Core extends Function {
 					i = i * 10 + c - '0';
 					c = is.read();
 				} while('0' <= c && c <= '9');
-				return new Integer(i);
+				return new Immediate(new Integer(i));
 	
 			// parse string
 			} else if(c == '"') {
@@ -54,22 +54,23 @@ public class Core extends Function {
 					sb.append((char) c);
 					c = is.read();
 				}
-				return sb.toString();
+				return new Immediate(sb.toString());
 	
 			// array literal
 			} else if(c == '(') {
 				Stack s = new Stack();
 				Object o = parseNext(is);
-				Object[] oa;
 	
 				while(o != null) {
 					s.push(o);
 					o = parseNext(is);
 				}
 	 
-				oa = new Object[s.size()];
-				s.copyInto(oa);
-				return oa;
+				Function code[] = new Function[s.size()];
+				for(int i = 0; i < s.size(); i++) {
+					code[i] = (Function)s.elementAt(i);
+				}
+				return new Immediate(code);
 	
 			// terminator
 			} else if(c == ')' || c == -1) {
@@ -86,7 +87,7 @@ public class Core extends Function {
 				if(o == null) {
 					System.out.println("Unknown symbol: " + sb);
 				}
-				return o;
+				return (Function)o;
 			}
 	
 		} catch(IOException e) {
@@ -106,7 +107,7 @@ public class Core extends Function {
 		s.push(parseNext((InputStream)s.pop()));
 } break;
 /* defun */ case 3: {
-		Object ops[] = (Object []) s.pop();
+		Function ops[] = (Function []) s.pop();
 		String name = (String) s.pop();
 		Code code = new Code(ops, name);
 		globals.put(name, code);
