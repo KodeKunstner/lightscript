@@ -1,9 +1,7 @@
 "." ( print ) defun
 
-"Hello world" .
+"Hello \n\t world" dup .
 
-"foo\" \\ blah " .
-"bar"
 ( print print )
 
 print-stack

@@ -4,7 +4,7 @@ import java.util.Stack;
 public class Builtin extends Function {
 	private Hashtable globals;
 	private int fn;
-	private static String names[] = { "swap", "print-stack", "print"};
+	private static String names[] = { "swap", "print-stack", "print", "dup"};
 
 	private Builtin(int fn) {
 		this.fn = fn;
@@ -23,11 +23,19 @@ public class Builtin extends Function {
 	} break;
 /* print-stack */ case 1:
 	{
-		System.out.println(s);
+		System.out.println("### BEGIN STACKDUMP ###");
+		for(int i = s.size() - 1; i >= 0; i--) {
+			System.out.println(new Immediate(s.elementAt(i)));
+		}
+		System.out.println("### END STACKDUMP ###");
 	} break;
 /* print */ case 2:
 	{
 		System.out.println(s.pop());
+	} break;
+/* dup */ case 3:
+	{
+		s.push(s.peek());
 	} break;
 /* END OF BUILTIN FUNCTIONS */
 		}

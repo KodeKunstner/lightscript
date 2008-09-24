@@ -18,8 +18,13 @@ public final class Immediate extends Function {
 			sb.append("\"");
 			for(int i = 0; i < s.length(); i++) {
 				char c = s.charAt(i);
-				if(c == '\\' || c == '"') {
+				if(c == '\\' || c == '"' || c < ' ') {
 					sb.append('\\');
+					if(c == '\n') {
+						c = 'n';
+					} else if(c == '\t') {
+						c = 't';
+					}
 				}
 				sb.append(c);
 			}

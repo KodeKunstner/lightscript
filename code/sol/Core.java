@@ -50,6 +50,11 @@ public class Core extends Function {
 					// support char escape 
 					if(c == '\\') {
 						c = is.read();
+						if(c == 'n') {
+							c = '\n';
+						} else if(c == 't') {
+							c = '\t';
+						}
 					}
 					sb.append((char) c);
 					c = is.read();
