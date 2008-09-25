@@ -1,9 +1,8 @@
-"Hello \n\t world" dup .
+### read and execute parser.sol ###
+"parser.sol" load
 
-( print print )
-
-( "Testing..." print )
+"test.sol" run 
 
 print-stack
 
-eval
+

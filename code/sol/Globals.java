@@ -6,7 +6,10 @@ import java.io.IOException;
 public final class Globals extends Function {
 	private Hashtable globals;
 	private int fn;
-	private static String names[] = { "set-global", "get-global", "parse" };
+	private static String names[] = { 
+		"set-global", 	// value string -> (none)
+		"get-global", 	// string -> value
+		"parse"};	// inputstream -> function
 
 	private Globals (int fn, Hashtable globals) {
 		this.fn = fn;
@@ -20,8 +23,7 @@ public final class Globals extends Function {
 			c = is.read();
 	
 			// skip white spaces
-			while(c <= ' ') {
-				c = is.read();
+			while(c <= ' ' || c == '#') {
 				// skip comments
 				if(c == '#') {
 					do {
@@ -31,6 +33,7 @@ public final class Globals extends Function {
 				if(c == -1) {
 					return null;
 				}
+				c = is.read();
 			}
 	
 			// parse integer
@@ -103,7 +106,13 @@ public final class Globals extends Function {
 	public void apply(Stack s) {
 		switch(fn) {
 /* set-global */ case 0: {
-		globals.put(s.pop(), s.pop());
+		Object key = s.pop();
+		Object val = s.pop();
+		if(val == null) {
+			globals.remove(key);
+		} else {
+			globals.put(key, val);
+		}
 } break;
 /* get-global */ case 1: {
 		s.push(globals.get(s.pop()));

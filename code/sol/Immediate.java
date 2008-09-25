@@ -13,7 +13,9 @@ public final class Immediate extends Function {
 
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
-		if(val instanceof String) {
+		if(val == null) {
+			return "false";
+		} else if(val instanceof String) {
 			String s = (String) val;
 			sb.append("\"");
 			for(int i = 0; i < s.length(); i++) {
