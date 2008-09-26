@@ -28,7 +28,7 @@ is_a = function(o, t) {
 };
 
 length = function(x) {
-	return x.length;
+	return x ? x.length : 0;
 };
 
 join = function(a, b) {
