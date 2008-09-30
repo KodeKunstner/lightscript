@@ -1,0 +1,33 @@
+core functions:
+    builtin functions:
+        load(x) // dummy
+	str2int(x)
+        println(x)
+        is_a(x, y)
+        getch(x)
+        push(a, b)
+        pop(a)
+        join(a)
+	length(a)
+        iterator(x)
+        next(iter)
+        binary===
+        binary!==
+        binary+
+        binary-
+        binary<
+        binary<=
+        unary-
+        unary!
+        undefined()
+        true()
+        false()
+    other:
+        locals: set_local get_local
+	globals: set_global get_global
+	closure: set_static get_static
+        function-call [arg1, arg2, ... argn, function]
+        jump_if_false, jump (if, while)
+	return
+compiler:
+    compile(nexttoken, tokeniser, locals{"this": -2, "arg": -3, ...});

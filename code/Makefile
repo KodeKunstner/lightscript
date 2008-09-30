@@ -6,5 +6,4 @@ all:
 	cd mobileapp && ant jar-all
 
 clean:
-	cd sol  && make clean
-	cd mobileapp && ant clean
+	rm *.class *.sol
