@@ -275,6 +275,7 @@ prefix2("while");
 atom("undefined");
 atom("true");
 atom("false");
+builtins = ["println", "getch", "push", "length", "stackdump"];
 
 //
 // The core parser
@@ -304,6 +305,7 @@ fnvars = [];
 simplify = function(elem) {
 	var id = elem.id;
 	var result, i;
+	i = 0;
 	if(id === "=") {
 		map(simplify, elem.args);
 		result = elem;
@@ -434,6 +436,19 @@ mobyblock2sol = function(arr, acc) {
 	}
 	return acc;
 }
+
+is_builtin = function(id) {
+	var i;
+	i = length(builtins);
+	while(i>0) {
+		i = i - 1;
+		if(builtins[i] === id) {
+			return true;
+		}
+	}
+	return false;
+}
+
 moby2sol = function(elem, acc) {
 	var id = elem.id;
 	var i;
@@ -489,21 +504,28 @@ moby2sol = function(elem, acc) {
 	} else if(id === "+") {
 		solbinop(elem, acc);
 	} else if(id === "apply (") {
-		// push new this
-		if(elem.args[0].id === "apply [") {
-			moby2sol(elem.args[0].args[0], acc);
-		} else {
-			push(acc, "false");
-		}
-		// push function and args
-		i = 0;
+		// push args
+		i = 1;
 		while(i < length(elem.args)) {
 			moby2sol(elem.args[i], acc);
 			i = i + 1;
 		}
-		// push argc
-		push(acc, length(elem.args) - 1);
-		push(acc, "(call)");
+
+		if(is_builtin(elem.args[0].id)) {
+			push(acc, elem.args[0].id);
+		} else {
+			// push function and argc
+			moby2sol(elem.args[0], acc);
+			push(acc, length(elem.args) - 1);
+
+			// push new this
+			if(elem.args[0].id === "apply [") {
+				moby2sol(elem.args[0].args[0], acc);
+			} else {
+				push(acc, "false");
+			}
+			push(acc, "(call)");
+		}
 	} else if(id === "apply [") {
 		moby2sol(elem.args[0], acc);
 		moby2sol(elem.args[1], acc);

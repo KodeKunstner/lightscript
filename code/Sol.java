@@ -11,7 +11,7 @@ class Sol extends Stack {
 	Hashtable globals;
 	Object locals[];
 	Stack localstack;
-	static String builtin[] = { "<", "<=", "===", "||", "-", "!", "!==", "&&", "+", "(array-to-object)", "(call)", "(drop)", "false", "println", "(get)", "(get-global)", "(get-local)", "if", "if-else", "(initialise-function)", "(new-array)", "(put)", "return", "(set-global)", "(set-local)", "true", "while", "print-stack" };
+	static String builtin[] = { "<", "<=", "===", "||", "-", "!", "!==", "&&", "+", "(array-to-object)", "(call)", "(drop)", "false", "println", "(get)", "(get-global)", "(get-local)", "if", "if-else", "(initialise-function)", "(new-array)", "(put)", "return", "(set-global)", "(set-local)", "true", "while", "stackdump", "push", "length", "getch", "load" };
 	static int opcount = builtin.length;
 
 	public void eval(char code[]) {
@@ -198,13 +198,43 @@ class Sol extends Stack {
 				eval(cond);
 			}
 		}
-	/* "print-stack" */ break; case 27:
+	/* "stackdump" */ break; case 27:
 		{
 			System.out.println("### BEGIN STACKDUMP ###");
 			for(int i = 0; i < size(); i++) {
 				System.out.println("" + i + ":\t" + elementAt(i));
 			}
 			System.out.println("### END STACKDUMP ###");
+		}
+	/* "push" */ break; case 28:
+		{
+			Object val = pop();
+			((Stack)peek()).push(val);
+		}
+	/* "length" */ break; case 29:
+		{
+			Object o = pop();
+			if(o instanceof String) {
+				push(new Integer(((String)o).length()));
+			} else if(o instanceof Stack) {
+				push(new Integer(((Stack)o).size()));
+			}
+		}
+	/* "getch" */ break; case 30:
+		{
+			int c = -1;
+			try {
+				c = System.in.read();
+			} catch(IOException e) {
+			}
+			if(c == -1) {
+				push(f);
+			} else {
+				push(String.valueOf((char) c));
+			}
+		}
+	/* "load" */ break; case 31:
+		{
 		}
 	/* default case */ break; default:
 		{
@@ -331,11 +361,12 @@ class Sol extends Stack {
 	}
 
 	public static void main(String args[]) throws Exception {
-		Sol sol = new Sol(new FileInputStream(new File("test.sol")));
+		Sol sol = new Sol(new FileInputStream(new File(args[0])));
 		char code[] = new char[1];
 
 		int i = sol.parseNext();
 		while(i != -1) {
+			sol.printsymb((char)i);
 			code[0] = (char)i;
 			sol.eval(code);
 			i = sol.parseNext();

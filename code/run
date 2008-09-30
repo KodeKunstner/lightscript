@@ -1,3 +1,0 @@
-#!/bin/sh
-js compiler.js < $foo.js  > $foo.sol
-java Sol < $foo.sol
