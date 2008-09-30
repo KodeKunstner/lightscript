@@ -31,8 +31,8 @@ length = function(x) {
 	return x ? x.length : 0;
 };
 
-join = function(a, b) {
-        return a.join(b);
+join = function(a) {
+        return a.join("");
 };
 
 pop = function(s) {

@@ -9,30 +9,32 @@ token_c = " ";
 //
 // Tokeniser
 // 
+
+is_num = function(c) {
+	return "0" <= c && c <= "9";
+};
+
+is_alphanum = function(c) {
+	return ("0" <= c && c <= "9") || c === "_" || ("a" <= c && c <= "z") || ("A" <= c && c <= "Z");
+};
+
+is_symb = function(c) {
+	return c === "=" || c === "!" || c === "<" || c === "&" || c === "|";
+};
+
 next_token = function() {
 	var c = token_c;
 	var val = undefined;
 	var token;
-
-	var is_num = function(c) {
-		return "0" <= c && c <= "9";
-	};
-
-	var is_alphanum = function(c) {
-		return ("0" <= c && c <= "9") || c === "_" || ("a" <= c && c <= "z") || ("A" <= c && c <= "Z");
-	};
-
-	var is_symb = function(c) {
-		return c === "=" || c === "!" || c === "<" || c === "&" || c === "|";
-	};
-
 	var str = [];
 
 	while(c === " " || c === "\n" || c === "\t") {
 		c = getch();
 	}
 
+	//
 	// Read string
+	//
 	if(c === "\"") {
 		c = getch();
 		while(c !== undefined && c !== "\"") {
@@ -48,26 +50,32 @@ next_token = function() {
 			c = getch();
 		}
 		c = getch();
-		val= join(str, "");
+		val= join(str);
 		str= ["(string)"];
 
+	//
 	// Read number [0-9]*
+	//
 	} else if(is_num(c)) {
 		while(is_num(c)) {
 			push(str, c);
 			c = getch();
 		}
-		val = join(str, "");
+		val = join(str);
 		str = ["(number)"];
 
+	//
 	// read identifier [_a-zA-Z][_a-zA-Z0-9]*
+	//
 	} else if(is_alphanum(c)) {
 		while(is_alphanum(c)) {
 			push(str, c);
 			c = getch();
 		}
 
+	//
 	// read multi character symbol
+	//
 	} else if(is_symb(c)) {
 		while(is_symb(c)) {
 			push(str, c);
@@ -83,7 +91,7 @@ next_token = function() {
 				push(str, c);
 				c = getch();
 			}
-			val = join(str, "");
+			val = join(str);
 			str = ["(comment)"];
 			//token_c = getch();
 			//return next_token();
@@ -104,7 +112,7 @@ next_token = function() {
 	if(str[0] === undefined) {
 		str = "(end)";
 	} else {
-		str = join(str, "");
+		str = join(str);
 	};
 
 	// create result object
@@ -152,7 +160,7 @@ infixl = function(str, bp) {
 	leds[str] = {};
 	leds[str].bp = bp;
 	leds[str].fn = function(left) {
-		return {"id": join(["apply ", this.str], ""), "args": readlist([left])};
+		return {"id": join(["apply ", this.str]), "args": readlist([left])};
 	};
 };
 
@@ -184,7 +192,7 @@ seperator = function(str) {
 
 list = function(str) {
 	nuds[str] = function() {
-		return {"id": str, "args": readlist([])};
+		return {"id": this.str, "args": readlist([])};
 	}
 };
 
@@ -292,13 +300,13 @@ parsep = function(rbp) {
 // Compiler
 //
 
+fnvars = [];
 simplify = function(elem) {
-	id = elem.id;
-	if(id === "<") {
-	} else if(id === "<=") {
-	} else if(id === "=") {
+	var id = elem.id;
+	var result, i;
+	if(id === "=") {
 		map(simplify, elem.args);
-		var result = elem;
+		result = elem;
 		if(elem.args[0].id === "apply [") {
 			result = {};
 			result.id = "(put)";
@@ -309,32 +317,35 @@ simplify = function(elem) {
 
 		}
 		return result;
-	} else if(id === "===") {
-	} else if(id === "||") {
 	} else if(id === "-") {
-	} else if(id === "!") {
-	} else if(id === "!==") {
+		if(length(elem.args) === 1) {
+			elem.id = "(neg)";
+		}
 	} else if(id === ".") {
-		var result = {};
+		result = {};
 		result.id = "apply [";
 		result.args = [];
 		result.args[0] = elem.args[0];
 		result.args[1] = { "id": "(string)", "val": elem.args[1].id };
 		return simplify(result);
-	} else if(id === "(") {
-	} else if(id === "[") {
-	} else if(id === "{") {
-	} else if(id === "&&") {
-	} else if(id === "+") {
-	} else if(id === "apply (") {
-	} else if(id === "apply [") {
-	} else if(id === "(comment)") {
-	} else if(id === "else") {
 	} else if(id === "function") {
-	} else if(id === "getch") {
+		var prevvars = fnvars;
+		fnvars = [];
+		elem.vars = fnvars;
+		elem.parameters = [];
+
+		i = 0;
+		while(i < length(elem.args[0].args)) {
+			push(elem.parameters, elem.args[0].args[i].id);
+			i = i + 1;
+		}
+
+		elem.args = map(simplify, elem.args);
+		fnvars = prevvars;
+		return elem;
 	} else if(id === "if") {
 		map(simplify, elem.args);
-		var result = elem;
+		result = elem;
 		if(elem.args[1].id === "else") {
 			result = {};
 			result.id = "(if-else)";
@@ -345,78 +356,259 @@ simplify = function(elem) {
 
 		}
 		return result;
-	} else if(id === "join") {
-	} else if(id === "length") {
-	} else if(id === "load") {
-	} else if(id === "map") {
-	} else if(id === "(number)") {
-	} else if(id === "println") {
-	} else if(id === "push") {
-	} else if(id === "return") {
-	} else if(id === "(string)") {
-	} else if(id === "this") {
-	} else if(id === "true") {
-	} else if(id === "undefined") {
-	} else if(id === "val") {
 	} else if(id === "var") {
-	} else if(id === "while") {
+		i = 0;
+		while(i < length(elem.args)) {
+			var child = elem.args[i];
+			if(child.id === "=") {
+				push(fnvars, child.args[0].id);
+			} else {
+				push(fnvars, child.id);
+			}
+			i = i + 1;
+		}
 	}	
 	elem.args = map(simplify, elem.args);
 	return elem;
+}
+
+//
+// sol compiler
+//
+solunop = function (elem, acc)  {
+	moby2sol(elem.args[0], acc);
+	push(acc, elem.id);
+}
+solbinop = function (elem, acc)  {
+	moby2sol(elem.args[0], acc);
+	moby2sol(elem.args[1], acc);
+	push(acc, elem.id);
+}
+locals = [];
+localid = function(name) {
+	var i = 0;
+	while(i < length(locals)) {
+		if(locals[i] === name) {
+			return i;
+		}
+		i = i + 1;
+	}
+	return undefined;
+	println(name);
+}
+
+pushstring = function(acc, str) {
+	var result = ["\""];
+	var i = 0;
+	var c;
+	while(i < length(str)) {
+		c = str[i];
+		if(c === "\"" || c === "\\") {
+			push(result, "\\");
+		} else if(c === "\n") {
+			push(result, "\\");
+			c = "n";
+		} else if(c === "\t") {
+			push(result, "\\");
+			c = "t";
+		}
+		push(result, c);
+		i = i + 1;
+	}
+	push(result, "\"");
+	push(acc, join(result));
+}
+mobyblock2sol = function(arr, acc) {
+	var i, id;
+	i = 0;
+	while(i < length(arr)) {
+		moby2sol(arr[i], acc);
+		i = i + 1;
+		if(i < length(arr)) {
+			push(acc, "(drop)");
+		}
+		push(acc, "\n");
+	}
+	if(length(arr) === 0) {
+		push(acc, "false");
+	}
+	return acc;
+}
+moby2sol = function(elem, acc) {
+	var id = elem.id;
+	var i;
+	if(id === "<") {
+		solbinop(elem, acc);
+	} else if(id === "<=") {
+		solbinop(elem, acc);
+	} else if(id === "=") {
+		moby2sol(elem.args[1], acc);
+
+		i = localid(elem.args[0].id);
+		if(i === undefined) {
+			pushstring(acc,elem.args[0].id)
+			push(acc, "(set-global)");
+		} else {
+			push(acc, i);
+			push(acc, "(set-local)");
+		}
+	} else if(id === "===") {
+		solbinop(elem, acc);
+	} else if(id === "||") {
+		solbinop(elem, acc);
+	} else if(id === "-") {
+		solbinop(elem, acc);
+	} else if(id === "!") {
+		solunop(elem, acc);
+	} else if(id === "!==") {
+		solbinop(elem, acc);
+	} else if(id === "(") {
+		if(elem.args > 1) {
+			println("Error: more than one expr in parenthesis");
+		}
+		moby2sol(elem.args[0], acc);
+	} else if(id === "[") {
+		push(acc, "(new-array)");
+		i;
+		while(i < length(elem.args)) {
+			moby2sol(elem.args[i], acc);
+			push(acc, "push");
+			i = i + 1;
+		}
+	} else if(id === "{") {
+		push(acc, "(new-array)");
+		i;
+		while(i < length(elem.args)) {
+			moby2sol(elem.args[i], acc);
+			push(acc, "push");
+			i = i + 1;
+		}
+		push(acc, "(array-to-object)");
+	} else if(id === "&&") {
+		solbinop(elem, acc);
+	} else if(id === "+") {
+		solbinop(elem, acc);
+	} else if(id === "apply (") {
+		// push new this
+		if(elem.args[0].id === "apply [") {
+			moby2sol(elem.args[0].args[0], acc);
+		} else {
+			push(acc, "false");
+		}
+		// push function and args
+		i = 0;
+		while(i < length(elem.args)) {
+			moby2sol(elem.args[i], acc);
+			i = i + 1;
+		}
+		// push argc
+		push(acc, length(elem.args) - 1);
+		push(acc, "(call)");
+	} else if(id === "apply [") {
+		moby2sol(elem.args[0], acc);
+		moby2sol(elem.args[1], acc);
+		push(acc, "(get)");
+	} else if(id === "(comment)") {
+		pushstring(acc, elem.val);
+	} else if(id === "function") {
+		var prevlocals = locals;
+		push(acc, "{");
+		push(acc, length(elem.parameters));
+		push(acc, length(elem.parameters) + length(elem.vars));
+		push(acc, "(initialise-function)");
+		locals = [];
+		i = 0;
+		while(i < length(elem.parameters)) {
+			push(locals, elem.parameters[i]);
+			i = i + 1;
+		}
+		i = 0;
+		while(i < length(elem.vars)) {
+			push(locals, elem.vars[i]);
+			i = i + 1;
+		}
+		mobyblock2sol(elem.args[1].args, acc);
+		push(acc, "}");
+		//push(acc, "function");
+		locals = prevlocals;
+	} else if(id === "if") {
+		moby2sol(elem.args[0], acc);
+		push(acc, "{");
+		mobyblock2sol(elem.args[1].args, acc);
+		push(acc, "}");
+		push(acc, "if");
+	} else if(id === "(if-else)") {
+		moby2sol(elem.args[0], acc);
+		push(acc, "{");
+		mobyblock2sol(elem.args[1].args, acc);
+		push(acc, "}");
+		push(acc, "{");
+		if(elem.args[2].id === "{") {
+			mobyblock2sol(elem.args[2].args, acc);
+		} else {
+			moby2sol(elem.args[2], acc);
+		}
+		push(acc, "}");
+		push(acc, "if-else");
+	} else if(id === "(neg)") {
+		solunop(elem, acc);
+	} else if(id === "(number)") {
+		push(acc, elem.val);
+	} else if(id === "(put)") {
+		moby2sol(elem.args[0], acc);
+		moby2sol(elem.args[1], acc);
+		moby2sol(elem.args[2], acc);
+		push(acc, id);
+	} else if(id === "return") {
+		solunop(elem, acc);
+	} else if(id === "(string)") {
+		pushstring(acc, elem.val);
+	} else if(id === "this") {
+		push(acc, id);
+	} else if(id === "true") {
+		push(acc, id);
+	} else if(id === "false") {
+		push(acc, id);
+	} else if(id === "undefined") {
+		push(acc, "false");
+	} else if(id === "var") {
+		mobyblock2sol(elem.args, acc);
+	} else if(id === "while") {
+		push(acc, "{");
+		moby2sol(elem.args[0], acc);
+		push(acc, "}");
+		push(acc, "{");
+		mobyblock2sol(elem.args[1].args, acc);
+		push(acc, "}");
+		push(acc, "while");
+	} else {
+		i = localid(id);
+		if(i === undefined) {
+			pushstring(acc, id);
+			push(acc, "(get-global)");
+		} else {
+			push(acc, i);
+			push(acc, "(get-local)");
+		}
+	}
+	return acc;
 }
 	
 //
 // Test
 //
 
-var stmts = readlist([]);
-var ids = [];
-var i = 0;
+stmts = readlist([]);
+ids = [];
 map(simplify, stmts);
-while(i < stmts.length) {
-	println(stmts[i]);
+sol = [];
+mobyblock2sol(stmts, sol);
+//println(stmts);
+//println(sol);
+i = 0;
+while(i < sol.length) {
+	println(sol[i]);
+//	println(stmts[i]);
+//	println(moby2sol(stmts[i], []).join(" "));
 	i = i + 1;
 };
-
-
-blah = function(elem) {
-	var id = elem.id;
-	if(id === "<") {
-	} else if(id === "<=") {
-	} else if(id === "=") {
-	} else if(id === "===") {
-	} else if(id === "||") {
-	} else if(id === "-") {
-	} else if(id === "!") {
-	} else if(id === "!==") {
-	} else if(id === "(") {
-	} else if(id === "[") {
-	} else if(id === "{") {
-	} else if(id === "&&") {
-	} else if(id === "+") {
-	} else if(id === "apply (") {
-	} else if(id === "apply [") {
-	} else if(id === "(comment)") {
-	} else if(id === "else") {
-	} else if(id === "function") {
-	} else if(id === "getch") {
-	} else if(id === "if") {
-	} else if(id === "join") {
-	} else if(id === "length") {
-	} else if(id === "load") {
-	} else if(id === "map") {
-	} else if(id === "(number)") {
-	} else if(id === "println") {
-	} else if(id === "push") {
-	} else if(id === "(put)") {
-	} else if(id === "return") {
-	} else if(id === "(string)") {
-	} else if(id === "this") {
-	} else if(id === "true") {
-	} else if(id === "undefined") {
-	} else if(id === "val") {
-	} else if(id === "var") {
-	} else if(id === "while") {
-	}	
-	return elem;
-}
