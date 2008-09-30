@@ -1,7 +1,42 @@
+garbage collection:
+
+Generational copy-collector+compacting mark and sweep,
+three memory segments:
+
+--
+gc
+--
+recent
+-- oldtop
+old
+--
+
+gc and recent has same size and is swapped during each cc-gc.
+
+on reference write:
+    if(target <= oldtop && reference > oldtop) {
+    	push target onto gc-stack.
+	if(gc-stack is full) {
+		GC();
+	}
+    }
+
+GC:
+    for each container in gc-stack:
+        mark children of container to be old
+	remember each unique old-container for later
+    copy-gc new-olds to bottom of recent.
+    copy-collect the remaining part of recent.
+
+    if memory low:
+        do a full mark-and-sweep compacting run,
+	and everyone except stack is old.
+
 ---------------------------------------------------------------------
 code compression via superinstructions in vm
 
 
+---------------------------------------------------------------------
 > Yesterday, I was at the speciale defense of another student.  The lesson I
 > would take away from it is that it is very important to know the related
 > work, both how it works and how it relates to your work.  Because the
