@@ -1,1 +1,5 @@
-println(length("hello") + 2);
+x = function() {
+	println("hello");
+}
+
+x();

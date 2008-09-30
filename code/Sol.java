@@ -9,8 +9,7 @@ class Sol extends Stack {
 	Hashtable symbmap;
 	Object that;
 	Hashtable globals;
-	Object locals[];
-	Stack localstack;
+	int fp;
 	static String builtin[] = { "<", "<=", "===", "||", "-", "!", "!==", "&&", "+", "(array-to-object)", "(call)", "(drop)", "false", "println", "(get)", "(get-global)", "(get-local)", "if", "if-else", "(initialise-function)", "(new-array)", "(put)", "return", "(set-global)", "(set-local)", "true", "while", "stackdump", "push", "length", "getch", "load" };
 	static int opcount = builtin.length;
 
@@ -78,22 +77,15 @@ class Sol extends Stack {
 		}
 	/* "(call)" */ break; case 10:
 		{
-			int thatpos = size() - ((Integer)pop()).intValue() - 2;
+			Object prevthat = that;
+			that = pop();
+			int prevfp = fp;
+			fp = (size() - 1) - ((Integer)pop()).intValue();
 
-			// save the this-pointer
-			Object tmp = elementAt(thatpos);
-			setElementAt(that, thatpos);
-			that = tmp;
+			eval((char[])pop());
 
-			// call the function
-			eval((char[])elementAt(thatpos + 1));
-
-			tmp = peek();
-
-			// restore the this-pointer
-			that = elementAt(thatpos);
-			setSize(thatpos);
-			push(tmp);
+			fp = prevfp;
+			that = prevthat;
 		}
 	/* "(drop)" */ break; case 11:
 		{
@@ -125,7 +117,7 @@ class Sol extends Stack {
 		}
 	/* "(get-local)" */ break; case 16:
 		{
-			push(locals[((Integer)pop()).intValue()]);
+			push(elementAt(fp + ((Integer)pop()).intValue()));
 		}
 	/* "if" */ break; case 17:
 		{
@@ -146,14 +138,8 @@ class Sol extends Stack {
 		}
 	/* "(initialise-function)" */ break; case 19:
 		{
-			int localc = ((Integer)pop()).intValue();
-			int argc = ((Integer)pop()).intValue();
-			localstack.push(locals);
-			locals = new Object[localc];
-			while(argc > 0) {
-				argc--;
-				locals[argc] = pop();
-			}
+			int locals = ((Integer)pop()).intValue();
+			setSize(size() + locals);
 		}
 	/* "(new-array)" */ break; case 20:
 		{
@@ -172,17 +158,19 @@ class Sol extends Stack {
 		}
 	/* "return" */ break; case 22:
 		{
-			locals = (Object[]) localstack.pop();
+			Object tmp = peek();
+			setSize(fp);
+			push(tmp);
 			return;
 		}
 	/* "(set-global)" */ case 23:
 		{
-			globals.put(pop(), pop());
+			globals.put(pop(), peek());
 		}
 	/* "(set-local)" */ break; case 24:
 		{
 			int pos = ((Integer)pop()).intValue();
-			locals[pos] = pop();
+			setElementAt(peek(), pos+fp);
 		}
 	/* "true" */ break; case 25:
 		{
@@ -356,8 +344,6 @@ class Sol extends Stack {
 		symbs = new Stack();
 		symbmap = new Hashtable();
 		globals = new Hashtable();
-		locals = null;
-		localstack = new Stack();
 	}
 
 	public static void main(String args[]) throws Exception {

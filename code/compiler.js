@@ -275,7 +275,7 @@ prefix2("while");
 atom("undefined");
 atom("true");
 atom("false");
-builtins = ["println", "getch", "push", "length", "stackdump"];
+builtins = ["println", "getch", "push", "length", "stackdump", "load"];
 
 //
 // The core parser
@@ -535,8 +535,7 @@ moby2sol = function(elem, acc) {
 	} else if(id === "function") {
 		var prevlocals = locals;
 		push(acc, "{");
-		push(acc, length(elem.parameters));
-		push(acc, length(elem.parameters) + length(elem.vars));
+		push(acc, length(elem.vars));
 		push(acc, "(initialise-function)");
 		locals = [];
 		i = 0;
