@@ -74,6 +74,7 @@ class Sol extends Stack {
 			for(int i = 0; i < s.size(); i+= 2) {
 				h.put(s.elementAt(i), s.elementAt(i+1));
 			}
+			push(h);
 		}
 	/* "(call)" */ break; case 10:
 		{
@@ -95,9 +96,9 @@ class Sol extends Stack {
 		{
 			push(f);
 		}
-	/* unused */ break; case 13:
+	/* println */ break; case 13:
 		{
-			System.out.println(pop());
+			System.out.println(peek());
 		}
 	/* "(get)" */ break; case 14:
 		{
@@ -124,6 +125,8 @@ class Sol extends Stack {
 			char branch1[] = (char []) pop();
 			if(pop() != f) {
 				eval(branch1);
+			} else {
+				push(f);
 			}
 		}
 	/* "if-else" */ break; case 18:
@@ -180,8 +183,10 @@ class Sol extends Stack {
 		{
 			char body[] = (char []) pop();
 			char cond[] = (char []) pop();
+			push(null);
 			eval(cond);
 			while(pop() != f) {
+				pop();
 				eval(body);
 				eval(cond);
 			}
@@ -193,6 +198,7 @@ class Sol extends Stack {
 				System.out.println("" + i + ":\t" + elementAt(i));
 			}
 			System.out.println("### END STACKDUMP ###");
+			push(f);
 		}
 	/* "push" */ break; case 28:
 		{
@@ -223,6 +229,7 @@ class Sol extends Stack {
 		}
 	/* "load" */ break; case 31:
 		{
+			push(f);
 		}
 	/* default case */ break; default:
 		{
