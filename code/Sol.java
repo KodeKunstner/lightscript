@@ -10,11 +10,12 @@ class Sol extends Stack {
 	Object that;
 	Hashtable globals;
 	int fp;
-	static String builtin[] = { "<", "<=", "===", "||", "-", "!", "!==", "&&", "+", "(array-to-object)", "(call)", "(drop)", "false", "println", "(get)", "(get-global)", "(get-local)", "if", "if-else", "(initialise-function)", "(new-array)", "(put)", "return", "(set-global)", "(set-local)", "true", "while", "stackdump", "push", "length", "getch", "load" };
+	static String builtin[] = { "<", "<=", "===", "||", "-", "!", "!==", "&&", "+", "(array-to-object)", "(call)", "(drop)", "false", "println", "(get)", "(get-global)", "(get-local)", "if", "if-else", "(initialise-function)", "(new-array)", "(put)", "return", "(set-global)", "(set-local)", "true", "while", "stackdump", "push", "length", "getch", "load", "printglobals", "join", "this" };
 	static int opcount = builtin.length;
 
 	public void eval(char code[]) {
 		for(int pc = 0; pc < code.length; pc++) {
+//			printsymb(code[pc]);
 			switch(code[pc]) {
 /* ### BEGINNING OF SWITCH ### */
 	/* "<" */ case 0:
@@ -81,9 +82,13 @@ class Sol extends Stack {
 			Object prevthat = that;
 			that = pop();
 			int prevfp = fp;
-			fp = (size() - 1) - ((Integer)pop()).intValue();
+			fp = (size() - 2) - ((Integer)pop()).intValue();
 
 			eval((char[])pop());
+
+			Object tmp = peek();
+			setSize(fp);
+			push(tmp);
 
 			fp = prevfp;
 			that = prevthat;
@@ -105,9 +110,15 @@ class Sol extends Stack {
 			Object key = pop();
 			Object container = pop();
 			if(container instanceof Hashtable) {
-				push(((Hashtable)container).get(key));
+				Object result = ((Hashtable)container).get(key);
+				push(result==null?f:result);
 			} else if(container instanceof Stack) {
-				push(((Stack)container).elementAt(((Integer)key).intValue()));
+				int i = ((Integer)key).intValue();
+				try {
+					push(((Stack)container).elementAt(i));
+				} catch (ArrayIndexOutOfBoundsException e) {
+					push(f);
+				}
 			} else if(container instanceof String) {
 				push(new Integer(((String)container).charAt(((Integer)key).intValue())));
 			}
@@ -136,7 +147,7 @@ class Sol extends Stack {
 			if(pop() != f) {
 				eval(branch1);
 			} else {
-				eval(branch1);
+				eval(branch2);
 			}
 		}
 	/* "(initialise-function)" */ break; case 19:
@@ -156,14 +167,16 @@ class Sol extends Stack {
 			if(container instanceof Hashtable) {
 				((Hashtable)container).put(key, val);
 			} else { // if(container instanceof Stack) {
-				((Stack)container).setElementAt(val, ((Integer)key).intValue());
+				int pos = ((Integer)key).intValue();
+				Stack s = (Stack)container;
+				if(pos >= s.size()) {
+					s.setSize(pos + 1);
+				}
+				((Stack)container).setElementAt(val, pos);
 			} 
 		}
 	/* "return" */ break; case 22:
 		{
-			Object tmp = peek();
-			setSize(fp);
-			push(tmp);
 			return;
 		}
 	/* "(set-global)" */ case 23:
@@ -229,7 +242,25 @@ class Sol extends Stack {
 		}
 	/* "load" */ break; case 31:
 		{
+			//push(pop());
+		}
+	/* printglobals */ break; case 32:
+		{
+			System.out.println(globals);
 			push(f);
+		}
+	/* join */ break; case 33:
+		{
+			Stack s = (Stack)pop();
+			StringBuffer sb = new StringBuffer();
+			for(int i = 0; i < s.size(); i++) {
+				sb.append(s.elementAt(i).toString());
+			}
+			push(sb.toString());
+		}
+	/* this */ break; case 34:
+		{
+			push(that);
 		}
 	/* default case */ break; default:
 		{
@@ -264,20 +295,20 @@ class Sol extends Stack {
 
 	public void printsymb(int i) {
 		if(i < opcount) {
-			System.out.println(builtin[i]);
+			System.out.println("." + builtin[i]);
 		} else {
 			Object o = symbs.elementAt(i-opcount);
 			if(o instanceof String) {
-				System.out.println("\"" + o + "\"");
+				System.out.println("." + "\"" + o + "\"");
 			} else if(o instanceof char[]) {
 				char cs[] = (char[]) o;
-				System.out.println("{");
+				System.out.println("." + "{");
 				for(int j = 0; j < cs.length; j++) {
 					printsymb(cs[j]);
 				}
-				System.out.println("}");
+				System.out.println("." + "}");
 			} else {
-				System.out.println(symbs.elementAt(i-opcount));
+				System.out.println("." + symbs.elementAt(i-opcount));
 			}
 		}
 	}
@@ -359,7 +390,6 @@ class Sol extends Stack {
 
 		int i = sol.parseNext();
 		while(i != -1) {
-			sol.printsymb((char)i);
 			code[0] = (char)i;
 			sol.eval(code);
 			i = sol.parseNext();

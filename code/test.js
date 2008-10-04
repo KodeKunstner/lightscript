@@ -1,7 +1,7 @@
-x = function() {
-	var x = 2;
-	var y = 3;
-	var z = 4;
-	return y;
+if(false) {
+	println("A");
+} else if(true) {
+	println("B");
 }
-println(x());
+
+

@@ -275,7 +275,7 @@ prefix2("while");
 atom("undefined");
 atom("true");
 atom("false");
-builtins = ["println", "getch", "push", "length", "stackdump", "load"];
+builtins = ["println", "getch", "push", "length", "stackdump", "load", "printglobals", "join"];
 
 //
 // The core parser
@@ -484,7 +484,7 @@ moby2sol = function(elem, acc) {
 		moby2sol(elem.args[0], acc);
 	} else if(id === "[") {
 		push(acc, "(new-array)");
-		i;
+		i = 0;
 		while(i < length(elem.args)) {
 			moby2sol(elem.args[i], acc);
 			push(acc, "push");
@@ -492,7 +492,7 @@ moby2sol = function(elem, acc) {
 		}
 	} else if(id === "{") {
 		push(acc, "(new-array)");
-		i;
+		i = 0;
 		while(i < length(elem.args)) {
 			moby2sol(elem.args[i], acc);
 			push(acc, "push");
