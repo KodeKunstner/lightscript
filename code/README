@@ -15,3 +15,4 @@ Retired:
 .old14 compiler+vm, vm fills stack
 .old15 lisp parser, and beginning of runtime
 .old16 moby2lisp compiler
+.old17 experiments with simple lazy lisp-like language

@@ -1,0 +1,2 @@
+[print [+ [* [num 2] [num 2]] [- [num 300] [num 100]]]]
+[print [' Hello]]
