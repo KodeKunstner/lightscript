@@ -1,4 +1,16 @@
 load("stdmob.js");
+//
+// Utility function
+//
+map = function(f, list) {
+	var i;
+	i = 0;
+	while(i < length(list)) {
+		list[i] = f(list[i]);
+		i = i + 1;
+	}
+	return list;
+};
 
 // 
 // Tokeniser state
@@ -110,7 +122,7 @@ next_token = function() {
 
 	// handle end-of-file, and join characters to token
 	if(str[0] === undefined) {
-		str = "(end)";
+		str = "END-OF-FILE";
 	} else {
 		str = join(str);
 	};
@@ -118,7 +130,7 @@ next_token = function() {
 	// create result object
 	token = {};
 	token.str = str;
-	token.nud = nuds[str] || function() { return {"id": this.str}; };
+	token.nud = nuds[str] || function() { return ["identifier", this.str]; };
 	if(leds[str] === undefined) {
 		token.bp = 0;
 	} else {
@@ -144,7 +156,7 @@ infix = function(str, bp) {
 	leds[str] = {};
 	leds[str].bp = bp;
 	leds[str].fn = function(left) {
-		return {"id": this.str, "args": [left, parsep(this.bp)]};
+		return [this.str, left, parsep(this.bp)];
 	};
 };
 
@@ -152,7 +164,7 @@ infixr = function(str, bp) {
 	leds[str] = {};
 	leds[str].bp = bp;
 	leds[str].fn = function(left) {
-		return {"id": this.str, "args": [left, parsep(this.bp - 1)]};
+		return [this.str, left, parsep(this.bp - 1)];
 	};
 };
 
@@ -160,15 +172,15 @@ infixl = function(str, bp) {
 	leds[str] = {};
 	leds[str].bp = bp;
 	leds[str].fn = function(left) {
-		return {"id": join(["apply ", this.str]), "args": readlist([left])};
+		return readlist([join(["apply ", this.str]), left]);
 	};
 };
 
 
 readlist = function(acc) {
 	var p = parse();
-	while(p.id !== "(end)") {
-		if(p.id !== "(sep)") {
+	while(p[0] !== "(end)") {
+		if(p[0] !== "(sep)") {
 			push(acc, p);
 		}
 		p = parse();
@@ -179,64 +191,60 @@ readlist = function(acc) {
 end = function(str) {
 	seps[str] = true;
 	nuds[str] = function() {
-		return {"id": "(end)", "val": this.str};
+		return ["(end)", this.str];
 	}
 };
 
 seperator = function(str) {
 	seps[str] = true;
 	nuds[str] = function() {
-		return {"id": "(sep)", "val": this.str};
+		return ["(sep)", this.str];
 	}
 };
 
 list = function(str) {
 	nuds[str] = function() {
-		return {"id": this.str, "args": readlist([])};
+		return readlist([this.str]);
 	}
 };
 
 atom = function(str) {
 	nuds[str] = function() {
-		return {"id": this.str};
+		return [this.str];
 	}
 };
 
 prefix = function(str) {
 	nuds[str] = function() {
-		return {"id": this.str, "args": [parse()]};
+		return [this.str, parse()];
 	}
 };
 
 prefix2 = function(str) {
 	nuds[str] = function() {
-		return {"id": this.str, "args": [parse(), parse()]};
+		return [this.str, parse(), parse()];
 	}
 };
 
-nuds["(string)"] = function() {
-	return {"id": this.str, "val": this.val};
+valnud = function() {
+	return [this.str, this.val];
 };
 
-nuds["(number)"] = function() {
-	return {"id": this.str, "val": this.val};
-};
+nuds["(string)"] = valnud;
+nuds["(number)"] = valnud;
+nuds["(comment)"] = valnud;
 
-nuds["(comment)"] = function() {
-	return {"id": this.str, "val": this.val};
-};
-
-nuds["var"] = function() {
-	var acc = [];
-	var p = parse();
-	while(p.id !== "(end)" && p.val !== ";") {
-		if(p.id !== "(sep)") {
-			push(acc, p);
-		}
-		p = parse();
-	}
-	return {"id": this.str, "args": acc};
-};
+//nuds["var"] = function() {
+//	var acc = [this.str];
+//	var p = parse();
+//	while(p[0] !== "(end)" && p[1] !== ";") {
+//		if(p[0] !== "(sep)") {
+//			push(acc, p);
+//		}
+//		p = parse();
+//	}
+//	return acc;
+//};
 
 //
 // Definition of operator precedence and type
@@ -259,13 +267,14 @@ infix("=", 100);
 end("]");
 end(")");
 end("}");
-end(undefined);
+end("END-OF-FILE");
 seperator(":");
 seperator(";");
 seperator(",");
 list("(");
 list("{");
 list("[");
+prefix("var");
 prefix("return");
 prefix("-");
 prefix("!");
@@ -275,7 +284,6 @@ prefix2("while");
 atom("undefined");
 atom("true");
 atom("false");
-builtins = ["println", "getch", "push", "length", "stackdump", "load", "printglobals", "join"];
 
 //
 // The core parser
@@ -297,9 +305,4 @@ parsep = function(rbp) {
 	return left
 };
 
-//
-// Test
-//
-
-stmts = readlist([]);
-println(stmts);
+println(readlist([]));
