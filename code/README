@@ -13,3 +13,4 @@ Retired:
 .old12 third forth-like vm-prototype
 .old13 build environment for mobile applications
 .old14 compiler+vm, vm fills stack
+.old15 lisp parser, and beginning of runtime
