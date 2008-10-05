@@ -1,17 +1,4 @@
 load("stdmob.js");
-//
-// Utility function
-//
-map = function(f, list) {
-	var i;
-	i = 0;
-	while(i < length(list)) {
-		list[i] = f(list[i]);
-		i = i + 1;
-	}
-	return list;
-};
-
 // 
 // Tokeniser state
 //
@@ -36,9 +23,9 @@ is_symb = function(c) {
 
 next_token = function() {
 	var c = token_c;
-	var val = undefined;
 	var token;
 	var str = [];
+	var nud = undefined;
 
 	while(c === " " || c === "\n" || c === "\t") {
 		c = getch();
@@ -62,8 +49,7 @@ next_token = function() {
 			c = getch();
 		}
 		c = getch();
-		val= join(str);
-		str= ["(string)"];
+		nud = function() { return ["string", this.str]; };
 
 	//
 	// Read number [0-9]*
@@ -73,8 +59,7 @@ next_token = function() {
 			push(str, c);
 			c = getch();
 		}
-		val = join(str);
-		str = ["(number)"];
+		nud = function() { return ["number", this.str]; };
 
 	//
 	// read identifier [_a-zA-Z][_a-zA-Z0-9]*
@@ -103,10 +88,7 @@ next_token = function() {
 				push(str, c);
 				c = getch();
 			}
-			val = join(str);
-			str = ["(comment)"];
-			//token_c = getch();
-			//return next_token();
+			nud = function() { return ["comment", this.str]; };
 		} else {
 			push(str, "/");
 		}
@@ -121,8 +103,8 @@ next_token = function() {
 	token_c = c;
 
 	// handle end-of-file, and join characters to token
-	if(str[0] === undefined) {
-		str = "END-OF-FILE";
+	if(c === undefined) {
+		str = "(EOF)";
 	} else {
 		str = join(str);
 	};
@@ -130,7 +112,7 @@ next_token = function() {
 	// create result object
 	token = {};
 	token.str = str;
-	token.nud = nuds[str] || function() { return ["identifier", this.str]; };
+	token.nud = nud || nuds[str] || function() { return ["identifier", this.str]; };
 	if(leds[str] === undefined) {
 		token.bp = 0;
 	} else {
@@ -138,7 +120,6 @@ next_token = function() {
 		token.bp = leds[str].bp;
 	};
 	token.sep = seps[str];
-	token.val = val;
 	return token;
 };
 
@@ -168,7 +149,7 @@ infixr = function(str, bp) {
 	};
 };
 
-infixl = function(str, bp) {
+infixlist = function(str, bp) {
 	leds[str] = {};
 	leds[str].bp = bp;
 	leds[str].fn = function(left) {
@@ -226,32 +207,12 @@ prefix2 = function(str) {
 	}
 };
 
-valnud = function() {
-	return [this.str, this.val];
-};
-
-nuds["(string)"] = valnud;
-nuds["(number)"] = valnud;
-nuds["(comment)"] = valnud;
-
-//nuds["var"] = function() {
-//	var acc = [this.str];
-//	var p = parse();
-//	while(p[0] !== "(end)" && p[1] !== ";") {
-//		if(p[0] !== "(sep)") {
-//			push(acc, p);
-//		}
-//		p = parse();
-//	}
-//	return acc;
-//};
-
 //
 // Definition of operator precedence and type
 //
 infix(".", 700);
-infixl("(", 600);
-infixl("[", 600);
+infixlist("(", 600);
+infixlist("[", 600);
 infix("*", 500);
 infix("%", 500);
 infix("+", 400);
@@ -267,7 +228,7 @@ infix("=", 100);
 end("]");
 end(")");
 end("}");
-end("END-OF-FILE");
+end("(EOF)");
 seperator(":");
 seperator(";");
 seperator(",");
@@ -304,5 +265,9 @@ parsep = function(rbp) {
 	}
 	return left
 };
+
+//
+// dump
+//
 
 println(readlist([]));
