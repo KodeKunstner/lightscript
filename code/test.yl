@@ -1,9 +1,17 @@
+[set! max [num 1000000]]
+[println [str 
+"Test application 
+that prints the fibonacci numbers
+that are smaller than "]]
+[println max]
+[println [str "
+"]]
 [do
 	[set! a [num 1]]
 	[set! b a]
-	[while [< a [num 1000000]]
+	[while [< a max]
 		[do
+			[println a]
 			[set! c b]
 			[set! b a]
-			[set! a [+ b c]]
-			[println a]]]]
+			[set! a [+ b c]]]]]
