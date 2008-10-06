@@ -5,10 +5,16 @@ interface Yoco {
 	public Object eval(Object X[]);
 }
 
-class Yolan {
+final class Yolan {
+	/**
+	 * The global variables in the context
+	 */
 	public Hashtable globals;
 
-	final class BuiltinUnary implements Yoco {
+	/**
+	 * Implementation of builtin unary eager functions.
+	 */
+	class BuiltinUnary implements Yoco {
 		public int fn;
 		public BuiltinUnary(int fn) {
 			this.fn = fn;
@@ -22,7 +28,10 @@ class Yolan {
 		}
 	}
 
-	final class BuiltinBinary implements Yoco {
+	/**
+	 * Implementation of builtin binary eager functions.
+	 */
+	class BuiltinBinary implements Yoco {
 		int fn;
 		public BuiltinBinary(int fn) {
 			this.fn = fn;
@@ -41,6 +50,9 @@ class Yolan {
 		}
 	}
 
+	/**
+	 * Implementation of functions which evalutes their parameters on demand.
+	 */
 	class BuiltinLazy implements Yoco {
 		int fn;
 		public BuiltinLazy(int fn) {
@@ -74,14 +86,24 @@ class Yolan {
 		}
 	}
 
+	/**
+	 * Utility function for converting from object to integer
+	 */
 	public static int ival(Object o) {
 		return ((Integer)o).intValue();
 	}
 
+	/**
+	 * Utility function for converting from integer to object
+	 */
 	public static Object num(int i) {
 		return new Integer(i);
 	}
 
+	/**
+	 * Evaluate a an expression if it is a list, or just lookup the symbol.
+	 * @param o the expression. 
+	 */
 	public Object e(Object o) {
 		if(o instanceof Object[]) {
 			Object X[] = ((Object [])o);
@@ -93,15 +115,25 @@ class Yolan {
 		} else {
 			Object tmp;
 			tmp = globals.get(o);
-			return (tmp==null)?o:tmp;
+			if(tmp == null) {
+				System.out.println("Error: " + o.toString() + " not defined!");
+			}
+			return tmp;
 		}
 	}
 
+
+	/**
+	 * Utility function for adding a global variable
+	 */
 	public Yolan add(Object str, Object val) {
 		globals.put(str, val);
 		return this;
 	}
 
+	/**
+	 * Create a new Yolan execution context and add builtin functions to it.
+	 */
 	public Yolan() {
 		globals = new Hashtable();
 
@@ -120,6 +152,9 @@ class Yolan {
 
 	}
 
+	/**
+	 * Parse a series of expressions
+	 */
 	public static Object[] parse(InputStream is) throws Exception {
 		int c;
 		Stack s = new Stack();
@@ -151,25 +186,6 @@ class Yolan {
 		Object result[] = new Object[s.size()];
 		s.copyInto(result);
 		return result;
-	}
-
-	public static void print(Object o[]) {
-		System.out.print('[');
-		for(int i = 0; i < o.length; i++) {
-			if(i!=0) {
-				System.out.print(' ');
-			}
-			print(o[i]);
-		}
-		System.out.print(']');
-	}
-
-	public static void print(Object o) {
-		if(o instanceof Object[]) {
-			print((Object[]) o);
-		} else {
-			System.out.print("\"" + o.toString() + "\"");
-		}
 	}
 
 	public static void main(String X[]) throws Exception {
