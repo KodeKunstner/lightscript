@@ -16,3 +16,4 @@ Retired:
 .old15 lisp parser, and beginning of runtime
 .old16 moby2lisp compiler
 .old17 experiments with simple lazy lisp-like language
+.old18 More elegant implementation of lisp-like language
