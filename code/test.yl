@@ -1,1 +1,9 @@
-[print [if [< [num 2] [num 2]] [num 5] [num 13]]]
+[do
+	[set! a [num 1]]
+	[set! b a]
+	[while [< a [num 1000000]]
+		[do
+			[set! c b]
+			[set! b a]
+			[set! a [+ b c]]
+			[println a]]]]
