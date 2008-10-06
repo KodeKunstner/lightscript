@@ -1,0 +1,90 @@
+
+nb: remove e, with apply instead, e.g:
+
+[.. .. ..]  contained in closure in yolan.
+
+class Yolan {
+	...
+	// closure
+	Object c;
+	// function id
+	int fn;
+	Object apply() {
+		switch(fn) {
+			case '+': return num(ival(c, 0) + ival(c, 1));
+			case '-': return num(ival(c, 0) - ival(c, 1));
+			case string-literal: return c;
+			case integer-literal: return c;
+			case variable-name: return globals.get(c);
+			case 'if': return (val(c, 0) != null)? val(c, 1) : val(c,2);
+			case object-dispatch: {
+				setargs(c);
+				stack.push(that);
+				that = args[0];
+				((Yolan)that.get(args[1])).apply();
+				that = stack.pop();
+				unsetargs();
+			}
+			case call-function: {
+				setargs(c);
+				Object result = val(c, 0);
+				unsetargs();
+				return result
+			}
+			case user-function: {
+				Object [] X = (Object [])c;
+				for(i=1;i<X.length;i++) {
+					pushglobal(X[i], ((Yolan)args[i]).apply());
+				}
+				result = ((Yolan)X[0]).apply();
+				popglobals(X.length - 1);
+				return result;
+			}
+			...
+		}
+	}
+
+
+	pushglobal(Object key, Object val) {
+		stack.push(key);
+		stack.push(globals.put(key, val));
+	}
+	popglobals(int n) {
+		while(n > 0) {
+			Object val = stack.pop();
+			Object key = stack.pop();
+			if(val == null) {
+				globals.remove(key);
+			} else {
+				globals.put(key, val);
+			}
+			n--;
+		}
+	}
+
+	static Object userfunc(Object[] X) {
+		setargs(X);
+	}
+
+	static int ival(Object o, int i) {
+		return ((Integer)((Yolan [])o)[i].apply()).intValue();
+	}
+
+	static Object val(Object o, int i) {
+		return ((Yolan [])o)[i].apply();
+	}
+
+	static Object num(int i) {
+		return new Integer(i);
+	}
+
+	static Object[] args = null;
+	static Stack stack = new Stack();
+	static void setargs(Object o) {
+		argstack.push(args);
+		args = (Object [])o;
+	}
+	static void unsetargs() {
+		args = (Object[])argsstack.pop();
+	}
+}
