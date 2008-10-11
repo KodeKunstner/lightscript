@@ -1,0 +1,254 @@
+\documentclass[12pt]{article} 
+\usepackage{a4} 
+\usepackage{makeidx}
+%\usepackage[danish]{babel} 
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{graphicx} 
+\usepackage{verbatim} 
+\usepackage{fancyhdr}
+\usepackage{listings} 
+\usepackage[colorlinks,pagebackref]{hyperref}
+\usepackage{backref}
+\usepackage{url}
+\frenchspacing
+\makeindex
+\pagestyle{plain}
+\newcommand{\Oh}[0]{ \mathcal{O} }
+%\addtolength{\voffset}{-88pt}
+%\addtolength{\textheight}{93pt}
+
+\title{
+\emph{Document currently under development} \\ ~ \\
+Design and implementation of \\ 
+a scripting language \\ 
+targeted mobile devices}
+
+\author{
+  Rasmus Erik Voel Jensen\footnote{
+    sumsar@solsort.dk
+  }
+} 
+
+% Remember 
+%    \index terms
+%    update template as well as document when structural updates.
+\date{2008-2009}
+
+\begin{document}
+
+% some parts commented out, for draft printing. size reduced an smaller top/bottom.
+
+\maketitle
+%\begin{abstract}
+%\end{abstract}
+%
+%\setcounter{tocdepth}{3}
+\tableofcontents
+%\listoffigures
+%\nocite{sicp}
+
+Sproglig note: teksten i denne udgave er skrevet på dansk, men anvender en del engelske fagtermer. 
+Det hele omskrives/oversættes til engelsk senere hen.
+
+\section{Target platforms}
+
+Sproget skal virke på tværs af forskellige enheder og platforme. 
+Fokus ligger på tre forskellige programmeringsplatforme: 
+Java CLDC1/MIDP1 Mobile Edition, C på ARM-linux device og EcmaScript i mobile browserer.
+Disse er valgt så de er repræsentative for de forskellige begrænsninger der kan være på forskellige mobile enheder.
+De følgende afsnit gennemgår tre overordnede sprogplatforme for mobile enheder: Java, C og EcmaScript. 
+
+
+\subsection{Java på mobile enheder}
+Java på mobile enheder er heterogent i forhold til på desktop-platformen: 
+der er tre forskellige former for Java på mobile enheder: Java Standard Edition, Java Mobile Edition og Android, som bliver beskrevet mere i detaljer herunder.
+Java er den væsentligste platform for mobile enheder, på grund af at forskellige former for Java Mobile Edition er det mest udviklingstarget.
+Da java kører i en virtuel maskine er dette også en metode at tillade applikationsprogrammer, uden at indføre for store sikkerhedsriscici i systemet. 
+Dette giver til gengæld også nogle begrænsninger i hvad man til via programmeringen.
+% 1 billion devices?
+
+
+\paragraph{}
+Java Standard Edition er tilgængelig på enkelte mobile enheder, hvor det programmer kan køre uden særlige begrænsninger i forhold til hvorledes de køre på pc'er.
+Java er her implementeret på en virtuel stakbaseret maskine kaldet jvm.
+
+\paragraph{}
+Java Mobile Edition/J2ME er den mest udbredte udgave af java på mobile enheder.
+Hvilke api's der er, samt hvilke features maskinen har afhænger af implementationen. 
+
+Der er to device\-konfigurationer, CLDC 1 og CLDC 1.1, hvor den væsentligste forskel mellem de to er at CLDC 1 kun har heltalsaritmetik, hvorimod CLDC 1.1 også understøtter flydende kommatal. Begge device\-konfigurationer indeholder streams og netvæksinterface, hashtabeller og stakke som api.
+
+Tilsvarende er der to device\-profile MIDP 1 og MIDP 2, med brugergrænseflade, http-netværk, simpelt persistent lager, hvor MIDP 2 udvider MIDP 1 med bedre understøttelse for spil og medier. Hertil kommer en mængde optional api'er, hvor hvilke der er valgt afhænger af devicet.
+Generelt er det ikke muligt dynamisk at tilføje kode til en applikation, da man er afskåret fra class-loaderen. Tilsvarende er der ej heller mulighed for introspektion da java.lang.reflect ikke er tilgængelig på de mobile enheder.
+
+Jvm'en er næsten som standard edition, dog med et par mindre ændringe af hensyn til sikkerhed og lettere indlæsning: Filer er preverificeret, hvilket essentielt vil sige at der er tilføjet noget metainformation til koden, der gør det lettere at sikre en korrekt typet stak. Dette kræver også at stakken ikke ser forskellig ud ved samme branch-target, hvilket også gør at lokale funktionskald fjernes/inlines. Dertil kommer naturligvis at CLDC1 jvm'er ikke har float-instruktioner.
+
+Sun har lagt en eksempelimplementation af en mobil jvm, "kvm", tilgængelig, og dette er blot en simpel bytecode-fortolker med en mark-and-sweep garbage collection, hvilket kan ses som det minimale target. Nyere mobile enheder med mere hukommelse, har naturligvis mere avancerede jvm'er med JIT-oversættelse.
+
+\paragraph{}
+Den tredie ``java'' platform der er på vej frem er Android, hvor programmeringssproget stadig er java, men api'erne og særligt den underliggende maskine er betydligt anderledes, i det den i stedet for den traditionelle jvm anvender en ny virtuel maskine, Dalvik vm, der er mere optimeret mod mobile enheder. Der er, forøjeblikket, ikke noget api for køretids kodegenerering, men det ser ud til at det kan være muligt at indlæse genereret kode, ved at lægge ligge filerne i et særligt bibliotek, og derefter kalde class-loaderen. 
+
+Her er det så vigtigt at bemærke at der ikke er tale om java-class filer men derimod filer til dalvik-vm'en, hvor vm'en på skrivende tidspunkt ikke er offentligt dokumenteret og kildekoden er ej heller tilgængelig selvom det er lovet at blive open source. Dele af implementationen er beskrevet ved en forelæsning\cite{dalvik-talk}. Der er tale om register-baseret virtuel maskine hvilket gør den hurtiger på bekostning af lidt plads. Til gengæld er constant-pool'en fælles for alle klasser, i stedet for en per klasse som i jvm, hvilket sparer noget plads.
+
+Maskinen kører desuden med direct dispatch, e.g. den brancher direkte fra for en instruktion til koden for den næste. Dertil kommer koden er organiseret så koden for instruktion $k$ starter på adresse $a+bk$ hvor $a$ og $b$ er konstanter, hvilket sparer et load per dispatch, samt lægger instruktionerne på cachelinjer. Hvis koden for instruktionerne er lange må de til gengæld indeholde et jump. 
+
+\paragraph{}
+Da Java Mobile Edition CLDC1/MIDP1 er den mest begrænsende konfiguration vælges denne som target platform indenfor java-verdenen.
+
+\subsection{C og native code}
+C er sproget for systemprogrammering på de fleste enheder, men er ofte ikke tilgængligt for applikationsprogrammører på low-end mobiltelefoner af sikkerhedshensyn - her kun java en programmeringsmulighed. 
+På embedded devices C dog ofte den eneste programmeringsmulighed (udover maskinkode/assembler).
+
+Operativsystemet er jævnligt vendor-specifikt. 
+Ved low-end systemer er der ofte stor integration mellem program og operativsystem, og high-end devices ses eksempelvis RIM's og Apple's egne operativsystemer.
+Symbian, Windows CE og forskellige udgaver af linux er eksempel på mere hardware-vendor-uafhængige operativsystemer. 
+Symbian er nok det mest udbredte (TODO: verify), og er samtidigt interessant i det at det er på vej til at blive open source.
+Linux betydeligt voksende på mobile platforme, hovedsageligt de mere highend.
+
+Ligeledes er der forskellige hardwareplatforme. ARM-processorer er de mest udbredte, men der også mips-varianter og andre. 
+
+
+\subsection{EcmaScript}
+En nyere retning for applikationer til mobile enheder er at de bliver lavet i EcmaScript til køre i browsere. Efterhånden som mobile enheder og de virtuelle maskiner for EcmaScript bliver hurtigere og hurtigere begynder dette at spille en større og større rolle.
+
+
+\section{Udførsel af kode}
+Essentielt kan koden enten blive fortolket, eller oversat til maskinkode og derefter kørt.
+Herunder
+\subsection{Simpel fortolker}
+Med en simpel fortolker menes her en implementation der gennemløber en form for abstrakt syntakstræ, og udføre hvad der står i den pågældende node. 
+Dette er enklest at implementere.
+Det muligt at have en nogenlunde performance omend ikke overvældende, hvilket eksempelvis kan ses af tidligere udgaver af webkit, hvor udførslen af javascript kørte via en AST-walk. 
+
+Dette kan også forklares ved at når hver node i træet er en klasse med en virtuel fortolkningsfunktion, vil et dispatch kunne klares med et par loads plus et branch, eksempelvis ville en klasseimplementation a la:
+\begin{verbatim}
+class Node {
+    virtual VALUE eval();
+}
+
+class AdditionNode : Node {
+    Node *arg1, *arg2;
+    virtual VALUE eval() {
+        return NUM_TO_VALUE( VALUE_TO_NUM(arg1.eval()) + VALUE_TO_NUM(arg2.eval()));
+    }
+}
+\end{verbatim}
+kunne køre som noget c-lignende mellemkode a la:
+\begin{verbatim}
+typedef struct {
+    VALUE (*eval)(this);
+} Node;
+
+typedef struct {
+    struct Node parent, *arg1, *arg2;
+} AdditionNode;
+
+VALUE AddEval(this) {
+    return NUM_TO_VALUE( VALUE_TO_NUM(this.arg1->parent.eval()) 
+               + VALUE_TO_NUM(this.arg2->parent.eval()));
+}
+
+newAddition(Node *arg1, Node *arg2) {
+    this = malloc(sizeof(AdditionNode);
+    this.parent.eval = AddEval;
+    this.arg1 = arg1;
+    this.arg2 = arg2;
+    return this;
+}
+\end{verbatim}
+
+\subsection{Virtuel maskine}
+
+Et alternativ er at have en form for mellemkode som man så fortolker via en virtuel maskine. Nogle fordele her er at det kan være hurtigere at eksekvere, samt at udførslesplatformen kan være enklere, i det at programmeringssproget ikke er nødvendigt, men blot en simplere virtuel maskine. Til gengæld er det nødvendigt at indføre en oversætter fra kildesproget til den virtuelle maskine.
+
+Der er to almindlige typer virtuelle maskiner: stak-baserede og registerbaserede.
+Eksempler på stakbeserede maskiner er Java Virtual Machine og programmeringssproget Forth. Eksempler på registerbaserede maskiner er Dalvik-vm, Lua's mellemkode samt LLVM.
+Der er forskellige sammenligninger af virtuelle maskiner\cite{stackregister1,stackregister2}, og det overordnede billede er at registerbaserede maskiner kører noget hurtigere samtidigt med at koden fylder en lille smule mere, i forhold til stakbaserede maskiner. Dette skyldes at de enkelte instruktioner i en stakbaseret maskine fylde mindre, typisk 1-2 bytes, end i registerbaserede maskiner, typisk 2-4 bytes. Til gengæld er registerbaserede instruktionsset mere ekspressive, hvilket gør at der skal kodes/udføres færre instruktioner hvilke forøger hastighed og mindsker størrelsen, - dog udligner instruktions\-antals\-reduktionen instruktionernes ekstra pladsforbrug.
+
+\subsubsection{Metoder til udførsel af instruktioner}
+I forbindelse med udførslen af instruktionerne i den virtuelle maskine, er der forskellige måder man kan lave et dispatch baseret på instruktionen.
+
+\paragraph{}
+switch-statements oversættes til en hoptabeller, ved de fleste C og Java oversættere, og er derfor nogenlunde fornuftige at bruge i forbindelse med en fortolker. Dette gør også at implementationen ikke er afhængig at specifik C-oversætter, eller må kodes i assembler. Samtidigt er dette også langsommere end de andre metoder. Et typisk fortolker loop af denne ville være implementeret a la:
+\begin{verbatim}
+for(;;) {
+    switch(*(++ip)) {
+        case 0:
+	// implementation of instruction for opcode 0; break;
+        case 1:
+	// implementation of instruction for opcode 1; break;
+... ... ... ...
+    }
+}
+\end{verbatim}
+
+\paragraph{}
+Hoptabellen kan også gøres eksplicit på en portabel måde ved at lade være hver indgang være en pointer til en funktion der implementerer den pågældende instruktion. I noget pseudokode kunne det gøres a la:
+\begin{verbatim}
+function * opPtr = {FunctionForOp0, FunctionForOp1, FunctionForOp2, ...};
+...
+for(;;) {
+    opPtr[*(++ip)]();
+}
+\end{verbatim}
+Dette er dog almindeligvis langsommere end den switch-baserede implementation.
+
+\paragraph{}
+En metode, der blandt andet kendes fra forskellige forth-implementationer er at programmet er en sekvens af pointere til ``subrutiner'' der udføres, i stedet for at være en sekvens af ``almindelige'' instruktions-opcodes. Dette gør eksekveringen hurtigere på bekostning af nogle ekstra bits per opcode, e.g. i stedet for at branche til \verb|op[*ip]|, branches der blot til \verb|*ip|. Dette er oftest også kombineret med direct threading, beskrevet herunder.
+
+\paragraph{}
+En ulempe ved de ovenstående metoder på moderne maskinarkitekturer er at dispachet vil stortset umuligt for en branchpredictor at forudsige.
+
+En simpel måde at forsøge at gøre dette bedre på er ved at have nestede conditionals til dispatched i stedet for en hoptabel, - dette medfører dog en del ekstra kode, og er desuden oftest langsommere \cite{cond-dispatch}.
+
+\paragraph{}
+Direct threading er en metode at strukturere fortolkerne på, der både reducere antallet af hop, samt gør hoppene mere forudsigelige. Det kan dog hverken implementeres i standard C, eller overhovedet i java/jvm. Det er muligt at implementere det i GCC, da denne har udviddelser der gør at man kan tage anvende adressen af en label, - og det kan naturligvis også implementeres i de fleste maskinkoder. En implementation i noget c-lignende pseudokode kunne være:
+\begin{verbatim}
+code *opPtr = { labelOp0, labelOp1, labelOp2, ... };
+...
+labelOp0:
+    ... implementation af opcode 0 ...
+    goto opPtr[*ip++];
+labelOp1:
+    ... implementation af opcode 1 ...
+    goto opPtr[*ip++];
+...
+\end{verbatim}
+Årsagen til at dette er hurtigere er både at hoppet til toppen af dispatchet er fjernet,
+men særligt at det er mere venligt over for en branchpredictor, der nu måske kan forudsige i størrelsesorden halvdelen af hoppene, hvor det før var nærmest nul procent. Dette skyldes at hvis to opcodes hyppigt følger efter hinanden, så vil hoppet fra den første af de to opcodes kunne forudsiges til at gå til den anden, da der nu er et seperat hop med en adresse i hver instruktion, i stedet for blot en enkelt, hvor der slet ikke vil være noget at kunne forudsiges.
+
+
+
+
+
+\subsection{JIT-oversættelse}
+
+
+
+
+
+%
+%\input{intro/intro}
+%\input{survey/survey}
+%\input{language/language}
+%\input{vm/vm}
+%\input{code/code}
+
+
+\newpage
+\addcontentsline{toc}{chapter}{Bibliography}
+\bibliography{bibliography}
+\bibliographystyle{alpha}
+
+\appendix
+
+\newpage
+\addcontentsline{toc}{chapter}{Index}
+\printindex
+
+\end{document}
+

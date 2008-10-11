@@ -1,0 +1,28 @@
+\section{EcmaScript}
+
+EcmaScript is interesting, both as major platform as web browsers are becoming mobile, and also interesting regarding language design and implementation.
+EcmaScript is the standardised web language which is also called JavaScript or JScript, and also has the dialect ActionScript which are present in Flash and Flex, and it is also playing a role as an application embeddable language. 
+It was the first widely deployed main stream language that had first class functions, prototypical inheritance object model, and object notation.
+
+\subsection{Implementations from browsers}
+FIXME: needs research
+Mozilla hosts two JavaScript implementations: 
+TODO:seamonkey/tracing monkey, 
+TODO:tamarin - adobe vm
+TODO:...?..
+
+
+Webkit was until recently interpreting the code by walking through the syntax tree, e.g.: implemented via a C++ class, with a virtual method. 
+This has been replace with a virtual (TODO: lookup register or stack) machine, with techniques from \cite{TODO:ertl,and,more} using direct threading TODO:verify. 
+The AST-walk and direct threading has been comparable in speed to SeaMonkey and early versions of TracingMonkey correspondingly.
+
+The Chrome EcmaScript implementation is particularly interesting because it can infer and create classes from the objects. This is done by changing the type when a property is added, and by checking the type before a dispatch, which in many cases reduces a object-lookup to one or two machine instructions. Instead of an intepreter it has a simple JIT-compiler, for both x86 and ARM. This is probably the fastes EcmaScript implementation, only contended by TracingMonkey.
+
+TODO: The adobe vm
+
+\subsection{Other implementations}
+EcmaScript has also had some attention in the embedded/mobile field. Unfortunately most implementations there are properitary and closed source. 
+
+Mbedthis has two implementations, probably in C: TODO:Smallname is subset of the language which has only integers and does not support TODO:.... The code is evaluated as it is being parsed to save memory, and it is implemented as a TODO:???. 
+They also has another more heavyweight version which is 
+
