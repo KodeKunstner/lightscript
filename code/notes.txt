@@ -1,5 +1,34 @@
+Notes about vm
 
-nb: remove e, with apply instead, e.g:
+Basic types:
+- integers
+- pointers to blocks
+
+Block types:
+- data (bytes/integers)
+- metadata (bytes/integers connected to the following block)
+- pointers to other blocks
+- native data (no direct access)
+
+Block consists of 
+- header with length and type
+- the data/content
+
+
+
+
+------------------------------------------
+Notes about java lisp language
+
+NB: perhaps better scoping througth macros,
+NB: perhaps add macro system
+
+E.g.: at macro time each variable name is replaced with a pointer to a singleton keeping the actual data
+
+
+
+Yolan object are closures/delayed values
+
 
 [.. .. ..]  contained in closure in yolan.
 

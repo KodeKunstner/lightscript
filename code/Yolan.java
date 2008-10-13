@@ -37,18 +37,22 @@ final class Yolan {
 			// Expression list/function call
 			case 2: {
 				o = val(c, 0);
-				// if builtin function
 				if(o instanceof Yolan) {
 					Yolan yl = (Yolan) o;
+					// if builtin function
 					if(yl.fn == -1) {
 						this.fn = ((Integer)yl.c).intValue();
 						return e();
-					} else {
-						// ...
+					// userdefined function
+					} 
+					if(yl.fn == 10) {
+						args = (Object []) c;
+						return yl.e();
 					}
 				} else {
 					// ...
 				}
+				print(o);
 				System.out.println("Error, unexpected function type");
 				return e();
 			}
@@ -66,7 +70,51 @@ final class Yolan {
 			// "if"
 			case 8: return (val(c, 1) != null)? val(c, 2) : val(c, 3);
 			// "println"
-			case 9: o = val(c, 1); System.out.println(o); return o;
+			case 9: o = val(c, 1); print(o); System.out.println(); return o;
+			// userdefined function
+                        case 10: {
+                                Object [] X = (Object [])c;
+                                for(int i=1;i<X.length;i++) {
+                                        pushglobal(X[i], ((Yolan)args[i]).e());
+                                }
+                                Object result = ((Yolan)X[0]).e();
+                                popglobals(X.length - 1);
+                                return result;
+                        }
+			// lambda
+                        case 11: {
+                                Object [] lambda_expr = (Object [])c;
+				Object [] arguments = (Object[]) ((Yolan)lambda_expr[1]).c;
+
+				print(lambda_expr); System.out.println();
+                                Object [] function = new Object[arguments.length + 1];
+				function[0] = lambda_expr[2];
+				for(int i = 0; i < arguments.length; i++) {
+					function[i+1] = ((Yolan)arguments[i]).c;
+				}
+	
+                                return new Yolan(10, function);
+                        }
+			// "set!"
+			case 12: return globals.put(((Yolan)((Object [])c)[1]).c, val(c, 2));
+			// "do"
+			case 13: {
+				Object result = null;
+				int stmts = ((Object[])c).length;
+				for(int i = 1; i < stmts; i++) {
+					result = val(c, i);
+				}
+				return result;
+			}
+			// "while"
+			case 14: {
+				Object result = null;
+				while(val(c, 1) != null) {
+					result = val(c, 2);
+				}
+				return result;
+			}
+
 		}
 		return null;
 	}
@@ -90,6 +138,52 @@ final class Yolan {
 		return new Integer(i);
 	}
 
+	// print an object
+	private static void print(Object o) {
+		if(o instanceof Object[]) {
+			Object os[] = (Object[])o;
+			print("[");
+			for(int i = 0; i< os.length; i++) {
+				print(os[i]);
+				print(" ");
+			}
+			print("]");
+		} else if(o instanceof Yolan) {
+			Yolan yl = (Yolan)o;
+			print("Yolan" + yl.fn + "(");
+			print(yl.c);
+			print(")");
+		} else {
+			System.out.print(o);
+		}
+	}
+
+	////////////////////////////////////////
+	// Runtime support for user-function calls,
+	// and nested defines
+	////
+	private static Object args[];
+	private static Stack stack = new Stack();
+
+        void pushglobal(Object key, Object val) {
+                stack.push(key);
+                stack.push(globals.put(key, val));
+        }
+
+        void popglobals(int n) {
+                while(n > 0) {
+                        Object val = stack.pop();
+                        Object key = stack.pop();
+                        if(val == null) {
+                                globals.remove(key);
+                        } else {
+                                globals.put(key, val);
+                        }
+                        n--;
+                }
+        }
+
+
 	///////////////////////////////////////
 	// The static runtime
 	////
@@ -112,6 +206,10 @@ final class Yolan {
 		addBuiltin(7, "<");
 		addBuiltin(8, "if");
 		addBuiltin(9, "println");
+		addBuiltin(11, "lambda");
+		addBuiltin(12, "set!");
+		addBuiltin(13, "do");
+		addBuiltin(14, "while");
 		// ...
 	}
 
