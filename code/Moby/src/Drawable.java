@@ -3,10 +3,11 @@
  * and open the template in the editor.
  */
 
+import javax.microedition.lcdui.Graphics;
 /**
  *
  * @author voel
  */
-public class MobyScreen {
-
+public interface Drawable {
+    public void draw(Graphics g);
 }
