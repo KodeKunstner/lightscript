@@ -1,0 +1,5 @@
+[println "... hello from external file"]
+[set! x 0]
+[while [< x 100]
+    [println x] 
+    [set! x [+ x 1]]]

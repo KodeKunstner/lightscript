@@ -24,9 +24,8 @@ public class Main extends MIDlet {
         txt = new TextDisplay(0, 0, gui.getWidth(), gui.getHeight());
         gui.drawables = new Object[1];
         gui.drawables[0] = txt;
-        print("Hello again");
         try {
-            Yolan.eval(new ByteArrayInputStream("[println \"... hello from yolan\"]".getBytes()));
+            Yolan.eval(this.getClass().getResourceAsStream("main.yl"));
         } catch (IOException e) {
             throw new Error(e.toString());
         }
