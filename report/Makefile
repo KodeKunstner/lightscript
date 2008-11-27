@@ -1,4 +1,4 @@
-MAINFILE=report
+MAINFILE=thesis
 
 view: $(MAINFILE).pdf $(MAINFILE).tex
 	evince $(MAINFILE).pdf

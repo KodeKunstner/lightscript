@@ -1,0 +1,23 @@
+\chapter{Design}
+\section{Design goals}
+
+The goal is to make a scripting language that works both on modest mobile platforms as well as in web-based applications.
+The language should be easy to embed and customise, and it should support powerfull abstractions like closures and higher order functions.
+It should be possible to load new code at runtime, such that the language can also be used for scriptabel delivered content and configurations files.
+To elaborate these are the more concrete design goals:
+\begin{itemize}
+\item Functions/closures as first-class values
+\item Easy to embed and customise
+\item Loading of code from source at runtime
+\item An execution model compatible with EcmaScript, such that it can easily be compiled to run in a browser environment
+\item Usable on low end mobile devices. The minimal configuration would be a MIDP1/CLDC1.0 java enabled device with a jar-file limit is less than 64K. The jar-file contains the full application, where the scripting language is just a small part, so the size of the scripting language implementation should be even smaller
+\end{itemize}
+Especially the to last goals imposes a lot of constraints on the design.
+
+\section{Usage cases}
+
+\section{Syntax}
+The jar-file size limit imposes major constraints on the syntax: I did some experimental implementations that indicate that even a compact parser for an EcmaScript-like syntax would take in the magnitude of tens of kilobytes\footnote{Several prototypes were implemented, were the best result was through a space-optimised version of the Pratt-parser \cite{pratt, beautiful-code}. Parser generators usually use large tables, so these had to be handwritten}, which is too much, considering the jar-file limit. 
+The options would then be to precompile the source into an intermediate code or to have a syntax which is very simple to parse, of which the latter is choosen, as the first goes against the design goal of being able to load source code at runtime. 
+
+Two classes of languages known for minimalistic syntax are Lisp-like languages and Forth-like language. 

@@ -1,56 +1,4 @@
-\documentclass[12pt]{article} 
-\usepackage{a4} 
-\usepackage{makeidx}
-%\usepackage[danish]{babel} 
-\usepackage[utf8]{inputenc}
-\usepackage{textcomp}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{amsthm}
-\usepackage{graphicx} 
-\usepackage{verbatim} 
-\usepackage{fancyhdr}
-\usepackage{listings} 
-\usepackage[colorlinks,pagebackref]{hyperref}
-\usepackage{backref}
-\usepackage{url}
-\frenchspacing
-\makeindex
-\pagestyle{plain}
-\newcommand{\Oh}[0]{ \mathcal{O} }
-%\addtolength{\voffset}{-88pt}
-%\addtolength{\textheight}{93pt}
-
-\title{
-\emph{Document currently under development} \\ ~ \\
-Design and implementation of \\ 
-a scripting language \\ 
-targeted mobile devices}
-
-\author{
-  Rasmus Erik Voel Jensen\footnote{
-    sumsar@solsort.dk
-  }
-} 
-
-% Remember 
-%    \index terms
-%    update template as well as document when structural updates.
-\date{2008-2009}
-
-\begin{document}
-
-% some parts commented out, for draft printing. size reduced an smaller top/bottom.
-
-\maketitle
-%\begin{abstract}
-%\end{abstract}
-%
-%\setcounter{tocdepth}{3}
-\tableofcontents
-%\listoffigures
-%\nocite{sicp}
-
+\chapter{Skriverier}
 Sproglig note: teksten i denne udgave er skrevet på dansk, men anvender en del engelske fagtermer. 
 Det hele omskrives/oversættes til engelsk senere hen.
 
@@ -222,33 +170,33 @@ labelOp1:
 men særligt at det er mere venligt over for en branchpredictor, der nu måske kan forudsige i størrelsesorden halvdelen af hoppene, hvor det før var nærmest nul procent. Dette skyldes at hvis to opcodes hyppigt følger efter hinanden, så vil hoppet fra den første af de to opcodes kunne forudsiges til at gå til den anden, da der nu er et seperat hop med en adresse i hver instruktion, i stedet for blot en enkelt, hvor der slet ikke vil være noget at kunne forudsiges.
 
 
-
+\paragraph{}
+Dette kan igen gøres hurtigere ved at fjerne tabel-opslaget, som det er gjort i Dalvik-vm. 
+Tricket her er at implementationerne af opcode-instruktionerne fylder et fast antal bytes, $k$, der er en potens af to. Hvis implementationen af en instruktion er længere end $k$ bytes, kan de $k$ bytes være de første dele af implementation, efterfulgt af et hop til resten af implementation. Hvis implementationen er kortere indsættes der blot padding efter det afsluttende dispatch.
+Dette gør at dispatchet kan implementeres som \verb|goto labelOp0 + (*ip++)*|$k$ i stedet for \verb|goto opPtr[*ip++]|, hvor tabeltilgangen, der er dyr på grund af hukommelsestilgange bliver erstattet af en addition samt et shift.
+At koden for instruktionerne ligger på adresser der er potenser af to har også den sideeffekt at sjældent brugte funktioner kan ryge ud af instruktionscachen, hvilket kan give mere cache tilgængelig og dermed bedre hastighed - dog har eventuel padding den modsatte effekt.
 
 
 \subsection{JIT-oversættelse}
+... simpel oversættelse, hotspots, tracing, ...
 
+\section{Implementation af scriptingsprog i Java Micro Edition}
 
+Java Micro Edition har en del issues i som host-language for et scripting sprog.
 
+Dynamisk loading af klasser er ikke muligt.  
+Dette gør at man ikke jit-kompilere programmer, men kun udfører dem via en fortolker, - eller have oversat dem statisk. 
+I forbindelse med fortolkning, er der igen flere begrænsninger, i det man ikke kan arbejde direkte med label-adresser, men må implementerer dispatch via hop-tabeller a la switch statement.
 
+At der ikke er noget reflect-api gør desuden at man manuelt må lave ffi(foreign function interface) mellem scriptingsproget og java.
 
-%
-%\input{intro/intro}
-%\input{survey/survey}
-%\input{language/language}
-%\input{vm/vm}
-%\input{code/code}
+En generel begrænsning i Java Micro Edition er at nogle implementationer har strenge begrænsningen på størrelsen af komprimerede filer med programkode. Eksempelvis 63KB på det device jeg forøjeblikket udvikler på. 
+Java class filer har har deres constant tables i hver class fil, hvilke desværre vil sige at hvis man ønsker at spare plads er et væsentligt punkt at reducere antallet af klasser så meget som muligt. Desuden er komprimeringsteknikken i Java ARkiver formatat zip, hvilket gør at hver klasse komprimeres for sig, og derfor ikke har hinanden som kontekst, hvilket igen gør et lille antal klasser en meget væsentlig faktor for reduktion størrelsen af programmet.
 
+I java er der ikke ægte first-class functions, men disse må emuleres via klasser, hvilket genererer et væld af klasser hvis man anvender disse en del. Løsningen på dette er istedet at samle flere funktioner i et object, med en integer property der angiver funktionen og et switch-dispatch i apply-funktionen.
 
-\newpage
-\addcontentsline{toc}{chapter}{Bibliography}
-\bibliography{bibliography}
-\bibliographystyle{alpha}
+JVM har almindligst ganske begrænset programstakdybde og understøtter ikke halerekursion, hvilket gør at hvis man ønsker at understøtte meget rekursion, må man selv implementere en stak.
 
-\appendix
+Hoben i Java Micro Edition er fra et par hundrede kilobytes og opefter afhængigt af device.
 
-\newpage
-\addcontentsline{toc}{chapter}{Index}
-\printindex
-
-\end{document}
 

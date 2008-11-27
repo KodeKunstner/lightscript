@@ -1,0 +1,95 @@
+Syntax:
+
+Semantics:
+
+lists of lists|strings|integers
+
+"lists" are arrays - unlike lisp
+
+compilation through macro processor
+
+Functions
+
+
+Parser: maps an input stream/string to a tree data structure
+whitespace -> seperator
+( ) -> begin/end list
+0-9.* -> (number x)
+"..." -> (string x)
+blah -> blah 
+
+Compiler/macro system: 
+
+
+Macro-type: (ctx x tree -> tree)
+
+macros = new Hashtable
+
+applymacro(tree, ctx) {
+  if(tree.is_list()) {
+    macro = macros.get(tree[0]);
+    if(macro == null) {
+        macro = macros.get("default macro");
+    }
+    return macro.apply([tree, ctx])
+  } else {
+    String str = tree;
+    return resolve(ctx, str);
+  }
+}
+
+compile(tree) {
+    return applymacro(tree, new Hashtable);
+}
+
+defaultmacro(tree, ctx) {
+    (set-local fn-name (# 0 tree))
+    (set-nth 0 tree
+        (if (is-local ctx fn-name)
+            (fn-get-local ctx fn-name)
+            (fn-lazy-resolve fn-name)))
+    (map-from 1 applymacro tree)
+    return tree
+}
+
+
+fncall:
+   [fn-expr arg-expr1 arg-expr2 ... ]
+  apply:
+      (set-local fn (eval (# 0 fncall)))
+      (set-local closure (new-array (# 0 fn)))
+      (for 
+          (set-local i 1)
+	  (< i (length fncall))
+	  (inc i)
+	  (set-nth i closure (eval (# i fncall))))
+      (set-nth 0 closure (get-current-closure))
+      (set-current-closure closure)
+      (eval (# 1 fn))
+      (set-current-closure (# 0 get-current-closure))
+
+fn:
+    [closure-size executable-expression]
+
+
+stackframes/closures are stored on the heap and GC'ed
+
+
+
+
+
+
+ 
+
+
+
+text -> tree structure -> lambda expression
+
+
+
+!!!  Functions:
+
+hash/object
+
+new-lambda
+
