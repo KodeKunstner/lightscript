@@ -9,6 +9,7 @@ To elaborate these are the more concrete design goals:
 \item Functions/closures as first-class values
 \item Easy to embed and customise
 \item Loading of code from source at runtime
+\item Easy to learn, possibly for non-programmers
 \item An execution model compatible with EcmaScript, such that it can easily be compiled to run in a browser environment
 \item Usable on low end mobile devices. The minimal configuration would be a MIDP1/CLDC1.0 java enabled device with a jar-file limit is less than 64K. The jar-file contains the full application, where the scripting language is just a small part, so the size of the scripting language implementation should be even smaller
 \end{itemize}
@@ -20,4 +21,110 @@ Especially the to last goals imposes a lot of constraints on the design.
 The jar-file size limit imposes major constraints on the syntax: I did some experimental implementations that indicate that even a compact parser for an EcmaScript-like syntax would take in the magnitude of tens of kilobytes\footnote{Several prototypes were implemented, were the best result was through a space-optimised version of the Pratt-parser \cite{pratt, beautiful-code}. Parser generators usually use large tables, so these had to be handwritten}, which is too much, considering the jar-file limit. 
 The options would then be to precompile the source into an intermediate code or to have a syntax which is very simple to parse, of which the latter is choosen, as the first goes against the design goal of being able to load source code at runtime. 
 
-Two classes of languages known for minimalistic syntax are Lisp-like languages and Forth-like language. 
+Some of the simplest syntaxes are those of Forth and Lisp-like language: Forth is essentially whitespace seperated words that are executed onto two stacks as they are read, whereas Lisp has almost explicitly written syntax tree that runs as a more common functional/imperative machine.
+The Forth syntax matches a double stack machine and does not fit the EcmaScript exection model well, whereas the Lisp syntax is simpler to match with EcmaScript-like semantics. 
+In addition the Forth syntax is often deemed difficult to work with, due to that the programmer needs to be innate aware of the execution stack, which is in stark opposition to Lisp where a lot of work has been done towards making it easy to teach to beginners, especially through the teachscheme project\cite{teachscheme}.
+So a Lisp-like syntax is choosen to reduce the code footprint of the parser.
+
+An alternative approach to a small footprint parser would be to follow the road of Smalltalk,
+but that would still be more complex/larger than the Lisp-like approach.
+Also the semantics has more focus on abstraction via a functions rather than objects, which makes Lisp-like syntax more natural than Smalltalk-like syntax. 
+Focus on functions rather than objects for abstraction is partly to match some aspects of EcmaScript where for example function closures are used for information hiding as private properties does not exists (in ECMA-262)\cite{javascriptoop}. 
+
+While the syntax is inspired from lisp,
+there is a major difference, as the sequence type
+in the EcmaScript machine model is very different from cons-cells.
+So instead of lisp-lists, the syntax is represented
+as a tree of arrays, so a lisp-like expression
+\verb|(foo bar (baz quux))|
+would match the EcmaScript data type of \verb|["foo", "bar", ["baz", "quux"]]|.
+So the main structuring element is arrays rather then linked lists.
+This also means that "." for cons does not make sense in the syntax.
+To make the parser even smaller, it has less syntactic sugar than contemporary lisp-dialects, and most is delegated out into the macro system, as demonstrated later.
+
+
+
+Lists are delimited by parenthesises and elements are white space seperated.
+Whitespaces are space, tab, newline, and form-feed (``\verb| \t\n\r|'' as c-like escapes).
+Numbers are written in decimal notation \verb|[0-9]*|.
+Strings are enclosed in quotes ``\verb|"|'' and backslash ``\verb|\|'' is used for escape mechanism. Unicode characters in the range 0 to 255 can be escaped with an octal code as \verb|\[0-7][0-7][0-7]|. Quotes and backslash can be escaped as \verb|\"| and \verb|\\| respectively. 
+Symbols and names can contain any characters except escape codes (ascii $<$ 32), space, !, ", \#, \$, \%, ', (, and ) which is either reserved or has other uses, and the may not start with a number. 
+Comments starts with a semicolon ``\verb|;|'' and continues to the end of line or another escape symbol (ascii $<$ 32). Comments are only allowed after white spaces or parenthesises.
+End of file closes all open parenthesis.
+
+The intermediate format of the parse tree also needs to be specified, as the macro system which is a part of the language works directly on it. 
+The parse tree consists only of arrays and strings. String literals and numbers are represented as lists containing a "string" or "number" identifier and the literal itself, e.g.: ``\verb|(print "Hello " (+ 3 6))|'' is parsed into ``\verb|["print", ["string",| \verb|"Hello "],| \verb|["+", ["number", "3"], ["number", "6"]]]|'', and the macro system takes care of transforming the numbers into numeral values, giving more flexibility to the developer.
+
+Detailed pseudocode for a full compact non-error-detecting\footnote{There is tradeoff between size and error-detection.} parser implementation is shown at figure~\ref{parsercode}. With minor changes this can be translated directly into C, Java and EcmaScript.
+\begin{figure}
+{\scriptsize
+\begin{verbatim}
+// Function that builds a syntax tree 
+// from reading a sequence of characters
+array parse() {
+  // getchar returns next character or -1 on EOF
+  int character = getchar(); 
+
+  array result = [];
+  while(true) {
+    String str = "";
+
+    // End of list/stream
+    if(character == EndOfFile || character == ')') {
+      return result;
+
+    // Comment
+    } else if(character == ';') {
+        do {
+	  character = getchar();
+	} while(character >= ' ');
+
+    // List
+    } else if(character == '(') {
+        result.append(parse());
+        character = getchar();
+
+    // String
+    } else if(character == '"') {
+      character = getchar();
+      while(character != '"' && character != EndOfFile) {
+          if(character == '\\') {
+              character = getchar();
+              if('0' <= character && character <= '7') {
+                  character = character * 64 + getchar() * 8 + getchar();
+                  character -= '0' * 64 + '0' * 8 + '0';
+              }
+          }
+          str.append(character);
+          character = getchar();
+      }
+      character = getchar();
+      result.append(["string", str]);
+
+    // Number
+    } else if('0' <= character && character <= '9') {
+      do {
+        str.append(character);
+        character = getchar();
+      } while('0' <= character);
+      result.append(["number", str]);
+
+    // Symbol or name
+    } else if(character >= '*') {
+      do {
+        str.append(character);
+        character = getchar();
+      } while(character >= '*');
+      result.append(str);
+
+    // Whitespace
+    } else {
+      character = getchar();
+    }
+  }
+}
+\end{verbatim}
+}
+\caption{Detailed pseudocode for a compact parser without error detection}
+\label{parsercode}
+\end{figure}
