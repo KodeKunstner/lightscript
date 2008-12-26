@@ -1,0 +1,75 @@
+Status report and change of direction.
+
+Hi Julia,
+
+I am currently reconsidering the entire project, as the work is leading
+towards another direction that the project proposal.
+
+Instead of EcmaScript, I am going back towards the idea of a language
+with lisp-like syntax.  The motivation here is twofold: it will reduce
+the code footprint significantly on the device while still supporting
+on-device execution of source code, and it will also make it easier to
+intergrate the language into the DrScheme programming environment later
+on, which will make it easier for beginners to learn the language. The
+importance of footprint is examplified by the development devices which
+can load 63KB program code, where prototypes indicate that a small
+subset of EcmaScript would use about 30KB, whereas a similar language
+with lisp-like syntax could be done in 5KB.
+
+Instead of starting on multiple platforms at the same time, I will
+focus on creating a polished version on a single platform first (with
+portability in mind), and then port it to other platforms afterwards.
+It turns out that most programmable mobile devices runs Java Micro
+Edition CLDC1/MIDP1 though that gives some limitations.
+
+Instead of focusing on the programming language theory, I will focus on
+the practical aspects of making the scripting language a usable tool,
+and also make applications that demonstrates its use and benefits.
+
+In addition I am also making some libraries for mobile devices
+in conjunction with the scripting language to make it more
+usable/practical. So the project will probably end up both with scripting
+language and also other libraries utilising this for making mobile
+applications.
+
+So as it is diverging quite a bit from the project proposal, and I
+therefore do not know if it possible to do it as this master thesis. 
+Well, I am continuing in this direction and making this language anyhow.
+
+
+
+Status report on what have been done:
+
+* A simple prototype of scripting language with first class functions
+and lisp-like syntax targeted mobile devices is up and running, that is
+what I am currently working on and improving.
+
+* Several experimental prototypes of compilers/translators of a EcmaScript
+subset to a virtual machine, to a forth-like language and to a lisp-like
+language, - most of those are unfinished as I worked on them until I
+gained the insight I wanted from them.
+
+* Prototypes of forth, lisp and bytecode virtual machines on top of Java
+Micro Edition (which is the most limited of the target platforms)
+
+* Reading up on virtual machines, including generational garbage
+collection, different approache to make the dispatch faster if
+interpreted, and a bit on JIT-compilation with tracing etc.
+
+* Looked into the details of EcmaScript and Java Micro Edition / JVM
+
+* Learned a bit of Forth and how it is implemented, as that is also
+quite relevant with the implementation of the vm.
+
+* Collected, read and skimmed, various articles and books related to
+the topic, - approx. 200.
+
+* Experiments with with the platforms - development environments for
+J2ME and also for a mobile linux distribution is up and running, and
+small applications has been written in both.
+
+* Drafted some parts of the report, - none of it is worth reading yet, 
+as it needs to be significantly revised and it is thus not attached.
+
+
+    Rasmus
