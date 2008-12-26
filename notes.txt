@@ -1,3 +1,18 @@
+language design:
+
+types:
+	any (string, function)
+	integer
+	stack
+	hashtable
+	ilist
+
+function:
+	char[] code
+
+
+
+------
 garbage collection:
 
 Generational copy-collector+compacting mark and sweep,

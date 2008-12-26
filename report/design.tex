@@ -15,7 +15,7 @@ To elaborate these are the more concrete design goals:
 \end{itemize}
 Especially the to last goals imposes a lot of constraints on the design.
 
-\section{Usage cases}
+%\section{Usage cases}
 
 \section{Syntax}
 The jar-file size limit imposes major constraints on the syntax: I did some experimental implementations that indicate that even a compact parser for an EcmaScript-like syntax would take in the magnitude of tens of kilobytes\footnote{Several prototypes were implemented, were the best result was through a space-optimised version of the Pratt-parser \cite{pratt, beautiful-code}. Parser generators usually use large tables, so these had to be handwritten}, which is too much, considering the jar-file limit. 
@@ -42,8 +42,6 @@ So the main structuring element is arrays rather then linked lists.
 This also means that "." for cons does not make sense in the syntax.
 To make the parser even smaller, it has less syntactic sugar than contemporary lisp-dialects, and most is delegated out into the macro system, as demonstrated later.
 
-
-
 Lists are delimited by parenthesises and elements are white space seperated.
 Whitespaces are space, tab, newline, and form-feed (``\verb| \t\n\r|'' as c-like escapes).
 Numbers are written in decimal notation \verb|[0-9]*|.
@@ -51,6 +49,8 @@ Strings are enclosed in quotes ``\verb|"|'' and backslash ``\verb|\|'' is used f
 Symbols and names can contain any characters except escape codes (ascii $<$ 32), space, !, ", \#, \$, \%, ', (, and ) which is either reserved or has other uses, and the may not start with a number. 
 Comments starts with a semicolon ``\verb|;|'' and continues to the end of line or another escape symbol (ascii $<$ 32). Comments are only allowed after white spaces or parenthesises.
 End of file closes all open parenthesis.
+
+The choice of symbols in the different kinds of tokens is also influenced by what will simplify the tokenisation, and in some cases allow omission of checking assuming that the program is well formed.
 
 The intermediate format of the parse tree also needs to be specified, as the macro system which is a part of the language works directly on it. 
 The parse tree consists only of arrays and strings. String literals and numbers are represented as lists containing a "string" or "number" identifier and the literal itself, e.g.: ``\verb|(print "Hello " (+ 3 6))|'' is parsed into ``\verb|["print", ["string",| \verb|"Hello "],| \verb|["+", ["number", "3"], ["number", "6"]]]|'', and the macro system takes care of transforming the numbers into numeral values, giving more flexibility to the developer.
@@ -128,3 +128,46 @@ array parse() {
 \caption{Detailed pseudocode for a compact parser without error detection}
 \label{parsercode}
 \end{figure}
+
+\section{Compiler}
+
+The execution model depends on the platform: on top of EcmaScript the code is translated into into an EcmaScript-program which is then evaluated, on low end java mobile devices it is executed through simple intepretation, and on a directly programmable device it can either be executed on a highly optimised interpreter or be JIT compiled.
+
+An approach to make the implementation compact is only to implement few basic control structures and abstractions, and to that add a system for extending the language -- that is making the compiler an explicit and extendable part of the language.
+
+The compiler contains a visitor function that traverse the syntax tree, and accumulate that which will become the executable code. It is by customising this visitor that the language can be extended. 
+Instead having the developer rewrite the visitor function, then the visitor function just works as a dispatch where the developer can hook in new functionality.
+The result is something akin to a simple non-hygeinic macro system. 
+
+The system thus consists three parts: a visitor dispatch that finds the right visitor function based on the code, a set of visitor functions that takes a node in the syntax tree and appends the corresponding code to an accumulator/context-variable and finally an evaluator that executes the accumulated code.
+
+As the syntax tree is written in the usual lisp for as a list where the first element is the operator name, the dispatch just need to lookup the operator name in a table of visitor functions and execute it, -- or alternatively call a default visitor function. The default visitor functions corresponds to an usual function-lookup/-call.
+Pseudocode for the dispatch function can be seen in figure~\ref{visitor-dispatch}.
+
+
+\begin{figure}
+{\scriptsize
+\begin{verbatim}
+// collection of visitor functions
+hashtable<string, function> macros;
+
+CodeAccumulator visitorDispatch(CodeAccumulator acc, array node) {
+    // handle empty lists
+    if(length(node) == 0) {
+        return nil;
+    }
+
+    // dispatch 
+    macro = macros[node[0]];
+    if(macro is not a function) {
+        macro = macros["default-visitor-function"];
+    }
+    return macro(acc, node);
+}
+\end{verbatim}
+}
+\caption{Pseudocode for visitor dispatch}
+\label{visitor-dispatch}
+\end{figure}
+
+Each visitor function is itself responsible for calling the dispatch function on the subtree, as this also allows quoting, optional compilation to be implemented as visitor functions
