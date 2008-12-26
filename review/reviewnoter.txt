@@ -1,0 +1,75 @@
+Hi Julia,
+
+This is the first time I make such a review,
+so I am not quite sure about the order etc.
+
+
+The review itself:
+
+
+The paper is not ground breaking, but I do think it is
+worthwhile, sound, and also quite interesting
+to read, so I would definitely recommend it.
+
+It describes a Smalltalk implementation
+on the Lego-NXT embedded platform.
+There already exists other compact Smalltalk implementations,
+but this adds something new by opening more up towards
+end-user programming via the integration with Squeak.
+
+
+
+Some questions and suggestions:
+
+With regard to the bytecode interpreter, it
+could have been elaborated a bit how it is implemented,
+- is it token threaded, or a switch-statement or some
+more complex decoding exploiting the packed representation?
+
+Java seems to be mentioned as a dynamic language, (page 1 and 10)
+- dynamic in which sense?
+
+Regarding the evaluation, it would have been interesting
+to see how it compares to other systems, for example:
+microbenchmarks vs. other languages on the NXT (pbLua etc.),
+space usage of bytecodes, vs. intermediate code representation
+in other smalltalk systems.
+Another measure could be how many cycles per executed bytecode.
+Instead I think that there might be a bit to much focus on the effects of compilerflags (thumb&optim).
+
+Perhaps also mention why a stack based virtual machine is used rather than a register based one.
+
+I think section 3.2.* could be elaborated whereas section 3.1.* might be a bit to detailed.
+
+
+
+Microbenchmarks with other high-level languages on nxt would be nice, e.g. microbenchmarks vs. pblua or similar.
+Comparison vs oovm would also be good, and a bit of elaboration on differences.
+
+Arm-thumb-optim does not seem particular relevant.
+
+sounds like focus is on end-user programming
+clock-cycles-per-dispatch
+
+use of flash, ..., not obvious at first read through, - limited number of writecycles.
+Not ground breaking,
+p.1, col 2, top: java & android dynamic languages?
+
+
+----------------------
+I will review the paper as well, so from you I would only be interested in
+your assessment of eg the originality, feasibility, etc of the approach.
+I would need the review by the end of the month.
+
+
+---------------------
+Cover letter
+Summary
+general comments
+- technical
+- writing & presentation
+ocnstructive critique
+typos &c.
+
+-------
+correctness, significantiance, innovation, interest, timeliness, succintness, accessability,eleganvem readability, style, polish

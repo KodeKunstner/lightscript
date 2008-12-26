@@ -1,0 +1,74 @@
+\documentclass{article} 
+\title{Review - NXTalk article}
+\begin{document}
+\maketitle
+
+\section*{Overall impression}
+The paper is not ground breaking, but I do think it is
+worthwhile, sound, and also quite interesting
+to read, so I would definitely recommend it.
+
+There already exists other compact Smalltalk implementations,
+but this adds something new by opening more up towards
+end-user programming via the integration with Squeak.
+
+\section*{Summary}
+The paper describes NXTalk which is a Smalltalk implementation targeting the Lego-NXT embedded platform.
+
+It starts with background the project, including a nice introduction to the Lego NXT brick.
+
+Next it describes the NXTalk virtual machine in great details.
+Focus is on low memory usage rather than execution speed.
+Memory usage is reduced by using 16 bit per ``word'' which is either an 15 bit signed integer or a 15 bit id into an object table. 
+The object table then contains packed pointers to objects and meta data such as reference count.
+Memory allocation is best fit with a linear time search when allocating/deallocating large objects.
+Garbage collection is done with a combination of reference counting and mark-and-compact.
+Method lookup is first tried on reciever object, then in a hash'ed cache and if not found there, then af full superclass lookup is done.
+Execution is done via a bytecode stack machine. 
+All opcodes are 1 byte long, and includes jump lengths and literal indices which limits the number of literals, instance variables etc. 
+Threading is a part of the virtual machine and is using preemptive green threads.
+
+Then there is a short description of the NXTalk programming environment, which is integrated with squak, but using seperate libraries, and has a packager for transfering the applications onto the NXT.
+It is also possible to simulate NXTalk within squeak.
+
+The next is an evaluation of the vm, where the system uses 33KB flash and 7-9KB ram. Some experiments with compiler flags are also documented. A full GC cycle takes about 60ms, and it seems like the performance is approximately 1000 bytecodes per 270 ms.
+
+A survey of similar projects then follows. - it focusses both on other languages on the NXT and on other compact Smalltalk implementations. 
+
+Finally there are some suggestions towards future works. 
+Especially it sounds like this is the first steps towards more a beginner friendly robotic programming, through future integration with etoys.
+
+\section*{Questions and suggestions}
+Some questions and suggestions:
+
+\begin{itemize}
+\item
+With regard to the bytecode interpreter, it
+could have been elaborated a bit how it is implemented,
+- is it token threaded, or a switch-statement or some
+more complex decoding exploiting the packed representation?
+\item
+Java seems to be mentioned as a dynamic language, (page 1 and 10)
+- dynamic in which sense?
+\item
+Regarding the evaluation, it would have been interesting
+to see how it compares to other systems, for example:
+microbenchmarks vs. other languages on the NXT (pbLua etc.),
+space usage of bytecodes, vs. intermediate code representation
+in other smalltalk systems.
+Another measure could be how many cycles per executed bytecode.
+Instead I think that there might be a bit too much focus on the effects of compiler flags (e.g. effects of thumb-instructions and optimisations), which might be omitted.
+\item
+Perhaps also mention why a stack based virtual machine is used rather than a register based one.
+\item
+I think section 3.2.* could be elaborated whereas section 3.1.* might be a bit to detailed.
+\item
+Figure 6 is not obvious to read
+\item
+It would be nice with sections summarizing the exact differences between NXTalk and smalltalk, e.g.: other standard library(?), limited numbers of instance variables and literals, etc.
+\item
+Under future works, it seems like this is the first step towards integrating robotic programming with existing a beginner-friendly smalltalk programming environment. If this is the case, it would probably be nice to have more emphasis on that earlier in the report so the direction/motivation is more clear.
+\end{itemize}
+
+\end{document}
+
