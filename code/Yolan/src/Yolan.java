@@ -1,5 +1,6 @@
-import java.io.*;
-import java.util.*;
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.Stack;
 
 final class Yolan {
 
@@ -46,7 +47,7 @@ final class Yolan {
     }
     
     // Eval function
-    public Object e() {
+    public Object value() {
         //GUI.println("e() fn: " + fn);
         switch (fn) {
             // builtin function dummy
@@ -60,7 +61,7 @@ final class Yolan {
             case 1: {
                 fn = 16;
                 c = new Integer(getVarId(c));
-                return e();
+                return value();
             }
 
             // Expression list/function call
@@ -72,7 +73,14 @@ final class Yolan {
                     // builtin function
                     if (yl.fn == -1) {
                         this.fn = ((Integer) yl.c).intValue();
-                        return e();    
+                        return value();    
+                    
+                    // native function implementing Function-interface;
+                    } else if (yl.fn == -2) {
+                        this.fn = 18;
+                        Object args[] = (Object[])c;
+                        args[0] = yl.c;
+                        return value();
                     
                     // user defined function
                     } else if (yl.fn == 10) {
@@ -81,7 +89,7 @@ final class Yolan {
                         
                         // evaluate arguments and push to stack
                         for(int i = 1; i < args.length; i++) {
-                            stack.push(((Yolan)args[i]).e());
+                            stack.push(((Yolan)args[i]).value());
                         }
                         
                         // swap argument values on stack with local values
@@ -95,7 +103,7 @@ final class Yolan {
                         }
                         
                         // evaluate the result
-                        Object result = ((Yolan)function[0]).e();
+                        Object result = ((Yolan)function[0]).value();
                         
                         // restore previous values
                         for(int i = args.length - 1; i > 0; i--) {
@@ -107,8 +115,7 @@ final class Yolan {
                 } else {
                     // ...
                 }
-                print("Error, unexpected function type:" + o + "\n");
-                return e();
+                throw new Error("Unexpected list type");
             }
 
             // "+"
@@ -135,14 +142,11 @@ final class Yolan {
             case 8:
                 return (val(c, 1) != null) ? val(c, 2) : val(c, 3);
 
-            // "println"
+            // to-string
             case 9: {
-                Object o = val(c, 1);
-                print(o);
-                print("\n");
-                return o;
+                return to_string(new StringBuffer(), val(c, 1)).toString();
             }
-
+              
             // userdefined function
             // case 10: 
                 // dummy - not called, but see case 2.
@@ -168,7 +172,7 @@ final class Yolan {
                 Object t[] = (Object[]) c;
                 t[1] = new Integer(getVarId(((Yolan) t[1]).c));
                 fn = 17;
-                return e();
+                return value();
             }
 
             // "do"
@@ -202,13 +206,24 @@ final class Yolan {
                 int id = ((Integer) c).intValue();
                 Object x = vars[id];
 
-                return vars[((Integer) c).intValue()];
+                return x;
             }
 
             // Set value
             case 17: {
-                vars[((Integer) ((Object[]) c)[1]).intValue()] = val(c, 2);
-                return null;
+                Object o = val(c, 2);
+                vars[((Integer) ((Object[]) c)[1]).intValue()] = o;
+                return o;
+            }
+            // Native Function
+            case 18: {
+                Object objs[] = (Object[]) c;
+                Object args[] = new Object[objs.length - 1];
+                for (int i = 0; i < args.length; i++) {
+                    args[i] = ((Yolan) objs[i + 1]).value();
+                }
+                return ((Function)objs[0]).apply(args);
+
             }
             // 
             default: {
@@ -225,12 +240,12 @@ final class Yolan {
 
     // Evaluate yolan list closure into an integer
     private static int ival(Object c, int i) {
-        return ((Integer) ((Yolan) ((Object[]) c)[i]).e()).intValue();
+        return ((Integer) ((Yolan) ((Object[]) c)[i]).value()).intValue();
     }
 
     // Evaluate yolan list closure into an object
     private static Object val(Object c, int i) {
-        return ((Yolan) ((Object[]) c)[i]).e();
+        return ((Yolan) ((Object[]) c)[i]).value();
     }
 
     // Shorthand conversion from integer to object
@@ -239,23 +254,28 @@ final class Yolan {
     }
 
     // print an object
-    private static void print(Object o) {
-        if (o instanceof Object[]) {
+    private static StringBuffer to_string(StringBuffer sb, Object o) {
+        if(o instanceof Object[]) {
             Object os[] = (Object[]) o;
-            print("[");
-            for (int i = 0; i < os.length; i++) {
-                print(os[i]);
-                print(" ");
+            sb.append("[ ");
+            for(int i = 0;i<os.length;i++) {
+                to_string(sb, os[i]);
+                sb.append(" ");
             }
-            print("]");
+            sb.append("]");
         } else if (o instanceof Yolan) {
             Yolan yl = (Yolan) o;
-            print("Yolan" + yl.fn + "(");
-            print(yl.c);
-            print(")");
+            sb.append("Yolan" + yl.fn + "(");
+            to_string(sb, yl.c);
+            sb.append(")");
         } else {
-            Main.print(o.toString());
+            sb.append(o.toString());
         }
+        return sb;
+    }
+    
+    public String toString() {
+        return to_string(new StringBuffer(), this).toString();
     }
 
     // Register a builtin function
@@ -263,6 +283,12 @@ final class Yolan {
         int id = getVarId(name);
         vars[id] = new Yolan(-1, new Integer(val));
 
+    }
+    
+    // Register a foreign native function
+    public static void addFunction(String name, Function f) {
+        int id = getVarId(name);
+        vars[id] = new Yolan(-2, f);
     }
 
     // Constructor for runtime
@@ -273,7 +299,7 @@ final class Yolan {
         addBuiltin(6, "/");
         addBuiltin(7, "<");
         addBuiltin(8, "if");
-        addBuiltin(9, "println");
+        addBuiltin(9, "to-string");
         addBuiltin(11, "lambda");
         addBuiltin(12, "set!");
         addBuiltin(13, "do");
@@ -353,7 +379,7 @@ final class Yolan {
         Object result = null;
         //print(exprs);
         for (int i = 0; i < exprs.length; i++) {
-            result = ((Yolan) exprs[i]).e();
+            result = ((Yolan) exprs[i]).value();
         }
         return result;
     }
