@@ -14,6 +14,7 @@ public class Main extends MIDlet {
     static GUI gui;
     static TextDisplay txt;
     public static void print(String s) {
+        System.err.print(s);
         txt.println(s);
         gui.repaint();
     }

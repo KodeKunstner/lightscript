@@ -1,4 +1,3 @@
-
 import java.io.*;
 import java.util.*;
 
@@ -21,9 +20,33 @@ final class Yolan {
         this.c = c;
     }
 
+    // vars
+    private static Object vars[] = new Object[0];
+    private static Stack stack = new Stack();
+    
+
+    private static int getVarId(Object key) {
+        int i = 0;
+        while (i < vars.length && !vars[i].equals(key)) {
+            i += 2;
+        }
+
+        if (i == vars.length) {
+            Object objs[] = new Object[i + 2];
+            System.arraycopy(vars, 0, objs, 0, vars.length);
+            vars = objs;
+            vars[i] = key;
+        }
+        return i + 1;
+    }
+
+    private static void setVar(Object key, Object val) {
+        int id = getVarId(key);
+        vars[id] = val;
+    }
+    
     // Eval function
     public Object e() {
-        Object o;
         //GUI.println("e() fn: " + fn);
         switch (fn) {
             // builtin function dummy
@@ -34,23 +57,52 @@ final class Yolan {
                 return c;
 
             // Id 
-            case 1:
-                return globals.get(c);
+            case 1: {
+                fn = 16;
+                c = new Integer(getVarId(c));
+                return e();
+            }
 
             // Expression list/function call
             case 2: {
-                o = val(c, 0);
+                Object o = val(c, 0);
                 if (o instanceof Yolan) {
                     Yolan yl = (Yolan) o;
-                    // if builtin function
+                    
+                    // builtin function
                     if (yl.fn == -1) {
                         this.fn = ((Integer) yl.c).intValue();
-                        return e();
-                    // userdefined function
-                    }
-                    if (yl.fn == 10) {
-                        args = (Object[]) c;
-                        return yl.e();
+                        return e();    
+                    
+                    // user defined function
+                    } else if (yl.fn == 10) {
+                        Object args[] = (Object[]) c;
+                        Object function[] = (Object []) yl.c;
+                        
+                        // evaluate arguments and push to stack
+                        for(int i = 1; i < args.length; i++) {
+                            stack.push(((Yolan)args[i]).e());
+                        }
+                        
+                        // swap argument values on stack with local values
+                        int spos = stack.size();
+                        for(int i = 1; i < args.length; i++) {
+                            int pos = ((Integer)function[function.length - i]).intValue();
+                            spos--;
+                            Object t = stack.elementAt(spos);
+                            stack.setElementAt(vars[pos], spos);
+                            vars[pos] = t;
+                        }
+                        
+                        // evaluate the result
+                        Object result = ((Yolan)function[0]).e();
+                        
+                        // restore previous values
+                        for(int i = args.length - 1; i > 0; i--) {
+                            vars[((Integer)function[i]).intValue()] = stack.pop();
+                        }
+                        
+                        return result;
                     }
                 } else {
                     // ...
@@ -62,45 +114,40 @@ final class Yolan {
             // "+"
             case 3:
                 return num(ival(c, 1) + ival(c, 2));
-                
+
             // "-"
             case 4:
                 return num(ival(c, 1) - ival(c, 2));
-                
+
             // "*"
             case 5:
                 return num(ival(c, 1) * ival(c, 2));
-                
+
             // "/"
             case 6:
                 return num(ival(c, 1) / ival(c, 2));
-                
+
             // "<"
             case 7:
                 return ival(c, 1) < ival(c, 2) ? c : null;
-            
+
             // "if"
             case 8:
                 return (val(c, 1) != null) ? val(c, 2) : val(c, 3);
-                
+
             // "println"
-            case 9:
-                o = val(c, 1);
+            case 9: {
+                Object o = val(c, 1);
                 print(o);
                 print("\n");
                 return o;
-                
-            // userdefined function
-            case 10: {
-                Object[] X = (Object[]) c;
-                for (int i = 1; i < X.length; i++) {
-                    pushglobal(X[i], ((Yolan) args[i]).e());
-                }
-                Object result = ((Yolan) X[0]).e();
-                popglobals(X.length - 1);
-                return result;
             }
+
+            // userdefined function
+            // case 10: 
+                // dummy - not called, but see case 2.
             
+
             // lambda
             case 11: {
                 Object[] lambda_expr = (Object[]) c;
@@ -110,16 +157,20 @@ final class Yolan {
                 Object[] function = new Object[arguments.length + 1];
                 function[0] = lambda_expr[2];
                 for (int i = 0; i < arguments.length; i++) {
-                    function[i + 1] = ((Yolan) arguments[i]).c;
+                    function[i + 1] = num(getVarId(((Yolan) arguments[i]).c));
                 }
 
                 return new Yolan(10, function);
             }
-            
+
             // "set!"
-            case 12:
-                return globals.put(((Yolan) ((Object[]) c)[1]).c, val(c, 2));
-                
+            case 12: {
+                Object t[] = (Object[]) c;
+                t[1] = new Integer(getVarId(((Yolan) t[1]).c));
+                fn = 17;
+                return e();
+            }
+
             // "do"
             case 13: {
                 Object result = null;
@@ -129,26 +180,47 @@ final class Yolan {
                 }
                 return result;
             }
-            
+
             // "while"
             case 14: {
                 Object result = null;
                 int stmts = ((Object[]) c).length;
                 while (val(c, 1) != null) {
-                    for(int i = 2; i < stmts; i++) {
+                    for (int i = 2; i < stmts; i++) {
                         result = val(c, i);
                     }
                 }
                 return result;
             }
-            
+
             // key-down-handler
             case 15: {
                 return Main.gui.keydown[ival(c, 1)] = (Yolan) val(c, 2);
             }
 
+            // Get value
+            case 16: {
+                int id = ((Integer) c).intValue();
+                Object x = vars[id];
+
+                return vars[((Integer) c).intValue()];
+            }
+
+            // Set value
+            case 17: {
+                vars[((Integer) ((Object[]) c)[1]).intValue()] = val(c, 2);
+                return null;
+            }
+            // "<="
+            case 18:
+                return ival(c, 1) <= ival(c, 2) ? c : null;
+            // 
+            default: {
+                throw new Error("Unexpected case "+fn);
+                
+            }
+
         }
-        return null;
     }
 
     ////////////////////////////////////
@@ -190,41 +262,10 @@ final class Yolan {
         }
     }
 
-    ////////////////////////////////////////
-    // Runtime support for user-function calls,
-    // and nested defines
-    ////
-    private static Object args[];
-    private static Stack stack = new Stack();
-
-    void pushglobal(Object key, Object val) {
-        stack.push(key);
-        stack.push(globals.put(key, val));
-    }
-
-    void popglobals(int n) {
-        while (n > 0) {
-            Object val = stack.pop();
-            Object key = stack.pop();
-            if (val == null) {
-                globals.remove(key);
-            } else {
-                globals.put(key, val);
-            }
-            n--;
-        }
-    }
-    ///////////////////////////////////////
-    // The static runtime
-    ////
-
-    // Globals
-    private static Hashtable globals = new Hashtable();
-
     // Register a builtin function
     private static void addBuiltin(int id, String name) {
         // the 1 indicates that it is a builtin function
-        globals.put(name, new Yolan(-1, new Integer(id)));
+        setVar(name, new Yolan(-1, new Integer(id)));
     }
 
     // Constructor for runtime
@@ -243,6 +284,7 @@ final class Yolan {
         addBuiltin(13, "do");
         addBuiltin(14, "while");
         addBuiltin(15, "key-down-handler");
+        addBuiltin(18, "<=");
     // ...
     }
 
@@ -261,6 +303,12 @@ final class Yolan {
             // Whitespace
             if (c <= ' ') {
                 c = is.read();
+
+            // Comment
+            } else if (c == ';') {
+                do {
+                    c = is.read();
+                } while (c > '\n');
 
             // List
             } else if (c == '[') {
@@ -309,6 +357,7 @@ final class Yolan {
     public static Object eval(InputStream is) throws IOException {
         Object exprs[] = (Object[]) parse(is).c;
         Object result = null;
+        //print(exprs);
         for (int i = 0; i < exprs.length; i++) {
             result = ((Yolan) exprs[i]).e();
         }

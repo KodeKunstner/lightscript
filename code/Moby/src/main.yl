@@ -1,5 +1,19 @@
-[println "... hello from external file"]
+[set! x 5]
+[set! f [lambda [x] [println x]]]
+
+[f "Hello world"]
+[println x]
+[set! fib
+  [lambda [x]
+     [if [< x 2]
+        1
+        [+ [fib [- x 1]] [fib [- x 2]]]
+     ]
+   ]
+]
 [set! x 0]
-[while [< x 100]
-    [println x] 
-    [set! x [+ x 1]]]
+[key-down-handler 7 [lambda [] [println "Bloop"]]]
+[while [< x 10] 
+    [set! x [+ x 1]]
+    [println [fib x]]
+]
