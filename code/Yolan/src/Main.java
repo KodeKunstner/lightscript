@@ -12,7 +12,7 @@ import java.io.IOException;
  *
  * @author voel
  */
-public class Main implements Function {
+public class Main implements Yoco {
 
     public static void print(String s) {
         System.out.print(s);

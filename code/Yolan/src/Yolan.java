@@ -201,7 +201,7 @@ final class Yolan {
             case 15:
                 return ival(c, 1) <= ival(c, 2) ? c : null;
 
-            // Get value
+            // Get value - specialised result of variable name
             case 16: {
                 int id = ((Integer) c).intValue();
                 Object x = vars[id];
@@ -209,7 +209,7 @@ final class Yolan {
                 return x;
             }
 
-            // Set value
+            // Set value - specialised result of set!
             case 17: {
                 Object o = val(c, 2);
                 vars[((Integer) ((Object[]) c)[1]).intValue()] = o;
@@ -222,7 +222,7 @@ final class Yolan {
                 for (int i = 0; i < args.length; i++) {
                     args[i] = ((Yolan) objs[i + 1]).value();
                 }
-                return ((Function)objs[0]).apply(args);
+                return ((Yoco)objs[0]).apply(args);
 
             }
             // 
@@ -286,7 +286,7 @@ final class Yolan {
     }
     
     // Register a foreign native function
-    public static void addFunction(String name, Function f) {
+    public static void addFunction(String name, Yoco f) {
         int id = getVarId(name);
         vars[id] = new Yolan(-2, f);
     }

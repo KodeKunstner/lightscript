@@ -7,6 +7,6 @@
  *
  * @author voel
  */
-public interface Function {
+public interface Yoco {
     public Object apply(Object[] args);
 }
