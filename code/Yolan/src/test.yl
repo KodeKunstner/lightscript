@@ -21,3 +21,19 @@
 [defun [test a b] [println [- a b]]]
 
 [test 123 12]
+
+[println [debug-string [array "foo" "bar" "baz"]]]
+[set s [stack  1 2 3 4]]
+[push s 5]
+[println s]
+[println "here4314"]
+[set ht [table "foo" 1 "bar" 2 "baz" 3]]
+[foreach x [keys ht] 
+    [do 
+        [println x]
+        [println [get ht x]]]
+]
+[foreach x [elements s]
+    [println x]]
+[println [is-integer s]]
+[println "here"]

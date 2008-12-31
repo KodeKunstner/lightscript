@@ -1,6 +1,9 @@
 
 import java.io.InputStream;
 import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Random;
 import java.util.Stack;
 
 public final class Yolan {
@@ -59,10 +62,40 @@ public final class Yolan {
     private static final int FN_NATIVE = 18;
     private static final int FN_REM = 19;
     private static final int FN_DEFUN = 20;
-    
-    
+    private static final int FN_RANDOM = 21;
+    private static final int FN_IS_INTEGER = 22;
+    private static final int FN_FOREACH = 23;
+    private static final int FN_STRINGJOIN = 24;
+    private static final int FN_SUBSTRING = 25;
+    private static final int FN_SIZE = 26;
+    private static final int FN_STRINGORDER = 27;
+    private static final int FN_IS_STRING = 28;
+    private static final int FN_NOT = 29;
+    private static final int FN_AND = 30;
+    private static final int FN_OR = 31;
+    private static final int FN_EQUALS = 32;
+    private static final int FN_NEW_ARRAY = 33;
+    private static final int FN_PUT = 34;
+    private static final int FN_GET = 35;
+    private static final int FN_ARRAY_TO_STACK = 36;
+    private static final int FN_IS_ARRAY = 37;
+    private static final int FN_STACK = 38;
+    private static final int FN_RESIZE = 39;
+    private static final int FN_PUSH = 40;
+    private static final int FN_POP = 41;
+    private static final int FN_IS_EMPTY = 42;
+    private static final int FN_STACK_TO_ARRAY = 43;
+    private static final int FN_IS_STACK = 44;
+    private static final int FN_TABLE = 45;
+    private static final int FN_KEYS = 46;
+    private static final int FN_IS_TABLE = 47;
+    private static final int FN_GET_NEXT = 48;
+    private static final int FN_ELEMENTS = 49;
+    private static final int FN_RESOLVE_FOREACH = 50;
+    private static final int FN_ARRAY = 51;
     //</editor-fold>
 
+    private static Random random = new Random();
     /**
      * Evaluate the delayed computation
      * @return the result
@@ -190,7 +223,6 @@ public final class Yolan {
 
             }
 
-
             // lambda
             case FN_LAMBDA: {
                 Object[] lambda_expr = (Object[]) c;
@@ -277,12 +309,213 @@ public final class Yolan {
                 return ((Yoco) objs[0]).apply((Yolan[]) objs[1]);
 
             }
+            case FN_RANDOM: {
+                return num(random.nextInt() % ival(c, 0));
+            }
+            case FN_IS_INTEGER: {
+                return val(c, 0) instanceof Integer ? TRUE : null;
+            }            
+            case FN_IS_ARRAY: {
+                return val(c, 0) instanceof Object[] ? TRUE : null;
+            }
+            case FN_IS_STACK: {
+                return val(c, 0) instanceof Stack ? TRUE : null;
+            }
+            case FN_IS_TABLE: {
+                return val(c, 0) instanceof Hashtable ? TRUE : null;
+            }
+            case FN_SUBSTRING: {
+                return ((String)val(c, 0)).substring(ival(c,1), ival(c,2));                
+            }
+            case FN_IS_STRING: {
+                return val(c, 0) instanceof String ? TRUE : null;
+            }
+            case FN_SIZE: {
+                Object o = val(c, 0);
+                int len;
+                if(o instanceof String) {
+                    return num(((String)o).length());
+                } else if(o instanceof Object[]) {
+                    return num(((Object[])o).length);
+                } else if(o instanceof Stack) {
+                    return num(((Stack)o).size());
+                } else if(o instanceof Hashtable) {
+                    return num(((Hashtable)o).size());
+                } else {
+                    return null;
+                }
+                
+            }
+            case FN_STRINGORDER: {
+                return ((String)val(c,0)).compareTo((String)val(c,1)) <= 0 
+                        ? TRUE : null;
+                    
+            }
+            case FN_NOT: {
+                return val(c, 0) == null?TRUE:null;
+            }
+            case FN_AND: {
+                return val(c, 0) == null?null:val(c,1);
+            }
+            case FN_OR: {
+                Object o = val(c, 0);
+                return o == null?val(c,1):o;
+            }
+            case FN_EQUALS: {
+                Object o = val(c, 0);
+                
+                return o != null && o.equals(val(c,1))?TRUE:null;
+            }
+            case FN_NEW_ARRAY: {
+                return new Object[ival(c, 0)];
+            }
+            case FN_GET: {
+                Object o = val(c, 0);
+                if(o instanceof Object[]) {
+                    return ((Object[])o)[ival(c, 1)];
+                } else if(o instanceof Stack) {
+                    return ((Stack)o).elementAt(ival(c, 1));
+                } else if(o instanceof Hashtable) {
+                    return ((Hashtable)o).get(val(c, 1));
+                } else {
+                    return null;
+                }
+            }
+            case FN_PUT: {
+                Object o = val(c, 0);
+                if(o instanceof Object[]) {
+                    ((Object[])o)[ival(c, 1)] = val(c, 2);
+                } else if(o instanceof Stack) {
+                    ((Stack)o).setElementAt(val(c, 2), ival(c, 1));
+                } else if(o instanceof Hashtable) {
+                    ((Hashtable)o).put(val(c, 1), val(c, 2));
+                }
+                return null;
+            }
+            case FN_ARRAY: {
+                int len = ((Object[])c).length;
+                Object result[] = new Object[len];
+                for(int i = 0; i < len; i++) {
+                    result[i] = val(c, i);
+                }
+                return result;
+            }
+            case FN_STACK: {
+                int len = ((Object[])c).length;
+                Stack result = new Stack();
+                for(int i = 0; i < len; i++) {
+                    result.push(val(c, i));
+                }
+                return result;
+            }
+            case FN_RESIZE: {
+                Stack s = (Stack)val(c, 0);
+                s.setSize(ival(c,1));
+                return s;
+            }
+            case FN_PUSH: {
+                Stack s = (Stack)val(c, 0);
+                s.push(val(c,1));
+                return s;                
+            }
+            case FN_POP: {
+                return ((Stack)val(c,0)).pop();
+            }
+            case FN_IS_EMPTY: {
+                Object o = val(c, 0);
+                return (o instanceof Stack ? (
+                        ((Stack)o).empty()
+                ) : o instanceof Hashtable ? (
+                        ((Hashtable)o).isEmpty()
+                ) : o instanceof Enumeration ? (
+                        !((Enumeration)o).hasMoreElements()
+                ) : false) ? TRUE : null;
+            }
+            case FN_TABLE: {
+                int len = ((Object[])c).length;
+                Hashtable h = new Hashtable();
+                for(int i=0;i<len;i+=2) {
+                    h.put(val(c, i), val(c, i+1));
+                }
+                return h;
+            }
+            case FN_ELEMENTS: {
+                Object o = val(c, 0);
+                if(o instanceof Stack) {
+                    return ((Stack)o).elements();
+                } else if(o instanceof Hashtable) {
+                    return ((Hashtable)o).elements();
+                } else {
+                    return null;
+                }
+            }
+            case FN_GET_NEXT: {
+                return ((Enumeration)val(c, 0)).nextElement();
+            }
+            case FN_KEYS: {
+                return ((Hashtable)val(c, 0)).keys();
+            }
+            case FN_STACK_TO_ARRAY: {
+                Stack s = (Stack) val(c, 0);
+                Object os[] = new Object[s.size()];
+                s.copyInto(os);
+                return os;
+            }
+            case FN_ARRAY_TO_STACK: {
+                Object os[] = (Object[])val(c, 0);
+                Stack s = new Stack();
+                for(int i = 0; i < os.length; i++) {
+                    s.push(os[i]);
+                }
+                return s;
+            }
+            
+            case FN_STRINGJOIN: {
+                StringBuffer sb = new StringBuffer();
+                stringjoin(sb, c);
+                return sb.toString();
+            }
+            case FN_RESOLVE_FOREACH: {
+                Object t[] = (Object[]) c;
+                t[0] = new Integer(getVarId(((Yolan) t[0]).c));
+                fn = FN_FOREACH;
+                return value();
+            }
+            case FN_FOREACH: {
+                Object os[] = (Object[])c;
+                int id = ((Integer)os[0]).intValue();
+                Enumeration e = (Enumeration) val(c, 1);
+                Object result = null;
+                stack.push(vars[id]);
+                while(e.hasMoreElements()) {
+                    vars[id] = e.nextElement();
+                    result = val(c, 2);
+                }
+                vars[id] = stack.pop();
+                return result;
+            }
             // 
             default: {
                 throw new Error("Unexpected case " + fn);
 
             }
 
+        }
+    }
+    
+    private static void stringjoin(StringBuffer sb, Object o) {
+        if(o instanceof Yolan) {
+            stringjoin(sb, ((Yolan)o).value());
+        } else if(o instanceof Object[]) {
+            for(int i = 0; i< ((Object[])o).length; i++) {
+                stringjoin(sb, ((Object[])o)[i]);
+            }
+        } else if(o instanceof Stack) {
+            for(int i = 0; i<((Stack)o).size();i++) {
+                stringjoin(sb,((Stack)o).elementAt(i));
+            }
+        } else {
+            stringjoin(sb, o.toString());
         }
     }
 
@@ -446,6 +679,36 @@ public final class Yolan {
         addBuiltin(FN_WHILE, "while");
         addBuiltin(FN_LESS_EQUAL, "<=");
         addBuiltin(FN_DEFUN, "defun");
+        addBuiltin(FN_RANDOM, "random");
+        addBuiltin(FN_IS_INTEGER, "is-integer");
+        addBuiltin(FN_STRINGJOIN, "stringjoin");
+        addBuiltin(FN_SUBSTRING, "substring");
+        addBuiltin(FN_SIZE, "size");
+        addBuiltin(FN_STRINGORDER, "stringorder");
+        addBuiltin(FN_IS_STRING, "is-string");
+        addBuiltin(FN_NOT, "not");
+        addBuiltin(FN_AND, "and");
+        addBuiltin(FN_OR, "or");
+        addBuiltin(FN_EQUALS, "equals");
+        addBuiltin(FN_NEW_ARRAY, "new-array");
+        addBuiltin(FN_PUT, "put");
+        addBuiltin(FN_GET, "get");
+        addBuiltin(FN_ARRAY_TO_STACK, "array-to-stack");
+        addBuiltin(FN_IS_ARRAY, "is-array");
+        addBuiltin(FN_STACK, "stack");
+        addBuiltin(FN_RESIZE, "resize");
+        addBuiltin(FN_PUSH, "push");
+        addBuiltin(FN_POP, "pop");
+        addBuiltin(FN_IS_EMPTY, "is-empty");
+        addBuiltin(FN_STACK_TO_ARRAY, "stack-to-array");
+        addBuiltin(FN_IS_STACK, "is-stack");
+        addBuiltin(FN_TABLE, "table");
+        addBuiltin(FN_KEYS, "keys");
+        addBuiltin(FN_IS_TABLE, "is-table");
+        addBuiltin(FN_GET_NEXT, "get-next");
+        addBuiltin(FN_ELEMENTS, "elements");
+        addBuiltin(FN_RESOLVE_FOREACH, "foreach");
+        addBuiltin(FN_ARRAY, "array");
         // ...
     }
     

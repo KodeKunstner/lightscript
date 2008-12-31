@@ -24,6 +24,7 @@ stack-to-array
 is-stack
 table ...
 keys
+elements
 is-table
 get-next
-has-more-elements
+

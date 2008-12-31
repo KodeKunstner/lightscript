@@ -21,7 +21,8 @@ public class Main implements Yoco {
     }
 
     public Object apply(Yolan[] args) {
-        System.out.println(args[0].value().toString());
+        Object o = args[0].value();
+        System.out.println(o == null?"nil":o.toString());
         return args[0];
     }
 

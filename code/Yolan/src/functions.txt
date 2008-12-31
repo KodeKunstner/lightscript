@@ -143,7 +143,7 @@
 [get-next iterator]
 	returns the next element from the iterator, or null if no more 
 	elements
-[has-more-elements iterator]
+[is-empty iterator]
 	returns non-null if iterator has more elements
 
 ########################################################################
