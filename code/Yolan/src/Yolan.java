@@ -5,12 +5,22 @@ import java.util.Stack;
 
 public final class Yolan {
 
-
+    ////////////////////////////////
+    // initialisation, must be first
+    ////
+    //static {
+//        vars = new Object[0];
+    //    stack = new Stack();
+  // }
+    
+    
     //////////////////////////////////////
     // The object itself represents a closure/a delayed computation.
     ////
+
     /** The closure */
     private Object c;
+
     /** The function id */
     private int fn;
 
@@ -47,6 +57,10 @@ public final class Yolan {
     private static final int FN_GET_VAR = 16;
     private static final int FN_SET = 17;
     private static final int FN_NATIVE = 18;
+    private static final int FN_REM = 19;
+    private static final int FN_DEFUN = 20;
+    
+    
     //</editor-fold>
 
     /**
@@ -54,7 +68,6 @@ public final class Yolan {
      * @return the result
      */
     public Object value() {
-        //GUI.println("e() fn: " + fn);
         switch (fn) {
             // foreign function dummy
             // case -2
@@ -111,6 +124,8 @@ public final class Yolan {
                         }
 
                         return yl.value();
+                    } else {
+                        throw new Error("Unexpected list type" + yl.fn);
                     }
                 } else {
                     // ...
@@ -134,9 +149,13 @@ public final class Yolan {
             case FN_DIV:
                 return num(ival(c, 0) / ival(c, 1));
 
+            // "/"
+            case FN_REM:
+                return num(ival(c, 0) % ival(c, 1));
+
             // "<"
             case FN_LESS:
-                return ival(c, 0) < ival(c, 1) ? c : null;
+                return ival(c, 0) < ival(c, 1) ? TRUE : null;
 
             // "if"
             case FN_IF:
@@ -186,6 +205,23 @@ public final class Yolan {
 
                 return new Yolan(FN_USER_DEFINED, function);
             }
+            
+            // defun
+            case FN_DEFUN: {
+                Object[] lambda_expr = (Object[]) c;
+                Object[] arguments = (Object[]) ((Yolan) lambda_expr[0]).c;
+
+                //print(lambda_expr); print("\n");
+                Object[] function = new Object[arguments.length];
+                function[0] = lambda_expr[1];
+                for (int i = 1; i < arguments.length; i++) {
+                    function[i] = num(getVarId(((Yolan) arguments[i]).c));
+                }
+
+                Yolan fnc = new Yolan(FN_USER_DEFINED, function);
+                setVar(((Yolan)arguments[0]).c, fnc);
+                return fnc;
+            }
 
             // "set!"
             case FN_RESOLVE_SET: {
@@ -219,7 +255,7 @@ public final class Yolan {
 
             // "<="
             case FN_LESS_EQUAL:
-                return ival(c, 0) <= ival(c, 1) ? c : null;
+                return ival(c, 0) <= ival(c, 1) ? TRUE : null;
 
             // Get value - specialised result of variable name
             case FN_GET_VAR: {
@@ -263,6 +299,10 @@ public final class Yolan {
     // <editor-fold>
     ////
 
+    /**
+     * Returnable true value
+     */
+    private static final Boolean TRUE = new Boolean(true);
     // Support for dynamic scoped variables
     // <editor-fold>
     /**
@@ -270,6 +310,7 @@ public final class Yolan {
      * variable names and values
      */
     private static Object vars[] = new Object[0];
+    
     /** Stack used for function calls */
     private static Stack stack = new Stack();
 
@@ -388,23 +429,26 @@ public final class Yolan {
         int id = getVarId(name);
         vars[id] = new Yolan(FN_NATIVE_DUMMY, f);
     }
-
+    
     // Register builtins
     static {
         addBuiltin(FN_ADD, "+");
         addBuiltin(FN_SUB, "-");
         addBuiltin(FN_MUL, "*");
         addBuiltin(FN_DIV, "/");
+        addBuiltin(FN_REM, "%");
         addBuiltin(FN_LESS, "<");
         addBuiltin(FN_IF, "if");
-        addBuiltin(FN_TO_STRING, "to-string");
+        addBuiltin(FN_TO_STRING, "debug-string");
         addBuiltin(FN_LAMBDA, "lambda");
-        addBuiltin(FN_RESOLVE_SET, "set!");
+        addBuiltin(FN_RESOLVE_SET, "set");
         addBuiltin(FN_DO, "do");
         addBuiltin(FN_WHILE, "while");
         addBuiltin(FN_LESS_EQUAL, "<=");
+        addBuiltin(FN_DEFUN, "defun");
         // ...
     }
+    
     // </editor-fold>
 
     /////////////////////////////////////

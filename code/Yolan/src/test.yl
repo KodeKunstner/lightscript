@@ -1,9 +1,9 @@
-[set! x 5]
-[set! f [lambda [x] [println x]]]
+[set x 5]
+[set f [lambda [x] [println x]]]
 
 [f "Hello world"]
 [println x]
-[set! fib
+[set fib
   [lambda [x]
      [if [< x 2]
         1
@@ -11,9 +11,13 @@
      ]
    ]
 ]
-[set! x 0]
-[while [< x 20] 
-    [set! x [+ x 1]]
+[set x 0]
+[while [< x 23] 
+    [set x [+ x 1]]
     [println [fib x]]
 ]
-[println [to-string [lambda [x] [+ x 5]]]]
+[println [debug-string [lambda [x] [+ x 5]]]]
+
+[defun [test a b] [println [- a b]]]
+
+[test 123 12]

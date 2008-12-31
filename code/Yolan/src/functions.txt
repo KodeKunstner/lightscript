@@ -1,0 +1,144 @@
+########################################################################
+# Integer operators:
+##
+
+[+ a b]
+	calculates the sum of a and b
+[- a b]
+	subtracts b from a
+[* a b]
+	finds the product of a and b
+[/ a b]	
+	divides a with b
+[% a b] 
+	finds the remainder of a divided with b
+[< a b] 
+	returns non-null if a < b
+[<= a b] 
+	returns non-null if a <= b
+[random a]
+	return a pseudorandom integer in the range: 0 <= result < a
+[is-integer object]
+	returns non-null if the object is an integer
+
+########################################################################
+# Control flow and variables
+##
+
+[if cond a b] 
+	if the evaluation of cond yields non-null evaluate a, else 
+	evaluate b
+[while cond stmts...] 
+	while the evaluation of cond yields non-null, evaluate stmts...
+[do stmt1 stmt2 stmts...] 
+	execute a sequence of statements
+[defun [fn-name param1 param2 ...] expr] 
+	define a new function
+[lambda [param1 param2 ...] expr] 
+	make an anonymous function with param1 param2 ... as parameters 
+	bound while executing expr
+[set name value] 
+	let name refer to the result of evaluating value. Returns the 
+	result of the evaluation
+[foreach name container expression]
+	for each element in a container (array, stack, or keys in a map)
+	let name refer to the element and evaluate the expression
+
+########################################################################
+# String operations
+##
+
+[stringjoin string1 string2 ...]
+	joins a sequence of strings to a single string. If a parameter 
+	is a stack or array, it is excuted on each of those elements
+[substring string a b]
+	returns the substring from position a to b of the string
+[size string]
+	returns the length of the string
+[stringorder string1 string2]
+	returns null if string2 comes before string1 in lexicographic 
+	comparison
+[is-string object]
+	returns non-null if the object is a string
+
+########################################################################
+# Array operations
+##
+
+[new-array size]
+	create a new array of a given size
+[size array]
+	return the size of a given array
+[put array position value]
+	set the value in a given position of an array, returns the array
+[get array position]
+	get the value from a give position of an array
+[array-to-stack array]
+	create a stack containing the elements of the array
+[is-array object]
+	returns non-null if the object is an array
+
+########################################################################
+# Stack operations
+##
+
+[new-stack]
+	create a new empty stack
+[size stack]
+	return the size of a given stack
+[resize stack new-size]
+	resize a stack, returns the stack.
+[put stack position value]
+	set the value in a given position of a stack, returns the stack
+[get stack position]
+	get the value from a give position of a stack
+[push stack value]
+	push a value onto the stack
+[pop stack]
+	pop a value from the stack
+[is-empty stack]
+	return non-null if stack is empty
+[stack-to-array stack]
+	create an array containing the elements from the stack
+[elements stack]
+	return an iterator across the elements of the stack
+[is-stack object]
+	returns non-null if the object is a stack
+
+########################################################################
+# Associative maps
+##
+
+[new-assoc-map]
+	create a new empty associative map
+[put assoc key value]
+	set the key to map to the value
+[get assoc key]
+	get the value corresponding to a given key, or null if it does 
+	not exist
+[keys assoc]
+	get an iterator across the keys in the associative map
+[values assoc]
+	get an iterator across the values of the associative map
+[is-assoc-map object]
+	returns non-null if the object is an associative map
+
+########################################################################
+# Iterator
+##
+
+[get-next iterator]
+	returns the next element from the iterator, or null if no more 
+	elements
+[has-more-elements iterator]
+	returns non-null if iterator has more elements
+
+########################################################################
+# Debugging
+##
+
+[debug-string object]
+	create a string representation of an object - for debugging,
+	includes internal yolan-fn-number etc. Warning: unsafe on
+	recursive data structure
+
