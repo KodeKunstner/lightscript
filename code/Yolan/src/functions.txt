@@ -21,6 +21,19 @@
 [is-integer object]
 	returns non-null if the object is an integer
 
+
+########################################################################
+# truth
+##
+[not a]
+	negate value	
+[and a b]
+	conjunction of two values
+[or a b]
+	disjunction of statements 
+[equals a b]
+	comparison
+
 ########################################################################
 # Control flow and variables
 ##
@@ -82,8 +95,8 @@
 # Stack operations
 ##
 
-[new-stack]
-	create a new empty stack
+[stack element1 elemement2 ...]
+	create a stack
 [size stack]
 	return the size of a given stack
 [resize stack new-size]
@@ -100,28 +113,28 @@
 	return non-null if stack is empty
 [stack-to-array stack]
 	create an array containing the elements from the stack
-[elements stack]
+[values stack]
 	return an iterator across the elements of the stack
 [is-stack object]
 	returns non-null if the object is a stack
 
 ########################################################################
-# Associative maps
+# Associative map/table 
 ##
 
-[new-assoc-map]
+[table key1 value1 key2 value2 ...]
 	create a new empty associative map
-[put assoc key value]
+[put table key value]
 	set the key to map to the value
-[get assoc key]
+[get table key]
 	get the value corresponding to a given key, or null if it does 
 	not exist
-[keys assoc]
-	get an iterator across the keys in the associative map
-[values assoc]
-	get an iterator across the values of the associative map
-[is-assoc-map object]
-	returns non-null if the object is an associative map
+[keys table]
+	get an iterator across the keys in the table
+[values table]
+	get an iterator across the values of the table
+[is-table object]
+	returns non-null if the object is a table
 
 ########################################################################
 # Iterator

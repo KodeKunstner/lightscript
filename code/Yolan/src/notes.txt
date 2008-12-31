@@ -1,0 +1,29 @@
+random
+is-integer
+foreach name container expr
+stringjoin
+substring
+size
+stringorder
+is-string
+not
+and
+or
+equals
+new-array
+put
+get
+array-to-stack
+is-array
+stack ...
+resize
+push
+pop
+is-empty
+stack-to-array
+is-stack
+table ...
+keys
+is-table
+get-next
+has-more-elements
