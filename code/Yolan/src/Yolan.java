@@ -1,3 +1,4 @@
+
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.Stack;
@@ -24,7 +25,6 @@ final class Yolan {
     // vars
     private static Object vars[] = new Object[0];
     private static Stack stack = new Stack();
-    
 
     private static int getVarId(Object key) {
         int i = 0;
@@ -45,7 +45,7 @@ final class Yolan {
         int id = getVarId(key);
         vars[id] = val;
     }
-    
+
     // Eval function
     public Object value() {
         //GUI.println("e() fn: " + fn);
@@ -69,47 +69,47 @@ final class Yolan {
                 Object o = val(c, 0);
                 if (o instanceof Yolan) {
                     Yolan yl = (Yolan) o;
-                    
+
                     // builtin function
                     if (yl.fn == -1) {
                         this.fn = ((Integer) yl.c).intValue();
-                        return value();    
-                    
+                        return value();
+
                     // native function implementing Function-interface;
                     } else if (yl.fn == -2) {
                         this.fn = 18;
-                        Object args[] = (Object[])c;
+                        Object args[] = (Object[]) c;
                         args[0] = yl.c;
                         return value();
-                    
+
                     // user defined function
                     } else if (yl.fn == 10) {
                         Object args[] = (Object[]) c;
-                        Object function[] = (Object []) yl.c;
-                        
+                        Object function[] = (Object[]) yl.c;
+
                         // evaluate arguments and push to stack
-                        for(int i = 1; i < args.length; i++) {
-                            stack.push(((Yolan)args[i]).value());
+                        for (int i = 1; i < args.length; i++) {
+                            stack.push(((Yolan) args[i]).value());
                         }
-                        
+
                         // swap argument values on stack with local values
                         int spos = stack.size();
-                        for(int i = 1; i < args.length; i++) {
-                            int pos = ((Integer)function[function.length - i]).intValue();
+                        for (int i = 1; i < args.length; i++) {
+                            int pos = ((Integer) function[function.length - i]).intValue();
                             spos--;
                             Object t = stack.elementAt(spos);
                             stack.setElementAt(vars[pos], spos);
                             vars[pos] = t;
                         }
-                        
+
                         // evaluate the result
-                        Object result = ((Yolan)function[0]).value();
-                        
+                        Object result = ((Yolan) function[0]).value();
+
                         // restore previous values
-                        for(int i = args.length - 1; i > 0; i--) {
-                            vars[((Integer)function[i]).intValue()] = stack.pop();
+                        for (int i = args.length - 1; i > 0; i--) {
+                            vars[((Integer) function[i]).intValue()] = stack.pop();
                         }
-                        
+
                         return result;
                     }
                 } else {
@@ -146,11 +146,11 @@ final class Yolan {
             case 9: {
                 return to_string(new StringBuffer(), val(c, 1)).toString();
             }
-              
+
             // userdefined function
             // case 10: 
-                // dummy - not called, but see case 2.
-            
+            // dummy - not called, but see case 2.
+
 
             // lambda
             case 11: {
@@ -222,13 +222,13 @@ final class Yolan {
                 for (int i = 0; i < args.length; i++) {
                     args[i] = ((Yolan) objs[i + 1]).value();
                 }
-                return ((Yoco)objs[0]).apply(args);
+                return ((Yoco) objs[0]).apply(args);
 
             }
             // 
             default: {
-                throw new Error("Unexpected case "+fn);
-                
+                throw new Error("Unexpected case " + fn);
+
             }
 
         }
@@ -255,10 +255,10 @@ final class Yolan {
 
     // print an object
     private static StringBuffer to_string(StringBuffer sb, Object o) {
-        if(o instanceof Object[]) {
+        if (o instanceof Object[]) {
             Object os[] = (Object[]) o;
             sb.append("[ ");
-            for(int i = 0;i<os.length;i++) {
+            for (int i = 0; i < os.length; i++) {
                 to_string(sb, os[i]);
                 sb.append(" ");
             }
@@ -273,7 +273,7 @@ final class Yolan {
         }
         return sb;
     }
-    
+
     public String toString() {
         return to_string(new StringBuffer(), this).toString();
     }
@@ -284,7 +284,7 @@ final class Yolan {
         vars[id] = new Yolan(-1, new Integer(val));
 
     }
-    
+
     // Register a foreign native function
     public static void addFunction(String name, Yoco f) {
         int id = getVarId(name);
@@ -292,6 +292,8 @@ final class Yolan {
     }
 
     // Constructor for runtime
+    
+
     static {
         addBuiltin(3, "+");
         addBuiltin(4, "-");
