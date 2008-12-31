@@ -1,0 +1,13 @@
+- change parser to be single expression rather than full list at a time
+- reorder fn-ids
+  - shorten initialisation
+- evt. c to be array rather than single object
+- api
+  - apply 
+  - numargs
+  - get-string
+- optimise val, ival
+- grow-locals-exponential
+- test
+- demo-apps
+- benchmarks
