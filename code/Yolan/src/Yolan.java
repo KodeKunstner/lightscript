@@ -21,6 +21,29 @@ public final class Yolan {
         this.fn = fn;
         this.c = c;
     }
+    
+    // Function ID constants
+    private static final int FN_NATIVE_DUMMY = -2;
+    private static final int FN_BUILTIN_DUMMY = -1;
+    private static final int FN_LITERAL = 0;
+    private static final int FN_RESOLVE_GET_VAR = 1;
+    private static final int FN_RESOLVE_EVAL_LIST = 2;
+    private static final int FN_ADD = 3;
+    private static final int FN_SUB = 4;
+    private static final int FN_MUL = 5;
+    private static final int FN_DIV = 6;
+    private static final int FN_LESS = 7;
+    private static final int FN_IF = 8;
+    private static final int FN_TO_STRING = 9;
+    private static final int FN_USER_DEFINED = 10;
+    private static final int FN_LAMBDA = 11;
+    private static final int FN_RESOLVE_SET = 12;
+    private static final int FN_DO = 13;
+    private static final int FN_WHILE = 14;
+    private static final int FN_LESS_EQUAL = 15;
+    private static final int FN_GET_VAR = 16;
+    private static final int FN_SET = 17;
+    private static final int FN_NATIVE = 18;
 
     // vars
     private static Object vars[] = new Object[0];
@@ -50,39 +73,43 @@ public final class Yolan {
     public Object value() {
         //GUI.println("e() fn: " + fn);
         switch (fn) {
+            // foreign function dummy
+            // case -2
+            
             // builtin function dummy
             // case -1
 
             // Literal
-            case 0:
+            case FN_LITERAL:
                 return c;
 
             // Id 
-            case 1: {
-                fn = 16;
+            case FN_RESOLVE_GET_VAR: {
+                fn = FN_GET_VAR;
                 c = new Integer(getVarId(c));
                 return value();
             }
 
             // Expression list/function call
-            case 2: {
+            case FN_RESOLVE_EVAL_LIST: {
                 Object o = val(c, 0);
                 if (o instanceof Yolan) {
                     Yolan yl = (Yolan) o;
 
                     // builtin function
-                    if (yl.fn == -1) {
+                    if (yl.fn == FN_BUILTIN_DUMMY) {
                         this.fn = ((Integer) yl.c).intValue();
                         Object args[] = (Object[])c;
                         Object newargs[] = new Object[args.length - 1];
                         for(int i = 0; i < newargs.length; i++) {
                             newargs[i] = args[i+1];
                         }
+                        c = newargs;
                         return value();
 
                     // native function implementing Function-interface;
-                    } else if (yl.fn == -2) {
-                        this.fn = 18;
+                    } else if (yl.fn == FN_NATIVE_DUMMY) {
+                        this.fn = FN_NATIVE;
                         Object args[] = (Object[]) c;
                         Yolan params[] = new Yolan[args.length - 1];
                         for(int i = 0; i < params.length; i++) {
@@ -93,7 +120,7 @@ public final class Yolan {
                         return value();
 
                     // user defined function
-                    } else if (yl.fn == 10) {
+                    } else if (yl.fn == FN_USER_DEFINED) {
                         Object args[] = (Object[]) c;
                         // evaluate arguments and push to stack
                         for (int i = 1; i < args.length; i++) {
@@ -109,36 +136,36 @@ public final class Yolan {
             }
 
             // "+"
-            case 3:
-                return num(ival(c, 1) + ival(c, 2));
+            case FN_ADD:
+                return num(ival(c, 0) + ival(c, 1));
 
             // "-"
-            case 4:
-                return num(ival(c, 1) - ival(c, 2));
+            case FN_SUB:
+                return num(ival(c, 0) - ival(c, 1));
 
             // "*"
-            case 5:
-                return num(ival(c, 1) * ival(c, 2));
+            case FN_MUL:
+                return num(ival(c, 0) * ival(c, 1));
 
             // "/"
-            case 6:
-                return num(ival(c, 1) / ival(c, 2));
+            case FN_DIV:
+                return num(ival(c, 0) / ival(c, 1));
 
             // "<"
-            case 7:
-                return ival(c, 1) < ival(c, 2) ? c : null;
+            case FN_LESS:
+                return ival(c, 0) < ival(c, 1) ? c : null;
 
             // "if"
-            case 8:
-                return (val(c, 1) != null) ? val(c, 2) : val(c, 3);
+            case FN_IF:
+                return (val(c, 0) != null) ? val(c, 1) : val(c, 2);
 
             // to-string
-            case 9: {
-                return to_string(new StringBuffer(), val(c, 1)).toString();
+            case FN_TO_STRING: {
+                return to_string(new StringBuffer(), val(c, 0)).toString();
             }
 
             // userdefined function
-            case 10: {
+            case FN_USER_DEFINED: {
                 Object args[] = (Object[]) c;
                 // swap argument values on stack with local values
                 int spos = stack.size();
@@ -163,44 +190,44 @@ public final class Yolan {
 
 
             // lambda
-            case 11: {
+            case FN_LAMBDA: {
                 Object[] lambda_expr = (Object[]) c;
-                Object[] arguments = (Object[]) ((Yolan) lambda_expr[1]).c;
+                Object[] arguments = (Object[]) ((Yolan) lambda_expr[0]).c;
 
                 //print(lambda_expr); print("\n");
                 Object[] function = new Object[arguments.length + 1];
-                function[0] = lambda_expr[2];
+                function[0] = lambda_expr[1];
                 for (int i = 0; i < arguments.length; i++) {
                     function[i + 1] = num(getVarId(((Yolan) arguments[i]).c));
                 }
 
-                return new Yolan(10, function);
+                return new Yolan(FN_USER_DEFINED, function);
             }
 
             // "set!"
-            case 12: {
+            case FN_RESOLVE_SET: {
                 Object t[] = (Object[]) c;
-                t[1] = new Integer(getVarId(((Yolan) t[1]).c));
-                fn = 17;
+                t[0] = new Integer(getVarId(((Yolan) t[0]).c));
+                fn = FN_SET;
                 return value();
             }
 
             // "do"
-            case 13: {
+            case FN_DO: {
                 Object result = null;
                 int stmts = ((Object[]) c).length;
-                for (int i = 1; i < stmts; i++) {
+                for (int i = 0; i < stmts; i++) {
                     result = val(c, i);
                 }
                 return result;
             }
 
             // "while"
-            case 14: {
+            case FN_WHILE: {
                 Object result = null;
                 int stmts = ((Object[]) c).length;
-                while (val(c, 1) != null) {
-                    for (int i = 2; i < stmts; i++) {
+                while (val(c, 0) != null) {
+                    for (int i = 1; i < stmts; i++) {
                         result = val(c, i);
                     }
                 }
@@ -208,11 +235,11 @@ public final class Yolan {
             }
 
             // "<="
-            case 15:
-                return ival(c, 1) <= ival(c, 2) ? c : null;
+            case FN_LESS_EQUAL:
+                return ival(c, 0) <= ival(c, 1) ? c : null;
 
             // Get value - specialised result of variable name
-            case 16: {
+            case FN_GET_VAR: {
                 int id = ((Integer) c).intValue();
                 Object x = vars[id];
 
@@ -220,13 +247,13 @@ public final class Yolan {
             }
 
             // Set value - specialised result of set!
-            case 17: {
-                Object o = val(c, 2);
-                vars[((Integer) ((Object[]) c)[1]).intValue()] = o;
+            case FN_SET: {
+                Object o = val(c, 1);
+                vars[((Integer) ((Object[]) c)[0]).intValue()] = o;
                 return o;
             }
             // Native Function
-            case 18: {
+            case FN_NATIVE: {
                 Object objs[] = (Object[]) c;
                 return ((Yoco) objs[0]).apply((Yolan[]) objs[1]);
 
@@ -287,32 +314,32 @@ public final class Yolan {
     // Register a builtin function
     private static void addBuiltin(int val, String name) {
         int id = getVarId(name);
-        vars[id] = new Yolan(-1, new Integer(val));
+        vars[id] = new Yolan(FN_BUILTIN_DUMMY, new Integer(val));
 
     }
 
     // Register a foreign native function
     public static void addFunction(String name, Yoco f) {
         int id = getVarId(name);
-        vars[id] = new Yolan(-2, f);
+        vars[id] = new Yolan(FN_NATIVE_DUMMY, f);
     }
 
     // Constructor for runtime
     
 
     static {
-        addBuiltin(3, "+");
-        addBuiltin(4, "-");
-        addBuiltin(5, "*");
-        addBuiltin(6, "/");
-        addBuiltin(7, "<");
-        addBuiltin(8, "if");
-        addBuiltin(9, "to-string");
-        addBuiltin(11, "lambda");
-        addBuiltin(12, "set!");
-        addBuiltin(13, "do");
-        addBuiltin(14, "while");
-        addBuiltin(15, "<=");
+        addBuiltin(FN_ADD, "+");
+        addBuiltin(FN_SUB, "-");
+        addBuiltin(FN_MUL, "*");
+        addBuiltin(FN_DIV, "/");
+        addBuiltin(FN_LESS, "<");
+        addBuiltin(FN_IF, "if");
+        addBuiltin(FN_TO_STRING, "to-string");
+        addBuiltin(FN_LAMBDA, "lambda");
+        addBuiltin(FN_RESOLVE_SET, "set!");
+        addBuiltin(FN_DO, "do");
+        addBuiltin(FN_WHILE, "while");
+        addBuiltin(FN_LESS_EQUAL, "<=");
     // ...
     }
 
@@ -364,7 +391,7 @@ public final class Yolan {
                     c = is.read();
                 }
                 c = is.read();
-                s.push(new Yolan(0, sb.toString()));
+                s.push(new Yolan(FN_LITERAL, sb.toString()));
 
             // Identifier
             } else {
@@ -373,12 +400,12 @@ public final class Yolan {
                     sb.append((char) c);
                     c = is.read();
                 }
-                s.push(new Yolan(1, sb.toString()));
+                s.push(new Yolan(FN_RESOLVE_GET_VAR, sb.toString()));
             }
         }
         Object result[] = new Object[s.size()];
         s.copyInto(result);
-        return new Yolan(2, result);
+        return new Yolan(FN_RESOLVE_EVAL_LIST, result);
     }
 
     // Parse and evaluate code from input stream
