@@ -9,20 +9,23 @@ public final class Yolan {
     //////////////////////////////////////
     // The object itself represents a closure/a delayed computation.
     ////
-
-    // closure
+    /** The closure */
     private Object c;
-
-    // code id;
+    /** The function id */
     private int fn;
 
-    //constructor
+    /**
+     * Constructor for a new delayed computation
+     * @param fn the function id
+     * @param c the closure
+     */
     private Yolan(int fn, Object c) {
         this.fn = fn;
         this.c = c;
     }
-    
-    // Function ID constants
+
+    /** Function ID constants */
+    //<editor-fold>
     private static final int FN_NATIVE_DUMMY = -2;
     private static final int FN_BUILTIN_DUMMY = -1;
     private static final int FN_LITERAL = 0;
@@ -44,38 +47,18 @@ public final class Yolan {
     private static final int FN_GET_VAR = 16;
     private static final int FN_SET = 17;
     private static final int FN_NATIVE = 18;
+    //</editor-fold>
 
-    // vars
-    private static Object vars[] = new Object[0];
-    private static Stack stack = new Stack();
-
-    private static int getVarId(Object key) {
-        int i = 0;
-        while (i < vars.length && !vars[i].equals(key)) {
-            i += 2;
-        }
-
-        if (i == vars.length) {
-            Object objs[] = new Object[i + 2];
-            System.arraycopy(vars, 0, objs, 0, vars.length);
-            vars = objs;
-            vars[i] = key;
-        }
-        return i + 1;
-    }
-
-    private static void setVar(Object key, Object val) {
-        int id = getVarId(key);
-        vars[id] = val;
-    }
-
-    // Eval function
+    /**
+     * Evaluate the delayed computation
+     * @return the result
+     */
     public Object value() {
         //GUI.println("e() fn: " + fn);
         switch (fn) {
             // foreign function dummy
             // case -2
-            
+
             // builtin function dummy
             // case -1
 
@@ -99,10 +82,10 @@ public final class Yolan {
                     // builtin function
                     if (yl.fn == FN_BUILTIN_DUMMY) {
                         this.fn = ((Integer) yl.c).intValue();
-                        Object args[] = (Object[])c;
+                        Object args[] = (Object[]) c;
                         Object newargs[] = new Object[args.length - 1];
-                        for(int i = 0; i < newargs.length; i++) {
-                            newargs[i] = args[i+1];
+                        for (int i = 0; i < newargs.length; i++) {
+                            newargs[i] = args[i + 1];
                         }
                         c = newargs;
                         return value();
@@ -112,8 +95,8 @@ public final class Yolan {
                         this.fn = FN_NATIVE;
                         Object args[] = (Object[]) c;
                         Yolan params[] = new Yolan[args.length - 1];
-                        for(int i = 0; i < params.length; i++) {
-                            params[i] = (Yolan)args[i+1];
+                        for (int i = 0; i < params.length; i++) {
+                            params[i] = (Yolan) args[i + 1];
                         }
                         args[0] = yl.c;
                         args[1] = params;
@@ -126,7 +109,7 @@ public final class Yolan {
                         for (int i = 1; i < args.length; i++) {
                             stack.push(((Yolan) args[i]).value());
                         }
-                        
+
                         return yl.value();
                     }
                 } else {
@@ -267,26 +250,97 @@ public final class Yolan {
         }
     }
 
+    /**
+     * Override the toString function
+     * @return
+     */
+    public String toString() {
+        return to_string(new StringBuffer(), this).toString();
+    }
+    
     ////////////////////////////////////
     // Utility functions for evaluation
+    // <editor-fold>
     ////
 
-    // Evaluate yolan list closure into an integer
+    // Support for dynamic scoped variables
+    // <editor-fold>
+    /**
+     * An array containing alternating 
+     * variable names and values
+     */
+    private static Object vars[] = new Object[0];
+    /** Stack used for function calls */
+    private static Stack stack = new Stack();
+
+    /**
+     * Lookup the id of a variable
+     * @param key the name of the variable
+     * @return the id which maps into the vars-array
+     */
+    private static int getVarId(Object key) {
+        int i = 0;
+        while (i < vars.length && !vars[i].equals(key)) {
+            i += 2;
+        }
+
+        if (i == vars.length) {
+            Object objs[] = new Object[i + 2];
+            System.arraycopy(vars, 0, objs, 0, vars.length);
+            vars = objs;
+            vars[i] = key;
+        }
+        return i + 1;
+    }
+
+    /**
+     * Set the value of a variable
+     * @param key the variable name
+     * @param val the new value
+     */
+    private static void setVar(Object key, Object val) {
+        int id = getVarId(key);
+        vars[id] = val;
+    }
+    // </editor-fold>
+
+    // Shorthands
+    /**
+     * Evaluate yolan list closure into an integer
+     * @param c the closure which must be a list
+     * @param i the index into the list
+     * @return the integer result of evaluating the i'th element of c
+     */
     private static int ival(Object c, int i) {
         return ((Integer) ((Yolan) ((Object[]) c)[i]).value()).intValue();
     }
 
-    // Evaluate yolan list closure into an object
+    /**
+     * Evaluate yolan list closure into an object 
+     * @param c the closure which must be a list
+     * @param i the index into the list
+     * @return the result of evaluating the i'th element of c
+     */
     private static Object val(Object c, int i) {
         return ((Yolan) ((Object[]) c)[i]).value();
     }
 
-    // Shorthand conversion from integer to object
+    /**
+     * Shorthand for wrapping a number into an Integer object
+     * @param i the number
+     * @return the Integer
+     */
     private static Object num(int i) {
         return new Integer(i);
     }
 
-    // print an object
+    // Conversion to string
+    /**
+     * Convert an object to a string
+     * @param sb the accumulator variable - the string i added to this buffer
+     * @param o the object to convert
+     * @return the accumulator (same as the paremeter)
+     */
     private static StringBuffer to_string(StringBuffer sb, Object o) {
         if (o instanceof Object[]) {
             Object os[] = (Object[]) o;
@@ -306,27 +360,36 @@ public final class Yolan {
         }
         return sb;
     }
+    
+    // </editor-fold>
 
-    public String toString() {
-        return to_string(new StringBuffer(), this).toString();
-    }
-
-    // Register a builtin function
+    
+    ////////////////////////////////////
+    // Adding native+builtin functions to the runtime
+    //<editor-fold>
+    
+    /**
+     * Register a builtin function
+     * @param val the function id
+     * @param name the name in the runtime
+     */
     private static void addBuiltin(int val, String name) {
         int id = getVarId(name);
         vars[id] = new Yolan(FN_BUILTIN_DUMMY, new Integer(val));
 
     }
 
-    // Register a foreign native function
+    /**
+     * Register a native function
+     * @param name the name of the function
+     * @param f the function itself
+     */
     public static void addFunction(String name, Yoco f) {
         int id = getVarId(name);
         vars[id] = new Yolan(FN_NATIVE_DUMMY, f);
     }
 
-    // Constructor for runtime
-    
-
+    // Register builtins
     static {
         addBuiltin(FN_ADD, "+");
         addBuiltin(FN_SUB, "-");
@@ -340,9 +403,9 @@ public final class Yolan {
         addBuiltin(FN_DO, "do");
         addBuiltin(FN_WHILE, "while");
         addBuiltin(FN_LESS_EQUAL, "<=");
-    // ...
+        // ...
     }
-
+    // </editor-fold>
 
     /////////////////////////////////////
     // The parser
