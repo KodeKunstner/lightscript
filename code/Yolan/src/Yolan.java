@@ -7,23 +7,12 @@ import java.util.Random;
 import java.util.Stack;
 
 public final class Yolan {
-
-    ////////////////////////////////
-    // initialisation, must be first
-    ////
-    //static {
-//        vars = new Object[0];
-    //    stack = new Stack();
-  // }
-    
-    
     //////////////////////////////////////
     // The object itself represents a closure/a delayed computation.
     ////
 
     /** The closure */
     private Object c;
-
     /** The function id */
     private int fn;
 
@@ -36,7 +25,6 @@ public final class Yolan {
         this.fn = fn;
         this.c = c;
     }
-
     /** Function ID constants */
     //<editor-fold>
     private static final int FN_NATIVE_DUMMY = -2;
@@ -51,7 +39,7 @@ public final class Yolan {
     private static final int FN_LESS = 7;
     private static final int FN_IF = 8;
     private static final int FN_TO_STRING = 9;
-    private static final int FN_USER_DEFINED = 10;
+    private static final int FN_USER_DEFINED_FUNCTION = 10;
     private static final int FN_LAMBDA = 11;
     private static final int FN_RESOLVE_SET = 12;
     private static final int FN_DO = 13;
@@ -94,32 +82,25 @@ public final class Yolan {
     private static final int FN_RESOLVE_FOREACH = 50;
     private static final int FN_ARRAY = 51;
     //</editor-fold>
-
     private static Random random = new Random();
+
     /**
      * Evaluate the delayed computation
      * @return the result
      */
     public Object value() {
         switch (fn) {
-            // foreign function dummy
-            // case -2
 
-            // builtin function dummy
-            // case -1
-
-            // Literal
-            case FN_LITERAL:
+            case FN_LITERAL: {
                 return c;
+            }
 
-            // Id 
             case FN_RESOLVE_GET_VAR: {
                 fn = FN_GET_VAR;
                 c = new Integer(getVarId(c));
                 return value();
             }
 
-            // Expression list/function call
             case FN_RESOLVE_EVAL_LIST: {
                 Object o = val(c, 0);
                 if (o instanceof Yolan) {
@@ -149,7 +130,7 @@ public final class Yolan {
                         return value();
 
                     // user defined function
-                    } else if (yl.fn == FN_USER_DEFINED) {
+                    } else if (yl.fn == FN_USER_DEFINED_FUNCTION) {
                         Object args[] = (Object[]) c;
                         // evaluate arguments and push to stack
                         for (int i = 1; i < args.length; i++) {
@@ -166,42 +147,39 @@ public final class Yolan {
                 throw new Error("Unexpected list type");
             }
 
-            // "+"
-            case FN_ADD:
+            case FN_ADD: {
                 return num(ival(c, 0) + ival(c, 1));
+            }
 
-            // "-"
-            case FN_SUB:
+            case FN_SUB: {
                 return num(ival(c, 0) - ival(c, 1));
+            }
 
-            // "*"
-            case FN_MUL:
+            case FN_MUL: {
                 return num(ival(c, 0) * ival(c, 1));
+            }
 
-            // "/"
-            case FN_DIV:
+            case FN_DIV: {
                 return num(ival(c, 0) / ival(c, 1));
+            }
 
-            // "/"
-            case FN_REM:
+            case FN_REM: {
                 return num(ival(c, 0) % ival(c, 1));
+            }
 
-            // "<"
-            case FN_LESS:
+            case FN_LESS: {
                 return ival(c, 0) < ival(c, 1) ? TRUE : null;
+            }
 
-            // "if"
-            case FN_IF:
+            case FN_IF: {
                 return (val(c, 0) != null) ? val(c, 1) : val(c, 2);
-
-            // to-string
+            }
             case FN_TO_STRING: {
                 return to_string(new StringBuffer(), val(c, 0)).toString();
             }
-
-            // userdefined function
-            case FN_USER_DEFINED: {
+            case FN_USER_DEFINED_FUNCTION: {
                 Object args[] = (Object[]) c;
+
                 // swap argument values on stack with local values
                 int spos = stack.size();
                 for (int i = 1; i < args.length; i++) {
@@ -223,39 +201,34 @@ public final class Yolan {
 
             }
 
-            // lambda
             case FN_LAMBDA: {
                 Object[] lambda_expr = (Object[]) c;
                 Object[] arguments = (Object[]) ((Yolan) lambda_expr[0]).c;
 
-                //print(lambda_expr); print("\n");
                 Object[] function = new Object[arguments.length + 1];
                 function[0] = lambda_expr[1];
                 for (int i = 0; i < arguments.length; i++) {
                     function[i + 1] = num(getVarId(((Yolan) arguments[i]).c));
                 }
 
-                return new Yolan(FN_USER_DEFINED, function);
+                return new Yolan(FN_USER_DEFINED_FUNCTION, function);
             }
-            
-            // defun
+
             case FN_DEFUN: {
                 Object[] lambda_expr = (Object[]) c;
                 Object[] arguments = (Object[]) ((Yolan) lambda_expr[0]).c;
 
-                //print(lambda_expr); print("\n");
                 Object[] function = new Object[arguments.length];
                 function[0] = lambda_expr[1];
                 for (int i = 1; i < arguments.length; i++) {
                     function[i] = num(getVarId(((Yolan) arguments[i]).c));
                 }
 
-                Yolan fnc = new Yolan(FN_USER_DEFINED, function);
-                setVar(((Yolan)arguments[0]).c, fnc);
+                Yolan fnc = new Yolan(FN_USER_DEFINED_FUNCTION, function);
+                setVar(((Yolan) arguments[0]).c, fnc);
                 return fnc;
             }
 
-            // "set!"
             case FN_RESOLVE_SET: {
                 Object t[] = (Object[]) c;
                 t[0] = new Integer(getVarId(((Yolan) t[0]).c));
@@ -263,7 +236,6 @@ public final class Yolan {
                 return value();
             }
 
-            // "do"
             case FN_DO: {
                 Object result = null;
                 int stmts = ((Object[]) c).length;
@@ -273,7 +245,6 @@ public final class Yolan {
                 return result;
             }
 
-            // "while"
             case FN_WHILE: {
                 Object result = null;
                 int stmts = ((Object[]) c).length;
@@ -285,11 +256,10 @@ public final class Yolan {
                 return result;
             }
 
-            // "<="
-            case FN_LESS_EQUAL:
+            case FN_LESS_EQUAL: {
                 return ival(c, 0) <= ival(c, 1) ? TRUE : null;
+            }
 
-            // Get value - specialised result of variable name
             case FN_GET_VAR: {
                 int id = ((Integer) c).intValue();
                 Object x = vars[id];
@@ -297,222 +267,244 @@ public final class Yolan {
                 return x;
             }
 
-            // Set value - specialised result of set!
             case FN_SET: {
                 Object o = val(c, 1);
                 vars[((Integer) ((Object[]) c)[0]).intValue()] = o;
                 return o;
             }
-            // Native Function
+
             case FN_NATIVE: {
                 Object objs[] = (Object[]) c;
                 return ((Yoco) objs[0]).apply((Yolan[]) objs[1]);
 
             }
+
             case FN_RANDOM: {
                 return num(random.nextInt() % ival(c, 0));
             }
+
             case FN_IS_INTEGER: {
                 return val(c, 0) instanceof Integer ? TRUE : null;
-            }            
+            }
+
             case FN_IS_ARRAY: {
                 return val(c, 0) instanceof Object[] ? TRUE : null;
             }
+
             case FN_IS_STACK: {
                 return val(c, 0) instanceof Stack ? TRUE : null;
             }
+
             case FN_IS_TABLE: {
                 return val(c, 0) instanceof Hashtable ? TRUE : null;
             }
+
             case FN_SUBSTRING: {
-                return ((String)val(c, 0)).substring(ival(c,1), ival(c,2));                
+                return ((String) val(c, 0)).substring(ival(c, 1), ival(c, 2));
             }
+
             case FN_IS_STRING: {
                 return val(c, 0) instanceof String ? TRUE : null;
             }
+
             case FN_SIZE: {
                 Object o = val(c, 0);
-                int len;
-                if(o instanceof String) {
-                    return num(((String)o).length());
-                } else if(o instanceof Object[]) {
-                    return num(((Object[])o).length);
-                } else if(o instanceof Stack) {
-                    return num(((Stack)o).size());
-                } else if(o instanceof Hashtable) {
-                    return num(((Hashtable)o).size());
+                if (o instanceof String) {
+                    return num(((String) o).length());
+                } else if (o instanceof Object[]) {
+                    return num(((Object[]) o).length);
+                } else if (o instanceof Stack) {
+                    return num(((Stack) o).size());
+                } else if (o instanceof Hashtable) {
+                    return num(((Hashtable) o).size());
                 } else {
                     return null;
                 }
-                
             }
+
             case FN_STRINGORDER: {
-                return ((String)val(c,0)).compareTo((String)val(c,1)) <= 0 
+                return ((String) val(c, 0)).compareTo((String) val(c, 1)) <= 0
                         ? TRUE : null;
-                    
             }
+
             case FN_NOT: {
-                return val(c, 0) == null?TRUE:null;
+                return val(c, 0) == null ? TRUE : null;
             }
+
             case FN_AND: {
-                return val(c, 0) == null?null:val(c,1);
+                return val(c, 0) == null ? null : val(c, 1);
             }
+
             case FN_OR: {
                 Object o = val(c, 0);
-                return o == null?val(c,1):o;
+                return o == null ? val(c, 1) : o;
             }
+
             case FN_EQUALS: {
                 Object o = val(c, 0);
-                
-                return o != null && o.equals(val(c,1))?TRUE:null;
+
+                return o != null && o.equals(val(c, 1)) ? TRUE : null;
             }
+
             case FN_NEW_ARRAY: {
                 return new Object[ival(c, 0)];
             }
+
             case FN_GET: {
                 Object o = val(c, 0);
-                if(o instanceof Object[]) {
-                    return ((Object[])o)[ival(c, 1)];
-                } else if(o instanceof Stack) {
-                    return ((Stack)o).elementAt(ival(c, 1));
-                } else if(o instanceof Hashtable) {
-                    return ((Hashtable)o).get(val(c, 1));
+                if (o instanceof Object[]) {
+                    return ((Object[]) o)[ival(c, 1)];
+                } else if (o instanceof Stack) {
+                    return ((Stack) o).elementAt(ival(c, 1));
+                } else if (o instanceof Hashtable) {
+                    return ((Hashtable) o).get(val(c, 1));
                 } else {
                     return null;
                 }
             }
+
             case FN_PUT: {
                 Object o = val(c, 0);
-                if(o instanceof Object[]) {
-                    ((Object[])o)[ival(c, 1)] = val(c, 2);
-                } else if(o instanceof Stack) {
-                    ((Stack)o).setElementAt(val(c, 2), ival(c, 1));
-                } else if(o instanceof Hashtable) {
-                    ((Hashtable)o).put(val(c, 1), val(c, 2));
+                if (o instanceof Object[]) {
+                    ((Object[]) o)[ival(c, 1)] = val(c, 2);
+                } else if (o instanceof Stack) {
+                    ((Stack) o).setElementAt(val(c, 2), ival(c, 1));
+                } else if (o instanceof Hashtable) {
+                    ((Hashtable) o).put(val(c, 1), val(c, 2));
                 }
                 return null;
             }
+
             case FN_ARRAY: {
-                int len = ((Object[])c).length;
+                int len = ((Object[]) c).length;
                 Object result[] = new Object[len];
-                for(int i = 0; i < len; i++) {
+                for (int i = 0; i < len; i++) {
                     result[i] = val(c, i);
                 }
                 return result;
             }
+
             case FN_STACK: {
-                int len = ((Object[])c).length;
+                int len = ((Object[]) c).length;
                 Stack result = new Stack();
-                for(int i = 0; i < len; i++) {
+                for (int i = 0; i < len; i++) {
                     result.push(val(c, i));
                 }
                 return result;
             }
+
             case FN_RESIZE: {
-                Stack s = (Stack)val(c, 0);
-                s.setSize(ival(c,1));
+                Stack s = (Stack) val(c, 0);
+                s.setSize(ival(c, 1));
                 return s;
             }
+
             case FN_PUSH: {
-                Stack s = (Stack)val(c, 0);
-                s.push(val(c,1));
-                return s;                
+                Stack s = (Stack) val(c, 0);
+                s.push(val(c, 1));
+                return s;
             }
+
             case FN_POP: {
-                return ((Stack)val(c,0)).pop();
+                return ((Stack) val(c, 0)).pop();
             }
+
             case FN_IS_EMPTY: {
                 Object o = val(c, 0);
-                return (o instanceof Stack ? (
-                        ((Stack)o).empty()
-                ) : o instanceof Hashtable ? (
-                        ((Hashtable)o).isEmpty()
-                ) : o instanceof Enumeration ? (
-                        !((Enumeration)o).hasMoreElements()
-                ) : false) ? TRUE : null;
+                return (o instanceof Stack ? (((Stack) o).empty()) 
+                    : o instanceof Hashtable ? (((Hashtable) o).isEmpty()) 
+                    : o instanceof Enumeration ? (!((Enumeration) o).hasMoreElements()) 
+                    : false) 
+                    ? TRUE : null;
             }
+
             case FN_TABLE: {
-                int len = ((Object[])c).length;
+                int len = ((Object[]) c).length;
                 Hashtable h = new Hashtable();
-                for(int i=0;i<len;i+=2) {
-                    h.put(val(c, i), val(c, i+1));
+                for (int i = 0; i < len; i += 2) {
+                    h.put(val(c, i), val(c, i + 1));
                 }
                 return h;
             }
+
             case FN_ELEMENTS: {
                 Object o = val(c, 0);
-                if(o instanceof Stack) {
-                    return ((Stack)o).elements();
-                } else if(o instanceof Hashtable) {
-                    return ((Hashtable)o).elements();
+                if (o instanceof Stack) {
+                    return ((Stack) o).elements();
+                } else if (o instanceof Hashtable) {
+                    return ((Hashtable) o).elements();
                 } else {
                     return null;
                 }
             }
+
             case FN_GET_NEXT: {
-                return ((Enumeration)val(c, 0)).nextElement();
+                return ((Enumeration) val(c, 0)).nextElement();
             }
+
             case FN_KEYS: {
-                return ((Hashtable)val(c, 0)).keys();
+                return ((Hashtable) val(c, 0)).keys();
             }
+
             case FN_STACK_TO_ARRAY: {
                 Stack s = (Stack) val(c, 0);
                 Object os[] = new Object[s.size()];
                 s.copyInto(os);
                 return os;
             }
+
             case FN_ARRAY_TO_STACK: {
-                Object os[] = (Object[])val(c, 0);
+                Object os[] = (Object[]) val(c, 0);
                 Stack s = new Stack();
-                for(int i = 0; i < os.length; i++) {
+                for (int i = 0; i < os.length; i++) {
                     s.push(os[i]);
                 }
                 return s;
             }
-            
+
             case FN_STRINGJOIN: {
                 StringBuffer sb = new StringBuffer();
                 stringjoin(sb, c);
                 return sb.toString();
             }
+
             case FN_RESOLVE_FOREACH: {
                 Object t[] = (Object[]) c;
                 t[0] = new Integer(getVarId(((Yolan) t[0]).c));
                 fn = FN_FOREACH;
                 return value();
             }
+
             case FN_FOREACH: {
-                Object os[] = (Object[])c;
-                int id = ((Integer)os[0]).intValue();
+                Object os[] = (Object[]) c;
+                int id = ((Integer) os[0]).intValue();
                 Enumeration e = (Enumeration) val(c, 1);
                 Object result = null;
                 stack.push(vars[id]);
-                while(e.hasMoreElements()) {
+                while (e.hasMoreElements()) {
                     vars[id] = e.nextElement();
                     result = val(c, 2);
                 }
                 vars[id] = stack.pop();
                 return result;
             }
-            // 
+
             default: {
                 throw new Error("Unexpected case " + fn);
-
             }
-
         }
     }
-    
+
     private static void stringjoin(StringBuffer sb, Object o) {
-        if(o instanceof Yolan) {
-            stringjoin(sb, ((Yolan)o).value());
-        } else if(o instanceof Object[]) {
-            for(int i = 0; i< ((Object[])o).length; i++) {
-                stringjoin(sb, ((Object[])o)[i]);
+        if (o instanceof Yolan) {
+            stringjoin(sb, ((Yolan) o).value());
+        } else if (o instanceof Object[]) {
+            for (int i = 0; i < ((Object[]) o).length; i++) {
+                stringjoin(sb, ((Object[]) o)[i]);
             }
-        } else if(o instanceof Stack) {
-            for(int i = 0; i<((Stack)o).size();i++) {
-                stringjoin(sb,((Stack)o).elementAt(i));
+        } else if (o instanceof Stack) {
+            for (int i = 0; i < ((Stack) o).size(); i++) {
+                stringjoin(sb, ((Stack) o).elementAt(i));
             }
         } else {
             stringjoin(sb, o.toString());
@@ -526,12 +518,10 @@ public final class Yolan {
     public String toString() {
         return to_string(new StringBuffer(), this).toString();
     }
-    
     ////////////////////////////////////
     // Utility functions for evaluation
     // <editor-fold>
     ////
-
     /**
      * Returnable true value
      */
@@ -543,7 +533,6 @@ public final class Yolan {
      * variable names and values
      */
     private static Object vars[] = new Object[0];
-    
     /** Stack used for function calls */
     private static Stack stack = new Stack();
 
@@ -634,14 +623,11 @@ public final class Yolan {
         }
         return sb;
     }
-    
-    // </editor-fold>
 
-    
+    // </editor-fold>
     ////////////////////////////////////
     // Adding native+builtin functions to the runtime
     //<editor-fold>
-    
     /**
      * Register a builtin function
      * @param val the function id
@@ -662,8 +648,9 @@ public final class Yolan {
         int id = getVarId(name);
         vars[id] = new Yolan(FN_NATIVE_DUMMY, f);
     }
-    
     // Register builtins
+    
+
     static {
         addBuiltin(FN_ADD, "+");
         addBuiltin(FN_SUB, "-");
@@ -709,9 +696,8 @@ public final class Yolan {
         addBuiltin(FN_ELEMENTS, "elements");
         addBuiltin(FN_RESOLVE_FOREACH, "foreach");
         addBuiltin(FN_ARRAY, "array");
-        // ...
     }
-    
+
     // </editor-fold>
 
     /////////////////////////////////////
@@ -751,10 +737,12 @@ public final class Yolan {
 
             // String
             } else if (c == '"') { // (comment ends '"' when prettyprinting)
+
                 StringBuffer sb = new StringBuffer();
                 c = is.read();
                 while (c != '"' && c != -1) { // (comment ends '"' when prettyprinting)
-                    if (c == '\\') { 
+
+                    if (c == '\\') {
                         c = is.read();
                     }
                     sb.append((char) c);

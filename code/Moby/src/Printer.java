@@ -11,7 +11,7 @@ public class Printer implements Yoco {
 
     public Object apply(Yolan[] args) {
         Object result = args[0].value();
-        Main.form.append(result.toString());
+        Main.form.append(result==null?"nil":result.toString());
         return result;
     }
 

@@ -1,0 +1,81 @@
+Object: [class-ptr obj-var1 obj-var2 ...]
+Class: [method-name1 method-ptr1 method-name2 method-ptr2 ... super-class]
+Method: function: self x parameters -> result
+
+
+interface Method {
+    public Object apply(Object self[], Object args[]);
+}
+
+class Dictionary {
+    Dictionary parent;
+    int length;
+    String names[];
+    Object vals[];
+}
+
+
+static Method lookup(Object class[], String name) {
+    int i = 0;
+    for(;;) {
+        if(i < class.length) {
+	    if(name.equals(class[i])) {
+	        return class[i+1];
+	    } else {
+	        i += 2;
+	    }
+	} else {
+	    i--;
+	    if(i - 1 < class.length) {
+	        class = class[i-1
+	    }
+	}
+    }
+}
+
+----- old -------
+
+
+default behavior for ( foo bar baz ) :
+- foo is a function:
+  - apply foo to [ stack bar baz ]
+- foo is an object
+  - apply foo:bar to [ stack foo baz]
+
+e.g:
+
+Object frame[] = new Object[3];
+if(foo instanceof Function) {
+} else if(foo instanceof Object[]) {
+
+}
+
+Object representation:
+[ class-map local vals ]
+
+stdeval:
+
+   Object frame[] = new Object[expr.length];
+   frame[0] = prev_frame;
+
+   // function application
+   if(expr[0] instanceof Function) {
+       for(int i = 1; i < expr.length; i++) {
+           frame[i] = expr[i].apply(prev_frame);
+       }
+       return ((Function)expr[0]).apply(frame);
+
+   // method dispatch
+   } else {
+       for(int i = 2; i < expr.length; i++) {
+           frame[i] = expr[i].apply(prev_frame);
+       }
+       frame[1] = expr[0];
+       return object_resolve_function(expr[0], expr[1]).apply(frame);
+   }
+
+
+object_resolve_function()
+
+
+
