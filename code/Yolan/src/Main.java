@@ -16,7 +16,6 @@ public class Main implements Yoco {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws Exception {
-        System.out.println("Hello world!");
         Yolan.addFunction("println", new Main());
         Yolan.eval(new FileInputStream(new File("/home/voel/Desktop/speciale/code/Yolan/src/test.yl")));
     }
