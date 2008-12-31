@@ -8,5 +8,5 @@
  * @author voel
  */
 public interface Yoco {
-    public Object apply(Object[] args);
+    public Object apply(Yolan[] args);
 }

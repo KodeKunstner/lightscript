@@ -6,17 +6,12 @@ import java.io.File;
  * and open the template in the editor.
  */
 import java.io.FileInputStream;
-import java.io.IOException;
 
 /**
  *
  * @author voel
  */
 public class Main implements Yoco {
-
-    public static void print(String s) {
-        System.out.print(s);
-    }
     /**
      * @param args the command line arguments
      */
@@ -26,8 +21,8 @@ public class Main implements Yoco {
         Yolan.eval(new FileInputStream(new File("/home/voel/Desktop/speciale/code/Yolan/src/test.yl")));
     }
 
-    public Object apply(Object[] args) {
-        System.out.println(args[0].toString());
+    public Object apply(Yolan[] args) {
+        System.out.println(args[0].value().toString());
         return args[0];
     }
 

@@ -3,7 +3,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.util.Stack;
 
-final class Yolan {
+public final class Yolan {
 
 
     //////////////////////////////////////
@@ -73,44 +73,34 @@ final class Yolan {
                     // builtin function
                     if (yl.fn == -1) {
                         this.fn = ((Integer) yl.c).intValue();
+                        Object args[] = (Object[])c;
+                        Object newargs[] = new Object[args.length - 1];
+                        for(int i = 0; i < newargs.length; i++) {
+                            newargs[i] = args[i+1];
+                        }
                         return value();
 
                     // native function implementing Function-interface;
                     } else if (yl.fn == -2) {
                         this.fn = 18;
                         Object args[] = (Object[]) c;
+                        Yolan params[] = new Yolan[args.length - 1];
+                        for(int i = 0; i < params.length; i++) {
+                            params[i] = (Yolan)args[i+1];
+                        }
                         args[0] = yl.c;
+                        args[1] = params;
                         return value();
 
                     // user defined function
                     } else if (yl.fn == 10) {
                         Object args[] = (Object[]) c;
-                        Object function[] = (Object[]) yl.c;
-
                         // evaluate arguments and push to stack
                         for (int i = 1; i < args.length; i++) {
                             stack.push(((Yolan) args[i]).value());
                         }
-
-                        // swap argument values on stack with local values
-                        int spos = stack.size();
-                        for (int i = 1; i < args.length; i++) {
-                            int pos = ((Integer) function[function.length - i]).intValue();
-                            spos--;
-                            Object t = stack.elementAt(spos);
-                            stack.setElementAt(vars[pos], spos);
-                            vars[pos] = t;
-                        }
-
-                        // evaluate the result
-                        Object result = ((Yolan) function[0]).value();
-
-                        // restore previous values
-                        for (int i = args.length - 1; i > 0; i--) {
-                            vars[((Integer) function[i]).intValue()] = stack.pop();
-                        }
-
-                        return result;
+                        
+                        return yl.value();
                     }
                 } else {
                     // ...
@@ -148,8 +138,28 @@ final class Yolan {
             }
 
             // userdefined function
-            // case 10: 
-            // dummy - not called, but see case 2.
+            case 10: {
+                Object args[] = (Object[]) c;
+                // swap argument values on stack with local values
+                int spos = stack.size();
+                for (int i = 1; i < args.length; i++) {
+                    int pos = ((Integer) args[args.length - i]).intValue();
+                    spos--;
+                    Object t = stack.elementAt(spos);
+                    stack.setElementAt(vars[pos], spos);
+                    vars[pos] = t;
+                }
+
+                // evaluate the result
+                Object result = ((Yolan) args[0]).value();
+
+                // restore previous values
+                for (int i = args.length - 1; i > 0; i--) {
+                    vars[((Integer) args[i]).intValue()] = stack.pop();
+                }
+                return result;
+
+            }
 
 
             // lambda
@@ -218,11 +228,7 @@ final class Yolan {
             // Native Function
             case 18: {
                 Object objs[] = (Object[]) c;
-                Object args[] = new Object[objs.length - 1];
-                for (int i = 0; i < args.length; i++) {
-                    args[i] = ((Yolan) objs[i + 1]).value();
-                }
-                return ((Yoco) objs[0]).apply(args);
+                return ((Yoco) objs[0]).apply((Yolan[]) objs[1]);
 
             }
             // 
