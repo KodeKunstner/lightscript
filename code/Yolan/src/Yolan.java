@@ -443,11 +443,11 @@ public final class Yolan {
                 s.push(new Yolan(0, new Integer(i)));
 
             // String
-            } else if (c == '"') {
+            } else if (c == '"') { // (comment ends '"' when prettyprinting)
                 StringBuffer sb = new StringBuffer();
                 c = is.read();
-                while (c != '"' && c != -1) {
-                    if (c == '\\') {
+                while (c != '"' && c != -1) { // (comment ends '"' when prettyprinting)
+                    if (c == '\\') { 
                         c = is.read();
                     }
                     sb.append((char) c);
