@@ -86,6 +86,96 @@ public final class Yolan {
     private static Random random = new Random();
 
     /**
+     * The number of arguments the function takes, 
+     * if the delayed computation is an applicable
+     * user defined function.
+     *
+     * @return the number of parameters, or -1 if not a function
+     */
+    public int nargs() {
+	    if(fn != FN_USER_DEFINED_FUNCTION) {
+		    return -1;
+	    }
+	    return ((Object[])c).length - 1;
+    }
+
+    /**
+     * if the computation is a variable or literal,
+     * return its string representation
+     */
+    public String string() {
+	    if(fn == FN_RESOLVE_GET_VAR) {
+		    return (String) c;
+	    } else if(fn == FN_GET_VAR) {
+		    return (String) vars[((Integer)c).intValue() - 1];
+	    } else if(fn == FN_LITERAL) {
+		    if(c instanceof Number) {
+			    return c.toString(); 
+			} else if(c instanceof String) {
+				return "\"" + c + "\"";
+			}
+	    } 
+	return null;
+    }
+
+    /**
+     * utility function for function application
+     */
+    private Object doApply(int n) {
+	    if(n != nargs()) {
+		    for(int i = 0; i<n;i++) {
+			    stack.pop();
+		    }
+		    return null;
+	    }
+	    return value();
+    }
+
+    /**
+     * apply as a function without arguments
+     */
+    public Object apply() {
+	    return doApply(0);
+    }
+
+    /**
+     * apply as a function with one argument
+     */
+    public Object apply(Object arg1) {
+	    stack.push(arg1);
+	    return doApply(1);
+    }
+
+    /**
+     * apply as a function with two arguments
+     */
+    public Object apply(Object arg1, Object arg2) {
+	    stack.push(arg1);
+	    stack.push(arg2);
+	    return doApply(2);
+    }
+
+    /**
+     * apply as a function with three arguments
+     */
+    public Object apply(Object arg1, Object arg2, Object arg3) {
+	    stack.push(arg1);
+	    stack.push(arg2);
+	    stack.push(arg3);
+	    return doApply(3);
+    }
+
+    /**
+     * apply as a function with the arguments given as an array
+     */
+    public Object apply(Object args[]) {
+	    for(int i = 0; i< args.length; i++) {
+	    	stack.push(args[i]);
+	    }
+	    return doApply(args.length);
+    }
+
+    /**
      * Evaluate the delayed computation
      * @return the result
      */
@@ -139,13 +229,9 @@ public final class Yolan {
                         }
 
                         return yl.value();
-                    } else {
-                        throw new Error("Unexpected list type" + yl.fn);
-                    }
-                } else {
-                    // ...
-                }
-                throw new Error("Unexpected list type");
+                    } 
+		}
+                throw new Error("Unknown function: " + ((Yolan)((Object [])c)[0]).string());
             }
 
             case FN_ADD: {
@@ -175,9 +261,11 @@ public final class Yolan {
             case FN_IF: {
                 return (val(c, 0) != null) ? val(c, 1) : val(c, 2);
             }
+
             case FN_TO_STRING: {
                 return to_string(new StringBuffer(), val(c, 0)).toString();
             }
+
             case FN_USER_DEFINED_FUNCTION: {
                 Object args[] = (Object[]) c;
 
@@ -504,6 +592,7 @@ public final class Yolan {
 		return value();
 
             }
+
             case FN_LOCALS: {
 		int ids[] = (int[]) ((Object [])c)[0];
 		int len = ((Object [])c).length;
@@ -519,6 +608,7 @@ public final class Yolan {
 		}
 		return result;
 	    }
+
             default: {
                 throw new Error("Unexpected case " + fn);
             }

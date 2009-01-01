@@ -1,6 +1,1 @@
-[set x 1]
-[locals [x y]
-    [println x]
-    [set x 5]
-    [println x]]
-[println x]
+[string-test 1234]
