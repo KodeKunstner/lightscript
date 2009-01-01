@@ -56,6 +56,10 @@
 [foreach name container expression]
 	for each element in a container (array, stack, or keys in a map)
 	let name refer to the element and evaluate the expression
+[locals [var1 var2 ...] expr1 expr2 ...]
+	let the variables be local in the following expressions, - e.g.
+	restore original variable values after the last expression is
+	executed.
 
 ########################################################################
 # String operations
@@ -154,4 +158,3 @@
 	create a string representation of an object - for debugging,
 	includes internal yolan-fn-number etc. Warning: unsafe on
 	recursive data structure
-
