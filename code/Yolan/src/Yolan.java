@@ -1,4 +1,3 @@
-
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.Enumeration;
@@ -463,8 +462,11 @@ public final class Yolan {
             }
 
             case FN_STRINGJOIN: {
+                Object os[] = (Object[]) c;
                 StringBuffer sb = new StringBuffer();
-                stringjoin(sb, c);
+                for (int i = 0; i < os.length; i++) {
+                    stringjoin(sb, ((Yolan)os[i]).value());
+                }
                 return sb.toString();
             }
 
@@ -496,9 +498,7 @@ public final class Yolan {
     }
 
     private static void stringjoin(StringBuffer sb, Object o) {
-        if (o instanceof Yolan) {
-            stringjoin(sb, ((Yolan) o).value());
-        } else if (o instanceof Object[]) {
+        if (o instanceof Object[]) {
             for (int i = 0; i < ((Object[]) o).length; i++) {
                 stringjoin(sb, ((Object[]) o)[i]);
             }
@@ -507,7 +507,7 @@ public final class Yolan {
                 stringjoin(sb, ((Stack) o).elementAt(i));
             }
         } else {
-            stringjoin(sb, o.toString());
+            sb.append(o.toString());
         }
     }
 

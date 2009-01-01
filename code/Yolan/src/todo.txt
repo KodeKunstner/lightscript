@@ -11,3 +11,4 @@
 - test
 - demo-apps
 - benchmarks
+- fix bug in stringjoin

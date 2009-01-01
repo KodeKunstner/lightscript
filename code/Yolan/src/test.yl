@@ -1,13 +1,14 @@
-[foreach navn 
-    [elements [stack "Rasmus" "Anne" "Kirsten" "Frank"]]
-    [do [println "Hej"] [println navn]]]
-
-[set x 1]
-[while [< x 10]
-    [println x]
-    [set x [+ x 1]]
-]
-
+[println [stringjoin "foo" [array "bar baz"]]]
+;[foreach navn 
+;    [elements [stack "Rasmus" "Anne" "Kirsten" "Frank"]]
+;    [do [println "Hej"] [println navn]]]
+;
+;[set x 1]
+;[while [< x 10]
+;    [println x]
+;    [set x [+ x 1]]
+;]
+;
 ;[set x 5]
 ;[set f [lambda [x] [println x]]]
 ;
