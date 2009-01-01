@@ -80,6 +80,8 @@ public final class Yolan {
     private static final int FN_ELEMENTS = 49;
     private static final int FN_RESOLVE_FOREACH = 50;
     private static final int FN_ARRAY = 51;
+    private static final int FN_RESOLVE_LOCALS= 52;
+    private static final int FN_LOCALS= 53;
     //</editor-fold>
     private static Random random = new Random();
 
@@ -491,6 +493,32 @@ public final class Yolan {
                 return result;
             }
 
+            case FN_RESOLVE_LOCALS: {
+                Object[] locals = (Object[]) ((Yolan) ((Object [])c)[0]).c;
+		int locals_id[] = new int[locals.length];
+                for (int i = 0; i < locals.length; i++) {
+		    locals_id[i] = getVarId(((Yolan) locals[i]).c);
+                }
+		((Object [])c)[0] = locals_id;
+		fn = FN_LOCALS;
+		return value();
+
+            }
+            case FN_LOCALS: {
+		int ids[] = (int[]) ((Object [])c)[0];
+		int len = ((Object [])c).length;
+		for(int i = 0; i < ids.length; i++) {
+			stack.push(vars[ids[i]]);
+		}
+		Object result = null;
+		for(int i = 1; i < len; i++) {
+			result = val(c, i);
+		}
+		for(int i = ids.length - 1; i >= 0; i--) {
+			vars[ids[i]] = stack.pop();
+		}
+		return result;
+	    }
             default: {
                 throw new Error("Unexpected case " + fn);
             }
@@ -535,6 +563,7 @@ public final class Yolan {
     private static Object vars[] = new Object[0];
     /** Stack used for function calls */
     private static Stack stack = new Stack();
+    private static int varsize = 0;
 
     /**
      * Lookup the id of a variable
@@ -543,15 +572,20 @@ public final class Yolan {
      */
     private static int getVarId(Object key) {
         int i = 0;
-        while (i < vars.length && !vars[i].equals(key)) {
+        while (i < varsize && !vars[i].equals(key)) {
             i += 2;
         }
 
-        if (i == vars.length) {
-            Object objs[] = new Object[i + 2];
-            System.arraycopy(vars, 0, objs, 0, vars.length);
-            vars = objs;
+        if (i == varsize) {
+	    if(varsize == vars.length) {
+		// grow the var array exponential, and make sure
+		// that the size is divisible by 2
+            	Object objs[] = new Object[(varsize * 5 / 4 + 4) & ~1];
+            	System.arraycopy(vars, 0, objs, 0, varsize);
+            	vars = objs;
+	    }
             vars[i] = key;
+	    varsize += 2;
         }
         return i + 1;
     }
@@ -696,6 +730,7 @@ public final class Yolan {
         addBuiltin(FN_ELEMENTS, "elements");
         addBuiltin(FN_RESOLVE_FOREACH, "foreach");
         addBuiltin(FN_ARRAY, "array");
+        addBuiltin(FN_RESOLVE_LOCALS, "locals");
     }
 
     // </editor-fold>
