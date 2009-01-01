@@ -7,7 +7,7 @@
  *
  * @author voel
  */
-public class Printer implements Yoco {
+public class Printer implements Function {
 
     public Object apply(Yolan[] args) {
         Object result = args[0].value();

@@ -7,6 +7,6 @@
  *
  * @author voel
  */
-public interface Yoco {
+public interface Function {
     public Object apply(Yolan[] args);
 }

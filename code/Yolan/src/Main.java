@@ -11,7 +11,7 @@ import java.io.FileInputStream;
  *
  * @author voel
  */
-public class Main implements Yoco {
+public class Main implements Function {
     /**
      * @param args the command line arguments
      */

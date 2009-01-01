@@ -1,1 +1,12 @@
-[string-test 1234]
+[set words1 
+    [array "oste" "kakao" "senge" "gynge" "tanke" "flyve"]]
+[set words2
+    [array "mad"  "mælk"  "lampe" "hest"  "streg" "fisk"]]
+[set x 0]
+[while [< x 10]
+    [println [stringjoin 
+        [get words1 [random [size words1]]]
+        [get words2 [random [size words2]]]
+    ]]
+    [set x [+ x 1]]
+]

@@ -109,7 +109,7 @@ public final class Yolan {
 	    } else if(fn == FN_GET_VAR) {
 		    return (String) vars[((Integer)c).intValue() - 1];
 	    } else if(fn == FN_LITERAL) {
-		    if(c instanceof Number) {
+		    if(c instanceof Integer) {
 			    return c.toString(); 
 			} else if(c instanceof String) {
 				return "\"" + c + "\"";
@@ -364,12 +364,12 @@ public final class Yolan {
 
             case FN_NATIVE: {
                 Object objs[] = (Object[]) c;
-                return ((Yoco) objs[0]).apply((Yolan[]) objs[1]);
+                return ((Function) objs[0]).apply((Yolan[]) objs[1]);
 
             }
 
             case FN_RANDOM: {
-                return num(random.nextInt() % ival(c, 0));
+                return num((random.nextInt() & 0x7fffffff) % ival(c, 0));
             }
 
             case FN_IS_INTEGER: {
@@ -768,7 +768,7 @@ public final class Yolan {
      * @param name the name of the function
      * @param f the function itself
      */
-    public static void addFunction(String name, Yoco f) {
+    public static void addFunction(String name, Function f) {
         int id = getVarId(name);
         vars[id] = new Yolan(FN_NATIVE_DUMMY, f);
     }
