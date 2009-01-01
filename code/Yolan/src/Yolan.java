@@ -1,3 +1,4 @@
+
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.Enumeration;
@@ -80,8 +81,8 @@ public final class Yolan {
     private static final int FN_ELEMENTS = 49;
     private static final int FN_RESOLVE_FOREACH = 50;
     private static final int FN_ARRAY = 51;
-    private static final int FN_RESOLVE_LOCALS= 52;
-    private static final int FN_LOCALS= 53;
+    private static final int FN_RESOLVE_LOCALS = 52;
+    private static final int FN_LOCALS = 53;
     //</editor-fold>
     private static Random random = new Random();
 
@@ -93,10 +94,10 @@ public final class Yolan {
      * @return the number of parameters, or -1 if not a function
      */
     public int nargs() {
-	    if(fn != FN_USER_DEFINED_FUNCTION) {
-		    return -1;
-	    }
-	    return ((Object[])c).length - 1;
+        if (fn != FN_USER_DEFINED_FUNCTION) {
+            return -1;
+        }
+        return ((Object[]) c).length - 1;
     }
 
     /**
@@ -104,75 +105,75 @@ public final class Yolan {
      * return its string representation
      */
     public String string() {
-	    if(fn == FN_RESOLVE_GET_VAR) {
-		    return (String) c;
-	    } else if(fn == FN_GET_VAR) {
-		    return (String) vars[((Integer)c).intValue() - 1];
-	    } else if(fn == FN_LITERAL) {
-		    if(c instanceof Integer) {
-			    return c.toString(); 
-			} else if(c instanceof String) {
-				return "\"" + c + "\"";
-			}
-	    } 
-	return null;
+        if (fn == FN_RESOLVE_GET_VAR) {
+            return (String) c;
+        } else if (fn == FN_GET_VAR) {
+            return (String) vars[((Integer) c).intValue() - 1];
+        } else if (fn == FN_LITERAL) {
+            if (c instanceof Integer) {
+                return c.toString();
+            } else if (c instanceof String) {
+                return "\"" + c + "\"";
+            }
+        }
+        return null;
     }
 
     /**
      * utility function for function application
      */
     private Object doApply(int n) {
-	    if(n != nargs()) {
-		    for(int i = 0; i<n;i++) {
-			    stack.pop();
-		    }
-		    return null;
-	    }
-	    return value();
+        if (n != nargs()) {
+            for (int i = 0; i < n; i++) {
+                stack.pop();
+            }
+            return null;
+        }
+        return value();
     }
 
     /**
      * apply as a function without arguments
      */
     public Object apply() {
-	    return doApply(0);
+        return doApply(0);
     }
 
     /**
      * apply as a function with one argument
      */
     public Object apply(Object arg1) {
-	    stack.push(arg1);
-	    return doApply(1);
+        stack.push(arg1);
+        return doApply(1);
     }
 
     /**
      * apply as a function with two arguments
      */
     public Object apply(Object arg1, Object arg2) {
-	    stack.push(arg1);
-	    stack.push(arg2);
-	    return doApply(2);
+        stack.push(arg1);
+        stack.push(arg2);
+        return doApply(2);
     }
 
     /**
      * apply as a function with three arguments
      */
     public Object apply(Object arg1, Object arg2, Object arg3) {
-	    stack.push(arg1);
-	    stack.push(arg2);
-	    stack.push(arg3);
-	    return doApply(3);
+        stack.push(arg1);
+        stack.push(arg2);
+        stack.push(arg3);
+        return doApply(3);
     }
 
     /**
      * apply as a function with the arguments given as an array
      */
     public Object apply(Object args[]) {
-	    for(int i = 0; i< args.length; i++) {
-	    	stack.push(args[i]);
-	    }
-	    return doApply(args.length);
+        for (int i = 0; i < args.length; i++) {
+            stack.push(args[i]);
+        }
+        return doApply(args.length);
     }
 
     /**
@@ -229,9 +230,9 @@ public final class Yolan {
                         }
 
                         return yl.value();
-                    } 
-		}
-                throw new Error("Unknown function: " + ((Yolan)((Object [])c)[0]).string());
+                    }
+                }
+                throw new Error("Unknown function: " + ((Yolan) ((Object[]) c)[0]).string());
             }
 
             case FN_ADD: {
@@ -500,11 +501,11 @@ public final class Yolan {
 
             case FN_IS_EMPTY: {
                 Object o = val(c, 0);
-                return (o instanceof Stack ? (((Stack) o).empty()) 
-                    : o instanceof Hashtable ? (((Hashtable) o).isEmpty()) 
-                    : o instanceof Enumeration ? (!((Enumeration) o).hasMoreElements()) 
-                    : false) 
-                    ? TRUE : null;
+                return (o instanceof Stack ? (((Stack) o).empty())
+                        : o instanceof Hashtable ? (((Hashtable) o).isEmpty())
+                        : o instanceof Enumeration ? (!((Enumeration) o).hasMoreElements())
+                        : false)
+                        ? TRUE : null;
             }
 
             case FN_TABLE: {
@@ -555,7 +556,7 @@ public final class Yolan {
                 Object os[] = (Object[]) c;
                 StringBuffer sb = new StringBuffer();
                 for (int i = 0; i < os.length; i++) {
-                    stringjoin(sb, ((Yolan)os[i]).value());
+                    stringjoin(sb, ((Yolan) os[i]).value());
                 }
                 return sb.toString();
             }
@@ -582,32 +583,32 @@ public final class Yolan {
             }
 
             case FN_RESOLVE_LOCALS: {
-                Object[] locals = (Object[]) ((Yolan) ((Object [])c)[0]).c;
-		int locals_id[] = new int[locals.length];
+                Object[] locals = (Object[]) ((Yolan) ((Object[]) c)[0]).c;
+                int locals_id[] = new int[locals.length];
                 for (int i = 0; i < locals.length; i++) {
-		    locals_id[i] = getVarId(((Yolan) locals[i]).c);
+                    locals_id[i] = getVarId(((Yolan) locals[i]).c);
                 }
-		((Object [])c)[0] = locals_id;
-		fn = FN_LOCALS;
-		return value();
+                ((Object[]) c)[0] = locals_id;
+                fn = FN_LOCALS;
+                return value();
 
             }
 
             case FN_LOCALS: {
-		int ids[] = (int[]) ((Object [])c)[0];
-		int len = ((Object [])c).length;
-		for(int i = 0; i < ids.length; i++) {
-			stack.push(vars[ids[i]]);
-		}
-		Object result = null;
-		for(int i = 1; i < len; i++) {
-			result = val(c, i);
-		}
-		for(int i = ids.length - 1; i >= 0; i--) {
-			vars[ids[i]] = stack.pop();
-		}
-		return result;
-	    }
+                int ids[] = (int[]) ((Object[]) c)[0];
+                int len = ((Object[]) c).length;
+                for (int i = 0; i < ids.length; i++) {
+                    stack.push(vars[ids[i]]);
+                }
+                Object result = null;
+                for (int i = 1; i < len; i++) {
+                    result = val(c, i);
+                }
+                for (int i = ids.length - 1; i >= 0; i--) {
+                    vars[ids[i]] = stack.pop();
+                }
+                return result;
+            }
 
             default: {
                 throw new Error("Unexpected case " + fn);
@@ -667,15 +668,15 @@ public final class Yolan {
         }
 
         if (i == varsize) {
-	    if(varsize == vars.length) {
-		// grow the var array exponential, and make sure
-		// that the size is divisible by 2
-            	Object objs[] = new Object[(varsize * 5 / 4 + 4) & ~1];
-            	System.arraycopy(vars, 0, objs, 0, varsize);
-            	vars = objs;
-	    }
+            if (varsize == vars.length) {
+                // grow the var array exponential, and make sure
+                // that the size is divisible by 2
+                Object objs[] = new Object[(varsize * 5 / 4 + 4) & ~1];
+                System.arraycopy(vars, 0, objs, 0, varsize);
+                vars = objs;
+            }
             vars[i] = key;
-	    varsize += 2;
+            varsize += 2;
         }
         return i + 1;
     }

@@ -12,6 +12,7 @@ import java.io.FileInputStream;
  * @author voel
  */
 public class Main implements Function {
+
     /**
      * @param args the command line arguments
      */
@@ -23,30 +24,29 @@ public class Main implements Function {
     }
 
     public Main(int i) {
-	    fn = i;
+        fn = i;
     }
-
     int fn;
-    public Object apply(Yolan[] args) {
-	    switch(fn) {
-		    case 0: {
-        	Object o = args[0].value();
-        	System.out.println(o == null?"nil":o.toString());
-        	return args[0];
-		    }
-		    case 1: {
-				    Yolan function = ((Yolan)args[0].value());
-				    System.out.println(function.nargs());
-				    return function.apply(new Integer(32), new Integer(42));
-		    }
-		    case 2: {
-				    System.out.println(args[0].string());
-				    args[0].value();
-				    System.out.println(args[0].string());
-				    return null;
-		    }
-	    }
-				    return null;
-    }
 
+    public Object apply(Yolan[] args) {
+        switch (fn) {
+            case 0: {
+                Object o = args[0].value();
+                System.out.println(o == null ? "nil" : o.toString());
+                return args[0];
+            }
+            case 1: {
+                Yolan function = ((Yolan) args[0].value());
+                System.out.println(function.nargs());
+                return function.apply(new Integer(32), new Integer(42));
+            }
+            case 2: {
+                System.out.println(args[0].string());
+                args[0].value();
+                System.out.println(args[0].string());
+                return null;
+            }
+        }
+        return null;
+    }
 }
