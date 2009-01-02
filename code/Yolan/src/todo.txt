@@ -1,8 +1,5 @@
 - change parser to be single expression rather than full list at a time
-- reorder fn-ids
-  - shorten initialisation
 - evt. c to be array rather than single object
-- optimise val, ival
 - test
 - demo-apps
 - benchmarks
