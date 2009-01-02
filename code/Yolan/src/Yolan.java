@@ -27,11 +27,9 @@ public final class Yolan {
     }
     /** Function ID constants */
     //<editor-fold>
-    
     //////////////////////
     // Internal functions
     ////
-    
     private static final int FN_NATIVE_DUMMY = -11;
     private static final int FN_BUILTIN_DUMMY = -10;
     private static final int FN_LITERAL = -9;
@@ -43,21 +41,17 @@ public final class Yolan {
     private static final int FN_NATIVE = -3;
     private static final int FN_FOREACH = -2;
     private static final int FN_LOCALS = -1;
-    
     /////////////////////
     // Builtin functions
     ////
-    
     // Variables
     private static final int FN_RESOLVE_SET = 0;
     private static final int FN_RESOLVE_LOCALS = 1;
-    
     // Conditionals and logic
     private static final int FN_IF = 2;
     private static final int FN_NOT = 3;
     private static final int FN_AND = 4;
     private static final int FN_OR = 5;
-    
     // Repetition
     private static final int FN_REPEAT = 6;
     private static final int FN_RESOLVE_FOREACH = 7;
@@ -82,7 +76,6 @@ public final class Yolan {
     private static final int FN_IS_STRING = 20;
     private static final int FN_IS_LIST = 21;
     private static final int FN_IS_DICT = 22;
-    
     // Polymorphic functions
     private static final int FN_EQUALS = 23;
     private static final int FN_IS_EMPTY = 24;
@@ -101,18 +94,14 @@ public final class Yolan {
     private static final int FN_RESIZE = 33;
     private static final int FN_PUSH = 34;
     private static final int FN_POP = 35;
-    
     // Dictionary functions
     private static final int FN_DICT = 36;
-    
     // Enumeration functions
     private static final int FN_KEYS = 37;
     private static final int FN_VALUES = 38;
     private static final int FN_GET_NEXT = 39;
-    
     // Debugging
-    private static final int FN_DEBUG_STRING = 40;
-    
+    //private static final int FN_DEBUG_STRING = 40;
     //</editor-fold>
     private static Random random = new Random();
 
@@ -376,7 +365,7 @@ public final class Yolan {
                 int count = ival(0);
                 Object result = null;
                 int stmts = ((Object[]) c).length;
-                for(int i = 0; i < count; i++) {
+                for (int i = 0; i < count; i++) {
                     for (int j = 1; j < stmts; j++) {
                         result = val(j);
                     }
@@ -401,7 +390,7 @@ public final class Yolan {
                 }
                 return result;
             }
-            
+
             case FN_LAMBDA: {
                 Object[] lambda_expr = (Object[]) c;
                 Object[] arguments = (Object[]) ((Yolan) lambda_expr[0]).c;
@@ -522,15 +511,15 @@ public final class Yolan {
             case FN_RANDOM: {
                 Object o = val0();
                 int rnd = random.nextInt() & 0x7fffffff;
-                if(o instanceof Integer) {
-                    return num(rnd % ((Integer)o).intValue());
-                } else if(o instanceof Stack) {
+                if (o instanceof Integer) {
+                    return num(rnd % ((Integer) o).intValue());
+                } else if (o instanceof Stack) {
                     Stack s = (Stack) o;
                     return s.elementAt(rnd % s.size());
                 } else {
                     return null;
                 }
-                    
+
             }
 
             case FN_SIZE: {
@@ -616,10 +605,11 @@ public final class Yolan {
             case FN_GET_NEXT: {
                 return ((Enumeration) val0()).nextElement();
             }
-
+/*
             case FN_DEBUG_STRING: {
                 return to_string(new StringBuffer(), val0()).toString();
             }
+ */
 
             default: {
                 throw new Error("Unexpected case " + fn);
@@ -641,9 +631,10 @@ public final class Yolan {
      * Override the toString function
      * @return
      */
+    /*
     public String toString() {
         return to_string(new StringBuffer(), this).toString();
-    }
+    }*/
     ////////////////////////////////////
     // Utility functions for evaluation
     // <editor-fold>
@@ -726,7 +717,6 @@ public final class Yolan {
         return ((Yolan) ((Object[]) c)[0]).value();
     }
 
-
     /**
      * Shorthand for wrapping a number into an Integer object
      * @param i the number
@@ -743,6 +733,7 @@ public final class Yolan {
      * @param o the object to convert
      * @return the accumulator (same as the paremeter)
      */
+    /*
     private static StringBuffer to_string(StringBuffer sb, Object o) {
         if (o instanceof Object[]) {
             Object os[] = (Object[]) o;
@@ -762,6 +753,7 @@ public final class Yolan {
         }
         return sb;
     }
+     */
 
     // </editor-fold>
     ////////////////////////////////////
@@ -791,10 +783,13 @@ public final class Yolan {
     
 
     static {
+        /* Initialisation of builtin names
+         * Commented out and replaced with optimised version below.
+        
         // Variables
         addBuiltin(FN_RESOLVE_SET, "set");
         addBuiltin(FN_RESOLVE_LOCALS, "locals");
-
+        
         // Conditionals and truth values
         addBuiltin(FN_IF, "if");
         addBuiltin(FN_NOT, "not");
@@ -810,7 +805,7 @@ public final class Yolan {
         addBuiltin(FN_DEFUN, "defun");
         addBuiltin(FN_LAMBDA, "lambda");
         addBuiltin(FN_DO, "do");
-
+        
         // Integer operations
         addBuiltin(FN_ADD, "+");
         addBuiltin(FN_SUB, "-");
@@ -855,6 +850,32 @@ public final class Yolan {
         
         // debugging
         addBuiltin(FN_DEBUG_STRING, "debug-string");
+         */
+
+        // space optimised initialisation of builtin names
+        // - having all the name in a single string
+        // and then manually extracting them, is spacewise
+        // significantly cheaper due to the design of the
+        // class file format.
+
+        String builtins = "set locals if not and or repeat foreach " +
+                "while defun lambda do + - * / % < <= is-integer " +
+                "is-string is-list is-dict equals is-empty put get " +
+                "random size stringjoin substring stringorder list " +
+                "resize push pop dict keys values get-next ";
+
+        int prevpos = 0;
+        int pos = 0;
+        int id = 0;
+        while (pos < builtins.length()) {
+            while (!builtins.substring(pos, pos + 1).equals(" ")) {
+                pos++;
+            }
+            addBuiltin(id, builtins.substring(prevpos, pos));
+            pos++;
+            prevpos = pos;
+            id++;
+        }
     }
 
     // </editor-fold>
