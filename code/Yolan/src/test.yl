@@ -1,12 +1,11 @@
 [set words1 
-    [array "oste" "kakao" "senge" "gynge" "tanke" "flyve"]]
+    [list "oste" "kakao" "senge" "gynge" "tanke" "flyve"]]
 [set words2
-    [array "mad"  "mælk"  "lampe" "hest"  "streg" "fisk"]]
+    [list "mad"  "mælk"  "lampe" "hest"  "streg" "fisk"]]
 [set x 0]
-[while [< x 10]
+[repeat 5
     [println [stringjoin 
-        [get words1 [random [size words1]]]
-        [get words2 [random [size words2]]]
+        [random words1]
+        [random words2]
     ]]
-    [set x [+ x 1]]
 ]
