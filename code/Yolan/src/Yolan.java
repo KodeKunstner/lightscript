@@ -27,58 +27,84 @@ public final class Yolan {
     }
     /** Function ID constants */
     //<editor-fold>
-    private static final int FN_NATIVE_DUMMY = -2;
-    private static final int FN_BUILTIN_DUMMY = -1;
-    private static final int FN_LITERAL = 0;
-    private static final int FN_RESOLVE_GET_VAR = 1;
-    private static final int FN_RESOLVE_EVAL_LIST = 2;
-    private static final int FN_ADD = 3;
-    private static final int FN_SUB = 4;
-    private static final int FN_MUL = 5;
-    private static final int FN_DIV = 6;
-    private static final int FN_LESS = 7;
-    private static final int FN_IF = 8;
-    private static final int FN_TO_STRING = 9;
-    private static final int FN_USER_DEFINED_FUNCTION = 10;
-    private static final int FN_LAMBDA = 11;
-    private static final int FN_RESOLVE_SET = 12;
-    private static final int FN_DO = 13;
-    private static final int FN_WHILE = 14;
-    private static final int FN_LESS_EQUAL = 15;
-    private static final int FN_GET_VAR = 16;
-    private static final int FN_SET = 17;
-    private static final int FN_NATIVE = 18;
-    private static final int FN_REM = 19;
-    private static final int FN_DEFUN = 20;
-    private static final int FN_RANDOM = 21;
-    private static final int FN_IS_INTEGER = 22;
-    private static final int FN_FOREACH = 23;
-    private static final int FN_STRINGJOIN = 24;
-    private static final int FN_SUBSTRING = 25;
-    private static final int FN_SIZE = 26;
-    private static final int FN_STRINGORDER = 27;
-    private static final int FN_IS_STRING = 28;
-    private static final int FN_NOT = 29;
-    private static final int FN_AND = 30;
-    private static final int FN_OR = 31;
-    private static final int FN_EQUALS = 32;
-    private static final int FN_PUT = 34;
-    private static final int FN_GET = 35;
+    // Internal functions
+    private static final int FN_NATIVE_DUMMY = 1;
+    private static final int FN_BUILTIN_DUMMY = 2;
+    private static final int FN_LITERAL = 3;
+    private static final int FN_RESOLVE_GET_VAR = 4;
+    private static final int FN_RESOLVE_EVAL_LIST = 5;
+    private static final int FN_USER_DEFINED_FUNCTION = 13;
+    private static final int FN_GET_VAR = 19;
+    private static final int FN_SET = 20;
+    private static final int FN_NATIVE = 21;
+    private static final int FN_FOREACH = 26;
+    private static final int FN_LOCALS = 51;
+    
+    // Variables
+    private static final int FN_RESOLVE_SET = 15;
+    private static final int FN_RESOLVE_LOCALS = 50;
+    
+    // Conditionals and logic
+    private static final int FN_IF = 11;
+    private static final int FN_NOT = 32;
+    private static final int FN_AND = 33;
+    private static final int FN_OR = 34;
+    
+    // Repetition
+    private static final int FN_REPEAT = 52;
+    private static final int FN_RESOLVE_FOREACH = 49;
+    private static final int FN_WHILE = 17;
+
+    // Functions and sequencing
+    private static final int FN_LAMBDA = 14;
+    private static final int FN_DEFUN = 23;
+    private static final int FN_DO = 16;
+
+    // Integer operations
+    private static final int FN_ADD = 6;
+    private static final int FN_SUB = 7;
+    private static final int FN_MUL = 8;
+    private static final int FN_DIV = 9;
+    private static final int FN_LESS = 10;
+    private static final int FN_LESS_EQUAL = 18;
+    private static final int FN_REM = 22;
+
+    // Type conditionals
+    private static final int FN_IS_INTEGER = 25;
+    private static final int FN_IS_STRING = 31;
+    private static final int FN_IS_LIST = 43;
+    private static final int FN_IS_DICT = 46;
+    
+    // Polymorphic functions
+    private static final int FN_EQUALS = 35;
+    private static final int FN_IS_EMPTY = 42;
+    private static final int FN_PUT = 36;
+    private static final int FN_GET = 37;
+    private static final int FN_RANDOM = 24;
+    private static final int FN_SIZE = 29;
+
+    // String Functions
+    private static final int FN_STRINGJOIN = 27;
+    private static final int FN_SUBSTRING = 28;
+    private static final int FN_STRINGORDER = 30;
+
+    // List functions
     private static final int FN_LIST = 38;
     private static final int FN_RESIZE = 39;
     private static final int FN_PUSH = 40;
     private static final int FN_POP = 41;
-    private static final int FN_IS_EMPTY = 42;
-    private static final int FN_IS_STACK = 44;
-    private static final int FN_DICT = 45;
-    private static final int FN_KEYS = 46;
-    private static final int FN_IS_DICT = 47;
-    private static final int FN_GET_NEXT = 48;
-    private static final int FN_ELEMENTS = 49;
-    private static final int FN_RESOLVE_FOREACH = 50;
-    private static final int FN_RESOLVE_LOCALS = 52;
-    private static final int FN_LOCALS = 53;
-    private static final int FN_REPEAT = 54;
+    
+    // Dictionary functions
+    private static final int FN_DICT = 44;
+    
+    // Enumeration functions
+    private static final int FN_KEYS = 45;
+    private static final int FN_VALUES = 48;
+    private static final int FN_GET_NEXT = 47;
+    
+    // Debugging
+    private static final int FN_TO_STRING = 12;
+    
     //</editor-fold>
     private static Random random = new Random();
 
@@ -395,7 +421,7 @@ public final class Yolan {
                 return val0() instanceof Integer ? TRUE : null;
             }
 
-            case FN_IS_STACK: {
+            case FN_IS_LIST: {
                 return val0() instanceof Stack ? TRUE : null;
             }
 
@@ -512,7 +538,7 @@ public final class Yolan {
                 return h;
             }
 
-            case FN_ELEMENTS: {
+            case FN_VALUES: {
                 Object o = val0();
                 if (o instanceof Stack) {
                     return ((Stack) o).elements();
@@ -759,47 +785,70 @@ public final class Yolan {
     
 
     static {
+        // Variables
+        addBuiltin(FN_RESOLVE_SET, "set");
+        addBuiltin(FN_RESOLVE_LOCALS, "locals");
+
+        // Conditionals and truth values
+        addBuiltin(FN_IF, "if");
+        addBuiltin(FN_NOT, "not");
+        addBuiltin(FN_AND, "and");
+        addBuiltin(FN_OR, "or");
+        
+        // Repetition
+        addBuiltin(FN_REPEAT, "repeat");
+        addBuiltin(FN_RESOLVE_FOREACH, "foreach");
+        addBuiltin(FN_WHILE, "while");
+        
+        // Function definition and sequencing
+        addBuiltin(FN_DEFUN, "defun");
+        addBuiltin(FN_LAMBDA, "lambda");
+        addBuiltin(FN_DO, "do");
+
+        // Integer operations
         addBuiltin(FN_ADD, "+");
         addBuiltin(FN_SUB, "-");
         addBuiltin(FN_MUL, "*");
         addBuiltin(FN_DIV, "/");
         addBuiltin(FN_REM, "%");
         addBuiltin(FN_LESS, "<");
-        addBuiltin(FN_IF, "if");
-        addBuiltin(FN_TO_STRING, "debug-string");
-        addBuiltin(FN_LAMBDA, "lambda");
-        addBuiltin(FN_RESOLVE_SET, "set");
-        addBuiltin(FN_DO, "do");
-        addBuiltin(FN_WHILE, "while");
         addBuiltin(FN_LESS_EQUAL, "<=");
-        addBuiltin(FN_DEFUN, "defun");
-        addBuiltin(FN_RANDOM, "random");
+        
+        // Type predicates
         addBuiltin(FN_IS_INTEGER, "is-integer");
-        addBuiltin(FN_STRINGJOIN, "stringjoin");
-        addBuiltin(FN_SUBSTRING, "substring");
-        addBuiltin(FN_SIZE, "size");
-        addBuiltin(FN_STRINGORDER, "stringorder");
         addBuiltin(FN_IS_STRING, "is-string");
-        addBuiltin(FN_NOT, "not");
-        addBuiltin(FN_AND, "and");
-        addBuiltin(FN_OR, "or");
+        addBuiltin(FN_IS_LIST, "is-list");
+        addBuiltin(FN_IS_DICT, "is-dict");
+        
+        // Polymorphic functions
         addBuiltin(FN_EQUALS, "equals");
+        addBuiltin(FN_IS_EMPTY, "is-empty");
         addBuiltin(FN_PUT, "put");
         addBuiltin(FN_GET, "get");
+        addBuiltin(FN_RANDOM, "random");
+        addBuiltin(FN_SIZE, "size");
+        
+        // String functions
+        addBuiltin(FN_STRINGJOIN, "stringjoin");
+        addBuiltin(FN_SUBSTRING, "substring");
+        addBuiltin(FN_STRINGORDER, "stringorder");
+        
+        // List functions
         addBuiltin(FN_LIST, "list");
         addBuiltin(FN_RESIZE, "resize");
         addBuiltin(FN_PUSH, "push");
         addBuiltin(FN_POP, "pop");
-        addBuiltin(FN_IS_EMPTY, "is-empty");
-        addBuiltin(FN_IS_STACK, "is-list");
+        
+        // Dictionary functions
         addBuiltin(FN_DICT, "dict");
+        
+        // Enumeration functions
         addBuiltin(FN_KEYS, "keys");
-        addBuiltin(FN_IS_DICT, "is-dict");
+        addBuiltin(FN_VALUES, "values");
         addBuiltin(FN_GET_NEXT, "get-next");
-        addBuiltin(FN_ELEMENTS, "elements");
-        addBuiltin(FN_RESOLVE_FOREACH, "foreach");
-        addBuiltin(FN_RESOLVE_LOCALS, "locals");
-        addBuiltin(FN_REPEAT, "repeat");
+        
+        // debugging
+        addBuiltin(FN_TO_STRING, "debug-string");
     }
 
     // </editor-fold>
@@ -837,7 +886,7 @@ public final class Yolan {
                     i = i * 10 + c - '0';
                     c = is.read();
                 } while ('0' <= c && c <= '9');
-                s.push(new Yolan(0, new Integer(i)));
+                s.push(new Yolan(FN_LITERAL, new Integer(i)));
 
             // String
             } else if (c == '"') { // (comment ends '"' when prettyprinting)
