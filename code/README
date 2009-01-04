@@ -1,3 +1,6 @@
+Yolan java implementation of the language
+Moby j2me app using the java implementation
+
 Retired:
 .old1 first parser/compiler prototype
 .old2 first vm prototype
@@ -22,3 +25,4 @@ Retired:
 .old20 ... more experiments
 .old21 ... more experiments, including new parser impl.
 .old22 Mobile app with language
+.old23 notes.txt about language and vm
