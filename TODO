@@ -1,49 +1,14 @@
-######################
-# Plan
-##
-
-implement simplejson-parser in javascript
-implement simplejson-to-tex in javascript
-
-write survey draft
-
-write notes about simplejson
-
-implement moby(subjavascript)-parser in javascript
-implement simplejson-prettyprinter in moby
-implement prototype compiler in moby and runtime in java
-
-write report on above
-
-######################
-# Report sections
-##
-
-survey
-- related projects
-- mobile platforms
-- programming language techniques in general
-- ecmascript
-
-design/specification
-
-testing
-
-implementation
-
-optimisation
-- compressed strings
-
-finishing
-- printing
-
-########################
-# Misc
-##
-
-application case studies: 
-- implement simplified-json <-> json -> latex converter
-- json versioning system
-- display of online information on mobile devices (wiki's, opac, access to business DBs, crm, etc), 
-- calendar&contacts&communication
-- learning tools
+* Make implementation in Java
+  - update to match language specification
+- Write documentation
+  + Yolan language specification
+  - Introductory user guide to scripting using Yolan
+  - Programmer/embedders guide to the java implementation
+- Make implementation in C
+- Make implementation in EcmaScript
+- Write design/survey sections
+  - scoping
+  - languages
+  - interpreter implementation
+  - j2me languages
+- Benchmarks and test
