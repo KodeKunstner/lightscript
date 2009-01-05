@@ -8,7 +8,21 @@ Identifiers are evaluated into the value the identifier is set to represent via 
 Literal integer and string values are evaluated into their respective values.
 
 \section{Types and values}
-nil/null/false, integers, strings, lists, dictionaries, iterators 
+The language is dynamically typed.
+The core language contains the following types: nil, integer, string, list dictionary and iterator.
+
+Nil is the type of the nil value, and only has that single value. It is also equivalent to null, undefined and false in other languages.
+
+Integers is the only builtin number type, but other may be added through libraries. The possible range depends on implementation, it will typically be 32 bit, but implementations may have as little as 15bit precision (range $-16384\cdots 16383$).
+
+Strings are immutable sequences of characters.
+
+Lists are mutable variable size sequences of data. It should be possible to read or write an element in any position of the list in constant time. The list is also resisable, and should also be able to act as a stack. 
+Lists are zero-indexed, so the first element has the id 0, and the last element has the id as the length of the list minus one.
+
+Dictionaries are mappings between keys and values. Keys must be integers or strings, and values can be any type except nil. Keys which are numbers written as strings may or may not map to the same integer-key, depending on implementation. Access time may be linear in the size of the dictionary in worst case.
+
+Iterators are sequences of values, for example the values of a list or the keys of a dictionary. 
 
 \section{Syntax}
 The syntax is simplified by only having lists as the structuring element.
