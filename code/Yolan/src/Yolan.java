@@ -101,7 +101,7 @@ public final class Yolan {
     private static final int FN_VALUES = 38;
     private static final int FN_GET_NEXT = 39;
     // Debugging
-    //private static final int FN_DEBUG_STRING = 40;
+    private static final int FN_DEBUG_STRING = 40;
     //</editor-fold>
     private static Random random = new Random();
 
@@ -605,11 +605,10 @@ public final class Yolan {
             case FN_GET_NEXT: {
                 return ((Enumeration) val0()).nextElement();
             }
-/*
+
             case FN_DEBUG_STRING: {
                 return to_string(new StringBuffer(), val0()).toString();
             }
- */
 
             default: {
                 throw new Error("Unexpected case " + fn);
@@ -733,7 +732,7 @@ public final class Yolan {
      * @param o the object to convert
      * @return the accumulator (same as the paremeter)
      */
-    /*
+    
     private static StringBuffer to_string(StringBuffer sb, Object o) {
         if (o instanceof Object[]) {
             Object os[] = (Object[]) o;
@@ -753,7 +752,7 @@ public final class Yolan {
         }
         return sb;
     }
-     */
+     
 
     // </editor-fold>
     ////////////////////////////////////
@@ -859,10 +858,10 @@ public final class Yolan {
         // class file format.
 
         String builtins = "set locals if not and or repeat foreach " +
-                "while defun lambda do + - * / % < <= is-integer " +
+                "while lambda defun do + - * / % < <= is-integer " +
                 "is-string is-list is-dict equals is-empty put get " +
                 "random size stringjoin substring stringorder list " +
-                "resize push pop dict keys values get-next ";
+                "resize push pop dict keys values get-next to-string ";
 
         int prevpos = 0;
         int pos = 0;

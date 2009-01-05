@@ -1,4 +1,6 @@
-\documentclass[12pt]{report} 
+%\documentclass[11pt]{book} 
+%\usepackage[paperheight=220mm,paperwidth=170mm]{geometry}
+\documentclass[11pt]{report} 
 \usepackage{a4} 
 \usepackage{makeidx}
 %\usepackage[danish]{babel} 
@@ -11,15 +13,12 @@
 \usepackage{verbatim} 
 \usepackage{fancyhdr}
 \usepackage{listings} 
-\usepackage[colorlinks,pagebackref]{hyperref}
+%\usepackage[colorlinks,pagebackref]{hyperref}
 \usepackage{backref}
 \usepackage{url}
 \frenchspacing
 \makeindex
 \pagestyle{plain}
-\newcommand{\Oh}[0]{ \mathcal{O} }
-%\addtolength{\voffset}{-88pt}
-%\addtolength{\textheight}{93pt}
 
 \title{
 \emph{Document currently under development} \\ ~ \\
@@ -36,7 +35,7 @@ for mobile devices}
 % Remember 
 %    \index terms
 %    update template as well as document when structural updates.
-\date{2008-2009}
+\date{2009}
 
 \begin{document}
 
@@ -52,10 +51,14 @@ for mobile devices}
 \nocite{sicp}
 
 
-\chapter{Developers guide to embedding the Yolan scripting language in Java applications}
-\include{language/devguide-java}
+\chapter{Embedding Yolan in Java \\ -- developers guide}
+\input{language/devguide-java}
+
+\chapter{Introduction to scripting \\ -- a user guide}
+\input{language/userguide}
+
 \chapter{Language Specification}
-\include{language/specification}
+\input{language/specification}
 
 \newpage
 \addcontentsline{toc}{chapter}{Bibliography}
