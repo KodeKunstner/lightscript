@@ -9,7 +9,7 @@ Literal integer and string values are evaluated into their respective values.
 
 \section{Types and values}
 The language is dynamically typed.
-The core language contains the following types: nil, integer, string, list dictionary and iterator.
+The core language contains the following types: nil, integer, string, list dictionary, iterator and user defined function.
 
 Nil is the type of the nil value, and only has that single value. It is also equivalent to null, undefined and false in other languages.
 
@@ -23,6 +23,8 @@ Lists are zero-indexed, so the first element has the id 0, and the last element 
 Dictionaries are mappings between keys and values. Keys must be integers or strings, and values can be any type except nil. Keys which are numbers written as strings may or may not map to the same integer-key, depending on implementation. Access time may be linear in the size of the dictionary in worst case.
 
 Iterators are sequences of values, for example the values of a list or the keys of a dictionary. 
+
+Functions defined by the lambda-operator or defun can be passed around like any other value, and is evaluated with the usual list notation.
 
 \section{Syntax}
 The syntax is simplified by only having lists as the structuring element.
@@ -86,6 +88,9 @@ Evaluate $expr_1 \cdots expr_n$ and return the result of $expr_n$.
 Create a new anonymous function, with the parameters $name_1\cdots name_n$. Application of the function will bind its arguments to locale variables $name_1\cdots name_n$, evaluate $expr_1\cdots expr_n$ and return $expr_n$.
 \subsubsection{\tt{[defun [}$name_{function}$ $name_1 \cdots name_n$\tt{]} $expr_1 \cdots expr_n$\tt{]}}
 Create a new function, and bind it to the variable $name_{function}$. It is equivalent to {\tt{[set }}$name_{function}${\tt{ [lambda [}}$name_1 \cdots name_n${\tt{]}} $expr_1 \cdots expr_n${\tt{]]}}.
+
+%\subsubsection{\tt{[apply }$function$ $param_1 \cdots param_n$\tt{]}}
+%Apply the $function$ to the parameters $param_1\cdots param_n$. The difference between this and the usual function application \tt{[}$function$ $param_1\cdots param_n$\tt{]} is that that \verb|apply| allows $function$ to change between invocations, whereas the usual function application assumes that $function$ is static to be able to optimise it during runtime.
 
 \subsection{Integer operations}
 \subsubsection{\tt{[+ }$num_1$ $num_2$\tt{]}}

@@ -27,7 +27,7 @@ synopsis.pdf: synopsis.tex bibliography.bib
 	epstopdf $*.eps
 
 .tex.pdf:
-	./src2tex.sh
+	# ./src2tex.sh
 	pdflatex $*.tex && bibtex $* && makeindex $*.idx && pdflatex $*.tex \
 	pdflatex $*.tex && pdflatex $*.tex
 
@@ -48,4 +48,4 @@ synopsis.pdf: synopsis.tex bibliography.bib
 	dot -Tps < $*.dot > $*.eps
 
 clean:
-	rm -f *.bbl *.aux *.blg *.log *.dvi *.idx *.ind *.ilg *.toc *.pdf *.ps *.lof *.png *.eps interviews/[0-9]*.tex *.out *.brf ekstraeval/interview.tex code/*/*.tex
+	rm -f *.bbl *.aux *.blg *.log *.dvi *.idx *.ind *.ilg *.toc *.pdf *.ps *.lof *.png *.eps interviews/[0-9]*.tex *.out *.brf ekstraeval/interview.tex code/*/*.tex */*.aux
