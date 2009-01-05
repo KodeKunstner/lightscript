@@ -15,7 +15,8 @@ syn: synopsis.pdf
 excerpt.pdf: excerpt.tex */*.tex
 	pdflatex excerpt
 
-all: $(MAINFILE).pdf excerpt.pdf  synopsis.pdf
+all: $(MAINFILE).pdf  
+#excerpt.pdf  synopsis.pdf
 
 $(MAINFILE).pdf: $(MAINFILE).tex *.tex bibliography.bib */*.tex
 
