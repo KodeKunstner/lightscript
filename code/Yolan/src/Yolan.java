@@ -1,4 +1,3 @@
-
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.Enumeration;
@@ -6,6 +5,19 @@ import java.util.Hashtable;
 import java.util.Random;
 import java.util.Stack;
 
+/**
+ * Yocto-language (a very small programming language)
+ * mainly targeted Java Micro Edition / J2ME.
+ * 
+ * Objects of the class are delayed computations 
+ * / evaluatable expressions, which can be evaluated with the
+ * value method.
+ * The class itself also has a single virtual machine builtin
+ * and the static methods typically manipulates that one,
+ * - not reentrant nor threadsafe as a tradeof for less 
+ * memory and code footprint. 
+ * @author Rasmus Jensen
+ */
 public final class Yolan {
     //////////////////////////////////////
     // The object itself represents a closure/a delayed computation.
@@ -108,9 +120,9 @@ public final class Yolan {
     /**
      * The number of arguments the function takes, 
      * if the delayed computation is an applicable
-     * user defined function.
-     *
-     * @return the number of parameters, or -1 if not a function
+     * user defined function. Notice that builtin functions
+     * and added native functions does not have a number of arguments.
+     * @return the number of parameters, or -1 if not a user defined function
      */
     public int nargs() {
         if (fn != FN_USER_DEFINED_FUNCTION) {
@@ -207,7 +219,7 @@ public final class Yolan {
 
             case FN_RESOLVE_GET_VAR: {
                 fn = FN_GET_VAR;
-                c = new Integer(getVarId(c));
+                c = new Integer(resolveVar((String) c));
                 return value();
             }
 
@@ -327,7 +339,7 @@ public final class Yolan {
 
             case FN_RESOLVE_SET: {
                 Object t[] = (Object[]) c;
-                t[0] = new Integer(getVarId(((Yolan) t[0]).c));
+                t[0] = new Integer(resolveVar((String) ((Yolan) t[0]).c));
                 fn = FN_SET;
                 return value();
             }
@@ -336,7 +348,7 @@ public final class Yolan {
                 Object[] locals = (Object[]) ((Yolan) ((Object[]) c)[0]).c;
                 int locals_id[] = new int[locals.length];
                 for (int i = 0; i < locals.length; i++) {
-                    locals_id[i] = getVarId(((Yolan) locals[i]).c);
+                    locals_id[i] = resolveVar((String) ((Yolan) locals[i]).c);
                 }
                 ((Object[]) c)[0] = locals_id;
                 fn = FN_LOCALS;
@@ -375,7 +387,7 @@ public final class Yolan {
 
             case FN_RESOLVE_FOREACH: {
                 Object t[] = (Object[]) c;
-                t[0] = new Integer(getVarId(((Yolan) t[0]).c));
+                t[0] = new Integer(resolveVar((String) ((Yolan) t[0]).c));
                 fn = FN_FOREACH;
                 return value();
             }
@@ -398,7 +410,7 @@ public final class Yolan {
                 Object[] function = new Object[arguments.length + 1];
                 function[0] = lambda_expr[1];
                 for (int i = 0; i < arguments.length; i++) {
-                    function[i + 1] = num(getVarId(((Yolan) arguments[i]).c));
+                    function[i + 1] = num(resolveVar((String) ((Yolan) arguments[i]).c));
                 }
 
                 return new Yolan(FN_USER_DEFINED_FUNCTION, function);
@@ -411,11 +423,11 @@ public final class Yolan {
                 Object[] function = new Object[arguments.length];
                 function[0] = lambda_expr[1];
                 for (int i = 1; i < arguments.length; i++) {
-                    function[i] = num(getVarId(((Yolan) arguments[i]).c));
+                    function[i] = num(resolveVar((String) ((Yolan) arguments[i]).c));
                 }
 
                 Yolan fnc = new Yolan(FN_USER_DEFINED_FUNCTION, function);
-                setVar(((Yolan) arguments[0]).c, fnc);
+                vars[resolveVar((String) (((Yolan) arguments[0]).c))] = fnc;
                 return fnc;
             }
 
@@ -647,17 +659,20 @@ public final class Yolan {
      * An array containing alternating 
      * variable names and values
      */
-    private static Object vars[] = new Object[0];
+    private static Object vars[];
     /** Stack used for function calls */
-    private static Stack stack = new Stack();
-    private static int varsize = 0;
+    private static Stack stack;
+    private static int varsize;
 
     /**
-     * Lookup the id of a variable
+     * Lookup the id of a variable. If the variable does not have an id,
+     * allocate a new one for it. This lookup might be slow, so avoid 
+     * calling it in inner loops, but make lookups a priori and cache
+     * the ids.
      * @param key the name of the variable
      * @return the id which maps into the vars-array
      */
-    private static int getVarId(Object key) {
+    public static int resolveVar(String key) {
         int i = 0;
         while (i < varsize && !vars[i].equals(key)) {
             i += 2;
@@ -679,12 +694,20 @@ public final class Yolan {
 
     /**
      * Set the value of a variable
-     * @param key the variable name
+     * @param id the id of the variable, found with resolveVar
      * @param val the new value
      */
-    private static void setVar(Object key, Object val) {
-        int id = getVarId(key);
+    public static void setVar(int id, Object val) {
         vars[id] = val;
+    }
+
+    /**
+     * Set the value of a variable
+     * @param id the id of the variable, found with resolveVar
+     * @return the new value
+     */
+    public static Object getVar(int id) {
+        return vars[id];
     }
     // </editor-fold>
 
@@ -762,7 +785,7 @@ public final class Yolan {
      * @param name the name in the runtime
      */
     private static void addBuiltin(int val, String name) {
-        int id = getVarId(name);
+        int id = resolveVar(name);
         vars[id] = new Yolan(FN_BUILTIN_DUMMY, new Integer(val));
 
     }
@@ -773,13 +796,24 @@ public final class Yolan {
      * @param f the function itself
      */
     public static void addFunction(String name, Function f) {
-        int id = getVarId(name);
+        int id = resolveVar(name);
         vars[id] = new Yolan(FN_NATIVE_DUMMY, f);
     }
     // Register builtins
     
 
     static {
+        reset();
+    }
+
+    /**
+     * resets the virtual machine
+     */
+    public static void reset() {
+        vars = new Object[0];
+        stack = new Stack();
+        varsize = 0;
+
         /* Initialisation of builtin names
          * Commented out and replaced with optimised version below.
         
@@ -792,61 +826,7 @@ public final class Yolan {
         addBuiltin(FN_NOT, "not");
         addBuiltin(FN_AND, "and");
         addBuiltin(FN_OR, "or");
-        
-        // Repetition
-        addBuiltin(FN_REPEAT, "repeat");
-        addBuiltin(FN_RESOLVE_FOREACH, "foreach");
-        addBuiltin(FN_WHILE, "while");
-        
-        // Function definition and sequencing
-        addBuiltin(FN_DEFUN, "defun");
-        addBuiltin(FN_LAMBDA, "lambda");
-        addBuiltin(FN_DO, "do");
-        
-        // Integer operations
-        addBuiltin(FN_ADD, "+");
-        addBuiltin(FN_SUB, "-");
-        addBuiltin(FN_MUL, "*");
-        addBuiltin(FN_DIV, "/");
-        addBuiltin(FN_REM, "%");
-        addBuiltin(FN_LESS, "<");
-        addBuiltin(FN_LESS_EQUAL, "<=");
-        
-        // Type predicates
-        addBuiltin(FN_IS_INTEGER, "is-integer");
-        addBuiltin(FN_IS_STRING, "is-string");
-        addBuiltin(FN_IS_LIST, "is-list");
-        addBuiltin(FN_IS_DICT, "is-dict");
-        
-        // Polymorphic functions
-        addBuiltin(FN_EQUALS, "equals");
-        addBuiltin(FN_IS_EMPTY, "is-empty");
-        addBuiltin(FN_PUT, "put");
-        addBuiltin(FN_GET, "get");
-        addBuiltin(FN_RANDOM, "random");
-        addBuiltin(FN_SIZE, "size");
-        
-        // String functions
-        addBuiltin(FN_STRINGJOIN, "stringjoin");
-        addBuiltin(FN_SUBSTRING, "substring");
-        addBuiltin(FN_STRINGORDER, "stringorder");
-        
-        // List functions
-        addBuiltin(FN_LIST, "list");
-        addBuiltin(FN_RESIZE, "resize");
-        addBuiltin(FN_PUSH, "push");
-        addBuiltin(FN_POP, "pop");
-        
-        // Dictionary functions
-        addBuiltin(FN_DICT, "dict");
-        
-        // Enumeration functions
-        addBuiltin(FN_KEYS, "keys");
-        addBuiltin(FN_VALUES, "values");
-        addBuiltin(FN_GET_NEXT, "get-next");
-        
-        // debugging
-        addBuiltin(FN_DEBUG_STRING, "debug-string");
+        ...
          */
 
         // space optimised initialisation of builtin names
@@ -886,7 +866,7 @@ public final class Yolan {
      * @return a new Yolan expression
      * @throws java.io.IOException
      */
-    public static Yolan parse(InputStream is) throws IOException {
+    public static Yolan readExpression(InputStream is) throws IOException {
         Stack stack = new Stack();
         int c = is.read();
         do {
@@ -969,9 +949,15 @@ public final class Yolan {
         return (Yolan) stack.pop();
     }
 
+    /**
+     * Convenience function that reads and evaluates expressions from
+     * an input stream until end of file, or error occurs
+     * @param is
+     * @throws java.io.IOException
+     */
     public static void eval(InputStream is) throws IOException {
         Yolan yl;
-        while ((yl = Yolan.parse(is)) != null) {
+        while ((yl = Yolan.readExpression(is)) != null) {
             yl.value();
         }
     }
