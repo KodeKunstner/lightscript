@@ -1,5 +1,5 @@
-- change parser to be single expression rather than full list at a time
 - evt. c to be array rather than single object
+- get implementation in sync with specification
 - test
 - demo-apps
 - benchmarks

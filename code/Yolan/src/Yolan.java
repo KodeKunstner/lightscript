@@ -625,14 +625,13 @@ public final class Yolan {
             sb.append(o.toString());
         }
     }
-
     /**
      * Override the toString function
      * @return
      */
     /*
     public String toString() {
-        return to_string(new StringBuffer(), this).toString();
+    return to_string(new StringBuffer(), this).toString();
     }*/
     ////////////////////////////////////
     // Utility functions for evaluation
@@ -732,7 +731,6 @@ public final class Yolan {
      * @param o the object to convert
      * @return the accumulator (same as the paremeter)
      */
-    
     private static StringBuffer to_string(StringBuffer sb, Object o) {
         if (o instanceof Object[]) {
             Object os[] = (Object[]) o;
@@ -752,7 +750,7 @@ public final class Yolan {
         }
         return sb;
     }
-     
+
 
     // </editor-fold>
     ////////////////////////////////////
@@ -882,16 +880,43 @@ public final class Yolan {
     /////////////////////////////////////
     // The parser
     ////
-    // The parser itself, parses a list
-    private static Yolan parse(InputStream is) throws IOException {
-        // Accumlator
-        Stack s = new Stack();
-        // Current char
+    /**
+     * Parse the next Yolan expression from an input stream.
+     * @param is the input stream to read from
+     * @return a new Yolan expression
+     * @throws java.io.IOException
+     */
+    public static Yolan parse(InputStream is) throws IOException {
+        Stack stack = new Stack();
         int c = is.read();
-        while (c != -1 && c != ']') {
+        do {
+            // end of list or end of file terminates list
+            if (c == ']' || c == -1) {
+                c = is.read();
+                // find out how much of the stack
+                // is a part of the terminated list.
+                // null indicates a "["
+                int pos = stack.search(null);
+                // end of file or ] with no [ begun
+                if (pos == -1) {
+                    return null;
+                }
+                // stack search includes the null, which we want to skip
+                pos--;
+                // move the elements from the stack
+                Object result[] = new Object[pos];
+                while (pos > 0) {
+                    pos--;
+                    result[pos] = stack.pop();
+                }
+                // pop the null
+                stack.pop();
+                // create the list obj
+                stack.push(new Yolan(FN_RESOLVE_EVAL_LIST, result));
+
 
             // Whitespace
-            if (c <= ' ') {
+            } else if (c <= ' ') {
                 c = is.read();
 
             // Comment
@@ -902,7 +927,8 @@ public final class Yolan {
 
             // List
             } else if (c == '[') {
-                s.push(parse(is));
+                // null is a marker of "["
+                stack.push(null);
                 c = is.read();
 
             // Number
@@ -912,7 +938,7 @@ public final class Yolan {
                     i = i * 10 + c - '0';
                     c = is.read();
                 } while ('0' <= c && c <= '9');
-                s.push(new Yolan(FN_LITERAL, new Integer(i)));
+                stack.push(new Yolan(FN_LITERAL, new Integer(i)));
 
             // String
             } else if (c == '"') { // (comment ends '"' when prettyprinting)
@@ -928,7 +954,7 @@ public final class Yolan {
                     c = is.read();
                 }
                 c = is.read();
-                s.push(new Yolan(FN_LITERAL, sb.toString()));
+                stack.push(new Yolan(FN_LITERAL, sb.toString()));
 
             // Identifier
             } else {
@@ -937,22 +963,16 @@ public final class Yolan {
                     sb.append((char) c);
                     c = is.read();
                 }
-                s.push(new Yolan(FN_RESOLVE_GET_VAR, sb.toString()));
+                stack.push(new Yolan(FN_RESOLVE_GET_VAR, sb.toString()));
             }
-        }
-        Object result[] = new Object[s.size()];
-        s.copyInto(result);
-        return new Yolan(FN_RESOLVE_EVAL_LIST, result);
+        } while (stack.empty() || stack.size() > 1 || stack.elementAt(0) == null);
+        return (Yolan) stack.pop();
     }
 
-    // Parse and evaluate code from input stream
-    public static Object eval(InputStream is) throws IOException {
-        Object exprs[] = (Object[]) parse(is).c;
-        Object result = null;
-        //print(exprs);
-        for (int i = 0; i < exprs.length; i++) {
-            result = ((Yolan) exprs[i]).value();
+    public static void eval(InputStream is) throws IOException {
+        Yolan yl;
+        while ((yl = Yolan.parse(is)) != null) {
+            yl.value();
         }
-        return result;
     }
 }

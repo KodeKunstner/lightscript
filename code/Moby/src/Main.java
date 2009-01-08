@@ -1,4 +1,3 @@
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import javax.microedition.midlet.*;
 import javax.microedition.lcdui.*;

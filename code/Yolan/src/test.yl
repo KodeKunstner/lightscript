@@ -1,14 +1,14 @@
-;[set words1 
-;    [list "oste" "kakao" "senge" "gynge" "tanke" "flyve"]]
-;[set words2
-;    [list "mad"  "mælk"  "lampe" "hest"  "streg" "fisk"]]
-;[set x 0]
-;[repeat 5
-;    [println [stringjoin 
-;        [random words1]
-;        [random words2]
-;    ]]
-;]
+[set words1 
+    [list "oste" "kakao" "senge" "gynge" "tanke" "flyve"]]
+[set words2
+    [list "mad"  "mælk"  "lampe" "hest"  "streg" "fisk"]]
+[set x 0]
+[repeat 5
+    [println [stringjoin 
+        [random words1]
+        [random words2]
+    ]]
+]
 
 [set x 1]
 
