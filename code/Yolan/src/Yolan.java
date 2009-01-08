@@ -1,3 +1,4 @@
+
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.Enumeration;
@@ -807,7 +808,10 @@ public final class Yolan {
     }
 
     /**
-     * resets the virtual machine
+     * Resets the virtual machine.
+     * After the virtual machine has been reset,
+     * only new Yolan instances should be evaluated,
+     * and the result of evaluating existing objects are undefined.
      */
     public static void reset() {
         vars = new Object[0];
@@ -870,27 +874,33 @@ public final class Yolan {
         Stack stack = new Stack();
         int c = is.read();
         do {
-            // end of list or end of file terminates list
-            if (c == ']' || c == -1) {
+            // end of file
+            if (c == -1) {
+                return null;
+
+            // end of list
+            } else if (c == ']') {
+                Object result[];
                 c = is.read();
                 // find out how much of the stack
                 // is a part of the terminated list.
                 // null indicates a "["
                 int pos = stack.search(null);
-                // end of file or ] with no [ begun
+                // ] with no [ begun
                 if (pos == -1) {
-                    return null;
-                }
-                // stack search includes the null, which we want to skip
-                pos--;
-                // move the elements from the stack
-                Object result[] = new Object[pos];
-                while (pos > 0) {
+                    result = new Object[0];
+                } else {
+                    // stack search includes the null, which we want to skip
                     pos--;
-                    result[pos] = stack.pop();
+                    // move the elements from the stack
+                    result = new Object[pos];
+                    while (pos > 0) {
+                        pos--;
+                        result[pos] = stack.pop();
+                    }
+                    // pop the null
+                    stack.pop();
                 }
-                // pop the null
-                stack.pop();
                 // create the list obj
                 stack.push(new Yolan(FN_RESOLVE_EVAL_LIST, result));
 
