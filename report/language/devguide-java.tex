@@ -1,0 +1,93 @@
+This document is an introduction and reference to the Java implementation of Yolan.
+Yolan is an extension language, which means that it is designed to be embedded into other applications.
+The focus of this implementation is to reduce the size added to the JAR file, for which motivation is that the JAR size is the most limiting factor on low-end mobile devices, and that the language should be able to be embedded on large applications on those devices.
+
+Features of the Java implementation:
+\begin{itemize}
+\item Adds less than 5KB to the JAR size, including builtin library
+\item Only single-threaded/non-reentrant to achive the small size
+\item Works with Java Mobile Edition/J2ME, requires only CLDC 1.0/MIDP 1.0
+\item Builtin types maps directly to standard java classes, to make integration easier
+\item Parse and execute one expression at a time, not needing entire program in memory and allowing interactive programming 
+\end{itemize}
+
+To reduce the JAR footprint, the entire implementation is done in one class \verb|Yolan| and one interface \verb|Function|. 
+The \verb|Yolan| class can both be instantiated into delayed computations, which is elaborated below, and also contain a single static runtime environment. While a single language runtime limits some applications, it also reduces memory usage, each code node does not need a pointer to which runtime it is connected. 
+Yolan objects are pieces of code that can be evaluated, e.g. delayed computations.
+The \verb|Function| interface is what an object needs to implement to be callable from Yolan. Essentially it needs a function that takes a number of delayed computations as parameters, and then return the value. In this sense Java functions callable from Yolan are actually lazy, and themselves responsible for evaluating their arguments.
+
+\section{Getting started}
+
+The core method of the Yolan objects is the \verb|value()| method, which evaluate the code the Yolan object represents, and return the result.
+Notice that this method may both throw exceptions and errors if the code the object represents has faults, so if we are executing user coder, or want to be robust against errors in script, the Yolan evaluation can be surrounded by a \verb|catch(Throwable)|.
+
+Yolan objects are created with the \verb|readExpression| method that parses the next Yolan expression from an input stream. So if we want to create a simple interactive interpreter, we can write the code:
+{\scriptsize 
+\begin{verbatim}
+class Main {
+    public static void main(String [] args) throws java.io.IOException {
+        Yolan yl = Yolan.readExpression(System.in);
+        while(yl != null) {
+            try {
+                System.out.println("Result: " + yl.value().toString());
+            } catch(Throwable yolanError) {
+                System.out.println("Error: " + yolanError.toString());
+            }
+            yl = Yolan.readExpression(System.in);
+        }
+    }
+}
+\end{verbatim} 
+}
+in a file called \verb|Main.java|, place it in the same directory as Yolan.class and Function.class, compile it, and then we have an interpreter, where Yolan expressions can be evaluated interactively.
+
+Notice that the input stream \verb|System.in| can be replaced with any input stream, so it is the same basic idea for evaluating files, programs as strings within the application, or even as streams across the network, where Yolan could work as a shell for remote scripting/controlling an application.
+
+If we want to execute an entire stream, there is a short hand builtin method for doing that: \verb|eval|, so for example:
+{\scriptsize 
+\begin{verbatim}
+class Main {
+    public static void main(String [] args) throws java.io.IOException {
+        Yolan.eval(new FileInputStream(new File("script.yl")));
+    }
+}
+\end{verbatim}
+}
+would open the file "script.yl", and evaluate all the expressions within it. 
+\verb|eval| throws away the results of the individual expressions and does not print them,
+so the above code is only if we have added some user defined functions to Yolan that allows it to do something practical.
+
+\subsection{Adding functions to the runtime}
+It is necessary to add some functions to the scripting language in order to make it do something practical. While the core library supports basic data structures etc., it does not have any kind of input/output as that is platform dependent.
+So when the language needs communicate with the user, or work on the state of the actual application, there needs to be added some functionality, which is easiest via adding some functions to the runtime.
+
+This is where the \verb|Function| interface comes into play, - it contains a single function \verb|apply|, that takes an array of Yolan objects as parameter, and returns an object.
+Notice that the parameters are passed lazily, e.g. they are only evaluated when the called function chooses to evaluate them, so we need to call the \verb|value| when we want the actual value.
+In order to add a new java function to be callable from the runtime, the method \verb|Yolan.addFunction| takes a name as a string and a \verb|Function| as parameters, and binds the name to the function. An example would be to make add an new function println to the runtime, which takes one argument, which it prints out to standard out:
+{\scriptsize 
+\begin{verbatim}
+class PrintingFunction implements Function {
+    Object apply(Yolan args[]) {
+        System.out.println(args[0].value());
+    }
+}
+class Main {
+    public static void main(String [] args) throws java.io.IOException {
+        Yolan.addFunction("println", new PrintingFunction);
+        Yolan.eval(new FileInputStream(new File("script.yl")));
+    }
+}
+\end{verbatim}
+}
+Now the above program, reads and evaluate the file script.yl, with an augmented runtime which also has the println function.
+
+\subsection{Modifying the runtime}
+resolveVar getVar setVar
+\subsection{Calling back functions}
+apply nargs
+\subsection{Resetting the runtime and saving space}
+reset wipe
+
+\section{More on adding functions to the runtime}
+... switch-dispatch
+... control structures and exploiting lazyness

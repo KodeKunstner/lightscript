@@ -132,7 +132,7 @@ public final class Yolan {
         return ((Object[]) c).length - 1;
     }
 
-    /**
+    /*
      * if the computation is a variable or literal,
      * return its string representation
      */
@@ -211,6 +211,9 @@ public final class Yolan {
     /**
      * Evaluate the delayed computation
      * @return the result
+     * @throws java.lang.Throwable Errors with bounds automatically 
+     *                             thrown. Throws Error if evaluating
+     *                             things that are not functions
      */
     public Object value() {
         switch (fn) {
@@ -572,12 +575,14 @@ public final class Yolan {
                 for (int i = 0; i < len; i++) {
                     result.push(val(i));
                 }
+                result.trimToSize();
                 return result;
             }
 
             case FN_RESIZE: {
                 Stack s = (Stack) val0();
                 s.setSize(ival(1));
+                s.trimToSize();
                 return s;
             }
 
@@ -800,13 +805,21 @@ public final class Yolan {
         int id = resolveVar(name);
         vars[id] = new Yolan(FN_NATIVE_DUMMY, f);
     }
-    // Register builtins
-    
 
+    /**
+     * resets every static element,
+     * allowing them to be garbage collected
+     * - futher evaluation of Yolan objects
+     * will fail.
+     */
+    public static void wipe() {
+        vars = null;
+        stack = null;
+    }
+    
     static {
         reset();
     }
-
     /**
      * Resets the virtual machine.
      * After the virtual machine has been reset,

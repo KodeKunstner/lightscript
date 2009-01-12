@@ -1,10 +1,10 @@
 * Make implementation in Java
-  - update to match language specification
+->- update to match language specification
 - Write documentation
   + Yolan language specification
   - Introductory user guide to scripting using Yolan
-  - Programmer/embedders guide to the java implementation
-- Write about j2me development platform and scripting support
+->- Programmer/embedders guide to the java implementation
++ Write about j2me development platform and scripting support
 - Make implementation in C
 - Make implementation in EcmaScript
 - Write design/survey sections: scoping, languages, interpreter implementation, platforms

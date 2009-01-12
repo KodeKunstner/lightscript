@@ -9,9 +9,9 @@
 This chapter specifies the Yolan programming language.
 The purpose of the language is to enable high level scripting on low end mobile devices. Language features include:
 \begin{itemize}
-\item Designed for minimal code footprint in Java Mobile Edition, which is the most limiting factor on the lowest end mobile devices
-\item Designed with implementations in native code on embedded devices and implementations on top of EcmaScript in mind.
-\item Scripting language with lisp-like syntax
+\item Designed for minimal code footprint in Java Mobile Edition, which is the most limiting factor on the lowest end mobile devices, for user applications
+\item Designed with implementations in C on embedded devices and implementations on top of EcmaScript in mind.
+\item Dynamic scripting language with lisp-like syntax
 \item Functions as first class values, support for higher order functions
 \item Standard library with dictionaries, lists/vectors/stacks, iterators, strings and integers
 \end{itemize}
@@ -96,6 +96,7 @@ Details of user functions are described under the \verb|lambda| builtin function
 
 
 \section{Builtin functions}
+The builtin functions are listed in the following sections. As the language is designed for embedding in other applications, there are no standard input/output functions, file access, network, etc. as these might not be present or differ significantly between target device/platform. 
 \subsection{Variables}
 \subsubsection{\tt{[set }$name$ $value$\tt{]}}
 Evaluate $value$ and let $name$ refer to the result.
