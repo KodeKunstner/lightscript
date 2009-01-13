@@ -81,6 +81,34 @@ class Main {
 }
 Now the above program, reads and evaluate the file script.yl, with an augmented runtime which also has the println function.
 
+\subsection{Values and types}
+The builtin types in yolan is mapped to Java classes for easier interoperbility:TODO:spelling:,
+so lists matches java.util.Stack, dictionaries matches java.util.Hashtable, strings matches java.lang.String, nil/false matches the value null, integers matches java.lang.Integer, and iterator matches java.util.Enumeration. 
+Operations on those data types are just as the native builtin types. 
+
+Adding other data types is done by just adding functions that works on those data types, as Yolan just runs with the builtin java object system.
+
+\subsubsection{Functions defined in Yolan}
+When a user defines functions in Yolan, they are instances of the Yolan class. 
+Before calling them, the number of arguments can be found using the \verb|nargs| method.
+If the Yolan object isn't a callable user defined function, the result of \verb|nargs()| is -1, which also can be used to check if a Yolan object is a callable function.
+The function is then applied with the \verb|apply| method, which takes the parameters to the function as parameters, for example:
+{\scriptsize 
+\begin{verbatim}
+...
+    // evaluation some yolan object that yields a function
+    Yolan function = yl.value();
+    // ensure that it is a function and it takes two arguments
+    if(function.nargs() == 2) {
+        // apply the function 
+        result = function.apply(arg1, arg2);
+    } else ...
+....
+\end{verbatim}
+}
+
+The apply method is defined from zero, up to three parameters. If there is the need for apply methods with more arguments, they are easy to add, see section~\ref{j2mesource} for more details.
+
 \subsection{Modifying the runtime}
 resolveVar getVar setVar
 \subsection{Calling back functions}
@@ -91,3 +119,9 @@ reset wipe
 \section{More on adding functions to the runtime}
 ... switch-dispatch
 ... control structures and exploiting lazyness
+
+\section{Hacking the source}
+\label{j2mesource}
+... on the joined classes: (static runtime, parser, interpreter, user-defined-function)
+
+... how to add apply's
