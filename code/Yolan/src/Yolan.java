@@ -54,7 +54,7 @@ public final class Yolan {
     private static final int FN_NATIVE = -3;
     private static final int FN_FOREACH = -2;
     private static final int FN_LOCALS = -1;
-    /////////////////////
+    //////////////////////
     // Builtin functions
     ////
     // Variables
@@ -208,6 +208,15 @@ public final class Yolan {
         return doApply(args.length);
     }
 
+    private Object doEm(int first) {
+                Object result = null;
+                int stmts = ((Object[]) c).length;
+                while(first < stmts) {
+                    result = val(first);
+                    first++;
+                }
+                return result;
+    }
     /**
      * Evaluate the delayed computation
      * @return the result
@@ -319,7 +328,7 @@ public final class Yolan {
                 stack.push(vars[id]);
                 while (e.hasMoreElements()) {
                     vars[id] = e.nextElement();
-                    result = val(2);
+                    result = doEm(2);
                 }
                 vars[id] = stack.pop();
                 return result;
@@ -327,14 +336,10 @@ public final class Yolan {
 
             case FN_LOCALS: {
                 int ids[] = (int[]) ((Object[]) c)[0];
-                int len = ((Object[]) c).length;
                 for (int i = 0; i < ids.length; i++) {
                     stack.push(vars[ids[i]]);
                 }
-                Object result = null;
-                for (int i = 1; i < len; i++) {
-                    result = val(i);
-                }
+                Object result = doEm(1);
                 for (int i = ids.length - 1; i >= 0; i--) {
                     vars[ids[i]] = stack.pop();
                 }
@@ -380,11 +385,8 @@ public final class Yolan {
             case FN_REPEAT: {
                 int count = ival(0);
                 Object result = null;
-                int stmts = ((Object[]) c).length;
                 for (int i = 0; i < count; i++) {
-                    for (int j = 1; j < stmts; j++) {
-                        result = val(j);
-                    }
+                    result = doEm(1);
                 }
                 return result;
             }
@@ -398,11 +400,8 @@ public final class Yolan {
 
             case FN_WHILE: {
                 Object result = null;
-                int stmts = ((Object[]) c).length;
                 while (val0() != null) {
-                    for (int i = 1; i < stmts; i++) {
-                        result = val(i);
-                    }
+                    result = doEm(1);
                 }
                 return result;
             }
@@ -436,12 +435,7 @@ public final class Yolan {
             }
 
             case FN_DO: {
-                Object result = null;
-                int stmts = ((Object[]) c).length;
-                for (int i = 0; i < stmts; i++) {
-                    result = val(i);
-                }
-                return result;
+                return doEm(0);
             }
 
             case FN_ADD: {
