@@ -110,11 +110,59 @@ The function is then applied with the \verb|apply| method, which takes the param
 The apply method is defined from zero, up to three parameters. If there is the need for apply methods with more arguments, they are easy to add, see section~\ref{j2mesource} for more details.
 
 \subsection{Modifying the runtime}
-resolveVar getVar setVar
+
+In order for the scripting language to be practical, it should be able to work and share data with the application. 
+Of course this can be done with functions, and evaluation, as described above, but an additional connection with the language can be added by accessing the variables of the runtime.
+For this there are three functions: \verb|Yolan.resolveVar|, \verb|Yolan.getVar|, and \verb|Yolan.setVar|.
+
+When a value from the runtime is accessed, there need to be a handle, which is found with \verb|resolveVar|. This handle can then be used for reading and writing the variable. The motivation for the handle is that it takes time to lookup what a variable name, so this computation can be done once for each variable that needs to be accessed, and then additional accesses to the resolved variabled is significant faster. The handle itself is just an integer, and \verb|resolveVar| just takes the variable name as a string as parameter, and return the handle. If the variable does not exist in the runtime, space is allocated for it.
+
+With a handle, it is then possible to set the value of a variable with \verb|setVar|, for example setting the variable foo to 42 can be done with:
+{\scriptsize 
+\begin{verbatim}
+    Yolan.setVar(Yolan.resolveVar("foo"), new Integer(42));
+\end{verbatim}
+}
+and similarly the variable can be read with \verb|getVar|:
+{\scriptsize 
+\begin{verbatim}
+    Object result = Yolan.getVar(Yolan.resolveVar("foo"));
+\end{verbatim}
+}
+
+If it the variable is commonly accessed, it saves time to cache the handle across calls, a la:
+{\scriptsize 
+\begin{verbatim}
+class Class {
+    int fooHandle;
+    Class() {
+        fooHandle = Yolan.resolveVar("foo");
+    }
+
+    int someMethod() {
+        ... perhaps some scripts modifying foo is executed ...
+        Object foo = Yolan.getVar(fooHandle);
+        ...
+    }
+
+    void otherMethod() {
+        ... 
+        Yolan.setVar(fooHandle, "A literal value or some variable");
+        ...
+    }
+}
+\end{verbatim}
+}
+
+When defining functions, as described earlier, it is actually the same that is happening, where the function is encapsulated in a Yolan object and added to the runtime as with \verb|setVar|.
 \subsection{Calling back functions}
 apply nargs
 \subsection{Resetting the runtime and saving space}
-reset wipe
+When the scripting language is only used in some part of the application, it can be pratical to be able to unload the runtime data in order to save memory. This can be done with \verb|Yolan.wipe()|, after which, the references in the runtime are set to zero, allowing data to be garbage collected.
+When the runtime is wiped, existing Yolan expressions can no longer be evaluated, and trying to evaluate them will yield errors. Also notice that it is necessary to reset the runtime before any of it can be used.
+
+Resetting the runtime can be done with \verb|Yolan.reset()|. When the runtime is reset, all variable handles are invalidated, all variables are removed from the runtime, and only the builtin functions are added. Existing Yolan expressions are also invalidate, and evaluation of those may lead to unexpected behavior. User defined functions and variables needs to be re-added.
+Resetting is practical when scripts are run, after each other, and must mess the runtime up for each other.
 
 \section{More on adding functions to the runtime}
 ... switch-dispatch
