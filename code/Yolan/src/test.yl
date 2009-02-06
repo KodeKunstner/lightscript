@@ -10,10 +10,24 @@
     ]]
 ]
 
-[set x 1]
 
-[locals [x]
-  [set x 10]
-  [defun [f y] [+ x x] [+ x y]]]
+[defun [f x]
+    [+ x 1]]
 
-[println [f 2]]
+[defun [g x]
+    [- [apply f x] 1]]
+[g 2]
+
+[defun [f x]
+    [- x 1]]
+
+[println [apply g 1]]
+   
+;[set x 1]
+;
+;[locals [x]
+;  [set x 10]
+;  [defun [f y] [+ x x] [+ x y]]]
+;
+;[println [f 2]]
+

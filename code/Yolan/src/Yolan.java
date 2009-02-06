@@ -43,11 +43,12 @@ public final class Yolan {
     //////////////////////
     // Internal functions
     ////
-    private static final int FN_NATIVE_DUMMY = -11;
-    private static final int FN_BUILTIN_DUMMY = -10;
-    private static final int FN_LITERAL = -9;
-    private static final int FN_RESOLVE_GET_VAR = -8;
-    private static final int FN_RESOLVE_EVAL_LIST = -7;
+    private static final int FN_NATIVE_DUMMY = -12;
+    private static final int FN_BUILTIN_DUMMY = -11;
+    private static final int FN_LITERAL = -10;
+    private static final int FN_RESOLVE_GET_VAR = -9;
+    private static final int FN_RESOLVE_EVAL_LIST = -8;
+    private static final int FN_CALL_USER_FUNCTION = -7;
     private static final int FN_USER_DEFINED_FUNCTION = -6;
     private static final int FN_GET_VAR = -5;
     private static final int FN_SET = -4;
@@ -73,48 +74,49 @@ public final class Yolan {
     // Functions and sequencing
     private static final int FN_LAMBDA = 9;
     private static final int FN_DEFUN = 10;
-    private static final int FN_DO = 11;
-
+    private static final int FN_APPLY_FUNCTION = 11;
+    private static final int FN_DO = 12;
+    
     // Integer operations
-    private static final int FN_ADD = 12;
-    private static final int FN_SUB = 13;
-    private static final int FN_MUL = 14;
-    private static final int FN_DIV = 15;
-    private static final int FN_REM = 16;
-    private static final int FN_LESS = 17;
-    private static final int FN_LESS_EQUAL = 18;
+    private static final int FN_ADD = 13;
+    private static final int FN_SUB = 14;
+    private static final int FN_MUL = 15;
+    private static final int FN_DIV = 16;
+    private static final int FN_REM = 17;
+    private static final int FN_LESS = 18;
+    private static final int FN_LESS_EQUAL = 19;
 
     // Type conditionals
-    private static final int FN_IS_INTEGER = 19;
-    private static final int FN_IS_STRING = 20;
-    private static final int FN_IS_LIST = 21;
-    private static final int FN_IS_DICT = 22;
+    private static final int FN_IS_INTEGER = 20;
+    private static final int FN_IS_STRING = 21;
+    private static final int FN_IS_LIST = 22;
+    private static final int FN_IS_DICT = 23;
     // Polymorphic functions
-    private static final int FN_EQUALS = 23;
-    private static final int FN_IS_EMPTY = 24;
-    private static final int FN_PUT = 25;
-    private static final int FN_GET = 26;
-    private static final int FN_RANDOM = 27;
-    private static final int FN_SIZE = 28;
+    private static final int FN_EQUALS = 24;
+    private static final int FN_IS_EMPTY = 25;
+    private static final int FN_PUT = 26;
+    private static final int FN_GET = 27;
+    private static final int FN_RANDOM = 28;
+    private static final int FN_SIZE = 29;
 
     // String Functions
-    private static final int FN_STRINGJOIN = 29;
-    private static final int FN_SUBSTRING = 30;
-    private static final int FN_STRINGORDER = 31;
+    private static final int FN_STRINGJOIN = 30;
+    private static final int FN_SUBSTRING = 31;
+    private static final int FN_STRINGORDER = 32;
 
     // List functions
-    private static final int FN_LIST = 32;
-    private static final int FN_RESIZE = 33;
-    private static final int FN_PUSH = 34;
-    private static final int FN_POP = 35;
+    private static final int FN_LIST = 33;
+    private static final int FN_RESIZE = 34;
+    private static final int FN_PUSH = 35;
+    private static final int FN_POP = 36;
     // Dictionary functions
-    private static final int FN_DICT = 36;
+    private static final int FN_DICT = 37;
     // Enumeration functions
-    private static final int FN_KEYS = 37;
-    private static final int FN_VALUES = 38;
-    private static final int FN_GET_NEXT = 39;
+    private static final int FN_KEYS = 38;
+    private static final int FN_VALUES = 39;
+    private static final int FN_GET_NEXT = 40;
     // Debugging
-    private static final int FN_DEBUG_STRING = 40;
+    private static final int FN_DEBUG_STRING = 41;
     //</editor-fold>
     private static Random random = new Random();
 
@@ -209,14 +211,15 @@ public final class Yolan {
     }
 
     private Object doEm(int first) {
-                Object result = null;
-                int stmts = ((Object[]) c).length;
-                while(first < stmts) {
-                    result = val(first);
-                    first++;
-                }
-                return result;
+        Object result = null;
+        int stmts = ((Object[]) c).length;
+        while (first < stmts) {
+            result = val(first);
+            first++;
+        }
+        return result;
     }
+
     /**
      * Evaluate the delayed computation
      * @return the result
@@ -267,15 +270,21 @@ public final class Yolan {
                     // user defined function
                     } else if (yl.fn == FN_USER_DEFINED_FUNCTION) {
                         Object args[] = (Object[]) c;
-                        // evaluate arguments and push to stack
-                        for (int i = 1; i < args.length; i++) {
-                            stack.push(((Yolan) args[i]).value());
-                        }
-
-                        return yl.value();
+                        args[0] = yl;
+                        this.fn = FN_CALL_USER_FUNCTION;
+                        return value();
                     }
                 }
                 throw new Error("Unknown function: " + ((Yolan) ((Object[]) c)[0]).string());
+            }
+
+            case FN_CALL_USER_FUNCTION: {
+                Object args[] = (Object[]) c;
+                // evaluate arguments and push to stack
+                for (int i = 1; i < args.length; i++) {
+                    stack.push(((Yolan) args[i]).value());
+                }
+                return ((Yolan) args[0]).value();
             }
 
             case FN_USER_DEFINED_FUNCTION: {
@@ -433,11 +442,21 @@ public final class Yolan {
                 vars[resolveVar((String) (((Yolan) arguments[0]).c))] = fnc;
                 return fnc;
             }
+            
+            case FN_APPLY_FUNCTION: {
+                Object args[] = (Object[]) c;
+                // evaluate arguments and push to stack
+                for (int i = 1; i < args.length; i++) {
+                    stack.push(((Yolan) args[i]).value());
+                }
+                return ((Yolan)val(0)).value();
+            }
 
+            
             case FN_DO: {
                 return doEm(0);
             }
-
+            
             case FN_ADD: {
                 return num(ival(0) + ival(1));
             }
@@ -811,9 +830,11 @@ public final class Yolan {
         stack = null;
     }
     
+
     static {
         reset();
     }
+
     /**
      * Resets the virtual machine.
      * After the virtual machine has been reset,
@@ -847,7 +868,7 @@ public final class Yolan {
         // class file format.
 
         String builtins = "set locals if not and or repeat foreach " +
-                "while lambda defun do + - * / % < <= is-integer " +
+                "while lambda defun apply do + - * / % < <= is-integer " +
                 "is-string is-list is-dict equals is-empty put get " +
                 "random size stringjoin substring stringorder list " +
                 "resize push pop dict keys values get-next to-string ";
