@@ -1,4 +1,4 @@
-CLASSES = Main.class
+CLASSES = Main.class AST.class
 
 run: $(CLASSES)
 	java Main test.yl

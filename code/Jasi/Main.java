@@ -9,10 +9,6 @@ public class Main {
      */
     public static void main(String[] args) throws Exception {
 	InputStream is = new FileInputStream(new File(args[0]));
-	int i;
-	do {
-		i = is.read();
-		System.out.println(i);
-	} while(i > 0);
+	System.out.println(AST.readExpression(is).toString());
     }
 }
