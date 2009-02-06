@@ -9,6 +9,6 @@ public class Main {
      */
     public static void main(String[] args) throws Exception {
 	InputStream is = new FileInputStream(new File(args[0]));
-	System.out.println(AST.readExpression(is).toString());
+	System.out.println(AST.execute(AST.compile(AST.readExpression(is))));
     }
 }
