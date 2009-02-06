@@ -1,0 +1,50 @@
+This chapter is a introduction to the J2ME (Java Micro Edition\footnote{Java Micro Edition is a recent rebranding of the J2ME platform}) and some of the limitations and optimisation techniques used there.
+
+J2ME is the most common platform for mobile applications with more than a billion devices\cite{billionj2me}.
+Mobile devices usually do not allow downloading of applications with native code execution, but do often support execution of code on top of a trimmed down JVM\footnote{Java Virtual Machine}. J2ME can be seen as a subset of Java, and thus many of the things applicable to Java is also applicable to the J2ME.
+It is also a very fragmented platform, with different apis/extensions from different vendors, and different device profiles for different hardware capabilities, which often leads to that the same application is ported or rewritten for different handsets.
+
+The purpose of this project is to make a scripting language the runs on low end mobile devices, so t focus of this chapter will be on the low common denominator of the different J2ME flavors.
+
+\section{J2ME profiles, and the JVM}
+J2ME has two device configurations CLDC 1.0 (Compact Limited Device Configuration 1.0)\cite{cldc10}  and CLDC 1.1 \cite{cldc11}. The major difference between the two is that CLDC 1.0 is integer only, whereas CLDC 1.1 supports floating point numbers. 
+Another limitation of CLDCs is the lack of support for reflection and dynamic code loading. 
+The lack of a reflection api impacts a scripting language such that it cannot discover native functions, but they have to be added to the system.
+The lack of dynamic code loading, rules out the possibility of JIT compiling the scripting language to java class files.
+
+The CLDCs are based upon the Java JVM\cite{jvmref}, with some instructions removed, and some metadata added to ensure stack discipline (the preverifiction process).
+The reference implementation of CLDC 1.0, kvm, is a switchbased interpreter with a compacting mark-and-sweep garbage collector\cite{kvm,kvm-src}.
+
+With regard to interpreter implementation JVM does not support label references as values, nor does it support functions as values, but do have a builtin switch opcode as well as support method dispatch on the type of an object, so an interpreter would either need to be switch-based, or have a class for every opcode.
+
+\section{Memory limits and optimisations}
+The resources available for J2ME on mobile phones starts at 64KB limit of the jar-file and 200KB run time memory on the lowest end devices, and goes upwards from that\cite{nokiaoptim}.
+As the project is to make an embeddable language, so these memory figures are both for the main application and the language implementation, so the language must use significant less resource than those numbers. 
+
+
+\subsection{Memory optimisations}
+A major optimisation of the available run time memory, is to be able to avoid that memory intensive parts of the program runs at the same time. E.g. be able to unload/garbage collect the interpreter data, when the memory needs to be available for other computations, and then reload it when it is necessary. 
+
+The usual size optimisation, with finding compact representations, trimming dynamic data structures, avoiding sparse data, and stuff like that, is also applicable. 
+Notice that here might also be a tradeof between code footprint and run time memory, as compact representations and other optimisations, may require more code to be implemented. 
+
+The code footprint limit may be tighter that the run time memory, and it may be possible to partitions the execution such that different parts of the applications do not need to use run time memory at the same time. 
+Thus code footprint will be prioritised slightly higher than the run time memory usage, though both is important.
+
+\subsection{Footprint optimisations}
+Some optimisations to reduce the code footprint to be wihtin the  JAR file limit.
+\begin{itemize}
+\item Reduce the number of class-files. 
+\item Be weary of static initialisation.
+\item Put the classes in the unnamed package
+\item Use a JAR-optimiser/obscurifier.
+\end{itemize}
+
+There are several reasons why it reduces the JAR file size to reduce number of class files, even though they have the same amount of code: Each class file has it own symbol table, which means that if classes is merged, then common symbols only needs to be represented once, rather than once for each class.
+Another reason is the compression, - JAR files are essentially zip-archives, and each file in a zip archive is compressed individually\cite{zipspec}, which means that small files typically gets compressed less than longer files, due to the small compression context.
+
+A JAR file optimiser/obfuscator can remove unused code, rename methods and classes so they use less space in the symbol table, make \verb|static const|s work as \verb|#define|s, remove debugging information and do other optimisations, so this is usually worthwhile before distributing, and also allows one to make more readable code, knowing tha some of the more verbose parts will be optimised away.
+Similarly to the obfuscator, it also saves some symbol table space just to use the unnamed package, so unless the language library consists of a large number of classes, it makes sense just to allow it to be included directly in the unnamed package with the application.
+
+Java classes does not support static initialisation directly, but generates code that makes the initialisation. This means that it uses quite a number of bytes per variable and array index that is staticly initialised, and here it is often significantly more code footprint efficient to make optimised initialisers.
+

@@ -1,0 +1,15 @@
+In order to evaluate the code, there either needs to be an interpreter, or it needs to be translated into machine code. 
+
+There are several approaches to interpreters.
+One approach is tree traversal, where the code is executed by walking through the abstract syntax tree. 
+Another, usually faster, approach is to translate it into some kind of Virtual Machine (vm), and then execute it on that.
+An important aspect for performance  here is how to do the dispatch of each vm opcode or tree-node.
+
+Rather than interpreting it, another option is to translate it into machine code, -- as we are looking at execution of scripting languages, this will focus on Just In Time (jit) compilation. Here is an important tradeof between compile time and run time, and also memory used for caching code.
+An especially interesting aproach to this is with trace trees, which seems promising for dynamic languages.
+
+\section{Tree traversal}
+\section{Virtual machines}
+\section{Dispatching}
+\section{JIT compilation}
+\section{Trace trees}

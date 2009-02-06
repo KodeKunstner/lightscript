@@ -165,11 +165,75 @@ Resetting the runtime can be done with \verb|Yolan.reset()|. When the runtime is
 Resetting is practical when scripts are run, after each other, and must mess the runtime up for each other.
 
 \section{More on adding functions to the runtime}
-... switch-dispatch
-... control structures and exploiting lazyness
+
+The simple approach to adding functions to the runtime would require a new class for each function, which will add significantly to the size of the Jar-file.
+If the code size is critical, then this can often be reduced by combining the functions in a single class, for example via a switch dispatch, e.g.:
+{\scriptsize 
+\begin{verbatim}
+class ManyFunction implements Function {
+    int id;
+    ManyFunction(int id) {
+        this.id = id;
+    }
+    Object apply(Yolan args[]) {
+        switch(id) {
+            case 0: // first function
+                    ....
+                break;
+            case 1: // second function
+                    ....
+                break;
+            case 2: // third function
+                    ....
+                break;
+            ....
+            default:
+                throw SomeKindOfError();
+    }
+    static void register() {
+        Yolan.addFunction(new ManyFunction(0), "firstFunction");
+        Yolan.addFunction(new ManyFunction(1), "secondFunction");
+        Yolan.addFunction(new ManyFunction(2), "thirdFunction");
+        ....
+    }
+}
+\end{verbatim}
+}
+
+When implementing functions, it is also possible to create control structures, due to the lazyness of yolan objects. This is easily done by not calling all of the parameters \verb|value| functions once. The example below, shows how the usual if-statement could be implemented:
+{\scriptsize 
+\begin{verbatim}
+class YolanIf implements Function {
+    Object apply(Yolan args[]) {
+        // first evaluate the condition
+        // and find out if it i true (not null)
+        if(arg[0].value() != null) {
+            // only evaluate the if the condition yields true
+            return arg[1].value();
+        } else {
+            // only evaluate the if the condition yield false
+            return arg[2].value();
+        }
+    }
+}
+\end{verbatim}
+}
 
 \section{Hacking the source}
 \label{j2mesource}
-... on the joined classes: (static runtime, parser, interpreter, user-defined-function)
+While the implementation only consist of one java-class-file, 
+this is actually several distinct classes, joined to save space.
 
-... how to add apply's
+The core of the implementation is the the delayed computation objects that can also matches the parser tree. Each object just contains an index to some executable code\footnote{dispatched via a switch, as java does not support pointers to code}, and some data - its a kind of closure. 
+
+The interpreter is just walking and executing the parsed tree. Well, mostly - during the execution it does som simple optimisations and caching: an example is that if a node for a variable name is encountered, the execution of that node replaces the node itself with a node that references the cell that contains the variable, and then evaluate that new node.
+
+The runtime object is implemented as a set of static functions and variables.
+This limits the implementation to a single excution environment, but but also reduces the memory usage, as there are no need for passing pointers to the runtime object around.
+
+The parser is implemented a static function, that builds a parse tree from an input stream.
+
+When changing the builtin objects, there need to be changes three different places: There are the defines for the id matching a certain piece of code, then there is the interpreter dispatch, and finally there is the initialisation of the object into the runtime.
+
+
+Most of the use of the scripting language can be done without going into the details of the implementation. Even support floating point numbers and so on, can be added via the \verb|Function| interface.

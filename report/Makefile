@@ -29,7 +29,7 @@ synopsis.pdf: synopsis.tex bibliography.bib
 
 .tex.pdf:
 	# ./src2tex.sh
-	pdflatex $*.tex && bibtex $* && makeindex $*.idx && pdflatex $*.tex \
+	pdflatex $*.tex && echo bibtex $* && makeindex $*.idx && pdflatex $*.tex \
 	pdflatex $*.tex && pdflatex $*.tex
 
 .tex.dvi:

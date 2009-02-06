@@ -1,3 +1,18 @@
-Julia,
+Hi Julia,
 
-I have attached the current draft writings,
+I have attached the current draft writings, notes, etc. 
+It is probably only the first 4-5 "chapters" that 
+are worth skimming, most of it are just drafts
+and some of the remaining are only notes.
+
+I am not content with it as a potential master thesis,
+even though it has a nice result: that I make
+a scripting language for mobile devices, that
+has significantly smaller code footprint than any 
+other scripting languages that I have been able to find.
+So looking at the project, I believe that if I round it off 
+it could be a decent 15-ects 2.dels-projekt ? 
+and then right after that create a (smaller) master thesis
+in another topic.
+
+    Rasmus

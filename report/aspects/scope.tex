@@ -1,0 +1,57 @@
+Static scope is also called lexical scope, and corresponds to the (lexical) structure of the source code.
+This is in contrast to dynamic scope, where the variables are accessible other places where they are defined. This is examplified by the following:
+{\scriptsize
+\begin{verbatim}
+function f() {
+    x := 17;
+}
+function g(x) {
+    f();
+    print(x);
+}
+g(42);
+\end{verbatim}
+}
+which would print 42 if it was written in a statically scoped language, and would print 17 if it was written in a dynamically scoped language.
+
+Static scope is more natural as the scope matches the structure of the code. Dynamic scope requires more discipline, as it allows the programmer to tamper with local variables of other parts of the code, and counters good habits of information hiding. 
+A very important feature is also that static scope can be used to create closure for functions, which gives extra flexibility to the language.  
+On the other hand dynamic scope is simpler/use less space to implement.
+
+\section{The funarg problem}
+When we have higher order functions and static scope, we cannot just place the activation records on a stack, as trying to do that would yield problems in code like the following:
+{\scriptsize
+\begin{verbatim}
+function f(x) {
+    function g(y) {
+        return x + y;
+    } 
+    return g;
+}
+\end{verbatim}
+}
+The issue is that the new function $g$ is created when $f$ is called, this function uses a value that lies on $f$'s activation record, and that $g$ may be called after $f$ has exited, and thus if we are just using the usual stack for activation records, then the value of $x$ would no longer be available when $g$ is called.
+
+If the language were purely functional, then we could just copy the $x$ value into the closure of $g$. But if $g$ is able to mutate $x$ and there might be other parts of the code accessing $x$\footnote{not a case in the example code, but there might be other functions defined within $f$ that access $x$ after $f$ had exited}, this is not a solution.
+So when having higher order functions in a statically scoped imperative language, solutions could be to allocate the activation records directly on the heap, and garbage collect them, or to have mechanism that analyses the code and pulls out the local variables that can be accessed after the scoped is exited.
+
+%\section{Scopes in different languages}
+%\subsection{EcmaScript}
+%EcmaScript has usual distingtion between global and local variables, but for some strange reason, values are globals by default.
+%It also only nests scopes at functions, which 
+%to it notion of execution context\cite{ecma262}, which are heap allocated activation contexts.
+%
+
+
+\section{Choice of Scope for Yolan}
+When designing a language, static scope is usually the best choice,
+and Yolan is only one of the very rare exceptions for this
+due to the increase the footprint which is a major
+design focus.
+Yolan is designed to scale down towards low end devices,
+and small scale scripting, and therefor some of the problems
+with dynamic scope is less of an issue than if it had scale up towards huge complex applications, where it would be intolerable.
+When the primary target platform is j2me, there is the issue it is a mobile java garbage collector that we are using, which is not designed for heap allocated activation records, and thus that approach to static scoping would be expensive, plus it would require a slightly larger code footprint than piggy-backing on Javas stack.
+As Yolan is not pure functional, there could also be mutations in the closures, which also means that you cannot just copy the value forward, like you would do in a functional language.
+Another approach could be to do upval's similarly to lua, but this would increase the code footprint signinficantly, due to the needed code for code analysis etc.
+So in order to keep the code footprint minimal, the scope will be dynamic.

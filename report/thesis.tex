@@ -16,6 +16,8 @@
 %\usepackage[colorlinks,pagebackref]{hyperref}
 \usepackage{backref}
 \usepackage{url}
+\usepackage[paperheight=150mm,paperwidth=200mm]{geometry}
+\usepackage{geometry}
 \frenchspacing
 \makeindex
 \pagestyle{plain}
@@ -41,38 +43,59 @@ for mobile devices}
 
 % some parts commented out, for draft printing. size reduced an smaller top/bottom.
 
-\maketitle
+%\maketitle
 %\begin{abstract}
 %\end{abstract}
 
 \setcounter{tocdepth}{1}
 \tableofcontents
 %\listoffigures
+%
+%\part{Aspects of creating the language}
 
-\part{Aspects of creating the language}
-\chapter{The J2ME / Java Micro Edition platform}
-\input{aspects/j2me}
-
-\part{Language documentation}
+%\part{Language documentation}
+\chapter{Introduction}
+\input{intro/intro}
+\chapter{Language Specification}
+\input{language/specification}
 \chapter{Embedding Yolan in Java \\ -- developers guide}
 \input{language/devguide-java}
 
-\chapter{Introduction to scripting \\ -- a user guide}
-\input{language/userguide}
+\chapter{The J2ME / Java Micro Edition platform}
+\input{aspects/j2me}
 
-\chapter{Language Specification}
-\input{language/specification}
+\chapter{Scoping}
+\input{aspects/scope}
 
-\newpage
-\addcontentsline{toc}{chapter}{Bibliography}
-\bibliography{bibliography}
-\bibliographystyle{alpha}
+\input{.old1/report}
+\input{.old1/ecmascript}
 
-\appendix
+\chapter{Platforms}
+\input{aspects/platforms}
 
-\newpage
-\addcontentsline{toc}{chapter}{Index}
-\printindex
+\input{.old1/intro/intro}
+\input{.old1/design}
+\input{.old1/survey/survey}
+\input{.old1/language/language}
+\input{.old1/language/design}
+\input{.old1/language/informal}
+%\input{.old1/vm/vm}
+\input{.old1/design}
+
+%\chapter{Introduction to scripting \\ -- a user guide}
+%\input{language/userguide}
+%
+
+%\newpage
+%\addcontentsline{toc}{chapter}{Bibliography}
+%\bibliography{bibliography}
+%\bibliographystyle{alpha}
+
+%\appendix
+
+%\newpage
+%\addcontentsline{toc}{chapter}{Index}
+%\printindex
 
 \end{document}
 
