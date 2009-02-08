@@ -142,7 +142,6 @@ public class AST {
         byte code[] = coexp.code;
         Object literals[] = coexp.literals;
         for (int pc = 0; pc < code.length; pc++) {
-            System.out.println("pc:" + pc + " op:" + code[pc]);
             switch (code[pc]) {
                 case OP_LITERAL: {
                     stack.push(literals[code[++pc]]);
