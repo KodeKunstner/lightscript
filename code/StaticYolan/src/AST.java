@@ -183,6 +183,17 @@ public class AST {
         return pos;
     }
 
+    // append opcodes for setting a variable to the top-most stack value
+    private static void pass_emit_set(StringBuffer code_acc, Stack const_pool, AST id) {
+                    if (id.type == AST_GLOBAL_ID) {
+                        code_acc.append(OP_SET_GLOBAL);
+                        code_acc.append((char) const_id(const_pool, id.val));
+                    } else {
+                        // FIXME: add local vars
+                        throw new Error("Unknown ID type: " + id.type);
+                    }
+        
+    }
     private static void pass_emit(StringBuffer code_acc, Stack const_pool, AST ast) {
         if ((ast.type & AST_BUILTIN_FUNCTION) != 0) {
             for (int i = 1; i < ast.tree.length; i++) {
@@ -202,14 +213,10 @@ public class AST {
                     break;
                 }
                 case AST_SET: {
+                    // value
                     pass_emit(code_acc, const_pool, ast.tree[2]);
-                    if (ast.tree[1].type == AST_GLOBAL_ID) {
-                        code_acc.append(OP_SET_GLOBAL);
-                        code_acc.append((char) const_id(const_pool, ast.tree[1].val));
-                    } else {
-                        // FIXME: add local vars
-                        throw new Error("Unknown ID type: " + ast.tree[1].type);
-                    }
+                    // set
+                    pass_emit_set(code_acc, const_pool, ast.tree[1]);
                     break;
                 }
                 case AST_GLOBAL_ID: {
@@ -357,6 +364,23 @@ public class AST {
                     break;
                 }
                 case AST_FOREACH: {
+                    //   push nil
+                    //   get iterator
+                    //   jump -> labelNext
+                    // labelStmts:
+                    //   swap
+                    //   drop
+                    //   code for stmt1
+                    //   ...
+                    //   drop
+                    //   code for stmtn
+                    //   swap
+                    // labelNext:
+                    //   dup
+                    //   get-next
+                    //   set counter-var
+                    //   jump if true labelStmts
+                    //   drop
                     break;
                 }
                 case AST_WHILE: {

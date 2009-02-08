@@ -1,1 +1,3 @@
-[repeat 3 [log [random 100]]]
+[do
+  [log [set x 10]]
+  [log x]]
