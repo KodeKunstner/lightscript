@@ -11,6 +11,7 @@ import java.util.Stack;
  */
 public class AST {
     // Opcodes
+
     private static final char OP_LITERAL = 0;
     private static final char OP_NOT = 1;
     private static final char OP_ADD = 2;
@@ -40,20 +41,30 @@ public class AST {
     private static final char OP_NEXT = 26;
     private static final char OP_LOG = 27;
     private static final char OP_ASSERT = 28;
-    
+    private static final char OP_DROP = 29;
+    private static final char OP_GET_GLOBAL = 30;
     // AST type constants
+    private static final int AST_BUILTIN_FUNCTION = 0x100;
     private static final int AST_IDENTIFIER = 0;
     private static final int AST_LITERAL = AST_IDENTIFIER + 1;
-    private static final int AST_LIST = AST_LITERAL + 1;
-    private static final int AST_FUNCTION = 0x100;
-    
+    private static final int AST_FN_LIST = AST_LITERAL + 1;
+    private static final int AST_SET_GLOBAL = AST_FN_LIST + 1;
+    private static final int AST_GET_GLOBAL = AST_SET_GLOBAL + 1;
+    private static final int AST_IF = AST_GET_GLOBAL + 1;
+    private static final int AST_AND = AST_IF + 1;
+    private static final int AST_OR = AST_AND + 1;
+    private static final int AST_REPEAT = AST_OR + 1;
+    private static final int AST_FOREACH = AST_REPEAT + 1;
+    private static final int AST_WHILE = AST_FOREACH + 1;
+    private static final int AST_DO = AST_WHILE + 1;
+    private static final int AST_STRINGJOIN = AST_DO + 1;
+    private static final int AST_LIST = AST_STRINGJOIN + 1;
+    private static final int AST_DICT = AST_LIST + 1;
     // Opcode mask, to extract opcode from AST_FUNCTIION type
     private static final int MASK_OP = 0xFF;
-    
     // AST type tag
     private int type;
     // number of parameters if AST is a function
-    private int arity;
     // the value if AST is a literal or name if  identifier
     private Object val;
     // the children if AST is a list
@@ -64,24 +75,33 @@ public class AST {
     public static final Boolean TRUE = new Boolean(true);
     // 
     private static Random rnd = new Random();
-    
-    // definition of builtin in functions with fixed number of evaluated arguments
+    // definition of built in functions with fixed number of evaluated arguments
     private static String[] fn_names = {"not", "+", "-", "*", "/", "%", "is-integer", "is-string", "is-list", "is-dictionary", "is-iterator", "equals", "is-empty", "put", "get", "random", "size", "<", "<=", "substring", "resize", "push", "pop", "keys", "values", "get-next", "log", "assert"};
     private static int[] fn_arity = {1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 1, 3, 2, 1, 1, 2, 2, 3, 2, 2, 1, 1, 1, 1, 1, 2};
     private static char[] fn_types = {OP_NOT, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_REM, OP_IS_INT, OP_IS_STR, OP_IS_LIST, OP_IS_DICT, OP_IS_ITER, OP_EQUAL, OP_IS_EMPTY, OP_PUT, OP_GET, OP_RAND, OP_SIZE, OP_LESS, OP_LESSEQUAL, OP_SUBSTR, OP_RESIZE, OP_PUSH, OP_POP, OP_KEYS, OP_VALUES, OP_NEXT, OP_LOG, OP_ASSERT};
+    // definition of builtins
+    private static String[] builtin_names = {"set", "if", "and", "or", "repeat", "foreach", "while", "do", "stringjoin", "list", "dict"};
+    private static int[] builtin_type = {AST_SET_GLOBAL, AST_IF, AST_AND, AST_OR, AST_REPEAT, AST_FOREACH, AST_WHILE, AST_DO, AST_STRINGJOIN, AST_LIST, AST_DICT};
 
+    // walk through the ast and set the type tag
     private static void pass_ast_type(AST ast) {
         for (int i = 0; i < ast.tree.length; i++) {
             pass_ast_type(ast.tree[i]);
         }
         if (ast.tree.length > 0) {
+            Object id = ast.tree[0].val;
             for (int i = 0; i < fn_names.length; i++) {
-                if (ast.tree[0].val.equals(fn_names[i])) {
+                if (id.equals(fn_names[i])) {
                     if (ast.tree.length != fn_arity[i] + 1) {
                         throw new Error("Wrong number of arguments: " + ast.toString());
                     }
-                    ast.type = AST_FUNCTION | fn_types[i];
-                    ast.arity = fn_arity[i];
+                    ast.type = AST_BUILTIN_FUNCTION | fn_types[i];
+                    return;
+                }
+            }
+            for (int i = 0; i < builtin_names.length; i++) {
+                if (id.equals(builtin_names[i])) {
+                    ast.type = builtin_type[i];
                     return;
                 }
             }
@@ -103,26 +123,80 @@ public class AST {
         }
     }
 
-    private static void pass_emit(StringBuffer code_acc, Stack literals, AST ast) {
-        if ((ast.type & AST_FUNCTION) != 0) {
-            for (int i = 1; i <= ast.arity; i++) {
-                pass_emit(code_acc, literals, ast.tree[i]);
+    private static int const_id(Stack const_pool, AST ast) {
+        int pos = const_pool.indexOf(ast.val);
+        if (pos < 0) {
+            pos = const_pool.size();
+            const_pool.push(ast.val);
+        }
+
+        if (pos > 255) {
+            throw new Error("Too many literals in expression: " + ast.toString());
+        }
+        return pos;
+    }
+
+    private static void pass_emit(StringBuffer code_acc, Stack const_pool, AST ast) {
+        if ((ast.type & AST_BUILTIN_FUNCTION) != 0) {
+            for (int i = 1; i < ast.tree.length; i++) {
+                pass_emit(code_acc, const_pool, ast.tree[i]);
             }
             code_acc.append((char) (ast.type & MASK_OP));
 
-        } else if (ast.type == AST_LITERAL) {
-            code_acc.append((char) OP_LITERAL);
+        } else {
+            switch (ast.type) {
 
-            int pos = literals.indexOf(ast.val);
-            if (pos < 0) {
-                pos = literals.size();
-                literals.push(ast.val);
+                case AST_IDENTIFIER: {
+                    // FIXME: currently only global vars
+                    code_acc.append((char) OP_GET_GLOBAL);
+                    code_acc.append((char) const_id(const_pool, ast));
+                    break;
+                }
+                case AST_LITERAL: {
+                    code_acc.append((char) OP_LITERAL);
+                    code_acc.append((char) const_id(const_pool, ast));
+                    break;
+                }
+                case AST_FN_LIST: {
+                    break;
+                }
+                case AST_SET_GLOBAL: {
+                    break;
+                }
+                case AST_GET_GLOBAL: {
+                    break;
+                }
+                case AST_IF: {
+                    break;
+                }
+                case AST_AND: {
+                    break;
+                }
+                case AST_OR: {
+                    break;
+                }
+                case AST_REPEAT: {
+                    break;
+                }
+                case AST_FOREACH: {
+                    break;
+                }
+                case AST_WHILE: {
+                    break;
+                }
+                case AST_DO: {
+                    break;
+                }
+                case AST_STRINGJOIN: {
+                    break;
+                }
+                case AST_LIST: {
+                    break;
+                }
+                case AST_DICT: {
+                    break;
+                }
             }
-
-            if (pos > 255) {
-                throw new Error("Too many literals in expression: " + ast.toString());
-            }
-            code_acc.append((char) pos);
         }
     }
 
@@ -203,7 +277,7 @@ public class AST {
                 }
                 case OP_EQUAL: {
                     Object o = stack.pop();
-                    if(o == null) {
+                    if (o == null) {
                         stack.push(stack.pop() == null ? TRUE : null);
                     } else {
                         stack.push(o.equals(stack.pop()) ? TRUE : null);
@@ -212,12 +286,12 @@ public class AST {
                 }
                 case OP_IS_EMPTY: {
                     Object o = stack.pop();
-                    if(o instanceof Stack) {
-                        stack.push(((Stack)o).empty() ? TRUE : null);
-                    } else if(o instanceof Hashtable) {
-                        stack.push(((Hashtable)o).isEmpty() ? TRUE : null);
-                    } else if(o instanceof Enumeration) {
-                        stack.push(((Enumeration)o).hasMoreElements() ? null : TRUE);
+                    if (o instanceof Stack) {
+                        stack.push(((Stack) o).empty() ? TRUE : null);
+                    } else if (o instanceof Hashtable) {
+                        stack.push(((Hashtable) o).isEmpty() ? TRUE : null);
+                    } else if (o instanceof Enumeration) {
+                        stack.push(((Enumeration) o).hasMoreElements() ? null : TRUE);
                     } else {
                         stack.push(null);
                     }
@@ -227,13 +301,13 @@ public class AST {
                     Object val = stack.pop();
                     Object key = stack.pop();
                     Object container = stack.peek();
-                    if(container instanceof Stack) {
-                        ((Stack)container).setElementAt(val, ((Integer)key).intValue());
-                    } else if(container instanceof Hashtable) {
-                        if(val == null) {
-                            ((Hashtable)container).remove(key);
+                    if (container instanceof Stack) {
+                        ((Stack) container).setElementAt(val, ((Integer) key).intValue());
+                    } else if (container instanceof Hashtable) {
+                        if (val == null) {
+                            ((Hashtable) container).remove(key);
                         } else {
-                            ((Hashtable)container).put(key, val);
+                            ((Hashtable) container).put(key, val);
                         }
                     }
                     break;
@@ -241,10 +315,10 @@ public class AST {
                 case OP_GET: {
                     Object key = stack.pop();
                     Object container = stack.pop();
-                    if(container instanceof Stack) {
-                        stack.push(((Stack)container).elementAt(((Integer)key).intValue()));
-                    } else if(container instanceof Hashtable) {
-                        stack.push(((Hashtable)container).get(key));                        
+                    if (container instanceof Stack) {
+                        stack.push(((Stack) container).elementAt(((Integer) key).intValue()));
+                    } else if (container instanceof Hashtable) {
+                        stack.push(((Hashtable) container).get(key));
                     } else {
                         stack.push(null);
                     }
@@ -252,10 +326,10 @@ public class AST {
                 }
                 case OP_RAND: {
                     Object o = stack.pop();
-                    if(o instanceof Integer) {
-                        stack.push(new Integer(rnd.nextInt() % ((Integer)o).intValue()));
-                    } else if(o instanceof Stack) {
-                        Stack s = (Stack)o;
+                    if (o instanceof Integer) {
+                        stack.push(new Integer(rnd.nextInt() % ((Integer) o).intValue()));
+                    } else if (o instanceof Stack) {
+                        Stack s = (Stack) o;
                         stack.push(s.elementAt(rnd.nextInt() % s.size()));
                     } else {
                         stack.push(null);
@@ -264,12 +338,12 @@ public class AST {
                 }
                 case OP_SIZE: {
                     Object o = stack.pop();
-                    if(o instanceof Stack) {
-                        stack.push(new Integer(((Stack)o).size()));
-                    } else if(o instanceof String) {
-                        stack.push(new Integer(((String)o).length()));
-                    } else if(o instanceof Hashtable) {
-                        stack.push(new Integer(((Hashtable)o).size()));
+                    if (o instanceof Stack) {
+                        stack.push(new Integer(((Stack) o).size()));
+                    } else if (o instanceof String) {
+                        stack.push(new Integer(((String) o).length()));
+                    } else if (o instanceof Hashtable) {
+                        stack.push(new Integer(((Hashtable) o).size()));
                     } else {
                         stack.push(null);
                     }
@@ -278,8 +352,8 @@ public class AST {
                 case OP_LESS: {
                     Object o2 = stack.pop();
                     Object o1 = stack.pop();
-                    if(o1 instanceof Integer && o2 instanceof Integer) {
-                        stack.push(((Integer)o1).intValue() < ((Integer)o2).intValue() ? TRUE : null);
+                    if (o1 instanceof Integer && o2 instanceof Integer) {
+                        stack.push(((Integer) o1).intValue() < ((Integer) o2).intValue() ? TRUE : null);
                     } else {
                         stack.push(o1.toString().compareTo(o2.toString()) < 0 ? TRUE : null);
                     }
@@ -288,51 +362,51 @@ public class AST {
                 case OP_LESSEQUAL: {
                     Object o2 = stack.pop();
                     Object o1 = stack.pop();
-                    if(o1 instanceof Integer && o2 instanceof Integer) {
-                        stack.push(((Integer)o1).intValue() <= ((Integer)o2).intValue() ? TRUE : null);
+                    if (o1 instanceof Integer && o2 instanceof Integer) {
+                        stack.push(((Integer) o1).intValue() <= ((Integer) o2).intValue() ? TRUE : null);
                     } else {
                         stack.push(o1.toString().compareTo(o2.toString()) <= 0 ? TRUE : null);
                     }
                     break;
                 }
                 case OP_SUBSTR: {
-                    int end = ((Integer)stack.pop()).intValue();
-                    int start = ((Integer)stack.pop()).intValue();
-                    stack.push(((String)stack.pop()).substring(start, end));
+                    int end = ((Integer) stack.pop()).intValue();
+                    int start = ((Integer) stack.pop()).intValue();
+                    stack.push(((String) stack.pop()).substring(start, end));
                     break;
                 }
                 case OP_RESIZE: {
-                    int newsize = ((Integer)stack.pop()).intValue();
-                    ((Stack)stack.peek()).setSize(newsize);
+                    int newsize = ((Integer) stack.pop()).intValue();
+                    ((Stack) stack.peek()).setSize(newsize);
                     break;
                 }
                 case OP_PUSH: {
                     Object val = stack.pop();
-                    ((Stack)stack.peek()).push(val);
+                    ((Stack) stack.peek()).push(val);
                     break;
                 }
                 case OP_POP: {
-                    stack.push(((Stack)stack.pop()).pop());
+                    stack.push(((Stack) stack.pop()).pop());
                     break;
                 }
                 case OP_KEYS: {
-                    stack.push(((Hashtable)stack.pop()).keys());
+                    stack.push(((Hashtable) stack.pop()).keys());
                     break;
                 }
                 case OP_VALUES: {
                     Object o = stack.pop();
-                    if(o instanceof Stack) {
-                        stack.push(((Stack)o).elements());
-                    } else if(o instanceof Hashtable) {
-                        stack.push(((Hashtable)o).elements());
+                    if (o instanceof Stack) {
+                        stack.push(((Stack) o).elements());
+                    } else if (o instanceof Hashtable) {
+                        stack.push(((Hashtable) o).elements());
                     } else {
                         stack.push(null);
                     }
                     break;
                 }
                 case OP_NEXT: {
-                    Enumeration e = (Enumeration)stack.pop();
-                    if(e.hasMoreElements()) {
+                    Enumeration e = (Enumeration) stack.pop();
+                    if (e.hasMoreElements()) {
                         stack.push(e.nextElement());
                     } else {
                         stack.push(null);
@@ -344,9 +418,13 @@ public class AST {
                     break;
                 }
                 case OP_ASSERT: {
-                    if(stack.pop() == null) {
+                    if (stack.pop() == null) {
                         throw new Error("Assert error: " + stack.pop().toString());
-                    } 
+                    }
+                    break;
+                }
+                case OP_DROP: {
+                    stack.pop();
                     break;
                 }
             }
@@ -355,7 +433,7 @@ public class AST {
     }
 
     private AST(AST[] t) {
-        type = AST_LIST;
+        type = AST_FN_LIST;
         val = null;
         tree = t;
     }
@@ -377,7 +455,7 @@ public class AST {
             return " id(" + val + ")";
         } else if (type == AST_LITERAL) {
             return " literal(" + val + ")";
-        } else if (type == AST_LIST) {
+        } else if (type == AST_FN_LIST) {
             StringBuffer sb = new StringBuffer();
             sb.append("[");
             for (int i = 0; i < tree.length; i++) {
