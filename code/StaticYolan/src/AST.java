@@ -79,7 +79,9 @@ public class AST {
     // Opcode mask, to extract opcode from AST_FUNCTIION type
     private static final int MASK_OP = 0xFF;
     // Scope temp class
-    private class Scope {
+
+    private static class Scope {
+
         private Scope parent;
         // number of arguments
         public int argc;
@@ -90,26 +92,29 @@ public class AST {
         private Stack boxed;
         // names of the (boxed) variables in the closure
         private Stack closure;
+
         public int varType(Object name) {
-            if(boxed.contains(name)) {
+            if (boxed.contains(name)) {
                 return AST_BOXED_ID;
-            } else if(locals.contains(name)) {
+            } else if (locals.contains(name)) {
                 return AST_LOCAL_ID;
-            } else if(closure.contains(name)) {
+            } else if (closure.contains(name)) {
                 return AST_CLOSURE_ID;
-            } else if(parent != null) {
-                return isClosured(this, name)?AST_CLOSURE_ID : AST_GLOBAL_ID;
+            } else if (parent != null) {
+                return isClosured(this, name) ? AST_CLOSURE_ID : AST_GLOBAL_ID;
             } else {
                 return AST_GLOBAL_ID;
             }
         }
+
         public int framePos(Object name) {
             return locals.indexOf(name);
         }
+
         public int frameSize() {
             return locals.size();
         }
-        
+
         /**
          * Find out whether the variable "name" is put into the closure
          * of child, by this as parent. As a sideeffect this method
@@ -121,31 +126,39 @@ public class AST {
          */
         private boolean isClosured(Scope child, Object name) {
             boolean in_closure;
-            if(boxed.contains(name) || closure.contains(name)) {
+            if (boxed.contains(name) || closure.contains(name)) {
                 in_closure = true;
-            } else if(locals.contains(name)) {
+            } else if (locals.contains(name)) {
                 in_closure = true;
                 boxed.push(name);
-            } else if(parent == null) {
+            } else if (parent == null) {
                 in_closure = false;
             } else {
                 in_closure = isClosured(this, name);
             }
-            if(in_closure) {
+            if (in_closure) {
                 child.closure.push(name);
             }
             return in_closure;
         }
-        
-        public Scope(Scope parent, AST ast) {
-            this.parent = parent;
+
+        public Scope() {
+            this.parent = null;
             locals = new Stack();
             boxed = new Stack();
             closure = new Stack();
-            for(int i = 0; i < ast.tree[1].tree.length; i++) {
+
+        }
+
+        public Scope(Scope parent, AST ast) {
+            locals = new Stack();
+            boxed = new Stack();
+            closure = new Stack();
+            this.parent = parent;
+            for (int i = 0; i < ast.tree[1].tree.length; i++) {
                 locals.push(ast.tree[1].tree[i].val);
             }
-            for(int i = 0; i < ast.tree[2].tree.length; i++) {
+            for (int i = 0; i < ast.tree[2].tree.length; i++) {
                 locals.push(ast.tree[2].tree[i].val);
             }
         }
@@ -202,14 +215,27 @@ public class AST {
         }
     }
 
-    // FIXME: everything is global
-    private static void pass_vartype(AST ast) {
+    private static void pass_vartype1(AST ast, Scope scope) {
+        if (ast.type == AST_FUNCTION) {
+            scope = new Scope(scope, ast);
+        }
+        ast.scope = scope;
         if (ast.type == AST_IDENTIFIER) {
-            ast.type = AST_GLOBAL_ID;
+            ast.scope.varType(ast.val);
         }
         for (int i = 0; i < ast.tree.length; i++) {
-            pass_vartype(ast.tree[i]);
+            pass_vartype1(ast.tree[i], scope);
         }
+    }
+
+    private static void pass_vartype2(AST ast) {
+        if (ast.type == AST_IDENTIFIER) {
+            ast.type = ast.scope.varType(ast.val);
+        }
+        for (int i = 0; i < ast.tree.length; i++) {
+            pass_vartype2(ast.tree[i]);
+        }
+
     }
 
     public static class CompiledExpr {
@@ -226,9 +252,11 @@ public class AST {
             stack.copyInto(literals);
         }
     }
-    
+
     public static class Counter implements Enumeration {
+
         private int count;
+
         public Counter(int i) {
             count = i;
         }
@@ -238,14 +266,13 @@ public class AST {
         }
 
         public Object nextElement() {
-            if(count > 0) {
+            if (count > 0) {
                 count--;
                 return TRUE;
             } else {
                 return null;
             }
         }
-        
     }
 
     private static int const_id(Stack const_pool, Object val) {
@@ -263,15 +290,19 @@ public class AST {
 
     // append opcodes for setting a variable to the top-most stack value
     private static void pass_emit_set(StringBuffer code_acc, Stack const_pool, AST id) {
-                    if (id.type == AST_GLOBAL_ID) {
-                        code_acc.append(OP_SET_GLOBAL);
-                        code_acc.append((char) const_id(const_pool, id.val));
-                    } else {
-                        // FIXME: add local vars
-                        throw new Error("Unknown ID type: " + id.type);
-                    }
-        
+        System.out.println("set type:" + id.type + " name:" + id.val);
+        if (id.type == AST_GLOBAL_ID) {
+            code_acc.append(OP_SET_GLOBAL);
+            code_acc.append((char) const_id(const_pool, id.val));
+        } else {
+            code_acc.append(OP_SET_GLOBAL);
+            code_acc.append((char) const_id(const_pool, id.val));
+        // FIXME: add local vars
+        //throw new Error("Unknown ID type: " + id.type);
+        }
+
     }
+
     private static void pass_emit(StringBuffer code_acc, Stack const_pool, AST ast) {
         if ((ast.type & AST_BUILTIN_FUNCTION) != 0) {
             for (int i = 1; i < ast.tree.length; i++) {
@@ -315,7 +346,7 @@ public class AST {
                     // label2:
 
                     assertlength(ast, 4);
-                    int pos0, pos1, len;
+                    int pos0,  pos1,  len;
                     pass_emit(code_acc, const_pool, ast.tree[1]);
 
                     code_acc.append(OP_JUMP_IF_TRUE);
@@ -342,7 +373,7 @@ public class AST {
                 }
                 case AST_AND: {
                     assertlength(ast, 3);
-                    int pos0, pos1, len;
+                    int pos0,  pos1,  len;
 
                     pass_emit(code_acc, const_pool, ast.tree[1]);
 
@@ -369,7 +400,7 @@ public class AST {
                 }
                 case AST_OR: {
                     assertlength(ast, 3);
-                    int pos0, pos1, len;
+                    int pos0,  pos1,  len;
 
                     pass_emit(code_acc, const_pool, ast.tree[1]);
 
@@ -409,11 +440,11 @@ public class AST {
                     //   get_next
                     //   jump if true -> labelTop
                     //   drop
-                    int pos0, pos1, len;
+                    int pos0,  pos1,  len;
                     code_acc.append(OP_NIL);
                     pass_emit(code_acc, const_pool, ast.tree[1]);
                     code_acc.append(OP_NEW_COUNTER);
-                    
+
                     code_acc.append(OP_JUMP);
                     code_acc.append((char) 0);
                     code_acc.append((char) 0);
@@ -425,23 +456,23 @@ public class AST {
                         pass_emit(code_acc, const_pool, ast.tree[i]);
                     }
                     code_acc.append(OP_SWAP);
-                    
+
                     pos1 = code_acc.length();
                     len = pos1 - pos0;
                     code_acc.setCharAt(pos0 - 1, (char) (len & 0xff));
                     code_acc.setCharAt(pos0 - 2, (char) ((len >> 8) & 0xff));
 
                     code_acc.append(OP_DUP);
-                    
+
                     code_acc.append(OP_NEXT);
-                    
+
                     code_acc.append(OP_JUMP_IF_TRUE);
                     len = pos0 - (code_acc.length() + 2);
                     code_acc.append((char) ((len >> 8) & 0xff));
                     code_acc.append((char) (len & 0xff));
 
                     code_acc.append(OP_DROP);
-                    
+
                     break;
                 }
                 case AST_FOREACH: {
@@ -462,11 +493,11 @@ public class AST {
                     //   set counter-var
                     //   jump if true labelStmts
                     //   drop
-                    int pos0, pos1, len;
+                    int pos0,  pos1,  len;
                     code_acc.append(OP_NIL);
-                    
+
                     pass_emit(code_acc, const_pool, ast.tree[2]);
-                    
+
                     code_acc.append(OP_JUMP);
                     code_acc.append((char) 0);
                     code_acc.append((char) 0);
@@ -478,25 +509,25 @@ public class AST {
                         pass_emit(code_acc, const_pool, ast.tree[i]);
                     }
                     code_acc.append(OP_SWAP);
-                    
+
                     pos1 = code_acc.length();
                     len = pos1 - pos0;
                     code_acc.setCharAt(pos0 - 1, (char) (len & 0xff));
                     code_acc.setCharAt(pos0 - 2, (char) ((len >> 8) & 0xff));
 
                     code_acc.append(OP_DUP);
-                    
+
                     code_acc.append(OP_NEXT);
-                    
+
                     pass_emit_set(code_acc, const_pool, ast.tree[1]);
-                    
+
                     code_acc.append(OP_JUMP_IF_TRUE);
                     len = pos0 - (code_acc.length() + 2);
                     code_acc.append((char) ((len >> 8) & 0xff));
                     code_acc.append((char) (len & 0xff));
 
                     code_acc.append(OP_DROP);
-                    
+
                     break;
                 }
                 case AST_WHILE: {
@@ -512,7 +543,7 @@ public class AST {
                     //   code for condition
                     //   jump if true -> labelBody
 
-                    int pos0, pos1, len;
+                    int pos0,  pos1,  len;
                     code_acc.append(OP_NIL);
 
                     code_acc.append(OP_JUMP);
@@ -581,7 +612,9 @@ public class AST {
                     }
                     break;
                 }
-                
+                default: {
+                    throw new Error("Unknown ast type: " + ast.type);
+                }
             }
         }
     }
@@ -589,7 +622,8 @@ public class AST {
     public static CompiledExpr compile(AST ast) {
         pass_ast_type(ast);
 
-        pass_vartype(ast);
+        pass_vartype1(ast, new Scope());
+        pass_vartype2(ast);
 
         StringBuffer code_acc = new StringBuffer();
         Stack literals = new Stack();
@@ -878,7 +912,7 @@ public class AST {
                     break;
                 }
                 case OP_NEW_COUNTER: {
-                    stack.push(new Counter(((Integer)stack.pop()).intValue()));
+                    stack.push(new Counter(((Integer) stack.pop()).intValue()));
                     break;
                 }
                 case OP_SWAP: {
