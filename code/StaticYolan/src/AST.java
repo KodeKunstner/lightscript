@@ -43,14 +43,16 @@ public class AST {
     private static final char OP_ASSERT = 28;
     private static final char OP_DROP = 29;
     private static final char OP_GET_GLOBAL = 30;
+    private static final char OP_SET_GLOBAL = 31;
+    private static final char OP_JUMP = 32;
     // AST type constants
     private static final int AST_BUILTIN_FUNCTION = 0x100;
     private static final int AST_IDENTIFIER = 0;
     private static final int AST_LITERAL = AST_IDENTIFIER + 1;
     private static final int AST_FN_LIST = AST_LITERAL + 1;
-    private static final int AST_SET_GLOBAL = AST_FN_LIST + 1;
-    private static final int AST_GET_GLOBAL = AST_SET_GLOBAL + 1;
-    private static final int AST_IF = AST_GET_GLOBAL + 1;
+    private static final int AST_SET = AST_FN_LIST + 1;
+    private static final int AST_GLOBAL_ID = AST_SET + 1;
+    private static final int AST_IF = AST_GLOBAL_ID + 1;
     private static final int AST_AND = AST_IF + 1;
     private static final int AST_OR = AST_AND + 1;
     private static final int AST_REPEAT = AST_OR + 1;
@@ -81,7 +83,7 @@ public class AST {
     private static char[] fn_types = {OP_NOT, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_REM, OP_IS_INT, OP_IS_STR, OP_IS_LIST, OP_IS_DICT, OP_IS_ITER, OP_EQUAL, OP_IS_EMPTY, OP_PUT, OP_GET, OP_RAND, OP_SIZE, OP_LESS, OP_LESSEQUAL, OP_SUBSTR, OP_RESIZE, OP_PUSH, OP_POP, OP_KEYS, OP_VALUES, OP_NEXT, OP_LOG, OP_ASSERT};
     // definition of builtins
     private static String[] builtin_names = {"set", "if", "and", "or", "repeat", "foreach", "while", "do", "stringjoin", "list", "dict"};
-    private static int[] builtin_type = {AST_SET_GLOBAL, AST_IF, AST_AND, AST_OR, AST_REPEAT, AST_FOREACH, AST_WHILE, AST_DO, AST_STRINGJOIN, AST_LIST, AST_DICT};
+    private static int[] builtin_type = {AST_SET, AST_IF, AST_AND, AST_OR, AST_REPEAT, AST_FOREACH, AST_WHILE, AST_DO, AST_STRINGJOIN, AST_LIST, AST_DICT};
 
     // walk through the ast and set the type tag
     private static void pass_ast_type(AST ast) {
@@ -105,6 +107,16 @@ public class AST {
                     return;
                 }
             }
+        }
+    }
+
+    // FIXME: everything is global
+    private static void pass_vartype(AST ast) {
+        if (ast.type == AST_IDENTIFIER) {
+            ast.type = AST_GLOBAL_ID;
+        }
+        for (int i = 0; i < ast.tree.length; i++) {
+            pass_vartype(ast.tree[i]);
         }
     }
 
@@ -146,24 +158,28 @@ public class AST {
         } else {
             switch (ast.type) {
 
-                case AST_IDENTIFIER: {
-                    // FIXME: currently only global vars
-                    code_acc.append((char) OP_GET_GLOBAL);
-                    code_acc.append((char) const_id(const_pool, ast));
-                    break;
-                }
                 case AST_LITERAL: {
-                    code_acc.append((char) OP_LITERAL);
+                    code_acc.append(OP_LITERAL);
                     code_acc.append((char) const_id(const_pool, ast));
                     break;
                 }
                 case AST_FN_LIST: {
                     break;
                 }
-                case AST_SET_GLOBAL: {
+                case AST_SET: {
+                    pass_emit(code_acc, const_pool, ast.tree[2]);
+                    if (ast.tree[1].type == AST_GLOBAL_ID) {
+                        code_acc.append(OP_SET_GLOBAL);
+                        code_acc.append((char) const_id(const_pool, ast.tree[1]));
+                    } else {
+                        // FIXME: add local vars
+                        throw new Error("Unknown ID type: " + ast.tree[1].type);
+                    }
                     break;
                 }
-                case AST_GET_GLOBAL: {
+                case AST_GLOBAL_ID: {
+                    code_acc.append(OP_GET_GLOBAL);
+                    code_acc.append((char) const_id(const_pool, ast));
                     break;
                 }
                 case AST_IF: {
@@ -185,6 +201,12 @@ public class AST {
                     break;
                 }
                 case AST_DO: {
+                    for (int i = 1; i < ast.tree.length; i++) {
+                        pass_emit(code_acc, const_pool, ast.tree[i]);
+                        if (i < ast.tree.length - 1) {
+                            code_acc.append(OP_DROP);
+                        }
+                    }
                     break;
                 }
                 case AST_STRINGJOIN: {
@@ -203,6 +225,8 @@ public class AST {
     public static CompiledExpr compile(AST ast) {
         pass_ast_type(ast);
 
+        pass_vartype(ast);
+
         StringBuffer code_acc = new StringBuffer();
         Stack literals = new Stack();
         pass_emit(code_acc, literals, ast);
@@ -211,10 +235,13 @@ public class AST {
         return new CompiledExpr(code_acc, literals);
     }
 
-    public static Object execute(CompiledExpr coexp) {
+    public static Object execute(CompiledExpr coexp, Hashtable globals) {
         Stack stack = new Stack();
         byte code[] = coexp.code;
         Object literals[] = coexp.literals;
+        for (int pc = 0; pc < code.length; pc++) {
+            System.out.println("pc: " + pc + " code: " + code[pc]);
+        }
         for (int pc = 0; pc < code.length; pc++) {
             switch (code[pc]) {
                 case OP_LITERAL: {
@@ -425,6 +452,20 @@ public class AST {
                 }
                 case OP_DROP: {
                     stack.pop();
+                    break;
+                }
+                case OP_GET_GLOBAL: {
+                    stack.push(globals.get(literals[code[++pc]]));
+                    break;
+                }
+                case OP_SET_GLOBAL: {
+                    Object o = stack.peek();
+                    Object key = literals[code[++pc]];
+                    if (o == null) {
+                        globals.remove(key);
+                    } else {
+                        globals.put(key, o);
+                    }
                     break;
                 }
             }

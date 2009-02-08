@@ -1,1 +1,5 @@
-[+ [- 100 10] [* 5 5]]
+[do 
+  [set x 10]
+  [log "Hello"]
+  [log "world"]
+  x]
