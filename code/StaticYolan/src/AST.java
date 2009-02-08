@@ -62,7 +62,10 @@ public class AST {
     private static final int AST_FN_LIST = AST_LITERAL + 1;
     private static final int AST_SET = AST_FN_LIST + 1;
     private static final int AST_GLOBAL_ID = AST_SET + 1;
-    private static final int AST_IF = AST_GLOBAL_ID + 1;
+    private static final int AST_CLOSURE_ID = AST_GLOBAL_ID + 1;
+    private static final int AST_BOXED_ID = AST_CLOSURE_ID + 1;
+    private static final int AST_LOCAL_ID = AST_BOXED_ID + 1;
+    private static final int AST_IF = AST_LOCAL_ID + 1;
     private static final int AST_AND = AST_IF + 1;
     private static final int AST_OR = AST_AND + 1;
     private static final int AST_REPEAT = AST_OR + 1;
@@ -72,8 +75,81 @@ public class AST {
     private static final int AST_STRINGJOIN = AST_DO + 1;
     private static final int AST_LIST = AST_STRINGJOIN + 1;
     private static final int AST_DICT = AST_LIST + 1;
+    private static final int AST_FUNCTION = AST_DICT + 1;
     // Opcode mask, to extract opcode from AST_FUNCTIION type
     private static final int MASK_OP = 0xFF;
+    // Scope temp class
+    private class Scope {
+        private Scope parent;
+        // number of arguments
+        public int argc;
+        // names of variables in stack frame, including the arguments
+        // locals.size() is the size of the stack frame
+        private Stack locals;
+        // names of the variables in the stack frame, which are boxed
+        private Stack boxed;
+        // names of the (boxed) variables in the closure
+        private Stack closure;
+        public int varType(Object name) {
+            if(boxed.contains(name)) {
+                return AST_BOXED_ID;
+            } else if(locals.contains(name)) {
+                return AST_LOCAL_ID;
+            } else if(closure.contains(name)) {
+                return AST_CLOSURE_ID;
+            } else if(parent != null) {
+                return isClosured(this, name)?AST_CLOSURE_ID : AST_GLOBAL_ID;
+            } else {
+                return AST_GLOBAL_ID;
+            }
+        }
+        public int framePos(Object name) {
+            return locals.indexOf(name);
+        }
+        public int frameSize() {
+            return locals.size();
+        }
+        
+        /**
+         * Find out whether the variable "name" is put into the closure
+         * of child, by this as parent. As a sideeffect this method
+         * updates both the child and the parent-chain.
+         * @param child
+         * @param name
+         * @return true if the variable is put in the closure of child, 
+         *         or false if the variable is global.
+         */
+        private boolean isClosured(Scope child, Object name) {
+            boolean in_closure;
+            if(boxed.contains(name) || closure.contains(name)) {
+                in_closure = true;
+            } else if(locals.contains(name)) {
+                in_closure = true;
+                boxed.push(name);
+            } else if(parent == null) {
+                in_closure = false;
+            } else {
+                in_closure = isClosured(this, name);
+            }
+            if(in_closure) {
+                child.closure.push(name);
+            }
+            return in_closure;
+        }
+        
+        public Scope(Scope parent, AST ast) {
+            this.parent = parent;
+            locals = new Stack();
+            boxed = new Stack();
+            closure = new Stack();
+            for(int i = 0; i < ast.tree[1].tree.length; i++) {
+                locals.push(ast.tree[1].tree[i].val);
+            }
+            for(int i = 0; i < ast.tree[2].tree.length; i++) {
+                locals.push(ast.tree[2].tree[i].val);
+            }
+        }
+    }
     // AST type tag
     private int type;
     // number of parameters if AST is a function
@@ -81,6 +157,8 @@ public class AST {
     private Object val;
     // the children if AST is a list
     private AST[] tree;
+    // scope data
+    private Scope scope;
     // constant used when AST is not a list
     private static final AST[] emptytree = new AST[0];
     // truth value shorthand
@@ -92,8 +170,8 @@ public class AST {
     private static int[] fn_arity = {1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 1, 3, 2, 1, 1, 2, 2, 3, 2, 2, 1, 1, 1, 1, 1, 2};
     private static char[] fn_types = {OP_NOT, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_REM, OP_IS_INT, OP_IS_STR, OP_IS_LIST, OP_IS_DICT, OP_IS_ITER, OP_EQUAL, OP_IS_EMPTY, OP_PUT, OP_GET, OP_RAND, OP_SIZE, OP_LESS, OP_LESSEQUAL, OP_SUBSTR, OP_RESIZE, OP_PUSH, OP_POP, OP_KEYS, OP_VALUES, OP_NEXT, OP_LOG, OP_ASSERT};
     // definition of builtins
-    private static String[] builtin_names = {"set", "if", "and", "or", "repeat", "foreach", "while", "do", "stringjoin", "list", "dict"};
-    private static int[] builtin_type = {AST_SET, AST_IF, AST_AND, AST_OR, AST_REPEAT, AST_FOREACH, AST_WHILE, AST_DO, AST_STRINGJOIN, AST_LIST, AST_DICT};
+    private static String[] builtin_names = {"set", "if", "and", "or", "repeat", "foreach", "while", "do", "stringjoin", "list", "dict", "function"};
+    private static int[] builtin_type = {AST_SET, AST_IF, AST_AND, AST_OR, AST_REPEAT, AST_FOREACH, AST_WHILE, AST_DO, AST_STRINGJOIN, AST_LIST, AST_DICT, AST_FUNCTION};
 
     private static void assertlength(AST ast, int n) {
         if (ast.tree.length != n) {
@@ -210,6 +288,9 @@ public class AST {
                     break;
                 }
                 case AST_FN_LIST: {
+                    break;
+                }
+                case AST_FUNCTION: {
                     break;
                 }
                 case AST_SET: {
@@ -833,6 +914,7 @@ public class AST {
         tree = emptytree;
     }
 
+    @Override
     public String toString() {
         if (type == AST_IDENTIFIER) {
             return " id(" + val + ")";

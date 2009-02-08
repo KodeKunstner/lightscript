@@ -1,2 +1,2 @@
-[foreach foo [values [list 1 2 3 4 5 6 7]]
+[foreach foo [values [list [stringjoin 1 2 "Hello" 4] 5 "world" 7]]
    [log foo]]
