@@ -381,6 +381,41 @@ public class AST {
                     //   set counter-var
                     //   jump if true labelStmts
                     //   drop
+                    int pos0, pos1, len;
+                    code_acc.append(OP_NIL);
+                    
+                    pass_emit(code_acc, const_pool, ast.tree[2]);
+                    
+                    code_acc.append(OP_JUMP);
+                    code_acc.append((char) 0);
+                    code_acc.append((char) 0);
+                    pos0 = code_acc.length();
+
+                    code_acc.append(OP_SWAP);
+                    for (int i = 3; i < ast.tree.length; i++) {
+                        code_acc.append(OP_DROP);
+                        pass_emit(code_acc, const_pool, ast.tree[i]);
+                    }
+                    code_acc.append(OP_SWAP);
+                    
+                    pos1 = code_acc.length();
+                    len = pos1 - pos0;
+                    code_acc.setCharAt(pos0 - 1, (char) (len & 0xff));
+                    code_acc.setCharAt(pos0 - 2, (char) ((len >> 8) & 0xff));
+
+                    code_acc.append(OP_DUP);
+                    
+                    code_acc.append(OP_NEXT);
+                    
+                    pass_emit_set(code_acc, const_pool, ast.tree[1]);
+                    
+                    code_acc.append(OP_JUMP_IF_TRUE);
+                    len = pos0 - (code_acc.length() + 2);
+                    code_acc.append((char) ((len >> 8) & 0xff));
+                    code_acc.append((char) (len & 0xff));
+
+                    code_acc.append(OP_DROP);
+                    
                     break;
                 }
                 case AST_WHILE: {

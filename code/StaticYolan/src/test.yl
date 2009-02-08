@@ -1,3 +1,2 @@
-[do
-  [log [set x 10]]
-  [log x]]
+[foreach foo [values [list 1 2 3 4 5 6 7]]
+   [log foo]]
