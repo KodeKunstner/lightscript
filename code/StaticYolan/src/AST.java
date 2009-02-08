@@ -914,7 +914,6 @@ public class AST {
         tree = emptytree;
     }
 
-    @Override
     public String toString() {
         if (type == AST_IDENTIFIER) {
             return " id(" + val + ")";
