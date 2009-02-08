@@ -1,5 +1,6 @@
 [do
 [function [x] [y] 
+   x y
    [function [] [] y b]]
 [function [] []]
 [set x 4]

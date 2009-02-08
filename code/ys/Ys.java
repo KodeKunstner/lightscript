@@ -25,7 +25,8 @@ public abstract class Ys {
 			return "Function( argc:" + f.argc
 				+ ", locals:" + f.locals.toString()
 				+ ", boxed:" + f.boxed.toString()
-				+ ", closure:" + f.closure.toString();
+				+ ", closure:" + f.closure.toString()
+				+ ", body:" + stringify(f.body);
 		} else {
 			return o.toString();
 		}
@@ -36,13 +37,32 @@ public abstract class Ys {
 			this.value = value;
 		}
 	}
+	private static class Id {
+		public static byte LOCAL = 0;
+		public static byte BOXED = 1;
+		public static byte CLOSURE = 2;
+		public byte type;
+		public int pos;
+		public Id(byte type, int pos) {
+			this.type = type;
+			this.pos = pos;
+		}
+		public String toString() {
+			return (type == LOCAL ? "local" : type == BOXED ? "boxed" : "closure") + pos;
+		}
+	}
 	private static class Function {
 		public int argc;
+		public Object[] body;
 		public Stack locals;
 		public Stack boxed;
 		public Stack closure;
 		public Function(Object[] list) {
 			Enumeration e;
+			body = new Object[list.length - 3];
+			for(int i = 0; i < body.length; i++) {
+				body[i] = list[i+3];
+			}
 			argc = ((Object[])list[1]).length;
 			locals = new Stack();
 			boxed = new Stack();
@@ -51,9 +71,7 @@ public abstract class Ys {
 			findIds(locals, list[1]);
 			findIds(locals, list[2]);
 
-			for(int i = 3; i < list.length; i++) {
-				findIds(closure, list[i]);
-			}
+			findIds(closure, body);
 
 			// local variables are not placed in the closure
 			e = locals.elements();
@@ -65,6 +83,30 @@ public abstract class Ys {
 			e = closure.elements();
 			while(e.hasMoreElements()) {
 				boxed.removeElement(e.nextElement());
+			}
+
+			updateIds(body);
+		}
+		private void updateIds(Object [] list) {
+			for(int i = 0; i < list.length; i++) {
+				Object o = list[i];
+				if(o instanceof String) {
+					int pos;
+					pos = locals.indexOf(o);
+					if(pos >= 0) {
+						list[i] = new Id(
+							boxed.contains(o) ? Id.BOXED : Id.LOCAL, 
+							pos);
+						continue;
+					} 
+					pos = closure.indexOf(o);
+					if(pos >= 0) {
+						list[i] = new Id(Id.CLOSURE, pos);
+						continue;
+					}
+				} else if(o instanceof Object[]) {
+					updateIds((Object[])o);
+				}
 			}
 		}
 		private void findIds(Stack s, Object o) {
