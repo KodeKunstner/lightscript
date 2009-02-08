@@ -53,6 +53,8 @@ public class AST {
     private static final char OP_NEW_STRINGBUFFER = 38;
     private static final char OP_STR_APPEND = 39;
     private static final char OP_TO_STRING = 40;
+    private static final char OP_NEW_COUNTER = 41;
+    private static final char OP_SWAP = 42;
     // AST type constants
     private static final int AST_BUILTIN_FUNCTION = 0x100;
     private static final int AST_IDENTIFIER = 0;
@@ -145,6 +147,27 @@ public class AST {
             literals = new Object[stack.size()];
             stack.copyInto(literals);
         }
+    }
+    
+    public static class Counter implements Enumeration {
+        private int count;
+        public Counter(int i) {
+            count = i;
+        }
+
+        public boolean hasMoreElements() {
+            return count > 0;
+        }
+
+        public Object nextElement() {
+            if(count > 0) {
+                count--;
+                return TRUE;
+            } else {
+                return null;
+            }
+        }
+        
     }
 
     private static int const_id(Stack const_pool, Object val) {
@@ -281,6 +304,56 @@ public class AST {
                     break;
                 }
                 case AST_REPEAT: {
+                    //   push nil
+                    //   evaluate count
+                    //   new Countdown
+                    //   jump -> labelRepeat
+                    // labelTop:
+                    //   swap
+                    //   drop
+                    //   code for stmt1
+                    //   ...
+                    //   drop
+                    //   code for stmtn
+                    //   swap
+                    // labelRepeat:
+                    //   dup
+                    //   get_next
+                    //   jump if true -> labelTop
+                    //   drop
+                    int pos0, pos1, len;
+                    code_acc.append(OP_NIL);
+                    pass_emit(code_acc, const_pool, ast.tree[1]);
+                    code_acc.append(OP_NEW_COUNTER);
+                    
+                    code_acc.append(OP_JUMP);
+                    code_acc.append((char) 0);
+                    code_acc.append((char) 0);
+                    pos0 = code_acc.length();
+
+                    code_acc.append(OP_SWAP);
+                    for (int i = 2; i < ast.tree.length; i++) {
+                        code_acc.append(OP_DROP);
+                        pass_emit(code_acc, const_pool, ast.tree[i]);
+                    }
+                    code_acc.append(OP_SWAP);
+                    
+                    pos1 = code_acc.length();
+                    len = pos1 - pos0;
+                    code_acc.setCharAt(pos0 - 1, (char) (len & 0xff));
+                    code_acc.setCharAt(pos0 - 2, (char) ((len >> 8) & 0xff));
+
+                    code_acc.append(OP_DUP);
+                    
+                    code_acc.append(OP_NEXT);
+                    
+                    code_acc.append(OP_JUMP_IF_TRUE);
+                    len = pos0 - (code_acc.length() + 2);
+                    code_acc.append((char) ((len >> 8) & 0xff));
+                    code_acc.append((char) (len & 0xff));
+
+                    code_acc.append(OP_DROP);
+                    
                     break;
                 }
                 case AST_FOREACH: {
@@ -321,10 +394,8 @@ public class AST {
 
                     code_acc.append(OP_JUMP_IF_TRUE);
                     len = pos0 - (code_acc.length() + 2);
-                    System.out.println("len:" + len);
                     code_acc.append((char) ((len >> 8) & 0xff));
                     code_acc.append((char) (len & 0xff));
-
 
                     break;
                 }
@@ -370,6 +441,7 @@ public class AST {
                     }
                     break;
                 }
+                
             }
         }
     }
@@ -663,6 +735,17 @@ public class AST {
                 }
                 case OP_TO_STRING: {
                     stack.push(stack.pop().toString());
+                    break;
+                }
+                case OP_NEW_COUNTER: {
+                    stack.push(new Counter(((Integer)stack.pop()).intValue()));
+                    break;
+                }
+                case OP_SWAP: {
+                    Object o1 = stack.pop();
+                    Object o2 = stack.pop();
+                    stack.push(o1);
+                    stack.push(o2);
                     break;
                 }
                 default: {

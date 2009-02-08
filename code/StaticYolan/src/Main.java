@@ -10,6 +10,6 @@ public class Main {
      */
     public static void main(String[] args) throws Exception {
 	InputStream is = new FileInputStream(new File(args[0]));
-	System.out.println(AST.execute(AST.compile(AST.readExpression(is)), new Hashtable()));
+	AST.execute(AST.compile(AST.readExpression(is)), new Hashtable());
     }
 }
