@@ -53,9 +53,7 @@ public class AST {
     private static final char OP_NEW_STRINGBUFFER = 38;
     private static final char OP_STR_APPEND = 39;
     private static final char OP_TO_STRING = 40;
-    
-    
-        // AST type constants
+    // AST type constants
     private static final int AST_BUILTIN_FUNCTION = 0x100;
     private static final int AST_IDENTIFIER = 0;
     private static final int AST_LITERAL = AST_IDENTIFIER + 1;
@@ -96,11 +94,12 @@ public class AST {
     private static int[] builtin_type = {AST_SET, AST_IF, AST_AND, AST_OR, AST_REPEAT, AST_FOREACH, AST_WHILE, AST_DO, AST_STRINGJOIN, AST_LIST, AST_DICT};
 
     private static void assertlength(AST ast, int n) {
-        if(ast.tree.length != n) {
+        if (ast.tree.length != n) {
             throw new Error("Wrong number of parameters: " + ast.toString());
         }
     }
     // walk through the ast and set the type tag
+
     private static void pass_ast_type(AST ast) {
         for (int i = 0; i < ast.tree.length; i++) {
             pass_ast_type(ast.tree[i]);
@@ -203,19 +202,19 @@ public class AST {
                     // label1: 
                     //    code for ast.tree[2]
                     // label2:
-                    
+
                     assertlength(ast, 4);
                     int pos0, pos1, len;
                     pass_emit(code_acc, const_pool, ast.tree[1]);
-                    
+
                     code_acc.append(OP_JUMP_IF_TRUE);
                     code_acc.append((char) 0);
                     code_acc.append((char) 0);
                     pos0 = code_acc.length();
-                    
+
                     code_acc.append(OP_LITERAL);
                     code_acc.append((char) const_id(const_pool, null));
-                    
+
                     code_acc.append(OP_JUMP);
                     code_acc.append((char) 0);
                     code_acc.append((char) 0);
@@ -223,7 +222,7 @@ public class AST {
                     len = pos1 - pos0;
                     code_acc.setCharAt(pos0 - 1, (char) (len & 0xff));
                     code_acc.setCharAt(pos0 - 2, (char) ((len >> 8) & 0xff));
-                    
+
                     pass_emit(code_acc, const_pool, ast.tree[2]);
                     len = code_acc.length() - pos1;
                     code_acc.setCharAt(pos1 - 1, (char) (len & 0xff));
@@ -233,16 +232,16 @@ public class AST {
                 case AST_AND: {
                     assertlength(ast, 3);
                     int pos0, pos1, len;
-                    
+
                     pass_emit(code_acc, const_pool, ast.tree[1]);
-                    
+
                     code_acc.append(OP_JUMP_IF_TRUE);
                     code_acc.append((char) 0);
                     code_acc.append((char) 0);
                     pos0 = code_acc.length();
-                    
+
                     code_acc.append(OP_NIL);
-                    
+
                     code_acc.append(OP_JUMP);
                     code_acc.append((char) 0);
                     code_acc.append((char) 0);
@@ -250,7 +249,7 @@ public class AST {
                     len = pos1 - pos0;
                     code_acc.setCharAt(pos0 - 1, (char) (len & 0xff));
                     code_acc.setCharAt(pos0 - 2, (char) ((len >> 8) & 0xff));
-                    
+
                     pass_emit(code_acc, const_pool, ast.tree[2]);
                     len = code_acc.length() - pos1;
                     code_acc.setCharAt(pos1 - 1, (char) (len & 0xff));
@@ -260,25 +259,25 @@ public class AST {
                 case AST_OR: {
                     assertlength(ast, 3);
                     int pos0, pos1, len;
-                    
+
                     pass_emit(code_acc, const_pool, ast.tree[1]);
-                    
+
                     code_acc.append(OP_DUP);
-                    
+
                     code_acc.append(OP_JUMP_IF_TRUE);
                     code_acc.append((char) 0);
                     code_acc.append((char) 0);
                     pos0 = code_acc.length();
-                    
+
                     code_acc.append(OP_DROP);
-                    
+
                     pass_emit(code_acc, const_pool, ast.tree[2]);
-                    
+
                     pos1 = code_acc.length();
                     len = pos1 - pos0;
                     code_acc.setCharAt(pos0 - 1, (char) (len & 0xff));
                     code_acc.setCharAt(pos0 - 2, (char) ((len >> 8) & 0xff));
-                    
+
                     break;
                 }
                 case AST_REPEAT: {
@@ -299,34 +298,34 @@ public class AST {
                     // labelCond:
                     //   code for condition
                     //   jump if true -> labelBody
-                    
+
                     int pos0, pos1, len;
                     code_acc.append(OP_NIL);
-                    
+
                     code_acc.append(OP_JUMP);
                     code_acc.append((char) 0);
                     code_acc.append((char) 0);
                     pos0 = code_acc.length();
-                    
+
                     for (int i = 2; i < ast.tree.length; i++) {
                         code_acc.append(OP_DROP);
                         pass_emit(code_acc, const_pool, ast.tree[i]);
                     }
-                    
+
                     pos1 = code_acc.length();
                     len = pos1 - pos0;
                     code_acc.setCharAt(pos0 - 1, (char) (len & 0xff));
                     code_acc.setCharAt(pos0 - 2, (char) ((len >> 8) & 0xff));
-                    
+
                     pass_emit(code_acc, const_pool, ast.tree[1]);
-                    
+
                     code_acc.append(OP_JUMP_IF_TRUE);
                     len = pos0 - (code_acc.length() + 2);
                     System.out.println("len:" + len);
                     code_acc.append((char) ((len >> 8) & 0xff));
                     code_acc.append((char) (len & 0xff));
-                    
-                    
+
+
                     break;
                 }
                 case AST_DO: {
@@ -340,7 +339,7 @@ public class AST {
                 }
                 case AST_STRINGJOIN: {
                     code_acc.append(OP_NEW_STRINGBUFFER);
-                    
+
                     for (int i = 1; i < ast.tree.length; i++) {
                         pass_emit(code_acc, const_pool, ast.tree[i]);
                         code_acc.append(OP_STR_APPEND);
@@ -350,7 +349,7 @@ public class AST {
                 }
                 case AST_LIST: {
                     code_acc.append(OP_NEW_LIST);
-                    
+
                     for (int i = 1; i < ast.tree.length; i++) {
                         pass_emit(code_acc, const_pool, ast.tree[i]);
                         code_acc.append(OP_PUSH);
@@ -359,8 +358,8 @@ public class AST {
                 }
                 case AST_DICT: {
                     code_acc.append(OP_NEW_DICT);
-                    
-                    if(ast.tree.length % 2 == 1) {
+
+                    if (ast.tree.length % 2 == 1) {
                         throw new Error("Unmatched key/value: " + ast.toString());
                     }
                     for (int i = 1; i < ast.tree.length; i++) {
@@ -387,17 +386,16 @@ public class AST {
         return new CompiledExpr(code_acc, literals);
     }
 
-    
     public static Object execute(CompiledExpr coexp, Hashtable globals) {
         Stack stack = new Stack();
         byte code[] = coexp.code;
         Object literals[] = coexp.literals;
         {
-        StringBuffer sb = new StringBuffer();
-        for (int pc = 0; pc < code.length; pc++) {
-            sb.append(code[pc] + " ");
-        }
-        System.out.println("code: " + sb.toString());
+            StringBuffer sb = new StringBuffer();
+            for (int pc = 0; pc < code.length; pc++) {
+                sb.append(code[pc] + " ");
+            }
+            System.out.println("code: " + sb.toString());
         }
         for (int pc = 0; pc < code.length; pc++) {
             //System.out.println("pc: " + pc + " code:" + code[pc]);
@@ -512,10 +510,10 @@ public class AST {
                 case OP_RAND: {
                     Object o = stack.pop();
                     if (o instanceof Integer) {
-                        stack.push(new Integer((rnd.nextInt() &0x7fffffff) % ((Integer) o).intValue()));
+                        stack.push(new Integer((rnd.nextInt() & 0x7fffffff) % ((Integer) o).intValue()));
                     } else if (o instanceof Stack) {
                         Stack s = (Stack) o;
-                        stack.push(s.elementAt((rnd.nextInt() &0x7fffffff)  % s.size()));
+                        stack.push(s.elementAt((rnd.nextInt() & 0x7fffffff) % s.size()));
                     } else {
                         stack.push(null);
                     }
@@ -633,7 +631,7 @@ public class AST {
                 }
                 case OP_JUMP_IF_TRUE: {
                     int delta = (code[++pc] << 8) | (0xff & code[++pc]);
-                    if(stack.pop() != null) {
+                    if (stack.pop() != null) {
                         pc += delta;
                     }
                     break;
@@ -660,7 +658,7 @@ public class AST {
                 }
                 case OP_STR_APPEND: {
                     Object o = stack.pop();
-                    ((StringBuffer)stack.peek()).append(o.toString());
+                    ((StringBuffer) stack.peek()).append(o.toString());
                     break;
                 }
                 case OP_TO_STRING: {
