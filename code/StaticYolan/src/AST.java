@@ -55,6 +55,7 @@ public class AST {
     private static final char OP_TO_STRING = 40;
     private static final char OP_NEW_COUNTER = 41;
     private static final char OP_SWAP = 42;
+    private static final char OP_CALL_FUNCTION = 43;
     // AST type constants
     private static final int AST_BUILTIN_FUNCTION = 0x100;
     private static final int AST_IDENTIFIER = 0;
@@ -214,7 +215,7 @@ public class AST {
             }
         }
     }
-
+    
     private static void pass_vartype1(AST ast, Scope scope) {
         if (ast.type == AST_FUNCTION) {
             scope = new Scope(scope, ast);
@@ -303,6 +304,9 @@ public class AST {
 
     }
 
+    private static Object compiled_function(AST ast) {
+        throw new Error("not implemented yet");
+    }
     private static void pass_emit(StringBuffer code_acc, Stack const_pool, AST ast) {
         if ((ast.type & AST_BUILTIN_FUNCTION) != 0) {
             for (int i = 1; i < ast.tree.length; i++) {
@@ -319,9 +323,16 @@ public class AST {
                     break;
                 }
                 case AST_FN_LIST: {
+                    for (int i = 0; i < ast.tree.length; i++) {
+                        pass_emit(code_acc, const_pool, ast.tree[i]);
+                    }
+                    code_acc.append(OP_CALL_FUNCTION);
+                    code_acc.append((char) ast.tree.length);
                     break;
                 }
                 case AST_FUNCTION: {
+                    code_acc.append(OP_LITERAL);
+                    code_acc.append((char) const_id(const_pool, compiled_function(ast)));
                     break;
                 }
                 case AST_SET: {
@@ -631,6 +642,15 @@ public class AST {
 
         return new CompiledExpr(code_acc, literals);
     }
+    
+    private static class ReturnAddress {
+        public int pc;
+        public byte[] code;
+        ReturnAddress(int pc, byte[] code) {
+            this.pc = pc;
+            this.code = code;
+        }
+    }
 
     public static Object execute(CompiledExpr coexp, Hashtable globals) {
         Stack stack = new Stack();
@@ -920,6 +940,12 @@ public class AST {
                     Object o2 = stack.pop();
                     stack.push(o1);
                     stack.push(o2);
+                    break;
+                }
+                case OP_CALL_FUNCTION: {
+                    int argc = code[pc++];
+                    Object returnaddress = new ReturnAddress(pc, code);
+                    
                     break;
                 }
                 default: {
