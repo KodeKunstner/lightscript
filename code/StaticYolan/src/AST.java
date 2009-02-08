@@ -62,6 +62,8 @@ public class AST {
     private static final AST[] emptytree = new AST[0];
     // truth value shorthand
     public static final Boolean TRUE = new Boolean(true);
+    // 
+    private static Random rnd = new Random();
     
     // definition of builtin in functions with fixed number of evaluated arguments
     private static String[] fn_names = {"not", "+", "-", "*", "/", "%", "is-integer", "is-string", "is-list", "is-dictionary", "is-iterator", "equals", "is-empty", "put", "get", "random", "size", "<", "<=", "substring", "resize", "push", "pop", "keys", "values", "get-next", "log", "assert"};
@@ -147,6 +149,7 @@ public class AST {
                     break;
                 }
                 case OP_NOT: {
+                    stack.push(stack.pop() == null ? TRUE : null);
                     break;
                 }
                 case OP_ADD: {
@@ -200,7 +203,12 @@ public class AST {
                     break;
                 }
                 case OP_EQUAL: {
-                    stack.push(stack.pop().equals(stack.pop()) ? TRUE : null);
+                    Object o = stack.pop();
+                    if(o == null) {
+                        stack.push(stack.pop() == null ? TRUE : null);
+                    } else {
+                        stack.push(o.equals(stack.pop()) ? TRUE : null);
+                    }
                     break;
                 }
                 case OP_IS_EMPTY: {
@@ -238,40 +246,98 @@ public class AST {
                         stack.push(((Stack)container).elementAt(((Integer)key).intValue()));
                     } else if(container instanceof Hashtable) {
                         stack.push(((Hashtable)container).get(key));                        
+                    } else {
+                        stack.push(null);
                     }
                     break;
                 }
                 case OP_RAND: {
+                    Object o = stack.pop();
+                    if(o instanceof Integer) {
+                        stack.push(new Integer(rnd.nextInt() % ((Integer)o).intValue()));
+                    } else if(o instanceof Stack) {
+                        Stack s = (Stack)o;
+                        stack.push(s.elementAt(rnd.nextInt() % s.size()));
+                    } else {
+                        stack.push(null);
+                    }
                     break;
                 }
                 case OP_SIZE: {
+                    Object o = stack.pop();
+                    if(o instanceof Stack) {
+                        stack.push(new Integer(((Stack)o).size()));
+                    } else if(o instanceof String) {
+                        stack.push(new Integer(((String)o).length()));
+                    } else if(o instanceof Hashtable) {
+                        stack.push(new Integer(((Hashtable)o).size()));
+                    } else {
+                        stack.push(null);
+                    }
                     break;
                 }
                 case OP_LESS: {
+                    Object o2 = stack.pop();
+                    Object o1 = stack.pop();
+                    if(o1 instanceof Integer && o2 instanceof Integer) {
+                        stack.push(((Integer)o1).intValue() < ((Integer)o2).intValue() ? TRUE : null);
+                    } else {
+                        stack.push(o1.toString().compareTo(o2.toString()) < 0 ? TRUE : null);
+                    }
                     break;
                 }
                 case OP_LESSEQUAL: {
+                    Object o2 = stack.pop();
+                    Object o1 = stack.pop();
+                    if(o1 instanceof Integer && o2 instanceof Integer) {
+                        stack.push(((Integer)o1).intValue() <= ((Integer)o2).intValue() ? TRUE : null);
+                    } else {
+                        stack.push(o1.toString().compareTo(o2.toString()) <= 0 ? TRUE : null);
+                    }
                     break;
                 }
                 case OP_SUBSTR: {
+                    int end = ((Integer)stack.pop()).intValue();
+                    int start = ((Integer)stack.pop()).intValue();
+                    stack.push(((String)stack.pop()).substring(start, end));
                     break;
                 }
                 case OP_RESIZE: {
+                    int newsize = ((Integer)stack.pop()).intValue();
+                    ((Stack)stack.peek()).setSize(newsize);
                     break;
                 }
                 case OP_PUSH: {
+                    Object val = stack.pop();
+                    ((Stack)stack.peek()).push(val);
                     break;
                 }
                 case OP_POP: {
+                    stack.push(((Stack)stack.pop()).pop());
                     break;
                 }
                 case OP_KEYS: {
+                    stack.push(((Hashtable)stack.pop()).keys());
                     break;
                 }
                 case OP_VALUES: {
+                    Object o = stack.pop();
+                    if(o instanceof Stack) {
+                        stack.push(((Stack)o).elements());
+                    } else if(o instanceof Hashtable) {
+                        stack.push(((Hashtable)o).elements());
+                    } else {
+                        stack.push(null);
+                    }
                     break;
                 }
                 case OP_NEXT: {
+                    Enumeration e = (Enumeration)stack.pop();
+                    if(e.hasMoreElements()) {
+                        stack.push(e.nextElement());
+                    } else {
+                        stack.push(null);
+                    }
                     break;
                 }
                 case OP_LOG: {
@@ -279,6 +345,10 @@ public class AST {
                     break;
                 }
                 case OP_ASSERT: {
+                    if(stack.pop() == null) {
+                        throw new Error("Assert error: " + stack.pop().toString());
+                    } 
+                    break;
                 }
             }
         }
