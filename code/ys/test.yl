@@ -1,0 +1,7 @@
+[do
+[function [x] [y] 
+   [function [] [] y b]]
+[function [] []]
+[set x 4]
+[log x]
+]
