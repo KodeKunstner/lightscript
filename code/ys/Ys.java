@@ -106,6 +106,10 @@ public abstract class Ys {
 		builtins.push("-");
 	}
 
+	public static final Boolean TRUE = new Boolean(true);
+
+	private static Random rnd = new Random();
+
 	private static int builtinId(String name) {
 		for(int i = 0; i < fnNames.length; i++) {
 			if(name.equals(fnNames[i])) {
@@ -280,6 +284,7 @@ public abstract class Ys {
 				break; } case OP_PUSH_NIL: {
 					stack[++sp] = null;
 				break; } case OP_NOT: {
+					stack[sp] = stack[sp] == null ? TRUE : null;
 				break; } case OP_ADD: {
 					int result = ((Integer)stack[sp]).intValue();
 					result += ((Integer)stack[--sp]).intValue(); 
@@ -301,40 +306,183 @@ public abstract class Ys {
 					result = ((Integer)stack[--sp]).intValue() % result; 
 					stack[sp] = new Integer(result);
 				break; } case OP_IS_INT: {
+					stack[sp] = stack[sp] instanceof Integer 
+						? TRUE : null;
 				break; } case OP_IS_STR: {
+					stack[sp] = stack[sp] instanceof String
+						? TRUE : null;
 				break; } case OP_IS_LIST: {
+					stack[sp] = stack[sp] instanceof Stack
+						? TRUE : null;
 				break; } case OP_IS_DICT: {
+					stack[sp] = stack[sp] instanceof Hashtable
+						? TRUE : null;
 				break; } case OP_IS_ITER: {
+					stack[sp] = stack[sp] instanceof Enumeration 
+						? TRUE : null;
 				break; } case OP_EQUAL: {
+					Object o = stack[sp];
+					--sp;
+					stack[sp] = (o == null) 
+						? (stack[sp] == null ? TRUE : null)
+						: (o.equals(stack[sp]) ? TRUE : null);
 				break; } case OP_IS_EMPTY: {
+					Object o = stack[sp];
+					if(o instanceof Hashtable) {
+						stack[sp] = ((Hashtable)o).isEmpty() ? TRUE : null;
+					} else if(o instanceof Stack) {
+						stack[sp] = ((Stack)o).empty() ? TRUE : null;
+					} else if(o instanceof Enumeration) {
+						stack[sp] = ((Enumeration)o).hasMoreElements() ? null : TRUE;
+					} else {
+						stack[sp] = null;
+					}
 				break; } case OP_PUT: {
+					Object val = stack[sp];
+					Object key = stack[--sp];
+					Object container = stack[--sp];
+					if (container instanceof Stack) {
+						((Stack) container).setElementAt(val, ((Integer) key).intValue());
+					} else if (container instanceof Hashtable) {
+						if (val == null) {
+							((Hashtable) container).remove(key);
+						} else {
+							((Hashtable) container).put(key, val);
+						}
+					}
 				break; } case OP_GET: {
+					Object key = stack[sp];
+					Object container = stack[--sp];
+					if (container instanceof Stack) {
+						stack[sp] = ((Stack) container).elementAt(((Integer) key).intValue());
+					} else if (container instanceof Hashtable) {
+						stack[sp] = ((Hashtable) container).get(key);
+					} else {
+						stack[sp] = null;
+					}
 				break; } case OP_RAND: {
+					Object o = stack[sp];
+					if(o instanceof Integer) {
+						stack[sp] = new Integer((rnd.nextInt() & 0x7fffffff) % ((Integer) o).intValue());
+					} else if(o instanceof Stack) {
+						Stack s = (Stack)o;
+						stack[sp] = s.elementAt((rnd.nextInt() & 0x7fffffff) % s.size());
+					} else {
+						stack[sp] = null;
+					}
 				break; } case OP_SIZE: {
+					Object o = stack[sp];
+					int size;
+					if(o instanceof Stack) {
+						size = ((Stack)o).size();
+					} else if(o instanceof String) {
+						size = ((String)o).length();
+					} else if(o instanceof Hashtable) {
+						size = ((Hashtable)o).size();
+					} else {
+						size = 0;
+					}
+					stack[sp] = new Integer(size);
 				break; } case OP_LESS: {
+					Object o1 = stack[sp];
+					Object o2 = stack[--sp];
+					if(o1 instanceof Integer && o2 instanceof Integer) {
+						stack[sp] = ((Integer) o1).intValue() < ((Integer) o2).intValue() ? TRUE : null;
+					} else {
+						stack[sp] = o1.toString().compareTo(o2.toString()) < 0 ? TRUE : null;
+					}
 				break; } case OP_LESSEQUAL: {
+					Object o1 = stack[sp];
+					Object o2 = stack[--sp];
+					if(o1 instanceof Integer && o2 instanceof Integer) {
+						stack[sp] = ((Integer) o1).intValue() <= ((Integer) o2).intValue() ? TRUE : null;
+					} else {
+						stack[sp] = o1.toString().compareTo(o2.toString()) <= 0 ? TRUE : null;
+					}
 				break; } case OP_SUBSTR: {
+					int start = ((Integer)stack[sp]).intValue();
+					int end = ((Integer)stack[--sp]).intValue();
+					--sp;
+					stack[sp] = ((String)stack[sp]).substring(start, end);
 				break; } case OP_RESIZE: {
+					int newsize = ((Integer)stack[sp]).intValue();
+					((Stack)stack[--sp]).setSize(newsize);
 				break; } case OP_PUSH: {
+					Object o = stack[sp];
+					((Stack)stack[--sp]).push(o);
 				break; } case OP_POP: {
+					stack[sp] = ((Stack)stack[sp]).pop();
 				break; } case OP_KEYS: {
+					stack[sp] = ((Hashtable)stack[sp]).keys();
 				break; } case OP_VALUES: {
+					Object container = stack[sp];
+					if(container instanceof Stack) {
+						stack[sp] = ((Stack)container).elements();
+					} else if(container instanceof Hashtable) {
+						stack[sp] = ((Hashtable)container).elements();
+					} else {
+						stack[sp] = null;
+					}
 				break; } case OP_NEXT: {
+					Enumeration e = (Enumeration)stack[sp];
+					stack[sp] = e.hasMoreElements()
+						? e.nextElement()
+						: null;
 				break; } case OP_ASSERT: {
+					if(stack[sp] == null) {
+						throw new Error("Assert error: " + stack[--sp].toString());
+					}
+					--sp;
 				break; } case OP_JUMP: {
+					pc += readShort(pc, code) + 2; 
 				break; } case OP_JUMP_IF_TRUE: {
+					if(stack[sp] != null) {
+						pc += readShort(pc, code) + 2; 
+					}
+					++sp;
 				break; } case OP_DUP: {
+					Object o = stack[sp];
+					stack[++sp] = o;
 				break; } case OP_NEW_LIST: {
+					stack[++sp] = new Stack();
 				break; } case OP_NEW_DICT: {
+					stack[++sp] = new Hashtable();
 				break; } case OP_NEW_STRINGBUFFER: {
+					stack[++sp] = new StringBuffer();
 				break; } case OP_STR_APPEND: {
+					String s = stack[sp].toString();
+					((StringBuffer)stack[--sp]).append(s);
 				break; } case OP_TO_STRING: {
+					stack[sp] = stack[sp].toString();
 				break; } case OP_NEW_COUNTER: {
+					stack[sp] = new Counter(((Integer)stack[sp]).intValue());
 				break; } case OP_SWAP: {
+					Object t = stack[sp - 1];
+					stack[sp - 1] = stack[sp];
+					stack[sp] = t;
 				break; } 
 			}
 		}
 	}
+
+	public static class Counter implements Enumeration {
+
+		private int count;
+
+		public Counter(int i) {
+			count = i;
+		}
+
+		public boolean hasMoreElements() {
+			return count > 0;
+		}
+
+		public Object nextElement() {
+			count--;
+			return TRUE;
+		}
+	}
+
 
 
 	private static class Function {
@@ -355,7 +503,7 @@ public abstract class Ys {
 			for(int i = 1; i < body.length; i++) {
 				body[i] = list[i+2];
 			}
-			body[0] = new Builtin("do");
+			body[0] = new Integer(AST_DO);
 			argc = ((Object[])list[1]).length;
 			locals = new Stack();
 			boxed = new Stack();
@@ -464,8 +612,8 @@ public abstract class Ys {
 				Object[] list = (Object[]) o;
 				Object head = list[0];
 				// builtin operator
-				if(head instanceof Builtin) {
-					int id = ((Builtin)head).id;
+				if(head instanceof Integer) {
+					int id = ((Integer)head).intValue();
 
 					if((id & AST_BUILTIN_FUNCTION) != 0) {
 						char opcode = (char) (id & MASK_OP);
@@ -630,25 +778,15 @@ public abstract class Ys {
 		}
 	}
 
-	private static class Builtin {
-		public int id;
-		public Builtin(String name) {
-			id = builtinId(name);
-		}
-		public String toString() {
-			return "builtin:" + id;
-		}
-	}
-
 	/////////////////////////////////////
 	// Factories and constants used by the parser
 	////
 	private static final Object[] emptylist = new Object[0];
 
 	private static Object createId(String name) {
-		Builtin b = new Builtin(name);
-		if(b.id != -1) {
-			return b;
+		int id = builtinId(name);
+		if(id != -1) {
+			return new Integer(id);
 		} else {
 			return name;
 		}

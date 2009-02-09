@@ -4,6 +4,6 @@
    [set g [f "Hello"]]
    [set h [f "World"]]
    [log [g]]
-   [log [h]]
-   [- 10 4]
+   [log [random 100]]
+   [not [do]]
    ]
