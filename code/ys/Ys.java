@@ -44,11 +44,11 @@ public abstract class Ys {
 		builtins.push("set");
 	}
 
-	private static class Closure {
-		private byte[] code;
-		private int argc;
+	public static class Closure {
+		public byte[] code;
+		public int argc;
 		public Object[] closure;
-		private Object[] constPool;
+		public Object[] constPool;
 		public Closure(int argc, StringBuffer code, Stack constPool, Stack closure) {
 			this.argc = argc;
 
@@ -71,7 +71,6 @@ public abstract class Ys {
 			this.argc = cl.argc;
 			this.code = cl.code;
 			this.constPool= cl.constPool;
-			this.closure = new Object[cl.closure.length][1];
 		}
 		public String toString() {
 			StringBuffer sb = new StringBuffer();
@@ -80,18 +79,121 @@ public abstract class Ys {
 				sb.append(" ");
 				sb.append(code[i]);
 			}
-			sb.append("\n\tnames:");
+			sb.append("\n\tclosure:");
 			for(int i = 0; i< closure.length; i++) {
 				sb.append(" " + i + ":");
-				sb.append(closure[i]);
+				sb.append(stringify(closure[i]));
 			}
-			sb.append("\n\tconstpool:");
+			sb.append("\n\tconstPool:");
 			for(int i = 0; i< constPool.length; i++) {
 				sb.append(" " + i + ":");
-				sb.append(constPool[i]);
+				sb.append(stringify(constPool[i]));
 			}
 			sb.append("\n}");
 			return sb.toString();
+		}
+	}
+
+	private static int readShort(int pc, byte[] code) {
+		return (short) (((code[++pc] & 0xff) << 8) | (code[++pc] & 0xff));
+	}
+
+	public static Object execute(Closure cl) {
+		int sp = -1;
+		Object[] stack = new Object[0];
+		int pc = -1;
+		byte[] code = cl.code;
+		Object[] constPool = cl.constPool;
+		Object[] closure = cl.closure;
+		for(;;) {
+			++pc;
+			//System.out.println("pc:" + pc + " op:" + code[pc] + " sp:" + sp + " stack.length:" + stack.length);
+			switch(code[pc]) {
+				case OP_ENSURE_STACKSPACE: {
+					int arg = readShort(pc, code); pc+=2;
+					if(stack.length <= arg + sp + 1) {
+						// keep the allocate stack tight to max, 
+						// to catch errors;
+						// FIXME: grow exponential when tested
+						Object[] newstack = new Object[ (arg+sp+1)];
+						System.arraycopy(stack, 0, newstack, 0, sp + 1);
+						stack = newstack;
+					}
+				break; } case OP_INC_SP: {
+					sp += code[++pc];
+				break; } case OP_RETURN: {
+					int arg = readShort(pc, code); pc+=2;
+					Object result = stack[sp];
+					sp -= arg - 1;
+					if(sp == 0) {
+						return result;
+					}
+					pc = ((Integer)stack[--sp]).intValue();
+					code = (byte[])stack[--sp];
+					constPool = (Object [])stack[--sp];
+					closure = (Object [])stack[--sp];
+					stack[sp] = result;
+				break; } case OP_SAVE_PC: {
+					stack[++sp] = closure;
+					stack[++sp] = constPool;
+					stack[++sp] = code;
+				break; } case OP_CALL_FN: {
+					int argc = code[++pc];
+					Closure fn = (Closure)stack[sp - argc];
+					stack[sp - argc] = new Integer(pc);
+					pc = -1;
+					code = fn.code;
+					constPool = fn.constPool;
+					closure = fn.closure;
+				break; } case OP_BUILD_FN: {
+					int arg = readShort(pc, code); pc+=2;
+					Closure fn = new Closure((Closure)stack[sp]);
+					Object[] clos = new Object[arg];
+					for(int i = arg - 1; i >= 0; i--) {
+						--sp;
+						clos[i] = stack[sp];
+					}
+					fn.closure = clos;
+					stack[sp] = fn;
+				break; } case OP_SET_BOXED: {
+					int arg = readShort(pc, code); pc+=2;
+					((Object[])stack[sp - arg])[0] = stack[sp];
+				break; } case OP_SET_LOCAL: {
+					int arg = readShort(pc, code); pc+=2;
+					stack[sp - arg] = stack[sp];
+				break; } case OP_SET_CLOSURE: {
+					int arg = readShort(pc, code); pc+=2;
+					((Object[])closure[arg])[0] = stack[sp];
+				break; } case OP_GET_BOXED: {
+					int arg = readShort(pc, code); pc+=2;
+					Object o = ((Object[])stack[sp - arg])[0];
+					stack[++sp] = o;
+				break; } case OP_GET_LOCAL: {
+					int arg = readShort(pc, code); pc+=2;
+					Object o = stack[sp - arg];
+					stack[++sp] = o;
+				break; } case OP_GET_CLOSURE: {
+					int arg = readShort(pc, code); pc+=2;
+					stack[++sp] = ((Object[])closure[arg])[0];
+				break; } case OP_GET_BOXED_CLOSURE: {
+					int arg = readShort(pc, code); pc+=2;
+					stack[++sp] = closure[arg];
+				break; } case OP_GET_LITERAL: {
+					int arg = readShort(pc, code); pc+=2;
+					stack[++sp] = constPool[arg];
+				break; } case OP_BOX_IT: {
+					int arg = readShort(pc, code); pc+=2;
+					Object[] box = { stack[sp - arg] };
+					stack[sp - arg] = box;
+				break; } case OP_LOG: {
+					System.out.println(stringify(stack[sp]));
+					//System.out.println(stringify(stack));
+				break; } case OP_DROP: {
+					--sp;
+				break; } case OP_PUSH_NIL: {
+					stack[++sp] = null;
+				break; } 
+			}
 		}
 	}
 
@@ -131,13 +233,14 @@ public abstract class Ys {
 				closure.removeElement(e.nextElement());
 			}
 
-			// closure variables are automagically boxed
+			// closure variables are automatically boxed
 			e = closure.elements();
 			while(e.hasMoreElements()) {
 				boxed.removeElement(e.nextElement());
 			}
 
 			compile();
+			//System.out.println(this.toString());
 		}
 
 		public static Closure create(Object[] list) {
@@ -181,7 +284,7 @@ public abstract class Ys {
 			Enumeration e = boxed.elements();
 			while(e.hasMoreElements()) {
 				code.append(OP_BOX_IT);
-				pushShort(depth - locals.indexOf(e.nextElement()));
+				pushShort(depth - locals.indexOf(e.nextElement()) - 1);
 			}
 
 			compile(body);
@@ -239,7 +342,7 @@ public abstract class Ys {
 							int pos = closure.indexOf(name);
 							if(pos >= 0) {
 								code.append(OP_SET_CLOSURE);
-								pushShort(depth - pos);
+								pushShort(pos);
 							} else {
 								pos = locals.indexOf(name);
 								if(boxed.contains(name)) {
@@ -247,7 +350,7 @@ public abstract class Ys {
 								} else {
 									code.append(OP_SET_LOCAL);
 								}
-								pushShort(depth - pos);
+								pushShort(depth - pos - 1);
 							}
 							break;
 						}
@@ -286,7 +389,7 @@ public abstract class Ys {
 					if(list.length > 128) {
 						throw new Error("too many parameters");
 					}
-					code.append((char) list.length - 1);
+					code.append((char) (list.length - 1));
 					addDepth(1 - list.length - RET_FRAME_SIZE);
 				}
 			// Identifier
@@ -295,7 +398,7 @@ public abstract class Ys {
 				int pos = closure.indexOf(name);
 				if(pos >= 0) {
 					code.append(OP_GET_CLOSURE);
-					pushShort(depth - pos);
+					pushShort(pos);
 				} else {
 					pos = locals.indexOf(name);
 					if(boxed.contains(name)) {
@@ -303,7 +406,7 @@ public abstract class Ys {
 					} else {
 						code.append(OP_GET_LOCAL);
 					}
-					pushShort(depth - pos);
+					pushShort(depth - pos - 1);
 				}
 				addDepth(1);
 
@@ -320,7 +423,7 @@ public abstract class Ys {
 					String name = (String)vars[i];
 					if(boxed.contains(name)) {
 						code.append(OP_GET_LOCAL);
-						pushShort(depth - locals.indexOf(name));
+						pushShort(depth - locals.indexOf(name) - 1);
 					} else {
 						code.append(OP_GET_BOXED_CLOSURE);
 						pushShort(closure.indexOf(name));
@@ -347,7 +450,9 @@ public abstract class Ys {
 					findIds(s, os[i]);
 				}
 			} else if(o instanceof String) {
-				s.push(o);
+				if(!s.contains(o)) {
+					s.push(o);
+				}
 			} else if(o instanceof Closure) {
 				Object[] closure_vars = ((Closure)o).closure;
 				for(int i = 0; i < closure_vars.length; i++) {

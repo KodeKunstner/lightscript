@@ -1,4 +1,9 @@
-[function [x y] [z x c v b n]
-      [function [] []
-          x]
+[function [] [f g h] 
+   [set f [function [x] []
+      [function [] [] x]]]
+   [set g [f "Hello"]]
+   [set h [f "World"]]
+   [log [g]]
+   [log [h]]
+   42
    ]

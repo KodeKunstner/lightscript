@@ -10,6 +10,8 @@ public class Main {
      */
     public static void main(String[] args) throws Exception {
 	InputStream is = new FileInputStream(new File(args[0]));
-	System.out.println(Ys.stringify(Ys.readExpression(is)));
+	Ys.Closure cl = (Ys.Closure)Ys.readExpression(is);
+	System.out.println(Ys.stringify(cl));
+	System.out.println(Ys.stringify(Ys.execute(cl)));
     }
 }
