@@ -1,4 +1,6 @@
-[function [] []
-   [log [repeat 10 [log [random [list "foo" "bar" "baz"]]] "world"]]
+[function [] [x]
+;   [log [repeat 10 [log [random [list "foo" "bar" "baz"]]] "world"]]
+   [set x [dict 1 "foo" 2 "bar" 3 "baz"]]
+   [log [get x 2]]
    [if [log [< 2 1]] 1 2]
    ]

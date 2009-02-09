@@ -1071,7 +1071,7 @@ public abstract class Ys {
                                 code.append(OP_NEW_DICT);
                                 addDepth(1);
 
-                                if (list.length % 2 == 1) {
+                                if (list.length % 2 == 0) {
                                     throw new Error("Unmatched key/value: " + stringify(list));
                                 }
                                 for (int i = 1; i < list.length; i++) {
