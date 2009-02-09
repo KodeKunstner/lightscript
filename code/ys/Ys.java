@@ -414,13 +414,15 @@ public abstract class Ys {
 				if(head instanceof Builtin) {
 					int id = ((Builtin)head).id;
 
-					switch(id) {
-						case OP_LOG | AST_BUILTIN_FUNCTION: {
-							len(list, 2);
-							compile(list[1]);
-							code.append(OP_LOG);
-							break;
+					if((id & AST_BUILTIN_FUNCTION) != 0) {
+						char opcode = (char) (id & MASK_OP);
+						len(list, builtinArity(opcode) + 1);
+						for(int i = 1; i < list.length; i++) {
+						    compile(list[i]);
 						}
+						addDepth(2 - list.length);
+						code.append(opcode);
+					} else switch(id) {
 						case AST_SET: {
 							len(list, 3);
 							String name = (String)list[1];
