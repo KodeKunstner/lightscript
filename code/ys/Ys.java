@@ -27,14 +27,76 @@ public abstract class Ys {
 	private static final char OP_LOG = 15;
 	private static final char OP_DROP = 16;
 	private static final char OP_PUSH_NIL = 17;
+	private static final char OP_NOT = 18;
+	private static final char OP_ADD = 19;
+	private static final char OP_SUB = 20;
+	private static final char OP_MUL = 21;
+	private static final char OP_DIV = 22;
+	private static final char OP_REM = 23;
+	private static final char OP_IS_INT = 24;
+	private static final char OP_IS_STR = 25;
+	private static final char OP_IS_LIST = 26;
+	private static final char OP_IS_DICT = 27;
+	private static final char OP_IS_ITER = 28;
+	private static final char OP_EQUAL = 29;
+	private static final char OP_IS_EMPTY = 30;
+	private static final char OP_PUT = 31;
+	private static final char OP_GET = 32;
+	private static final char OP_RAND = 33;
+	private static final char OP_SIZE = 34;
+	private static final char OP_LESS = 35;
+	private static final char OP_LESSEQUAL = 36;
+	private static final char OP_SUBSTR = 37;
+	private static final char OP_RESIZE = 38;
+	private static final char OP_PUSH = 39;
+	private static final char OP_POP = 40;
+	private static final char OP_KEYS = 41;
+	private static final char OP_VALUES = 43;
+	private static final char OP_NEXT = 44;
+	private static final char OP_ASSERT = 45;
+	private static final char OP_JUMP = 46;
+	private static final char OP_JUMP_IF_TRUE = 47;
+	private static final char OP_DUP = 48;
+	private static final char OP_NEW_LIST = 49;
+	private static final char OP_NEW_DICT = 50;
+	private static final char OP_NEW_STRINGBUFFER = 51;
+	private static final char OP_STR_APPEND = 52;
+	private static final char OP_TO_STRING = 53;
+	private static final char OP_NEW_COUNTER = 54;
+	private static final char OP_SWAP = 55;
 
 	// size of the return frame
 	private static final char RET_FRAME_SIZE = 3;
 
-	// Function ids
+	// Syntax tree
+	private static final int AST_BUILTIN_FUNCTION = 0x100;
 	private static final int AST_DO = 0;
 	private static final int AST_LOG = 1;
 	private static final int AST_SET = 2;
+	private static final int AST_LITERAL = AST_SET + 1;
+	private static final int AST_FN_LIST = AST_LITERAL + 1;
+	private static final int AST_GLOBAL_ID = AST_FN_LIST + 1;
+	private static final int AST_CLOSURE_ID = AST_GLOBAL_ID + 1;
+	private static final int AST_BOXED_ID = AST_CLOSURE_ID + 1;
+	private static final int AST_LOCAL_ID = AST_BOXED_ID + 1;
+	private static final int AST_IF = AST_LOCAL_ID + 1;
+	private static final int AST_AND = AST_IF + 1;
+	private static final int AST_OR = AST_AND + 1;
+	private static final int AST_REPEAT = AST_OR + 1;
+	private static final int AST_FOREACH = AST_REPEAT + 1;
+	private static final int AST_WHILE = AST_FOREACH + 1;
+	private static final int AST_STRINGJOIN = AST_WHILE + 1;
+	private static final int AST_LIST = AST_STRINGJOIN + 1;
+	private static final int AST_DICT = AST_LIST + 1;
+	private static final int AST_FUNCTION = AST_DICT + 1;
+	// Opcode mask, to extract opcode from AST_FUNCTIION type
+	private static final int MASK_OP = 0xFF;
+ 
+	private static String[] fnNames = {"not", "+", "-", "*", "/", "%", "is-integer", "is-string", "is-list", "is-dictionary", "is-iterator", "equals", "is-empty", "put", "get", "random", "size", "<", "<=", "substring", "resize", "push", "pop", "keys", "values", "get-next", "log", "assert"};
+	private static int[] fnArity = {1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 1, 3, 2, 1, 1, 2, 2, 3, 2, 2, 1, 1, 1, 1, 1, 2};
+	private static char[] fnTypes = {OP_NOT, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_REM, OP_IS_INT, OP_IS_STR, OP_IS_LIST, OP_IS_DICT, OP_IS_ITER, OP_EQUAL, OP_IS_EMPTY, OP_PUT, OP_GET, OP_RAND, OP_SIZE, OP_LESS, OP_LESSEQUAL, OP_SUBSTR, OP_RESIZE, OP_PUSH, OP_POP, OP_KEYS, OP_VALUES, OP_NEXT, OP_LOG, OP_ASSERT};
+	private static String[] builtinNames = {"set", "if", "and", "or", "repeat", "foreach", "while", "do", "stringjoin", "list", "dict", "function"};
+	private static int[] builtinTypes = {AST_SET, AST_IF, AST_AND, AST_OR, AST_REPEAT, AST_FOREACH, AST_WHILE, AST_DO, AST_STRINGJOIN, AST_LIST, AST_DICT, AST_FUNCTION};
 
 	private static Stack builtins;
 	static {
@@ -42,6 +104,31 @@ public abstract class Ys {
 		builtins.push("do");
 		builtins.push("log");
 		builtins.push("set");
+	}
+
+	private static int builtinId(String name) {
+		for(int i = 0; i < fnNames.length; i++) {
+			if(name.equals(fnNames[i])) {
+				return fnTypes[i] | AST_BUILTIN_FUNCTION;
+			}
+			
+		}
+		for(int i = 0; i < builtinNames.length; i++) {
+			if(name.equals(builtinNames[i])) {
+				return builtinTypes[i];
+			}
+			
+		}
+		return -1;
+	}
+
+	private static int builtinArity(int id) {
+		for(int i = 0; i < fnNames.length; i++) {
+			if(fnTypes[i] == id) {
+				return fnArity[i];
+			}
+		}
+		return -1;
 	}
 
 	public static class Closure {
@@ -493,6 +580,7 @@ public abstract class Ys {
 		public int id;
 		public Builtin(String name) {
 			id = builtins.indexOf(name);
+			System.out.println("BBBB " + builtinId(name));
 		}
 		public String toString() {
 			return "builtin:" + builtins.elementAt(id);
