@@ -1,5 +1,4 @@
-[function [] [x y]
-    x
-    [function [] [] x]
-    y
+[function [x y] [z x c v b n]
+      [function [] []
+          x]
    ]

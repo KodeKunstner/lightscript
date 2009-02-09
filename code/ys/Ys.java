@@ -7,26 +7,26 @@ import java.util.Stack;
 
 public abstract class Ys {
 	// Opcodes
-	private static final char OP_ENSURE_STACKSPACE = 10;
-	private static final char OP_INC_SP = 11;
-	private static final char OP_RETURN = 12;
-	private static final char OP_SAVE_PC = 13;
-	private static final char OP_CALL_FN = 14;
-	private static final char OP_BUILD_FN = 15;
-	private static final char OP_SET_BOXED = 20;
-	private static final char OP_SET_LOCAL = 22;
-	private static final char OP_SET_CLOSURE = 24;
-	private static final char OP_GET_BOXED = 21;
-	private static final char OP_GET_LOCAL = 23;
-	private static final char OP_GET_CLOSURE = 25;
+	private static final char OP_ENSURE_STACKSPACE = 0;
+	private static final char OP_INC_SP = 1;
+	private static final char OP_RETURN = 2;
+	private static final char OP_SAVE_PC = 3;
+	private static final char OP_CALL_FN = 4;
+	private static final char OP_BUILD_FN = 5;
+	private static final char OP_SET_BOXED = 6;
+	private static final char OP_SET_LOCAL = 7;
+	private static final char OP_SET_CLOSURE = 8;
+	private static final char OP_GET_BOXED = 9;
+	private static final char OP_GET_LOCAL = 10;
+	private static final char OP_GET_CLOSURE = 11;
 	// get a value from the closure without unboxing it
-	private static final char OP_GET_BOXED_CLOSURE = 26;
-	private static final char OP_GET_LITERAL = 27;
+	private static final char OP_GET_BOXED_CLOSURE = 12;
+	private static final char OP_GET_LITERAL = 13;
 	// box a value
-	private static final char OP_BOX_IT = 28;
-	private static final char OP_LOG = 30;
-	private static final char OP_DROP = 31;
-	private static final char OP_PUSH_NIL = 32;
+	private static final char OP_BOX_IT = 14;
+	private static final char OP_LOG = 15;
+	private static final char OP_DROP = 16;
+	private static final char OP_PUSH_NIL = 17;
 
 	// size of the return frame
 	private static final char RET_FRAME_SIZE = 3;
@@ -47,7 +47,7 @@ public abstract class Ys {
 	private static class Closure {
 		private byte[] code;
 		private int argc;
-		private Object[] closure;
+		public Object[] closure;
 		private Object[] constPool;
 		public Closure(int argc, StringBuffer code, Stack constPool, Stack closure) {
 			this.argc = argc;
@@ -73,8 +73,25 @@ public abstract class Ys {
 			this.constPool= cl.constPool;
 			this.closure = new Object[cl.closure.length][1];
 		}
-		public String[] getNames() {
-			return (String[]) closure;
+		public String toString() {
+			StringBuffer sb = new StringBuffer();
+			sb.append("closure"+argc+"{\n\tcode:");
+			for(int i = 0; i< code.length; i++) {
+				sb.append(" ");
+				sb.append(code[i]);
+			}
+			sb.append("\n\tnames:");
+			for(int i = 0; i< closure.length; i++) {
+				sb.append(" " + i + ":");
+				sb.append(closure[i]);
+			}
+			sb.append("\n\tconstpool:");
+			for(int i = 0; i< constPool.length; i++) {
+				sb.append(" " + i + ":");
+				sb.append(constPool[i]);
+			}
+			sb.append("\n}");
+			return sb.toString();
 		}
 	}
 
@@ -90,9 +107,8 @@ public abstract class Ys {
 		private int maxDepth;
 		private int depth;
 		private StringBuffer code;
-		private Closure compiledCode;
 
-		public Function(Object[] list) {
+		private Function(Object[] list) {
 			Enumeration e;
 			body = new Object[list.length - 2];
 			for(int i = 1; i < body.length; i++) {
@@ -122,12 +138,12 @@ public abstract class Ys {
 			}
 
 			compile();
-			compiledCode = new Closure(argc, code, constPool, closure);
 		}
 
-		private Closure getCode() {
-			return new Closure(compiledCode);
-		};
+		public static Closure create(Object[] list) {
+			Function f = new Function(list);
+			return new Closure(f.argc, f.code, f.constPool, f.closure);
+		}
 
 		private void pushShort(int i) {
 			code.append((char)((i >> 8)& 0xff));
@@ -260,13 +276,10 @@ public abstract class Ys {
 					code.append(OP_SAVE_PC);
 					addDepth(RET_FRAME_SIZE);
 
-					// evaluate parameters
-					for(int i = 1; i < list.length; i++) {
+					// find function and evaluate parameters
+					for(int i = 0; i < list.length; i++) {
 						compile(list[i]);
 					}
-
-					// find the function
-					compile(head);
 
 					// call the function
 					code.append(OP_CALL_FN);
@@ -301,9 +314,25 @@ public abstract class Ys {
 				addDepth(1);
 
 			// Function creation
-			} else if(o instanceof Function) {
-				code.append(OP_BUILD_FN);
+			} else if(o instanceof Closure) {
+				Object[] vars = ((Closure) o).closure;
+				for(int i = 0; i < vars.length; i++) {
+					String name = (String)vars[i];
+					if(boxed.contains(name)) {
+						code.append(OP_GET_LOCAL);
+						pushShort(depth - locals.indexOf(name));
+					} else {
+						code.append(OP_GET_BOXED_CLOSURE);
+						pushShort(closure.indexOf(name));
+					}
+					addDepth(1);
+				}
+				code.append(OP_GET_LITERAL);
+				pushShort(constPoolId(o));
 				addDepth(1);
+				code.append(OP_BUILD_FN);
+				pushShort(vars.length);
+				addDepth(- vars.length);
 
 			// Should not happen
 			} else {
@@ -319,18 +348,16 @@ public abstract class Ys {
 				}
 			} else if(o instanceof String) {
 				s.push(o);
-			} else if(o instanceof Function) {
-				Function f = (Function) o;
-				f.addOuter(s);
-				f.addOuter(boxed);
-			}
-		}
-		private void addOuter(Stack s) {
-			Enumeration e = closure.elements();
-			while(e.hasMoreElements()) {
-				Object o = e.nextElement();
-				if(!s.contains(o)) {
-					s.push(o);
+			} else if(o instanceof Closure) {
+				Object[] closure_vars = ((Closure)o).closure;
+				for(int i = 0; i < closure_vars.length; i++) {
+					String name = (String)closure_vars[i];
+					if(!s.contains(name)) {
+						s.push(name);
+					}
+					if(!boxed.contains(name)) {
+						boxed.push(name);
+					}
 				}
 			}
 		}
@@ -383,7 +410,7 @@ public abstract class Ys {
 		if(list.length > 0) {
 			Object fn = list[0];
 			if(fn.equals("function")) {
-				return new Function(list);
+				return Function.create(list);
 			} 
 		}
 		return list;
