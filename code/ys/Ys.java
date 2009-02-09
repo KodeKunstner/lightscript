@@ -391,7 +391,7 @@ public abstract class Ys {
 			}
 		}
 
-		private void len(Object[] list, int len) {
+		private void assertLength(Object[] list, int len) {
 			if(list.length != len) {
 				throw new Error("Wrong number of parameters:" + stringify(list));
 			}
@@ -416,7 +416,7 @@ public abstract class Ys {
 
 					if((id & AST_BUILTIN_FUNCTION) != 0) {
 						char opcode = (char) (id & MASK_OP);
-						len(list, builtinArity(opcode) + 1);
+						assertLength(list, builtinArity(opcode) + 1);
 						for(int i = 1; i < list.length; i++) {
 						    compile(list[i]);
 						}
@@ -424,7 +424,7 @@ public abstract class Ys {
 						code.append(opcode);
 					} else switch(id) {
 						case AST_SET: {
-							len(list, 3);
+							assertLength(list, 3);
 							String name = (String)list[1];
 							compile(list[2]);
 							int pos = closure.indexOf(name);
