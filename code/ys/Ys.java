@@ -195,7 +195,7 @@ public abstract class Ys {
         Object[] closure = cl.closure;
         for (;;) {
             ++pc;
-            System.out.println("pc:" + pc + " op:" + code[pc] + " sp:" + sp + " stack.length:" + stack.length);
+            //System.out.println("pc:" + pc + " op:" + code[pc] + " sp:" + sp + " stack.length:" + stack.length);
             switch (code[pc]) {
                 case OP_ENSURE_STACKSPACE: {
                     int arg = readShort(pc, code);
@@ -821,6 +821,7 @@ public abstract class Ys {
                                 code.append((char) 0);
                                 code.append((char) 0);
                                 pos0 = code.length();
+                                addDepth(-1);
 
                                 code.append(OP_PUSH_NIL);
 
@@ -830,6 +831,7 @@ public abstract class Ys {
                                 pos1 = code.length();
                                 len = pos1 - pos0;
                                 setShort(pos0, len);
+                                addDepth(-1);
 
                                 compile(list[2]);
                                 len = code.length() - pos1;
@@ -843,13 +845,16 @@ public abstract class Ys {
                                 compile(list[1]);
 
                                 code.append(OP_DUP);
+                                addDepth(1);
 
                                 code.append(OP_JUMP_IF_TRUE);
                                 code.append((char) 0);
                                 code.append((char) 0);
                                 pos0 = code.length();
+                                addDepth(1);
 
                                 code.append(OP_DROP);
+                                addDepth(-1);
 
                                 compile(list[2]);
 
@@ -880,6 +885,7 @@ public abstract class Ys {
                                 //   drop
                                 int pos0, pos1, len;
                                 code.append(OP_PUSH_NIL);
+                                addDepth(1);
                                 compile(list[1]);
                                 code.append(OP_NEW_COUNTER);
 
@@ -891,6 +897,7 @@ public abstract class Ys {
                                 code.append(OP_SWAP);
                                 for (int i = 2; i < list.length; i++) {
                                     code.append(OP_DROP);
+                                    addDepth(-1);
                                     compile(list[i]);
                                 }
                                 code.append(OP_SWAP);
@@ -901,6 +908,7 @@ public abstract class Ys {
                                 setShort(pos0, len);
 
                                 code.append(OP_DUP);
+                                addDepth(1);
 
                                 code.append(OP_NEXT);
 
@@ -908,8 +916,10 @@ public abstract class Ys {
                                 len = pos0 - (code.length() + 2);
                                 code.append((char) ((len >> 8) & 0xff));
                                 code.append((char) (len & 0xff));
+                                addDepth(-1);
 
                                 code.append(OP_DROP);
+                                addDepth(-1);
 
                                 break;
                             }
@@ -933,6 +943,7 @@ public abstract class Ys {
                                 //   drop
                                 int pos0, pos1, len;
                                 code.append(OP_PUSH_NIL);
+                                addDepth(1);
 
                                 compile(list[2]);
 
@@ -944,6 +955,7 @@ public abstract class Ys {
                                 code.append(OP_SWAP);
                                 for (int i = 3; i < list.length; i++) {
                                     code.append(OP_DROP);
+                                    addDepth(-1);
                                     compile(list[i]);
                                 }
                                 code.append(OP_SWAP);
@@ -953,17 +965,35 @@ public abstract class Ys {
                                 setShort(pos0, len);
 
                                 code.append(OP_DUP);
+                                addDepth(1);
 
                                 code.append(OP_NEXT);
 
-                                compile(list[1]);
+                                {
+                                    String name = (String) list[1];
+                                    int pos = closure.indexOf(name);
+                                    if (pos >= 0) {
+                                        code.append(OP_SET_CLOSURE);
+                                        pushShort(pos);
+                                    } else {
+                                        pos = locals.indexOf(name);
+                                        if (boxed.contains(name)) {
+                                            code.append(OP_SET_BOXED);
+                                        } else {
+                                            code.append(OP_SET_LOCAL);
+                                        }
+                                        pushShort(depth - pos - 1);
+                                    }
+                                }
 
                                 code.append(OP_JUMP_IF_TRUE);
                                 len = pos0 - (code.length() + 2);
                                 code.append((char) ((len >> 8) & 0xff));
                                 code.append((char) (len & 0xff));
+                                addDepth(-1);
 
                                 code.append(OP_DROP);
+                                addDepth(-1);
 
 
                                 break;
@@ -983,6 +1013,7 @@ public abstract class Ys {
 
                                 int pos0, pos1, len;
                                 code.append(OP_PUSH_NIL);
+                                addDepth(1);
 
                                 code.append(OP_JUMP);
                                 code.append((char) 0);
@@ -991,6 +1022,7 @@ public abstract class Ys {
 
                                 for (int i = 2; i < list.length; i++) {
                                     code.append(OP_DROP);
+                                    addDepth(-1);
                                     compile(list[i]);
                                 }
 
@@ -1005,16 +1037,19 @@ public abstract class Ys {
                                 len = pos0 - (code.length() + 2);
                                 code.append((char) ((len >> 8) & 0xff));
                                 code.append((char) (len & 0xff));
+                                addDepth(-1);
 
 
                                 break;
                             }
                             case AST_STRINGJOIN: {
                                 code.append(OP_NEW_STRINGBUFFER);
+                                addDepth(1);
 
                                 for (int i = 1; i < list.length; i++) {
                                     compile(list[i]);
                                     code.append(OP_STR_APPEND);
+                                    addDepth(-1);
                                 }
                                 code.append(OP_TO_STRING);
 
@@ -1022,16 +1057,19 @@ public abstract class Ys {
                             }
                             case AST_LIST: {
                                 code.append(OP_NEW_LIST);
+                                addDepth(1);
 
                                 for (int i = 1; i < list.length; i++) {
                                     compile(list[i]);
                                     code.append(OP_PUSH);
+                                    addDepth(-1);
                                 }
 
                                 break;
                             }
                             case AST_DICT: {
                                 code.append(OP_NEW_DICT);
+                                addDepth(1);
 
                                 if (list.length % 2 == 1) {
                                     throw new Error("Unmatched key/value: " + stringify(list));
@@ -1040,7 +1078,8 @@ public abstract class Ys {
                                     compile(list[i]);
                                     i++;
                                     compile(list[i]);
-                                    code.append(OP_PUSH);
+                                    code.append(OP_PUT);
+                                    addDepth(-2);
                                 }
 
                                 break;

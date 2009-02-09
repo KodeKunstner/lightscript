@@ -1,3 +1,4 @@
 [function [] []
+   [log [repeat 10 [log [random [list "foo" "bar" "baz"]]] "world"]]
    [if [log [< 2 1]] 1 2]
    ]
