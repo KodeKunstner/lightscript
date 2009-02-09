@@ -12,6 +12,7 @@ public class Main {
 	InputStream is = new FileInputStream(new File(args[0]));
 	Ys.Closure cl = (Ys.Closure)Ys.readExpression(is);
 	System.out.println(Ys.stringify(cl));
-	System.out.println(Ys.stringify(Ys.execute(cl)));
+	System.out.println();
+	Ys.stringify(Ys.execute(cl));
     }
 }
