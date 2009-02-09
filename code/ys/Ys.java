@@ -6,63 +6,63 @@ import java.util.Random;
 import java.util.Stack;
 
 public abstract class Ys {
-	public static String stringify(Object o) {
-		if(o == null) {
-			return "null";
-		} if(o instanceof Literal) {
-			return ((Literal)o).value.toString();
-		} else if(o instanceof Object[]) {
-			StringBuffer sb = new StringBuffer();
-			Object[] os = (Object[]) o;
-			sb.append("[");
-			for(int i = 0; i < os.length; i++) {
-				sb.append(" " + stringify(os[i]));
-			}
-			sb.append(" ]");
-			return sb.toString();
-		} else if(o instanceof Function) {
-			Function f = (Function) o;
-			return "Function( argc:" + f.argc
-				+ ", locals:" + f.locals.toString()
-				+ ", boxed:" + f.boxed.toString()
-				+ ", closure:" + f.closure.toString()
-				+ ", body:" + stringify(f.body);
-		} else {
-			return o.toString();
-		}
+	// Opcodes
+	private static final char OP_INC_SP = 0;
+	private static final char OP_ENSURE_STACKSPACE = 1;
+	private static final char OP_RETURN = 2;
+	private static final char OP_SAVE_PC = 3;
+	private static final char OP_CALL_FN = 4;
+	private static final char OP_LOG = 5;
+	private static final char OP_SET_BOXED = 6;
+	private static final char OP_SET_LOCAL = 7;
+	private static final char OP_SET_CLOSURE = 8;
+	private static final char OP_GET_BOXED = 9;
+	private static final char OP_GET_LOCAL = 10;
+	private static final char OP_GET_CLOSURE = 11;
+	// get a value from the closure without unboxing it
+	private static final char OP_GET_BOXED_CLOSURE = 12;
+	// box a value
+	private static final char OP_BOX_IT = 13;
+	private static final char OP_DROP = 14;
+	private static final char OP_PUSH_NIL = 15;
+	private static final char OP_GET_LITERAL = 16;
+
+	// size of the return frame
+	private static final char RET_FRAME_SIZE = 3;
+
+	// Function ids
+	private static final int AST_DO = 0;
+	private static final int AST_LOG = 1;
+	private static final int AST_SET = 2;
+
+	private static Stack builtins;
+	static {
+		builtins = new Stack();
+		builtins.push("do");
+		builtins.push("log");
+		builtins.push("set");
 	}
-	private static class Literal {
-		public Object value;
-		public Literal(Object value) {
-			this.value = value;
-		}
-	}
-	private static class Id {
-		public static byte LOCAL = 0;
-		public static byte BOXED = 1;
-		public static byte CLOSURE = 2;
-		public byte type;
-		public int pos;
-		public Id(byte type, int pos) {
-			this.type = type;
-			this.pos = pos;
-		}
-		public String toString() {
-			return (type == LOCAL ? "local" : type == BOXED ? "boxed" : "closure") + pos;
-		}
-	}
+
 	private static class Function {
-		public int argc;
-		public Object[] body;
-		public Stack locals;
-		public Stack boxed;
-		public Stack closure;
-		public Function(Object[] list) {
+		private int argc;
+		private Object[] body;
+		private Stack locals;
+		private Stack boxed;
+		private Stack closure;
+		
+		private Stack constPool;
+		private int maxDepth;
+		private int depth;
+		private StringBuffer code;
+
+
+		private Function(Object[] list) {
 			Enumeration e;
-			body = new Object[list.length - 3];
-			for(int i = 0; i < body.length; i++) {
-				body[i] = list[i+3];
+			body = new Object[list.length - 2];
+			for(int i = 1; i < body.length; i++) {
+				body[i] = list[i+2];
 			}
+			body[0] = new Builtin("do");
 			argc = ((Object[])list[1]).length;
 			locals = new Stack();
 			boxed = new Stack();
@@ -84,31 +84,194 @@ public abstract class Ys {
 			while(e.hasMoreElements()) {
 				boxed.removeElement(e.nextElement());
 			}
-
-			updateIds(body);
 		}
-		private void updateIds(Object [] list) {
-			for(int i = 0; i < list.length; i++) {
-				Object o = list[i];
-				if(o instanceof String) {
-					int pos;
-					pos = locals.indexOf(o);
-					if(pos >= 0) {
-						list[i] = new Id(
-							boxed.contains(o) ? Id.BOXED : Id.LOCAL, 
-							pos);
-						continue;
-					} 
-					pos = closure.indexOf(o);
-					if(pos >= 0) {
-						list[i] = new Id(Id.CLOSURE, pos);
-						continue;
-					}
-				} else if(o instanceof Object[]) {
-					updateIds((Object[])o);
-				}
+
+		private void pushShort(int i) {
+			code.append((char)((i >> 8)& 0xff));
+			code.append((char)(i & 0xff));
+		}
+
+		private void setShort(int pos, int i) {
+			code.setCharAt(pos - 2, (char)((i >> 8)& 0xff));
+			code.setCharAt(pos - 1, (char)(i & 0xff));
+		}
+
+		private void compile() {
+			constPool = new Stack();
+			code = new StringBuffer();
+
+			// make sure that there are sufficient stack space for the function
+			code.append(OP_ENSURE_STACKSPACE);
+			pushShort(0);
+			int spacePos = code.length();
+
+			// allocate space for local vars
+			maxDepth = depth = locals.size();
+			int framesize = depth - argc;
+			while(framesize >= 127) {
+				code.append(OP_INC_SP);
+				code.append((char) 127);
+				framesize -= 127;
+			}
+			if(framesize > 0) {
+				code.append(OP_INC_SP);
+				code.append((char) framesize);
+			}
+
+			// box boxed values in frame
+			Enumeration e = boxed.elements();
+			while(e.hasMoreElements()) {
+				code.append(OP_BOX_IT);
+				pushShort(depth - locals.indexOf(e.nextElement()));
+			}
+
+			compile(body);
+
+			// emit return code, including current stack depth to drop
+			code.append(OP_RETURN);
+			pushShort(depth);
+
+			// patch amount of stack space needed
+			maxDepth -= argc;
+			setShort(spacePos, maxDepth);
+		}
+
+		private void addDepth(int i) {
+			depth += i;
+			if(depth > maxDepth) {
+				maxDepth = depth;
 			}
 		}
+
+		private void len(Object[] list, int len) {
+			if(list.length != len) {
+				throw new Error("Wrong number of parameters:" + stringify(list));
+			}
+		}
+
+		private int constPoolId(Object o) {
+			int pos = constPool.indexOf(o);
+			if(pos < 0) {
+				pos = constPool.size();
+				constPool.push(o);
+			}
+			return pos;
+		}
+
+		private void compile(Object o) {
+			if(o instanceof Object[]) {
+				Object[] list = (Object[]) o;
+				Object head = list[0];
+				// builtin operator
+				if(head instanceof Builtin) {
+					int id = ((Builtin)head).id;
+
+					switch(id) {
+						case AST_LOG: {
+							len(list, 2);
+							compile(list[1]);
+							code.append(OP_LOG);
+							break;
+						}
+						case AST_SET: {
+							len(list, 3);
+							String name = (String)list[1];
+							compile(list[2]);
+							int pos = closure.indexOf(name);
+							if(pos >= 0) {
+								code.append(OP_SET_CLOSURE);
+								pushShort(depth - pos);
+							} else {
+								pos = locals.indexOf(name);
+								if(boxed.contains(name)) {
+									code.append(OP_SET_BOXED);
+								} else {
+									code.append(OP_SET_LOCAL);
+								}
+								pushShort(depth - pos);
+							}
+							break;
+						}
+						case AST_DO: {
+							int i;
+							for(i = 1; i < list.length - 1; i++) {
+								compile(list[i]);
+								code.append(OP_DROP);
+								addDepth(-1);
+							}
+							if(i < list.length) {
+							    compile(list[i]);
+							} else {
+							    code.append(OP_PUSH_NIL);
+							    addDepth(1);
+							}
+
+							break;
+						}
+					}
+
+
+				// function evaluation
+				} else {
+					// save program counter
+					code.append(OP_SAVE_PC);
+					addDepth(RET_FRAME_SIZE);
+
+					// evaluate parameters
+					for(int i = 1; i < list.length; i++) {
+						compile(list[i]);
+					}
+
+					// find the function
+					compile(head);
+
+					// call the function
+					code.append(OP_CALL_FN);
+					if(list.length > 128) {
+						throw new Error("too many parameters");
+					}
+					code.append((char) list.length - 1);
+					addDepth(1 - list.length - RET_FRAME_SIZE);
+				}
+			// Identifier
+			} else if(o instanceof String) {
+				String name = (String)o;
+				int pos = closure.indexOf(name);
+				if(pos >= 0) {
+					code.append(OP_GET_CLOSURE);
+					pushShort(depth - pos);
+				} else {
+					pos = locals.indexOf(name);
+					if(boxed.contains(name)) {
+						code.append(OP_GET_BOXED);
+					} else {
+						code.append(OP_GET_LOCAL);
+					}
+					pushShort(depth - pos);
+				}
+				addDepth(1);
+
+			// Literal
+			} else if(o instanceof Literal) {
+				code.append(OP_GET_LITERAL);
+				pushShort(constPoolId(((Literal)o).value));
+				addDepth(1);
+
+			// Function creation
+			} else if(o instanceof Function) {
+
+			// Should not happen
+			} else {
+				throw new Error("wrong kind of node:" + o.toString());
+			}
+		}
+
+		public static Function create(Object[] list) {
+			Function f = new Function(list);
+			f.compile();
+			return f;
+		}
+
 		private void findIds(Stack s, Object o) {
 			if(o instanceof Object[]) {
 				Object[] os = (Object[])o;
@@ -132,26 +295,44 @@ public abstract class Ys {
 				}
 			}
 		}
-	}
-
-	private static class Builtin {
-		int opCode;
-		public Builtin(String name) {
-			opCode = builtins.indexOf(name);
+		public String toString() {
+			return "Function( argc:" + argc
+				+ ", locals:" + locals.toString()
+				+ ", boxed:" + boxed.toString()
+				+ ", closure:" + closure.toString()
+				+ ", body:" + stringify(body);
 		}
 	}
 
-	private static Stack builtins;
+	private static class Literal {
+		public Object value;
+		public Literal(Object value) {
+			this.value = value;
+		}
+	}
 
-	static {
-		builtins = new Stack();
-		builtins.push("log");
-		builtins.push("set");
+	private static class Closure {
+		public byte[] code;
+		public int argc;
+		public Object[] closure;
+		public Object[] constPool;
+	}
+
+	private static class Builtin {
+		public int id;
+		public Builtin(String name) {
+			id = builtins.indexOf(name);
+		}
+		public String toString() {
+			return "builtin:" + builtins.elementAt(id);
+		}
 	}
 
 	/////////////////////////////////////
-	// Factories
+	// Factories and constants used by the parser
 	////
+	private static final Object[] emptylist = new Object[0];
+
 	private static Object createId(String name) {
 		if(builtins.contains(name)) {
 			return new Builtin(name);
@@ -163,7 +344,7 @@ public abstract class Ys {
 		if(list.length > 0) {
 			Object fn = list[0];
 			if(fn.equals("function")) {
-				return new Function(list);
+				return Function.create(list);
 			} 
 		}
 		return list;
@@ -172,7 +353,6 @@ public abstract class Ys {
 	/////////////////////////////////////
 	// The parser
 	////
-	private static final Object[] emptylist = new Object[0];
 	public static Object readExpression(InputStream is) throws IOException {
 		Stack stack = new Stack();
 		int c = is.read();
@@ -260,5 +440,27 @@ public abstract class Ys {
 			}
 		} while (stack.empty() || stack.size() > 1 || stack.elementAt(0) == null);
 		return stack.pop();
+	}
+
+	///////////////////////////////////////////
+	// Utility for generating strings
+	////
+	public static String stringify(Object o) {
+		if(o == null) {
+			return "null";
+		} if(o instanceof Literal) {
+			return ((Literal)o).value.toString();
+		} else if(o instanceof Object[]) {
+			StringBuffer sb = new StringBuffer();
+			Object[] os = (Object[]) o;
+			sb.append("[");
+			for(int i = 0; i < os.length; i++) {
+				sb.append(" " + stringify(os[i]));
+			}
+			sb.append(" ]");
+			return sb.toString();
+		} else {
+			return o.toString();
+		}
 	}
 }
