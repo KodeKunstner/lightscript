@@ -7,25 +7,26 @@ import java.util.Stack;
 
 public abstract class Ys {
 	// Opcodes
-	private static final char OP_INC_SP = 0;
-	private static final char OP_ENSURE_STACKSPACE = 1;
-	private static final char OP_RETURN = 2;
-	private static final char OP_SAVE_PC = 3;
-	private static final char OP_CALL_FN = 4;
-	private static final char OP_LOG = 5;
-	private static final char OP_SET_BOXED = 6;
-	private static final char OP_SET_LOCAL = 7;
-	private static final char OP_SET_CLOSURE = 8;
-	private static final char OP_GET_BOXED = 9;
-	private static final char OP_GET_LOCAL = 10;
-	private static final char OP_GET_CLOSURE = 11;
+	private static final char OP_ENSURE_STACKSPACE = 10;
+	private static final char OP_INC_SP = 11;
+	private static final char OP_RETURN = 12;
+	private static final char OP_SAVE_PC = 13;
+	private static final char OP_CALL_FN = 14;
+	private static final char OP_BUILD_FN = 15;
+	private static final char OP_SET_BOXED = 20;
+	private static final char OP_SET_LOCAL = 22;
+	private static final char OP_SET_CLOSURE = 24;
+	private static final char OP_GET_BOXED = 21;
+	private static final char OP_GET_LOCAL = 23;
+	private static final char OP_GET_CLOSURE = 25;
 	// get a value from the closure without unboxing it
-	private static final char OP_GET_BOXED_CLOSURE = 12;
+	private static final char OP_GET_BOXED_CLOSURE = 26;
+	private static final char OP_GET_LITERAL = 27;
 	// box a value
-	private static final char OP_BOX_IT = 13;
-	private static final char OP_DROP = 14;
-	private static final char OP_PUSH_NIL = 15;
-	private static final char OP_GET_LITERAL = 16;
+	private static final char OP_BOX_IT = 28;
+	private static final char OP_LOG = 30;
+	private static final char OP_DROP = 31;
+	private static final char OP_PUSH_NIL = 32;
 
 	// size of the return frame
 	private static final char RET_FRAME_SIZE = 3;
@@ -43,6 +44,41 @@ public abstract class Ys {
 		builtins.push("set");
 	}
 
+	private static class Closure {
+		private byte[] code;
+		private int argc;
+		private Object[] closure;
+		private Object[] constPool;
+		public Closure(int argc, StringBuffer code, Stack constPool, Stack closure) {
+			this.argc = argc;
+
+			this.code = new byte[code.length()];
+			for(int i = 0; i < this.code.length; i++) {
+				this.code[i] = (byte)code.charAt(i);
+			}
+
+			this.constPool = new Object[constPool.size()];
+			for(int i = 0; i < this.constPool.length; i++) {
+				this.constPool[i] = constPool.elementAt(i);
+			}
+
+			this.closure = new Object[closure.size()];
+			for(int i = 0; i < this.closure.length; i++) {
+				this.closure[i] = closure.elementAt(i);
+			}
+		}
+		public Closure(Closure cl) {
+			this.argc = cl.argc;
+			this.code = cl.code;
+			this.constPool= cl.constPool;
+			this.closure = new Object[cl.closure.length][1];
+		}
+		public String[] getNames() {
+			return (String[]) closure;
+		}
+	}
+
+
 	private static class Function {
 		private int argc;
 		private Object[] body;
@@ -54,9 +90,9 @@ public abstract class Ys {
 		private int maxDepth;
 		private int depth;
 		private StringBuffer code;
+		private Closure compiledCode;
 
-
-		private Function(Object[] list) {
+		public Function(Object[] list) {
 			Enumeration e;
 			body = new Object[list.length - 2];
 			for(int i = 1; i < body.length; i++) {
@@ -84,7 +120,14 @@ public abstract class Ys {
 			while(e.hasMoreElements()) {
 				boxed.removeElement(e.nextElement());
 			}
+
+			compile();
+			compiledCode = new Closure(argc, code, constPool, closure);
 		}
+
+		private Closure getCode() {
+			return new Closure(compiledCode);
+		};
 
 		private void pushShort(int i) {
 			code.append((char)((i >> 8)& 0xff));
@@ -259,17 +302,13 @@ public abstract class Ys {
 
 			// Function creation
 			} else if(o instanceof Function) {
+				code.append(OP_BUILD_FN);
+				addDepth(1);
 
 			// Should not happen
 			} else {
 				throw new Error("wrong kind of node:" + o.toString());
 			}
-		}
-
-		public static Function create(Object[] list) {
-			Function f = new Function(list);
-			f.compile();
-			return f;
 		}
 
 		private void findIds(Stack s, Object o) {
@@ -296,11 +335,18 @@ public abstract class Ys {
 			}
 		}
 		public String toString() {
-			return "Function( argc:" + argc
+			StringBuffer sb = new StringBuffer();
+			sb.append("\n\tFunction( argc:" + argc
 				+ ", locals:" + locals.toString()
 				+ ", boxed:" + boxed.toString()
 				+ ", closure:" + closure.toString()
-				+ ", body:" + stringify(body);
+				+ ", body:" + stringify(body) + ", code:");
+			for(int i = 0; i < code.length(); i++) {
+				sb.append((int)code.charAt(i));
+				sb.append(" ");
+			}
+			sb.append(" )");
+			return sb.toString();
 		}
 	}
 
@@ -309,13 +355,6 @@ public abstract class Ys {
 		public Literal(Object value) {
 			this.value = value;
 		}
-	}
-
-	private static class Closure {
-		public byte[] code;
-		public int argc;
-		public Object[] closure;
-		public Object[] constPool;
 	}
 
 	private static class Builtin {
@@ -344,7 +383,7 @@ public abstract class Ys {
 		if(list.length > 0) {
 			Object fn = list[0];
 			if(fn.equals("function")) {
-				return Function.create(list);
+				return new Function(list);
 			} 
 		}
 		return list;
