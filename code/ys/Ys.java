@@ -71,8 +71,7 @@ public abstract class Ys {
 	// Syntax tree
 	private static final int AST_BUILTIN_FUNCTION = 0x100;
 	private static final int AST_DO = 0;
-	private static final int AST_LOG = 1;
-	private static final int AST_SET = 2;
+	private static final int AST_SET = 1;
 	private static final int AST_LITERAL = AST_SET + 1;
 	private static final int AST_FN_LIST = AST_LITERAL + 1;
 	private static final int AST_GLOBAL_ID = AST_FN_LIST + 1;
@@ -416,7 +415,7 @@ public abstract class Ys {
 					int id = ((Builtin)head).id;
 
 					switch(id) {
-						case AST_LOG: {
+						case OP_LOG | AST_BUILTIN_FUNCTION: {
 							len(list, 2);
 							compile(list[1]);
 							code.append(OP_LOG);
@@ -579,11 +578,10 @@ public abstract class Ys {
 	private static class Builtin {
 		public int id;
 		public Builtin(String name) {
-			id = builtins.indexOf(name);
-			System.out.println("BBBB " + builtinId(name));
+			id = builtinId(name);
 		}
 		public String toString() {
-			return "builtin:" + builtins.elementAt(id);
+			return "builtin:" + id;
 		}
 	}
 
