@@ -278,6 +278,43 @@ public abstract class Ys {
 					--sp;
 				break; } case OP_PUSH_NIL: {
 					stack[++sp] = null;
+				break; } case OP_NOT: {
+				break; } case OP_ADD: {
+				break; } case OP_SUB: {
+				break; } case OP_MUL: {
+				break; } case OP_DIV: {
+				break; } case OP_REM: {
+				break; } case OP_IS_INT: {
+				break; } case OP_IS_STR: {
+				break; } case OP_IS_LIST: {
+				break; } case OP_IS_DICT: {
+				break; } case OP_IS_ITER: {
+				break; } case OP_EQUAL: {
+				break; } case OP_IS_EMPTY: {
+				break; } case OP_PUT: {
+				break; } case OP_GET: {
+				break; } case OP_RAND: {
+				break; } case OP_SIZE: {
+				break; } case OP_LESS: {
+				break; } case OP_LESSEQUAL: {
+				break; } case OP_SUBSTR: {
+				break; } case OP_RESIZE: {
+				break; } case OP_PUSH: {
+				break; } case OP_POP: {
+				break; } case OP_KEYS: {
+				break; } case OP_VALUES: {
+				break; } case OP_NEXT: {
+				break; } case OP_ASSERT: {
+				break; } case OP_JUMP: {
+				break; } case OP_JUMP_IF_TRUE: {
+				break; } case OP_DUP: {
+				break; } case OP_NEW_LIST: {
+				break; } case OP_NEW_DICT: {
+				break; } case OP_NEW_STRINGBUFFER: {
+				break; } case OP_STR_APPEND: {
+				break; } case OP_TO_STRING: {
+				break; } case OP_NEW_COUNTER: {
+				break; } case OP_SWAP: {
 				break; } 
 			}
 		}
