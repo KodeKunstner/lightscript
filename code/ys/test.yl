@@ -5,5 +5,5 @@
    [set h [f "World"]]
    [log [g]]
    [log [h]]
-   42
+   [- 10 4]
    ]

@@ -94,8 +94,8 @@ public abstract class Ys {
 	private static String[] fnNames = {"not", "+", "-", "*", "/", "%", "is-integer", "is-string", "is-list", "is-dictionary", "is-iterator", "equals", "is-empty", "put", "get", "random", "size", "<", "<=", "substring", "resize", "push", "pop", "keys", "values", "get-next", "log", "assert"};
 	private static int[] fnArity = {1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 1, 3, 2, 1, 1, 2, 2, 3, 2, 2, 1, 1, 1, 1, 1, 2};
 	private static char[] fnTypes = {OP_NOT, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_REM, OP_IS_INT, OP_IS_STR, OP_IS_LIST, OP_IS_DICT, OP_IS_ITER, OP_EQUAL, OP_IS_EMPTY, OP_PUT, OP_GET, OP_RAND, OP_SIZE, OP_LESS, OP_LESSEQUAL, OP_SUBSTR, OP_RESIZE, OP_PUSH, OP_POP, OP_KEYS, OP_VALUES, OP_NEXT, OP_LOG, OP_ASSERT};
-	private static String[] builtinNames = {"set", "if", "and", "or", "repeat", "foreach", "while", "do", "stringjoin", "list", "dict", "function"};
-	private static int[] builtinTypes = {AST_SET, AST_IF, AST_AND, AST_OR, AST_REPEAT, AST_FOREACH, AST_WHILE, AST_DO, AST_STRINGJOIN, AST_LIST, AST_DICT, AST_FUNCTION};
+	private static String[] builtinNames = {"set", "if", "and", "or", "repeat", "foreach", "while", "do", "stringjoin", "list", "dict"};
+	private static int[] builtinTypes = {AST_SET, AST_IF, AST_AND, AST_OR, AST_REPEAT, AST_FOREACH, AST_WHILE, AST_DO, AST_STRINGJOIN, AST_LIST, AST_DICT};
 
 	private static Stack builtins;
 	static {
@@ -103,6 +103,7 @@ public abstract class Ys {
 		builtins.push("do");
 		builtins.push("log");
 		builtins.push("set");
+		builtins.push("-");
 	}
 
 	private static int builtinId(String name) {
@@ -280,10 +281,25 @@ public abstract class Ys {
 					stack[++sp] = null;
 				break; } case OP_NOT: {
 				break; } case OP_ADD: {
+					int result = ((Integer)stack[sp]).intValue();
+					result += ((Integer)stack[--sp]).intValue(); 
+					stack[sp] = new Integer(result);
 				break; } case OP_SUB: {
+					int result = ((Integer)stack[sp]).intValue();
+					result = ((Integer)stack[--sp]).intValue() - result; 
+					stack[sp] = new Integer(result);
 				break; } case OP_MUL: {
+					int result = ((Integer)stack[sp]).intValue();
+					result *= ((Integer)stack[--sp]).intValue(); 
+					stack[sp] = new Integer(result);
 				break; } case OP_DIV: {
+					int result = ((Integer)stack[sp]).intValue();
+					result = ((Integer)stack[--sp]).intValue() / result; 
+					stack[sp] = new Integer(result);
 				break; } case OP_REM: {
+					int result = ((Integer)stack[sp]).intValue();
+					result = ((Integer)stack[--sp]).intValue() % result; 
+					stack[sp] = new Integer(result);
 				break; } case OP_IS_INT: {
 				break; } case OP_IS_STR: {
 				break; } case OP_IS_LIST: {
@@ -630,8 +646,9 @@ public abstract class Ys {
 	private static final Object[] emptylist = new Object[0];
 
 	private static Object createId(String name) {
-		if(builtins.contains(name)) {
-			return new Builtin(name);
+		Builtin b = new Builtin(name);
+		if(b.id != -1) {
+			return b;
 		} else {
 			return name;
 		}
