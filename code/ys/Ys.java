@@ -195,7 +195,7 @@ public abstract class Ys {
         Object[] closure = cl.closure;
         for (;;) {
             ++pc;
-            //System.out.println("pc:" + pc + " op:" + code[pc] + " sp:" + sp + " stack.length:" + stack.length);
+            System.out.println("pc:" + pc + " op:" + code[pc] + " sp:" + sp + " stack.length:" + stack.length);
             switch (code[pc]) {
                 case OP_ENSURE_STACKSPACE: {
                     int arg = readShort(pc, code);
@@ -462,8 +462,8 @@ public abstract class Ys {
                     break;
                 }
                 case OP_LESS: {
-                    Object o1 = stack[sp];
-                    Object o2 = stack[--sp];
+                    Object o2 = stack[sp];
+                    Object o1 = stack[--sp];
                     if (o1 instanceof Integer && o2 instanceof Integer) {
                         stack[sp] = ((Integer) o1).intValue() < ((Integer) o2).intValue() ? TRUE : null;
                     } else {
@@ -472,8 +472,8 @@ public abstract class Ys {
                     break;
                 }
                 case OP_LESSEQUAL: {
-                    Object o1 = stack[sp];
-                    Object o2 = stack[--sp];
+                    Object o2 = stack[sp];
+                    Object o1 = stack[--sp];
                     if (o1 instanceof Integer && o2 instanceof Integer) {
                         stack[sp] = ((Integer) o1).intValue() <= ((Integer) o2).intValue() ? TRUE : null;
                     } else {
@@ -538,8 +538,10 @@ public abstract class Ys {
                 case OP_JUMP_IF_TRUE: {
                     if (stack[sp] != null) {
                         pc += readShort(pc, code) + 2;
+                    } else {
+                        pc += 2;
                     }
-                    ++sp;
+                    --sp;
                     break;
                 }
                 case OP_DUP: {
@@ -776,30 +778,271 @@ public abstract class Ys {
                                 break;
                             }
                             case AST_IF: {
+                                //    code for list[1]
+                                //    jump_if_true -> label1
+                                //    code for list[3]
+                                //    jump -> label2
+                                // label1:
+                                //    code for list[2]
+                                // label2:
+
+                                assertLength(list, 4);
+
+                                int pos0, pos1, len;
+                                compile(list[1]);
+
+                                code.append(OP_JUMP_IF_TRUE);
+                                pushShort(0);
+                                pos0 = code.length();
+                                addDepth(-1);
+
+                                compile(list[3]);
+
+                                code.append(OP_JUMP);
+                                pushShort(0);
+                                pos1 = code.length();
+                                len = pos1 - pos0;
+                                setShort(pos0, len);
+
+                                addDepth(-1);
+
+                                compile(list[2]);
+                                len = code.length() - pos1;
+                                setShort(pos1, len);
                                 break;
                             }
                             case AST_AND: {
+                                assertLength(list, 3);
+                                int pos0, pos1, len;
+
+                                compile(list[1]);
+
+                                code.append(OP_JUMP_IF_TRUE);
+                                code.append((char) 0);
+                                code.append((char) 0);
+                                pos0 = code.length();
+
+                                code.append(OP_PUSH_NIL);
+
+                                code.append(OP_JUMP);
+                                code.append((char) 0);
+                                code.append((char) 0);
+                                pos1 = code.length();
+                                len = pos1 - pos0;
+                                setShort(pos0, len);
+
+                                compile(list[2]);
+                                len = code.length() - pos1;
+                                setShort(pos1, len);
                                 break;
                             }
                             case AST_OR: {
+                                assertLength(list, 3);
+                                int pos0, pos1, len;
+
+                                compile(list[1]);
+
+                                code.append(OP_DUP);
+
+                                code.append(OP_JUMP_IF_TRUE);
+                                code.append((char) 0);
+                                code.append((char) 0);
+                                pos0 = code.length();
+
+                                code.append(OP_DROP);
+
+                                compile(list[2]);
+
+                                pos1 = code.length();
+                                len = pos1 - pos0;
+                                setShort(pos0, len);
+
+
                                 break;
                             }
                             case AST_REPEAT: {
+                                //   push nil
+                                //   evaluate count
+                                //   new Countdown
+                                //   jump -> labelRepeat
+                                // labelTop:
+                                //   swap
+                                //   drop
+                                //   code for stmt1
+                                //   ...
+                                //   drop
+                                //   code for stmtn
+                                //   swap
+                                // labelRepeat:
+                                //   dup
+                                //   get_next
+                                //   jump if true -> labelTop
+                                //   drop
+                                int pos0, pos1, len;
+                                code.append(OP_PUSH_NIL);
+                                compile(list[1]);
+                                code.append(OP_NEW_COUNTER);
+
+                                code.append(OP_JUMP);
+                                code.append((char) 0);
+                                code.append((char) 0);
+                                pos0 = code.length();
+
+                                code.append(OP_SWAP);
+                                for (int i = 2; i < list.length; i++) {
+                                    code.append(OP_DROP);
+                                    compile(list[i]);
+                                }
+                                code.append(OP_SWAP);
+
+
+                                pos1 = code.length();
+                                len = pos1 - pos0;
+                                setShort(pos0, len);
+
+                                code.append(OP_DUP);
+
+                                code.append(OP_NEXT);
+
+                                code.append(OP_JUMP_IF_TRUE);
+                                len = pos0 - (code.length() + 2);
+                                code.append((char) ((len >> 8) & 0xff));
+                                code.append((char) (len & 0xff));
+
+                                code.append(OP_DROP);
+
                                 break;
                             }
                             case AST_FOREACH: {
+                                //   push nil
+                                //   get iterator
+                                //   jump -> labelNext
+                                // labelStmts:
+                                //   swap
+                                //   drop
+                                //   code for stmt1
+                                //   ...
+                                //   drop
+                                //   code for stmtn
+                                //   swap
+                                // labelNext:
+                                //   dup
+                                //   get-next
+                                //   set counter-var
+                                //   jump if true labelStmts
+                                //   drop
+                                int pos0, pos1, len;
+                                code.append(OP_PUSH_NIL);
+
+                                compile(list[2]);
+
+                                code.append(OP_JUMP);
+                                code.append((char) 0);
+                                code.append((char) 0);
+                                pos0 = code.length();
+
+                                code.append(OP_SWAP);
+                                for (int i = 3; i < list.length; i++) {
+                                    code.append(OP_DROP);
+                                    compile(list[i]);
+                                }
+                                code.append(OP_SWAP);
+
+                                pos1 = code.length();
+                                len = pos1 - pos0;
+                                setShort(pos0, len);
+
+                                code.append(OP_DUP);
+
+                                code.append(OP_NEXT);
+
+                                compile(list[1]);
+
+                                code.append(OP_JUMP_IF_TRUE);
+                                len = pos0 - (code.length() + 2);
+                                code.append((char) ((len >> 8) & 0xff));
+                                code.append((char) (len & 0xff));
+
+                                code.append(OP_DROP);
+
+
                                 break;
                             }
                             case AST_WHILE: {
+                                //   push nil
+                                //   jump -> labelCond:
+                                // labelBody:
+                                //   drop
+                                //   code for stmt1
+                                //   ...
+                                //   drop
+                                //   code for stmtn
+                                // labelCond:
+                                //   code for condition
+                                //   jump if true -> labelBody
+
+                                int pos0, pos1, len;
+                                code.append(OP_PUSH_NIL);
+
+                                code.append(OP_JUMP);
+                                code.append((char) 0);
+                                code.append((char) 0);
+                                pos0 = code.length();
+
+                                for (int i = 2; i < list.length; i++) {
+                                    code.append(OP_DROP);
+                                    compile(list[i]);
+                                }
+
+
+                                pos1 = code.length();
+                                len = pos1 - pos0;
+                                setShort(pos0, len);
+
+                                compile(list[1]);
+
+                                code.append(OP_JUMP_IF_TRUE);
+                                len = pos0 - (code.length() + 2);
+                                code.append((char) ((len >> 8) & 0xff));
+                                code.append((char) (len & 0xff));
+
+
                                 break;
                             }
                             case AST_STRINGJOIN: {
+                                code.append(OP_NEW_STRINGBUFFER);
+
+                                for (int i = 1; i < list.length; i++) {
+                                    compile(list[i]);
+                                    code.append(OP_STR_APPEND);
+                                }
+                                code.append(OP_TO_STRING);
+
                                 break;
                             }
                             case AST_LIST: {
+                                code.append(OP_NEW_LIST);
+
+                                for (int i = 1; i < list.length; i++) {
+                                    compile(list[i]);
+                                    code.append(OP_PUSH);
+                                }
+
                                 break;
                             }
                             case AST_DICT: {
+                                code.append(OP_NEW_DICT);
+
+                                if (list.length % 2 == 1) {
+                                    throw new Error("Unmatched key/value: " + stringify(list));
+                                }
+                                for (int i = 1; i < list.length; i++) {
+                                    compile(list[i]);
+                                    i++;
+                                    compile(list[i]);
+                                    code.append(OP_PUSH);
+                                }
+
                                 break;
                             }
                         }
