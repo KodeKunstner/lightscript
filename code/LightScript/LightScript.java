@@ -165,7 +165,7 @@ class LightScript {
             sb.append("[ ");
             if (os.length > 0 && os[0] instanceof Integer) {
                 int id = ((Integer) os[0]).intValue();
-                if (id >= 0 && id < idNames.length) {
+                if (id > 0 && id < idNames.length) {
                     sb.append(idNames[id]);
                 }
             }
@@ -248,24 +248,6 @@ class LightScript {
      * Analysis of variables in a function being compiled,
      * updated during the parsing.
      */
-    private static class Analysis {
-
-        public Stack used;
-        public Stack shared;
-        public Stack locals;
-        public int argc;
-
-        public Analysis() {
-            used = new Stack();
-            shared = new Stack();
-            locals = new Stack();
-        }
-
-        public String toString() {
-            return "Analysis{used:" + used + " shared:" + shared + " locals:" + locals + " args:" + argc + "}";
-        }
-    }
-
     private static class Closure {
 
         public byte[] code;
@@ -331,17 +313,20 @@ class LightScript {
     private int c;
     private StringBuffer sb;
     private Token token;
-    private Analysis analysis;
-    private Stack analysisStack;
+    private Stack varsUsed;
+    private Stack varsBoxed;
+    private Stack varsLocals;
+    private int varsArgc;
 
     private LightScript(InputStream is) {
         this.is = is;
         sb = new StringBuffer();
         c = ' ';
         token = null;
-        analysisStack = new Stack();
-        analysis = new Analysis();
-
+        varsUsed = new Stack();
+        varsBoxed = new Stack();
+        varsLocals = new Stack();
+        varsArgc = 0;
     }
 
     //////////////////////
@@ -507,7 +492,7 @@ class LightScript {
         public Object[] nud() {
             switch (nudFn) {
                 case NUD_ID:
-                    stackAdd(analysis.used, val);
+                    stackAdd(varsUsed, val);
                     return v(ID_IDENT, val);
                 case NUD_LITERAL:
                     return v(ID_LITERAL, val);
@@ -525,13 +510,22 @@ class LightScript {
                 case NUD_PREFIX2:
                     return v(nudId, parse(0), parse(0));
                 case NUD_FUNCTION: {
-                    analysisStack.push(analysis);
-                    analysis = new Analysis();
-
+                    // save statistics for previous function
+                    Stack prevUsed = varsUsed;
+                    Stack prevBoxed = varsBoxed;
+                    Stack prevLocals = varsLocals;
+                    int prevArgc = varsArgc;
+                    
+                    // create new statistics
+                    varsUsed = new Stack();
+                    varsBoxed = new Stack();
+                    varsLocals = new Stack();
+                    
+                    // parse arguments
                     Object[] args = parse(0);
 
-                    // add function parameters to analysis of function
-                    analysis.argc = args.length - 1;
+                    // add function arguments to statistics
+                    varsArgc = args.length - 1;
                     if (((Integer) args[0]).intValue() != ID_PAREN) {
                         throw new Error("parameter not variable name" + stringify(args));
                     }
@@ -540,33 +534,41 @@ class LightScript {
                         if (((Integer) os[0]).intValue() != ID_IDENT) {
                             throw new Error("parameter not variable name" + stringify(args));
                         }
-                        analysis.locals.push(os[1]);
+                        varsLocals.push(os[1]);
                     }
 
                     Object[] body = parse(0);
-                    Stack shared = analysis.shared;
-                    for (int i = 0; i < analysis.used.size(); i++) {
-                        Object o = analysis.used.elementAt(i);
-                        if (!analysis.locals.contains(o)) {
-                            stackAdd(shared, o);
+                    for (int i = 0; i < varsUsed.size(); i++) {
+                        Object o = varsUsed.elementAt(i);
+                        if (!varsLocals.contains(o)) {
+                            stackAdd(varsBoxed, o);
                         }
                     }
-                    Object[] result = v(nudId, shared, compile(body));
-                    analysis = (Analysis) analysisStack.pop();
-                    for (int i = 0; i < shared.size(); i++) {
-                        stackAdd(analysis.shared, shared.elementAt(i));
+                    Stack varsNeeded = new Stack();
+                    for (int i = 0; i < varsBoxed.size(); i++) {
+                        Object o = varsBoxed.elementAt(i);
+                        if (!varsLocals.contains(o)) {
+                            stackAdd(prevBoxed, o);
+                            stackAdd(varsNeeded, o);
+                        }
                     }
+                    Object[] result = v(nudId, varsNeeded, compile(body));
+                    
+                    varsUsed = prevUsed;
+                    varsBoxed = prevBoxed;
+                    varsLocals = prevLocals;
+                    varsArgc = prevArgc;
                     return result;
                 }
                 case NUD_VAR:
                     Object[] expr = parse(0);
                     int type = ((Integer) expr[0]).intValue();
                     if (type == ID_IDENT) {
-                        stackAdd(analysis.locals, expr[1]);
+                        stackAdd(varsLocals, expr[1]);
                     } else {
                         Object[] expr2 = (Object[]) expr[1];
                         if (type == ID_SET && ((Integer) expr2[0]).intValue() == ID_IDENT) {
-                            stackAdd(analysis.locals, expr2[1]);
+                            stackAdd(varsLocals, expr2[1]);
                         } else {
                             throw new Error("Error in var");
                         }
@@ -743,7 +745,7 @@ class LightScript {
     ////////////////
     
     private Object compile(Object[] body) {
-        return v(-1, analysis, body);
+        return v(- varsArgc, varsLocals, varsBoxed, body);
     }
     private static class Function {
 
