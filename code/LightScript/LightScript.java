@@ -32,7 +32,34 @@ class LightScript {
     private static final Object[] SEP_TOKEN = {"(sep)"};
     private static final String ID_APPLY = "apply";
     private static final Boolean TRUE = new Boolean(true);
+    
+    private static final int ID_PAREN = 1;
+    private static final int ID_LIST_LITERAL = 2;
+    private static final int ID_TABLE_LITERAL = 3;
+    private static final int ID_VAR = 4; 
+    private static final int ID_RETURN = 5;
+    private static final int ID_NOT = 6;   
+    private static final int ID_FUNCTION = 7;
+    private static final int ID_IF = 8; 
+    private static final int ID_WHILE = 9;
+    private static final int ID_SUBSCRIPT_STR = 10;
+    private static final int ID_CALL_FUNCTION = 11;
+    private static final int ID_SUBSCRIPT = 12;
+    private static final int ID_MUL = 13;
+    private static final int ID_REM = 14;
+    private static final int ID_ADD = 15;
+    private static final int ID_SUB = 16;
+    private static final int ID_NEG = 17;
+    private static final int ID_EQUALS = 18;
+    private static final int ID_NOT_EQUALS = 19;
+    private static final int ID_LESS_EQUALS = 20;
+    private static final int ID_LESS = 21;
+    private static final int ID_AND = 22;
+    private static final int ID_OR = 23;
+    private static final int ID_ELSE = 24;
+    private static final int ID_SET = 25;
 
+    
     // Opcodes
     private static final char OP_ENSURE_STACKSPACE = 0;
     private static final char OP_INC_SP = 1;
@@ -393,9 +420,10 @@ class LightScript {
     class Token {
 
         Object val;
+        private int nudFn;
+        private int ledFn;
         private int nudId;
         private int ledId;
-        private int id;
         public boolean sep;
         public int bp;
         private static final int NUD_ID = 0,  NUD_LITERAL = 1,  NUD_END = 2,  NUD_SEP = 3,  NUD_LIST = 4,  NUD_PREFIX = 5,  NUD_PREFIX2 = 6,  LED_INFIX = 7,  LED_INFIXR = 8,  LED_INFIX_LIST = 9;
@@ -415,7 +443,7 @@ class LightScript {
         }
 
         public Object[] nud() {
-            switch (nudId) {
+            switch (nudFn) {
                 case NUD_ID:
                     return v("identifier", val);
                 case NUD_LITERAL:
@@ -434,12 +462,12 @@ class LightScript {
                 case NUD_PREFIX2:
                     return v(val, parse(0), parse(0));
                 default:
-                    throw new Error("Unknown nud: " + nudId);
+                    throw new Error("Unknown nud: " + nudFn);
             }
         }
 
         public Object[] led(Object left) {
-            switch (ledId) {
+            switch (ledFn) {
                 case LED_INFIX:
                     return v(val, left, parse(bp));
                 case LED_INFIXR:
@@ -452,7 +480,7 @@ class LightScript {
                     return readList(s);
                 }
                 default:
-                    throw new Error("Unknown led: " + ledId);
+                    throw new Error("Unknown led: " + ledFn);
             }
         }
 
@@ -460,113 +488,137 @@ class LightScript {
             this.val = val;
             sep = false;
             bp = 0;
+            nudFn = 0;
+            ledFn = 0;
             nudId = 0;
             ledId = 0;
-            id = 0;
             if (isLiteral) {
-                nudId = NUD_LITERAL;
-
-                return;
+                nudFn = NUD_LITERAL;
 
             } else if (val == null || "]".equals(val) || ")".equals(val) || "}".equals(val)) {
-                nudId = NUD_END;
+                nudFn = NUD_END;
                 sep = true;
 
             } else if (".".equals(val)) {
                 bp = 700;
-                ledId = LED_INFIX;
+                ledFn = LED_INFIX;
+                ledId = ID_SUBSCRIPT_STR;
 
             } else if ("(".equals(val)) {
                 bp = 600;
-                ledId = LED_INFIX_LIST;
-                nudId = NUD_LIST;
+                ledFn = LED_INFIX_LIST;
+                ledId = ID_CALL_FUNCTION;
+                nudFn = NUD_LIST;
+                nudId = ID_PAREN;
 
             } else if ("[".equals(val)) {
                 bp = 600;
-                ledId = LED_INFIX_LIST;
-                nudId = NUD_LIST;
+                ledFn = LED_INFIX_LIST;
+                ledId = ID_SUBSCRIPT;
+                nudFn = NUD_LIST;
+                nudId = ID_LIST_LITERAL;
 
             } else if ("*".equals(val)) {
                 bp = 500;
-                ledId = LED_INFIX;
+                ledFn = LED_INFIX;
+                ledId = ID_MUL;
 
             } else if ("%".equals(val)) {
                 bp = 500;
-                ledId = LED_INFIX;
+                ledFn = LED_INFIX;
+                ledId = ID_REM;
 
             } else if ("+".equals(val)) {
                 bp = 400;
-                ledId = LED_INFIX;
+                ledFn = LED_INFIX;
+                ledId = ID_ADD;
 
             } else if ("-".equals(val)) {
                 bp = 400;
-                ledId = LED_INFIX;
-                nudId = NUD_PREFIX;
+                ledFn = LED_INFIX;
+                ledId = ID_SUB;
+                nudFn = NUD_PREFIX;
+                ledId = ID_NEG;
 
             } else if ("===".equals(val)) {
                 bp = 300;
-                ledId = LED_INFIX;
+                ledFn = LED_INFIX;
+                ledId = ID_EQUALS;
 
             } else if ("!==".equals(val)) {
                 bp = 300;
-                ledId = LED_INFIX;
+                ledFn = LED_INFIX;
+                ledId = ID_NOT_EQUALS;
 
             } else if ("<=".equals(val)) {
                 bp = 300;
-                ledId = LED_INFIX;
+                ledFn = LED_INFIX;
+                ledId = ID_LESS_EQUALS;
 
             } else if ("<".equals(val)) {
                 bp = 300;
-                ledId = LED_INFIX;
+                ledFn = LED_INFIX;
+                ledId = ID_LESS;
 
             } else if ("&&".equals(val)) {
                 bp = 200;
-                ledId = LED_INFIXR;
+                ledFn = LED_INFIXR;
+                ledId = ID_AND;
 
             } else if ("||".equals(val)) {
                 bp = 200;
-                ledId = LED_INFIXR;
+                ledFn = LED_INFIXR;
+                ledId = ID_OR;
 
             } else if ("else".equals(val)) {
                 bp = 200;
-                ledId = LED_INFIXR;
+                ledFn = LED_INFIXR;
+                ledId = ID_ELSE;
 
             } else if ("=".equals(val)) {
                 bp = 100;
-                ledId = LED_INFIX;
+                ledFn = LED_INFIX;
+                ledId = ID_SET;
 
             } else if (":".equals(val) || ";".equals(val) || ",".equals(val)) {
-                nudId = NUD_SEP;
+                nudFn = NUD_SEP;
                 sep = true;
 
             } else if ("{".equals(val)) {
-                nudId = NUD_LIST;
+                nudFn = NUD_LIST;
+                nudId = ID_TABLE_LITERAL;
 
             } else if ("var".equals(val)) {
-                nudId = NUD_PREFIX;
+                nudFn = NUD_PREFIX;
+                nudId = ID_VAR;
 
             } else if ("return".equals(val)) {
-                nudId = NUD_PREFIX;
+                nudFn = NUD_PREFIX;
+                nudId = ID_RETURN;
 
             } else if ("!".equals(val)) {
-                nudId = NUD_PREFIX;
+                nudFn = NUD_PREFIX;
+                nudId = ID_NOT;
 
             } else if ("function".equals(val)) {
-                nudId = NUD_PREFIX2;
+                nudFn = NUD_PREFIX2;
+                nudId = ID_FUNCTION;
 
             } else if ("if".equals(val)) {
-                nudId = NUD_PREFIX2;
+                nudFn = NUD_PREFIX2;
+                nudId = ID_IF;
 
             } else if ("while".equals(val)) {
-                nudId = NUD_PREFIX2;
+                nudFn = NUD_PREFIX2;
+                nudId = ID_WHILE;
 
             } else if ("undefined".equals(val) || "null".equals(val) || "false".equals(val)) {
                 val = null;
-                nudId = NUD_LITERAL;
+                nudFn = NUD_LITERAL;
 
             } else if ("true".equals(val)) {
                 val = TRUE;
-                nudId = NUD_LITERAL;
+                nudFn = NUD_LITERAL;
             }
 
         }
