@@ -221,7 +221,7 @@ class LightScript {
 
     private static int stackAdd(Stack s, Object val) {
         int pos = s.indexOf(val);
-        if(pos == -1) {
+        if (pos == -1) {
             pos = s.size();
             s.push(val);
         }
@@ -243,27 +243,26 @@ class LightScript {
             this.value = value;
         }
     }
-    
+
     /**
      * Analysis of variables in a function being compiled,
      * updated during the parsing.
      */
     private static class Analysis {
+
         public Stack used;
         public Stack shared;
         public Stack locals;
-        public Stack args;
+        public int argc;
+
         public Analysis() {
             used = new Stack();
             shared = new Stack();
             locals = new Stack();
-            args = new Stack();
         }
+
         public String toString() {
-            return "Analysis{used:" + used 
-                    + " shared:" + shared
-                    + " locals:" + locals
-                    + " args:" + args + "}";
+            return "Analysis{used:" + used + " shared:" + shared + " locals:" + locals + " args:" + argc + "}";
         }
     }
 
@@ -342,7 +341,7 @@ class LightScript {
         token = null;
         analysisStack = new Stack();
         analysis = new Analysis();
-        
+
     }
 
     //////////////////////
@@ -355,7 +354,6 @@ class LightScript {
     private Object getToken() {
         return token;
     }
-
 
     private void nextc() {
         try {
@@ -491,7 +489,6 @@ class LightScript {
         private static final int LED_INFIX_LIST = 9;
         private static final int NUD_FUNCTION = 10;
         private static final int NUD_VAR = 11;
-        
 
         private Object[] readList(Stack s) {
             Object[] p = parse(0);
@@ -534,6 +531,7 @@ class LightScript {
                     Object[] args = parse(0);
 
                     // add function parameters to analysis of function
+                    analysis.argc = args.length - 1;
                     if (((Integer) args[0]).intValue() != ID_PAREN) {
                         throw new Error("parameter not variable name" + stringify(args));
                     }
@@ -542,31 +540,32 @@ class LightScript {
                         if (((Integer) os[0]).intValue() != ID_IDENT) {
                             throw new Error("parameter not variable name" + stringify(args));
                         }
-                        analysis.args.push(os[1]);
+                        analysis.locals.push(os[1]);
                     }
-                    
-                                        Object[] result = v(nudId, analysis, args, parse(0));
+
+                    Object[] body = parse(0);
                     Stack shared = analysis.shared;
-                    for(int i = 0; i < analysis.used.size(); i++) {
+                    for (int i = 0; i < analysis.used.size(); i++) {
                         Object o = analysis.used.elementAt(i);
-                        if((!analysis.args.contains(o)) && (!analysis.locals.contains(o))) {
+                        if (!analysis.locals.contains(o)) {
                             stackAdd(shared, o);
                         }
                     }
+                    Object[] result = v(nudId, shared, compile(body));
                     analysis = (Analysis) analysisStack.pop();
-                    for(int i = 0; i < shared.size(); i++) {
+                    for (int i = 0; i < shared.size(); i++) {
                         stackAdd(analysis.shared, shared.elementAt(i));
                     }
                     return result;
                 }
                 case NUD_VAR:
                     Object[] expr = parse(0);
-                    int type = ((Integer)expr[0]).intValue();
-                    if(type == ID_IDENT) {
+                    int type = ((Integer) expr[0]).intValue();
+                    if (type == ID_IDENT) {
                         stackAdd(analysis.locals, expr[1]);
                     } else {
                         Object[] expr2 = (Object[]) expr[1];
-                        if(type == ID_SET && ((Integer)expr2[0]).intValue() == ID_IDENT) {
+                        if (type == ID_SET && ((Integer) expr2[0]).intValue() == ID_IDENT) {
                             stackAdd(analysis.locals, expr2[1]);
                         } else {
                             throw new Error("Error in var");
@@ -742,6 +741,10 @@ class LightScript {
     //////////////////
     /////////////////
     ////////////////
+    
+    private Object compile(Object[] body) {
+        return v(-1, analysis, body);
+    }
     private static class Function {
 
         private int argc;
@@ -783,7 +786,7 @@ class LightScript {
                 boxed.removeElement(e.nextElement());
             }
 
-            compile();
+            oldVersionOfCompile();
         //System.out.println(this.toString());
         }
 
@@ -848,7 +851,7 @@ class LightScript {
             return pos;
         }
 
-        private void compile() {
+        private void oldVersionOfCompile() {
             constPool = new Stack();
             code = new StringBuffer();
 
@@ -877,7 +880,7 @@ class LightScript {
                 pushShort(depth - locals.indexOf(e.nextElement()) - 1);
             }
 
-            compile(body);
+            oldVersionOfCompile(body);
 
             // emit return code, including current stack depth to drop
             code.append(OP_RETURN);
@@ -888,7 +891,7 @@ class LightScript {
             setShort(spacePos, maxDepth);
         }
 
-        private void compile(Object o) {
+        private void oldVersionOfCompile(Object o) {
             if (o instanceof Object[]) {
                 Object[] list = (Object[]) o;
                 Object head = list[0];
@@ -900,7 +903,7 @@ class LightScript {
                         char opcode = (char) (id & MASK_OP);
                         assertLength(list, builtinArity(opcode) + 1);
                         for (int i = 1; i < list.length; i++) {
-                            compile(list[i]);
+                            oldVersionOfCompile(list[i]);
                         }
                         addDepth(2 - list.length);
                         code.append(opcode);
@@ -909,12 +912,12 @@ class LightScript {
                             case AST_DO: {
                                 int i;
                                 for (i = 1; i < list.length - 1; i++) {
-                                    compile(list[i]);
+                                    oldVersionOfCompile(list[i]);
                                     code.append(OP_DROP);
                                     addDepth(-1);
                                 }
                                 if (i < list.length) {
-                                    compile(list[i]);
+                                    oldVersionOfCompile(list[i]);
                                 } else {
                                     code.append(OP_PUSH_NIL);
                                     addDepth(1);
@@ -925,7 +928,7 @@ class LightScript {
                             case AST_SET: {
                                 assertLength(list, 3);
                                 String name = (String) list[1];
-                                compile(list[2]);
+                                oldVersionOfCompile(list[2]);
                                 int pos = closure.indexOf(name);
                                 if (pos >= 0) {
                                     code.append(OP_SET_CLOSURE);
@@ -953,14 +956,14 @@ class LightScript {
                                 assertLength(list, 4);
 
                                 int pos0, pos1, len;
-                                compile(list[1]);
+                                oldVersionOfCompile(list[1]);
 
                                 code.append(OP_JUMP_IF_TRUE);
                                 pushShort(0);
                                 pos0 = code.length();
                                 addDepth(-1);
 
-                                compile(list[3]);
+                                oldVersionOfCompile(list[3]);
 
                                 code.append(OP_JUMP);
                                 pushShort(0);
@@ -970,7 +973,7 @@ class LightScript {
 
                                 addDepth(-1);
 
-                                compile(list[2]);
+                                oldVersionOfCompile(list[2]);
                                 len = code.length() - pos1;
                                 setShort(pos1, len);
                                 break;
@@ -979,7 +982,7 @@ class LightScript {
                                 assertLength(list, 3);
                                 int pos0, pos1, len;
 
-                                compile(list[1]);
+                                oldVersionOfCompile(list[1]);
 
                                 code.append(OP_JUMP_IF_TRUE);
                                 code.append((char) 0);
@@ -997,16 +1000,16 @@ class LightScript {
                                 setShort(pos0, len);
                                 addDepth(-1);
 
-                                compile(list[2]);
+                                oldVersionOfCompile(list[2]);
                                 len = code.length() - pos1;
                                 setShort(pos1, len);
                                 break;
                             }
                             case AST_OR: {
-                                assertLength(list, 3);
+                                assertLength(list, 3);     
                                 int pos0, pos1, len;
 
-                                compile(list[1]);
+                                oldVersionOfCompile(list[1]);
 
                                 code.append(OP_DUP);
                                 addDepth(1);
@@ -1020,7 +1023,7 @@ class LightScript {
                                 code.append(OP_DROP);
                                 addDepth(-1);
 
-                                compile(list[2]);
+                                oldVersionOfCompile(list[2]);
 
                                 pos1 = code.length();
                                 len = pos1 - pos0;
@@ -1051,7 +1054,7 @@ class LightScript {
                                 code.append(OP_PUSH_NIL);
                                 addDepth(1);
 
-                                compile(list[2]);
+                                oldVersionOfCompile(list[2]);
 
                                 code.append(OP_JUMP);
                                 code.append((char) 0);
@@ -1062,7 +1065,7 @@ class LightScript {
                                 for (int i = 3; i < list.length; i++) {
                                     code.append(OP_DROP);
                                     addDepth(-1);
-                                    compile(list[i]);
+                                    oldVersionOfCompile(list[i]);
                                 }
                                 code.append(OP_SWAP);
 
@@ -1129,7 +1132,7 @@ class LightScript {
                                 for (int i = 2; i < list.length; i++) {
                                     code.append(OP_DROP);
                                     addDepth(-1);
-                                    compile(list[i]);
+                                    oldVersionOfCompile(list[i]);
                                 }
 
 
@@ -1137,7 +1140,7 @@ class LightScript {
                                 len = pos1 - pos0;
                                 setShort(pos0, len);
 
-                                compile(list[1]);
+                                oldVersionOfCompile(list[1]);
 
                                 code.append(OP_JUMP_IF_TRUE);
                                 len = pos0 - (code.length() + 2);
@@ -1153,7 +1156,7 @@ class LightScript {
                                 addDepth(1);
 
                                 for (int i = 1; i < list.length; i++) {
-                                    compile(list[i]);
+                                    oldVersionOfCompile(list[i]);
                                     code.append(OP_STR_APPEND);
                                     addDepth(-1);
                                 }
@@ -1166,7 +1169,7 @@ class LightScript {
                                 addDepth(1);
 
                                 for (int i = 1; i < list.length; i++) {
-                                    compile(list[i]);
+                                    oldVersionOfCompile(list[i]);
                                     code.append(OP_PUSH);
                                     addDepth(-1);
                                 }
@@ -1181,9 +1184,9 @@ class LightScript {
                                     throw new Error("Unmatched key/value: " + stringify(list));
                                 }
                                 for (int i = 1; i < list.length; i++) {
-                                    compile(list[i]);
+                                    oldVersionOfCompile(list[i]);
                                     i++;
-                                    compile(list[i]);
+                                    oldVersionOfCompile(list[i]);
                                     code.append(OP_PUT);
                                     addDepth(-2);
                                 }
@@ -1200,7 +1203,7 @@ class LightScript {
 
                     // find function and evaluate parameters
                     for (int i = 0; i < list.length; i++) {
-                        compile(list[i]);
+                        oldVersionOfCompile(list[i]);
                     }
 
                     // call the function
