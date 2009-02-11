@@ -9,7 +9,7 @@ import java.util.Stack;
 // - Constants
 // - Utility functions
 // - Utility classes and structs
-// 
+// - Properties and constructor
 // - Tokeniser
 // - Parser
 // - Compiler
@@ -33,8 +33,6 @@ class LightScript {
     private static final Object[] END_TOKEN = {"(end)"};
     private static final Object[] SEP_TOKEN = {"(sep)"};
     private static final Boolean TRUE = new Boolean(true);
-    
-    
     private static final int ID_PAREN = 1;
     private static final int ID_LIST_LITERAL = 2;
     private static final int ID_CURLY = 3;
@@ -44,7 +42,7 @@ class LightScript {
     private static final int ID_FUNCTION = 7;
     private static final int ID_IF = 8;
     private static final int ID_WHILE = 9;
-    private static final int ID_SUBSCRIPT_STR = 10;
+    private static final int ID_LITERAL = 10;
     private static final int ID_CALL_FUNCTION = 11;
     private static final int ID_SUBSCRIPT = 12;
     private static final int ID_MUL = 13;
@@ -61,15 +59,12 @@ class LightScript {
     private static final int ID_ELSE = 24;
     private static final int ID_SET = 25;
     private static final int ID_IDENT = 26;
-    private static final int ID_LITERAL = 27;
-    
-    private static final String[] idNames =    {"", "PAREN", "LIST_LITERAL", 
-    "CURLY", "VAR", "RETURN", "NOT", "FUNCTION", "IF", "WHILE", 
-    "SUBSCRIPT_STR", "CALL_FUNCTION", "SUBSCRIPT",
-    "MUL", "REM", "ADD", "SUB", "NEG", "EQUALS", "NOT_EQUALS", "LEQ", 
-    "LESS", "AND", "OR", "ELSE", "SET", "IDENT", "LITERAL" };
-             
-    
+    private static final String[] idNames = {"", "PAREN", "LIST_LITERAL",
+        "CURLY", "VAR", "RETURN", "NOT", "FUNCTION", "IF", "WHILE",
+        "SUBSCRIPT_STR", "CALL_FUNCTION", "SUBSCRIPT",
+        "MUL", "REM", "ADD", "SUB", "NEG", "EQUALS", "NOT_EQUALS", "LEQ",
+        "LESS", "AND", "OR", "ELSE", "SET", "IDENT", "LITERAL"
+    };
     // Opcodes
     private static final char OP_ENSURE_STACKSPACE = 0;
     private static final char OP_INC_SP = 1;
@@ -168,16 +163,16 @@ class LightScript {
             StringBuffer sb = new StringBuffer();
             Object[] os = (Object[]) o;
             sb.append("[ ");
-            if(os.length > 0 && os[0] instanceof Integer) {
-                int id = ((Integer)os[0]).intValue();
-                if(id >= 0 && id < idNames.length) {
+            if (os.length > 0 && os[0] instanceof Integer) {
+                int id = ((Integer) os[0]).intValue();
+                if (id >= 0 && id < idNames.length) {
                     sb.append(idNames[id]);
                 }
             }
             for (int i = 0; i < os.length; i++) {
                 sb.append(stringify(os[i]) + " ");
             }
-            sb.append("]\n");
+            sb.append("]");
             return sb.toString();
         } else {
             return o.toString();
@@ -191,6 +186,11 @@ class LightScript {
 
     private static Object[] v(int id, Object o1, Object o2) {
         Object[] result = {new Integer(id), o1, o2};
+        return result;
+    }
+
+    private static Object[] v(int id, Object o1, Object o2, Object o3) {
+        Object[] result = {new Integer(id), o1, o2, o3};
         return result;
     }
 
@@ -219,6 +219,14 @@ class LightScript {
         return -1;
     }
 
+    private static int stackAdd(Stack s, Object val) {
+        int pos = s.indexOf(val);
+        if(pos == -1) {
+            pos = s.size();
+            s.push(val);
+        }
+        return pos;
+    }
 
     //////////////////////
     // Utility classes //
@@ -233,6 +241,29 @@ class LightScript {
 
         public Literal(Object value) {
             this.value = value;
+        }
+    }
+    
+    /**
+     * Analysis of variables in a function being compiled,
+     * updated during the parsing.
+     */
+    private static class Analysis {
+        public Stack used;
+        public Stack shared;
+        public Stack locals;
+        public Stack args;
+        public Analysis() {
+            used = new Stack();
+            shared = new Stack();
+            locals = new Stack();
+            args = new Stack();
+        }
+        public String toString() {
+            return "Analysis{used:" + used 
+                    + " shared:" + shared
+                    + " locals:" + locals
+                    + " args:" + args + "}";
         }
     }
 
@@ -291,27 +322,40 @@ class LightScript {
     }
 
     //////////////////////
-    //// Tokeniser //////
-    ////////////////////
+    /// Variables and ///
+    /// constructor  ///
     ///////////////////
     //////////////////
     /////////////////
     ////////////////
-    InputStream is;
-    int c;
-    StringBuffer sb;
-    Token token;
-
-    private Object getToken() {
-        return token;
-    }
+    private InputStream is;
+    private int c;
+    private StringBuffer sb;
+    private Token token;
+    private Analysis analysis;
+    private Stack analysisStack;
 
     private LightScript(InputStream is) {
         this.is = is;
         sb = new StringBuffer();
         c = ' ';
         token = null;
+        analysisStack = new Stack();
+        analysis = new Analysis();
+        
     }
+
+    //////////////////////
+    //// Tokeniser //////
+    ////////////////////
+    ///////////////////
+    //////////////////
+    /////////////////
+    ////////////////
+    private Object getToken() {
+        return token;
+    }
+
 
     private void nextc() {
         try {
@@ -426,9 +470,9 @@ class LightScript {
         return left;
     }
 
-    class Token {
+    private class Token {
 
-        Object val;
+        private Object val;
         private int nudFn;
         private int ledFn;
         private int nudId;
@@ -445,7 +489,10 @@ class LightScript {
         private static final int LED_INFIX = 7;
         private static final int LED_INFIXR = 8;
         private static final int LED_INFIX_LIST = 9;
+        private static final int NUD_FUNCTION = 10;
+        private static final int NUD_VAR = 11;
         
+
         private Object[] readList(Stack s) {
             Object[] p = parse(0);
             while (p != END_TOKEN) {
@@ -463,6 +510,7 @@ class LightScript {
         public Object[] nud() {
             switch (nudFn) {
                 case NUD_ID:
+                    stackAdd(analysis.used, val);
                     return v(ID_IDENT, val);
                 case NUD_LITERAL:
                     return v(ID_LITERAL, val);
@@ -479,6 +527,52 @@ class LightScript {
                     return v(nudId, parse(0));
                 case NUD_PREFIX2:
                     return v(nudId, parse(0), parse(0));
+                case NUD_FUNCTION: {
+                    analysisStack.push(analysis);
+                    analysis = new Analysis();
+
+                    Object[] args = parse(0);
+
+                    // add function parameters to analysis of function
+                    if (((Integer) args[0]).intValue() != ID_PAREN) {
+                        throw new Error("parameter not variable name" + stringify(args));
+                    }
+                    for (int i = 1; i < args.length; i++) {
+                        Object[] os = (Object[]) args[i];
+                        if (((Integer) os[0]).intValue() != ID_IDENT) {
+                            throw new Error("parameter not variable name" + stringify(args));
+                        }
+                        analysis.args.push(os[1]);
+                    }
+                    
+                                        Object[] result = v(nudId, analysis, args, parse(0));
+                    Stack shared = analysis.shared;
+                    for(int i = 0; i < analysis.used.size(); i++) {
+                        Object o = analysis.used.elementAt(i);
+                        if((!analysis.args.contains(o)) && (!analysis.locals.contains(o))) {
+                            stackAdd(shared, o);
+                        }
+                    }
+                    analysis = (Analysis) analysisStack.pop();
+                    for(int i = 0; i < shared.size(); i++) {
+                        stackAdd(analysis.shared, shared.elementAt(i));
+                    }
+                    return result;
+                }
+                case NUD_VAR:
+                    Object[] expr = parse(0);
+                    int type = ((Integer)expr[0]).intValue();
+                    if(type == ID_IDENT) {
+                        stackAdd(analysis.locals, expr[1]);
+                    } else {
+                        Object[] expr2 = (Object[]) expr[1];
+                        if(type == ID_SET && ((Integer)expr2[0]).intValue() == ID_IDENT) {
+                            stackAdd(analysis.locals, expr2[1]);
+                        } else {
+                            throw new Error("Error in var");
+                        }
+                    }
+                    return v(nudId, expr);
                 default:
                     throw new Error("Unknown nud: " + nudFn);
             }
@@ -516,11 +610,6 @@ class LightScript {
                 nudFn = NUD_END;
                 sep = true;
 
-            } else if (".".equals(val)) {
-                bp = 700;
-                ledFn = LED_INFIX;
-                ledId = ID_SUBSCRIPT_STR;
-
             } else if ("(".equals(val)) {
                 bp = 600;
                 ledFn = LED_INFIX_LIST;
@@ -555,7 +644,7 @@ class LightScript {
                 ledFn = LED_INFIX;
                 ledId = ID_SUB;
                 nudFn = NUD_PREFIX;
-                ledId = ID_NEG;
+                nudId = ID_NEG;
 
             } else if ("===".equals(val)) {
                 bp = 300;
@@ -606,7 +695,7 @@ class LightScript {
                 nudId = ID_CURLY;
 
             } else if ("var".equals(val)) {
-                nudFn = NUD_PREFIX;
+                nudFn = NUD_VAR;
                 nudId = ID_VAR;
 
             } else if ("return".equals(val)) {
@@ -618,7 +707,7 @@ class LightScript {
                 nudId = ID_NOT;
 
             } else if ("function".equals(val)) {
-                nudFn = NUD_PREFIX2;
+                nudFn = NUD_FUNCTION;
                 nudId = ID_FUNCTION;
 
             } else if ("if".equals(val)) {
