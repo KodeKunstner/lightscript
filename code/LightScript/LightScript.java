@@ -33,6 +33,25 @@ class LightScript {
     //////////////////////////////////////////
     // Utility functions
     ////
+    private static String stringify(Object o) {
+        if (o == null) {
+            return "null";
+        }
+        if (o instanceof Literal) {
+            return ((Literal) o).value.toString();
+        } else if (o instanceof Object[]) {
+            StringBuffer sb = new StringBuffer();
+            Object[] os = (Object[]) o;
+            sb.append("[");
+            for (int i = 0; i < os.length; i++) {
+                sb.append(" " + stringify(os[i]));
+            }
+            sb.append(" ]");
+            return sb.toString();
+        } else {
+            return o.toString();
+        }
+    }
     private static Object [] v(Object o1) {
         Object[] result = {o1};
         return result;
@@ -256,94 +275,111 @@ class LightScript {
                 nudId = NUD_LITERAL;
 
                 return;
-            } 
-            
-            if( ".".equals(val)) {
+
+            } else if( val == null 
+                    || "]".equals(val)
+                    || ")".equals(val)
+                    || "}".equals(val) ) {
+                nudId = NUD_END;
+                sep = true;
+
+            } else if( ".".equals(val)) {
                 bp = 700;
                 ledId = LED_INFIX;
 
-            } 
-            
-            if( "(".equals(val)
-             || "[".equals(val)) {
+            } else if( "(".equals(val)) {
                 bp = 600;
                 ledId = LED_INFIX_LIST;
-            } 
-            
-            if( "*".equals(val)
-             || "%".equals(val)) {
+                nudId = NUD_LIST;
+
+            } else if("[".equals(val)) {
+                bp = 600;
+                ledId = LED_INFIX_LIST;
+                nudId = NUD_LIST;
+
+            } else if( "*".equals(val)) {
                 bp = 500;
                 ledId = LED_INFIX;
-            } 
-            
-            if( "+".equals(val)
-             || "-".equals(val)) {
+
+            } else if("%".equals(val)) {
+                bp = 500;
+                ledId = LED_INFIX;
+
+            } else if( "+".equals(val)) {
                 bp = 400;
                 ledId = LED_INFIX;
 
-            } 
-            
-            if( "===".equals(val)
-             || "!==".equals(val)
-             || "<=".equals(val)
-             || "<".equals(val)) {
+            } else if("-".equals(val)) {
+                bp = 400;
+                ledId = LED_INFIX;
+                nudId = NUD_PREFIX;
+
+            } else if("===".equals(val)) {
                 bp = 300;
                 ledId = LED_INFIX;
-            } 
-            
-            if( "&&".equals(val)
-             || "||".equals(val)
-             || "else".equals(val)) {
+
+            } else if("!==".equals(val)) {
+                bp = 300;
+                ledId = LED_INFIX;
+
+            } else if("<=".equals(val)) {
+                bp = 300;
+                ledId = LED_INFIX;
+
+            } else if("<".equals(val)) {
+                bp = 300;
+                ledId = LED_INFIX;
+
+            } else if( "&&".equals(val)) {
                 bp = 200;
                 ledId = LED_INFIXR;
-            } 
-            
-            if( "=".equals(val)) {
+
+            } else if( "||".equals(val)) {
+                bp = 200;
+                ledId = LED_INFIXR;
+
+            } else if("else".equals(val)) {
+                bp = 200;
+                ledId = LED_INFIXR;
+
+            } else if( "=".equals(val)) {
                 bp = 100;
                 ledId = LED_INFIX;
-            } 
-            
-            if( val == null 
-             || "]".equals(val)
-             || ")".equals(val)
-             || "}".equals(val) ) {
-                nudId = NUD_END;
-                sep = true;
-            } 
-            
-            if( ":".equals(val)
-             || ";".equals(val)
-             || ",".equals(val) ) {
+
+            } else if( ":".equals(val)
+                    || ";".equals(val)
+                    || ",".equals(val) ) {
                 nudId = NUD_SEP;
                 sep = true;
-            } 
-            
-            if( "(".equals(val)
-             || "{".equals(val)
-             || "[".equals(val) ) {
-                nudId = NUD_LIST;
-            } 
-            
-            if( "var".equals(val)
-             || "return".equals(val)
-             || "-".equals(val)
-             || "!".equals(val) ) {
-                nudId = NUD_PREFIX;
-            } 
-            
-            if( "function".equals(val)
-             || "if".equals(val)
-             || "while".equals(val) ) {
-                nudId = NUD_PREFIX2;
-            }
 
-            if( "undefined".equals(val) 
-             || "null".equals(val)
-             || "false".equals(val)) {
+            } else if("{".equals(val)) {
+                nudId = NUD_LIST;
+
+            } else if( "var".equals(val)) {
+                nudId = NUD_PREFIX;
+
+            } else if("return".equals(val)) {
+                nudId = NUD_PREFIX;
+
+            } else if( "!".equals(val) ) {
+                nudId = NUD_PREFIX;
+
+            } else if( "function".equals(val)) {
+                nudId = NUD_PREFIX2;
+
+            } else if( "if".equals(val)) {
+                nudId = NUD_PREFIX2;
+
+            } else if( "while".equals(val) ) {
+                nudId = NUD_PREFIX2;
+
+            } else if( "undefined".equals(val) 
+                    || "null".equals(val)
+                    || "false".equals(val)) {
                 val = null;
                 nudId = NUD_LITERAL;
-            }
-            if( "true".equals(val) ) {
+
+            } else if( "true".equals(val) ) {
                 val = TRUE;
                 nudId = NUD_LITERAL;
             }
@@ -1560,120 +1596,5 @@ class LightScript {
             }
         }
         return list;
-    }
-
-    /////////////////////////////////////
-    // The parser
-    ////
-    public static Object readExpression(InputStream is) throws IOException {
-        Stack stack = new Stack();
-        int c = is.read();
-        do {
-            // end of file
-            if (c == -1) {
-                return null;
-
-            // end of list
-            } else if (c == ']') {
-                Object result[];
-                c = is.read();
-                // find out how much of the stack
-                // is a part of the terminated list.
-                // null indicates a "["
-                int pos = stack.search(null);
-                // ] with no [ begun
-                if (pos == -1) {
-                    result = emptylist;
-                } else {
-                    // stack search includes the null, which we want to skip
-                    pos--;
-                    // move the elements from the stack
-                    result = new Object[pos];
-                    while (pos > 0) {
-                        pos--;
-                        result[pos] = stack.pop();
-                    }
-                    // pop the null
-                    stack.pop();
-                }
-                // create the list obj
-                stack.push(create(result));
-
-
-            // Whitespace
-            } else if (c <= ' ') {
-                c = is.read();
-
-            // Comment
-            } else if (c == ';') {
-                do {
-                    c = is.read();
-                } while (c > '\n');
-
-            // List
-            } else if (c == '[') {
-                // null is a marker of "["
-                stack.push(null);
-                c = is.read();
-
-            // Number
-            } else if ('0' <= c && c <= '9') {
-                int i = 0;
-                do {
-                    i = i * 10 + c - '0';
-                    c = is.read();
-                } while ('0' <= c && c <= '9');
-                stack.push(new Literal(new Integer(i)));
-
-            // String
-            } else if (c == '"') { // (comment ends '"' when prettyprinting)
-
-                StringBuffer sb = new StringBuffer();
-                c = is.read();
-                while (c != '"' && c != -1) { // (comment ends '"' when prettyprinting)
-
-                    if (c == '\\') {
-                        c = is.read();
-                    }
-                    sb.append((char) c);
-                    c = is.read();
-                }
-                c = is.read();
-                stack.push(new Literal(sb.toString()));
-
-            // Identifier
-            } else {
-                StringBuffer sb = new StringBuffer();
-                while (c > ' ' && c != '[' && c != ']') {
-                    sb.append((char) c);
-                    c = is.read();
-                }
-                stack.push(createId(sb.toString()));
-            }
-        } while (stack.empty() || stack.size() > 1 || stack.elementAt(0) == null);
-        return stack.pop();
-    }
-
-    ///////////////////////////////////////////
-    // Utility for generating strings
-    ////
-    public static String stringify(Object o) {
-        if (o == null) {
-            return "null";
-        }
-        if (o instanceof Literal) {
-            return ((Literal) o).value.toString();
-        } else if (o instanceof Object[]) {
-            StringBuffer sb = new StringBuffer();
-            Object[] os = (Object[]) o;
-            sb.append("[");
-            for (int i = 0; i < os.length; i++) {
-                sb.append(" " + stringify(os[i]));
-            }
-            sb.append(" ]");
-            return sb.toString();
-        } else {
-            return o.toString();
-        }
     }
 }
