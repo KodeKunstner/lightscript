@@ -1,39 +1,128 @@
-
 import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Random;
 import java.util.Stack;
 
+// class LightScript
+// - Constants
+// - Utility functions
+// - Utility classes and structs
+// 
+// - Tokeniser
+// - Parser
+// - Compiler
+// - Virtual machine
 class LightScript {
-    ///////////////////////////////////////////////
-    // Interface function for parsing
-    ////
-
     public static Object parse(InputStream is) {
         LightScript parser = new LightScript(is);
         parser.next();
         return stringify(parser.parse(0));
     }
 
-    /////////////////////////////////////////////
-    // The core parse function
-    ////////
-    private Object[] parse(int rbp) {
-        Token t = token;
-        next();
-        Object[] left = t.nud();
-        while (rbp < token.bp && !t.sep) {
-            t = token;
-            next();
-            left = t.led(left);
-        }
-        return left;
-    }
+    ////////////////////////
+    ////// Constants //////
+    //////////////////////
+    /////////////////////
+    ////////////////////
+    ///////////////////
+    //////////////////
+    // for the parser
+    private static final Object[] END_TOKEN = {"(end)"};
+    private static final Object[] SEP_TOKEN = {"(sep)"};
+    private static final String ID_APPLY = "apply";
+    private static final Boolean TRUE = new Boolean(true);
 
-    //////////////////////////////////////////
-    // Utility functions
-    ////
+    // Opcodes
+    private static final char OP_ENSURE_STACKSPACE = 0;
+    private static final char OP_INC_SP = 1;
+    private static final char OP_RETURN = 2;
+    private static final char OP_SAVE_PC = 3;
+    private static final char OP_CALL_FN = 4;
+    private static final char OP_BUILD_FN = 5;
+    private static final char OP_SET_BOXED = 6;
+    private static final char OP_SET_LOCAL = 7;
+    private static final char OP_SET_CLOSURE = 8;
+    private static final char OP_GET_BOXED = 9;
+    private static final char OP_GET_LOCAL = 10;
+    private static final char OP_GET_CLOSURE = 11;
+    // get a value from the closure without unboxing it
+    private static final char OP_GET_BOXED_CLOSURE = 12;
+    private static final char OP_GET_LITERAL = 13;
+    // box a value
+    private static final char OP_BOX_IT = 14;
+    private static final char OP_LOG = 15;
+    private static final char OP_DROP = 16;
+    private static final char OP_PUSH_NIL = 17;
+    private static final char OP_NOT = 18;
+    private static final char OP_ADD = 19;
+    private static final char OP_SUB = 20;
+    private static final char OP_MUL = 21;
+    private static final char OP_DIV = 22;
+    private static final char OP_REM = 23;
+    private static final char OP_IS_INT = 24;
+    private static final char OP_IS_STR = 25;
+    private static final char OP_IS_LIST = 26;
+    private static final char OP_IS_DICT = 27;
+    private static final char OP_IS_ITER = 28;
+    private static final char OP_EQUAL = 29;
+    private static final char OP_IS_EMPTY = 30;
+    private static final char OP_PUT = 31;
+    private static final char OP_GET = 32;
+    private static final char OP_RAND = 33;
+    private static final char OP_SIZE = 34;
+    private static final char OP_LESS = 35;
+    private static final char OP_LESSEQUAL = 36;
+    private static final char OP_SUBSTR = 37;
+    private static final char OP_RESIZE = 38;
+    private static final char OP_PUSH = 39;
+    private static final char OP_POP = 40;
+    private static final char OP_KEYS = 41;
+    private static final char OP_VALUES = 43;
+    private static final char OP_NEXT = 44;
+    private static final char OP_ASSERT = 45;
+    private static final char OP_JUMP = 46;
+    private static final char OP_JUMP_IF_TRUE = 47;
+    private static final char OP_DUP = 48;
+    private static final char OP_NEW_LIST = 49;
+    private static final char OP_NEW_DICT = 50;
+    private static final char OP_NEW_STRINGBUFFER = 51;
+    private static final char OP_STR_APPEND = 52;
+    private static final char OP_TO_STRING = 53;
+    private static final char OP_SWAP = 54;
+
+    // size of the return frame
+    private static final char RET_FRAME_SIZE = 3;
+
+    // Syntax tree
+    private static final int AST_BUILTIN_FUNCTION = 0x100;
+    private static final int AST_DO = 0;
+    private static final int AST_SET = 1;
+    private static final int AST_IF = AST_SET + 1;
+    private static final int AST_AND = AST_IF + 1;
+    private static final int AST_OR = AST_AND + 1;
+    private static final int AST_FOREACH = AST_OR + 1;
+    private static final int AST_WHILE = AST_FOREACH + 1;
+    private static final int AST_STRINGJOIN = AST_WHILE + 1;
+    private static final int AST_LIST = AST_STRINGJOIN + 1;
+    private static final int AST_DICT = AST_LIST + 1;
+    // Opcode mask, to extract opcode from AST_FUNCTIION type
+    private static final int MASK_OP = 0xFF;
+
+    private static final String[] fnNames = {"not", "+", "-", "*", "/", "%", "is-integer", "is-string", "is-list", "is-dictionary", "is-iterator", "equals", "is-empty", "put", "get", "random", "size", "<", "<=", "substring", "resize", "push", "pop", "keys", "values", "get-next", "log", "assert"};
+    private static final int[] fnArity = {1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 1, 3, 2, 1, 1, 2, 2, 3, 2, 2, 1, 1, 1, 1, 1, 2};
+    private static final char[] fnTypes = {OP_NOT, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_REM, OP_IS_INT, OP_IS_STR, OP_IS_LIST, OP_IS_DICT, OP_IS_ITER, OP_EQUAL, OP_IS_EMPTY, OP_PUT, OP_GET, OP_RAND, OP_SIZE, OP_LESS, OP_LESSEQUAL, OP_SUBSTR, OP_RESIZE, OP_PUSH, OP_POP, OP_KEYS, OP_VALUES, OP_NEXT, OP_LOG, OP_ASSERT};
+    private static final String[] builtinNames = {"set", "if", "and", "or", "foreach", "while", "do", "stringjoin", "list", "dict"};
+    private static final int[] builtinTypes = {AST_SET, AST_IF, AST_AND, AST_OR, AST_FOREACH, AST_WHILE, AST_DO, AST_STRINGJOIN, AST_LIST, AST_DICT};
+    
+    
+    ////////////////////////
+    // Utility functions //
+    //////////////////////
+    /////////////////////
+    ////////////////////
+    ///////////////////
+    //////////////////
     private static String stringify(Object o) {
         if (o == null) {
             return "null";
@@ -69,9 +158,109 @@ class LightScript {
         return result;
     }
 
-    //////////////////////////////////////////
-    // Tokeniser
-    ////
+    private static int builtinId(String name) {
+        for (int i = 0; i < fnNames.length; i++) {
+            if (name.equals(fnNames[i])) {
+                return fnTypes[i] | AST_BUILTIN_FUNCTION;
+            }
+
+        }
+        for (int i = 0; i < builtinNames.length; i++) {
+            if (name.equals(builtinNames[i])) {
+                return builtinTypes[i];
+            }
+
+        }
+        return -1;
+    }
+
+    private static int builtinArity(int id) {
+        for (int i = 0; i < fnNames.length; i++) {
+            if (fnTypes[i] == id) {
+                return fnArity[i];
+            }
+        }
+        return -1;
+    }
+
+
+    //////////////////////
+    // Utility classes //
+    ////////////////////
+    ///////////////////
+    //////////////////
+    /////////////////
+    ////////////////
+    private static class Literal {
+
+        public Object value;
+
+        public Literal(Object value) {
+            this.value = value;
+        }
+    }
+
+    private static class Closure {
+
+        public byte[] code;
+        public int argc;
+        public Object[] closure;
+        public Object[] constPool;
+
+        public Closure(int argc, StringBuffer code, Stack constPool, Stack closure) {
+            this.argc = argc;
+
+            this.code = new byte[code.length()];
+            for (int i = 0; i < this.code.length; i++) {
+                this.code[i] = (byte) code.charAt(i);
+            }
+
+            this.constPool = new Object[constPool.size()];
+            for (int i = 0; i < this.constPool.length; i++) {
+                this.constPool[i] = constPool.elementAt(i);
+            }
+
+            this.closure = new Object[closure.size()];
+            for (int i = 0; i < this.closure.length; i++) {
+                this.closure[i] = closure.elementAt(i);
+            }
+        }
+
+        public Closure(Closure cl) {
+            this.argc = cl.argc;
+            this.code = cl.code;
+            this.constPool = cl.constPool;
+        }
+
+        public String toString() {
+            StringBuffer sb = new StringBuffer();
+            sb.append("closure" + argc + "{\n\tcode:");
+            for (int i = 0; i < code.length; i++) {
+                sb.append(" ");
+                sb.append(code[i]);
+            }
+            sb.append("\n\tclosure:");
+            for (int i = 0; i < closure.length; i++) {
+                sb.append(" " + i + ":");
+                sb.append(stringify(closure[i]));
+            }
+            sb.append("\n\tconstPool:");
+            for (int i = 0; i < constPool.length; i++) {
+                sb.append(" " + i + ":");
+                sb.append(stringify(constPool[i]));
+            }
+            sb.append("\n}");
+            return sb.toString();
+        }
+    }
+
+    //////////////////////
+    //// Tokeniser //////
+    ////////////////////
+    ///////////////////
+    //////////////////
+    /////////////////
+    ////////////////
     InputStream is;
     int c;
     StringBuffer sb;
@@ -181,20 +370,32 @@ class LightScript {
         token = new Token(false, sb.toString());
         return true;
     }
-    ////////////////////////////////////////////////////////
-    // Token class
-    // nuds/leds
-    ////
-    private static final Object[] END_TOKEN = {"(end)"};
-    private static final Object[] SEP_TOKEN = {"(sep)"};
-    private static final String ID_APPLY = "apply";
-    private static final Boolean TRUE = new Boolean(true);
+
+    //////////////////////
+    ////// Parser ///////
+    ////////////////////
+    ///////////////////
+    //////////////////
+    /////////////////
+    ////////////////
+    private Object[] parse(int rbp) {
+        Token t = token;
+        next();
+        Object[] left = t.nud();
+        while (rbp < token.bp && !t.sep) {
+            t = token;
+            next();
+            left = t.led(left);
+        }
+        return left;
+    }
 
     class Token {
 
         Object val;
-        private byte nudId;
-        private byte ledId;
+        private int nudId;
+        private int ledId;
+        private int id;
         public boolean sep;
         public int bp;
         private static final int NUD_ID = 0,  NUD_LITERAL = 1,  NUD_END = 2,  NUD_SEP = 3,  NUD_LIST = 4,  NUD_PREFIX = 5,  NUD_PREFIX2 = 6,  LED_INFIX = 7,  LED_INFIXR = 8,  LED_INFIX_LIST = 9;
@@ -261,6 +462,7 @@ class LightScript {
             bp = 0;
             nudId = 0;
             ledId = 0;
+            id = 0;
             if (isLiteral) {
                 nudId = NUD_LITERAL;
 
@@ -374,168 +576,555 @@ class LightScript {
         }
     }
 
-    // Opcodes
-    private static final char OP_ENSURE_STACKSPACE = 0;
-    private static final char OP_INC_SP = 1;
-    private static final char OP_RETURN = 2;
-    private static final char OP_SAVE_PC = 3;
-    private static final char OP_CALL_FN = 4;
-    private static final char OP_BUILD_FN = 5;
-    private static final char OP_SET_BOXED = 6;
-    private static final char OP_SET_LOCAL = 7;
-    private static final char OP_SET_CLOSURE = 8;
-    private static final char OP_GET_BOXED = 9;
-    private static final char OP_GET_LOCAL = 10;
-    private static final char OP_GET_CLOSURE = 11;
-    // get a value from the closure without unboxing it
-    private static final char OP_GET_BOXED_CLOSURE = 12;
-    private static final char OP_GET_LITERAL = 13;
-    // box a value
-    private static final char OP_BOX_IT = 14;
-    private static final char OP_LOG = 15;
-    private static final char OP_DROP = 16;
-    private static final char OP_PUSH_NIL = 17;
-    private static final char OP_NOT = 18;
-    private static final char OP_ADD = 19;
-    private static final char OP_SUB = 20;
-    private static final char OP_MUL = 21;
-    private static final char OP_DIV = 22;
-    private static final char OP_REM = 23;
-    private static final char OP_IS_INT = 24;
-    private static final char OP_IS_STR = 25;
-    private static final char OP_IS_LIST = 26;
-    private static final char OP_IS_DICT = 27;
-    private static final char OP_IS_ITER = 28;
-    private static final char OP_EQUAL = 29;
-    private static final char OP_IS_EMPTY = 30;
-    private static final char OP_PUT = 31;
-    private static final char OP_GET = 32;
-    private static final char OP_RAND = 33;
-    private static final char OP_SIZE = 34;
-    private static final char OP_LESS = 35;
-    private static final char OP_LESSEQUAL = 36;
-    private static final char OP_SUBSTR = 37;
-    private static final char OP_RESIZE = 38;
-    private static final char OP_PUSH = 39;
-    private static final char OP_POP = 40;
-    private static final char OP_KEYS = 41;
-    private static final char OP_VALUES = 43;
-    private static final char OP_NEXT = 44;
-    private static final char OP_ASSERT = 45;
-    private static final char OP_JUMP = 46;
-    private static final char OP_JUMP_IF_TRUE = 47;
-    private static final char OP_DUP = 48;
-    private static final char OP_NEW_LIST = 49;
-    private static final char OP_NEW_DICT = 50;
-    private static final char OP_NEW_STRINGBUFFER = 51;
-    private static final char OP_STR_APPEND = 52;
-    private static final char OP_TO_STRING = 53;
-    private static final char OP_NEW_COUNTER = 54;
-    private static final char OP_SWAP = 55;
 
-    // size of the return frame
-    private static final char RET_FRAME_SIZE = 3;
+    //////////////////////
+    ///// Compiler //////
+    ////////////////////
+    ///////////////////
+    //////////////////
+    /////////////////
+    ////////////////
+    private static class Function {
 
-    // Syntax tree
-    private static final int AST_BUILTIN_FUNCTION = 0x100;
-    private static final int AST_DO = 0;
-    private static final int AST_SET = 1;
-    private static final int AST_IF = AST_SET + 1;
-    private static final int AST_AND = AST_IF + 1;
-    private static final int AST_OR = AST_AND + 1;
-    private static final int AST_REPEAT = AST_OR + 1;
-    private static final int AST_FOREACH = AST_REPEAT + 1;
-    private static final int AST_WHILE = AST_FOREACH + 1;
-    private static final int AST_STRINGJOIN = AST_WHILE + 1;
-    private static final int AST_LIST = AST_STRINGJOIN + 1;
-    private static final int AST_DICT = AST_LIST + 1;
-    // Opcode mask, to extract opcode from AST_FUNCTIION type
-    private static final int MASK_OP = 0xFF;
-    private static String[] fnNames = {"not", "+", "-", "*", "/", "%", "is-integer", "is-string", "is-list", "is-dictionary", "is-iterator", "equals", "is-empty", "put", "get", "random", "size", "<", "<=", "substring", "resize", "push", "pop", "keys", "values", "get-next", "log", "assert"};
-    private static int[] fnArity = {1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 1, 3, 2, 1, 1, 2, 2, 3, 2, 2, 1, 1, 1, 1, 1, 2};
-    private static char[] fnTypes = {OP_NOT, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_REM, OP_IS_INT, OP_IS_STR, OP_IS_LIST, OP_IS_DICT, OP_IS_ITER, OP_EQUAL, OP_IS_EMPTY, OP_PUT, OP_GET, OP_RAND, OP_SIZE, OP_LESS, OP_LESSEQUAL, OP_SUBSTR, OP_RESIZE, OP_PUSH, OP_POP, OP_KEYS, OP_VALUES, OP_NEXT, OP_LOG, OP_ASSERT};
-    private static String[] builtinNames = {"set", "if", "and", "or", "repeat", "foreach", "while", "do", "stringjoin", "list", "dict"};
-    private static int[] builtinTypes = {AST_SET, AST_IF, AST_AND, AST_OR, AST_REPEAT, AST_FOREACH, AST_WHILE, AST_DO, AST_STRINGJOIN, AST_LIST, AST_DICT};
-    private static Random rnd = new Random();
+        private int argc;
+        private Object[] body;
+        private Stack locals;
+        private Stack boxed;
+        private Stack closure;
+        private Stack constPool;
+        private int maxDepth;
+        private int depth;
+        private StringBuffer code;
 
-    private static int builtinId(String name) {
-        for (int i = 0; i < fnNames.length; i++) {
-            if (name.equals(fnNames[i])) {
-                return fnTypes[i] | AST_BUILTIN_FUNCTION;
+        private Function(Object[] list) {
+            Enumeration e;
+            body = new Object[list.length - 2];
+            for (int i = 1; i < body.length; i++) {
+                body[i] = list[i + 2];
+            }
+            body[0] = new Integer(AST_DO);
+            argc = ((Object[]) list[1]).length;
+            locals = new Stack();
+            boxed = new Stack();
+            closure = new Stack();
+
+            findIds(locals, list[1]);
+            findIds(locals, list[2]);
+
+            findIds(closure, body);
+
+            // local variables are not placed in the closure
+            e = locals.elements();
+            while (e.hasMoreElements()) {
+                closure.removeElement(e.nextElement());
             }
 
+            // closure variables are automatically boxed
+            e = closure.elements();
+            while (e.hasMoreElements()) {
+                boxed.removeElement(e.nextElement());
+            }
+
+            compile();
+        //System.out.println(this.toString());
         }
-        for (int i = 0; i < builtinNames.length; i++) {
-            if (name.equals(builtinNames[i])) {
-                return builtinTypes[i];
-            }
 
+        public static Closure create(Object[] list) {
+            Function f = new Function(list);
+            return new Closure(f.argc, f.code, f.constPool, f.closure);
         }
-        return -1;
-    }
 
-    private static int builtinArity(int id) {
-        for (int i = 0; i < fnNames.length; i++) {
-            if (fnTypes[i] == id) {
-                return fnArity[i];
-            }
-        }
-        return -1;
-    }
-
-    public static class Closure {
-
-        public byte[] code;
-        public int argc;
-        public Object[] closure;
-        public Object[] constPool;
-
-        public Closure(int argc, StringBuffer code, Stack constPool, Stack closure) {
-            this.argc = argc;
-
-            this.code = new byte[code.length()];
-            for (int i = 0; i < this.code.length; i++) {
-                this.code[i] = (byte) code.charAt(i);
-            }
-
-            this.constPool = new Object[constPool.size()];
-            for (int i = 0; i < this.constPool.length; i++) {
-                this.constPool[i] = constPool.elementAt(i);
-            }
-
-            this.closure = new Object[closure.size()];
-            for (int i = 0; i < this.closure.length; i++) {
-                this.closure[i] = closure.elementAt(i);
+        private void findIds(Stack s, Object o) {
+            if (o instanceof Object[]) {
+                Object[] os = (Object[]) o;
+                for (int i = 0; i < os.length; i++) {
+                    findIds(s, os[i]);
+                }
+            } else if (o instanceof String) {
+                if (!s.contains(o)) {
+                    s.push(o);
+                }
+            } else if (o instanceof Closure) {
+                Object[] closure_vars = ((Closure) o).closure;
+                for (int i = 0; i < closure_vars.length; i++) {
+                    String name = (String) closure_vars[i];
+                    if (!s.contains(name)) {
+                        s.push(name);
+                    }
+                    if (!boxed.contains(name)) {
+                        boxed.push(name);
+                    }
+                }
             }
         }
 
-        public Closure(Closure cl) {
-            this.argc = cl.argc;
-            this.code = cl.code;
-            this.constPool = cl.constPool;
+        private void pushShort(int i) {
+            code.append((char) ((i >> 8) & 0xff));
+            code.append((char) (i & 0xff));
+        }
+
+        private void setShort(int pos, int i) {
+            code.setCharAt(pos - 2, (char) ((i >> 8) & 0xff));
+            code.setCharAt(pos - 1, (char) (i & 0xff));
+        }
+
+        private void addDepth(int i) {
+            depth += i;
+            if (depth > maxDepth) {
+                maxDepth = depth;
+            }
+        }
+
+        private void assertLength(Object[] list, int len) {
+            if (list.length != len) {
+                throw new Error("Wrong number of parameters:" + stringify(list));
+            }
+        }
+
+        private int constPoolId(Object o) {
+            int pos = constPool.indexOf(o);
+            if (pos < 0) {
+                pos = constPool.size();
+                constPool.push(o);
+            }
+            return pos;
+        }
+
+        private void compile() {
+            constPool = new Stack();
+            code = new StringBuffer();
+
+            // make sure that there are sufficient stack space for the function
+            code.append(OP_ENSURE_STACKSPACE);
+            pushShort(0);
+            int spacePos = code.length();
+
+            // allocate space for local vars
+            maxDepth = depth = locals.size();
+            int framesize = depth - argc;
+            while (framesize >= 127) {
+                code.append(OP_INC_SP);
+                code.append((char) 127);
+                framesize -= 127;
+            }
+            if (framesize > 0) {
+                code.append(OP_INC_SP);
+                code.append((char) framesize);
+            }
+
+            // box boxed values in frame
+            Enumeration e = boxed.elements();
+            while (e.hasMoreElements()) {
+                code.append(OP_BOX_IT);
+                pushShort(depth - locals.indexOf(e.nextElement()) - 1);
+            }
+
+            compile(body);
+
+            // emit return code, including current stack depth to drop
+            code.append(OP_RETURN);
+            pushShort(depth);
+
+            // patch amount of stack space needed
+            maxDepth -= argc;
+            setShort(spacePos, maxDepth);
+        }
+
+        private void compile(Object o) {
+            if (o instanceof Object[]) {
+                Object[] list = (Object[]) o;
+                Object head = list[0];
+                // builtin operator
+                if (head instanceof Integer) {
+                    int id = ((Integer) head).intValue();
+
+                    if ((id & AST_BUILTIN_FUNCTION) != 0) {
+                        char opcode = (char) (id & MASK_OP);
+                        assertLength(list, builtinArity(opcode) + 1);
+                        for (int i = 1; i < list.length; i++) {
+                            compile(list[i]);
+                        }
+                        addDepth(2 - list.length);
+                        code.append(opcode);
+                    } else {
+                        switch (id) {
+                            case AST_DO: {
+                                int i;
+                                for (i = 1; i < list.length - 1; i++) {
+                                    compile(list[i]);
+                                    code.append(OP_DROP);
+                                    addDepth(-1);
+                                }
+                                if (i < list.length) {
+                                    compile(list[i]);
+                                } else {
+                                    code.append(OP_PUSH_NIL);
+                                    addDepth(1);
+                                }
+
+                                break;
+                            }
+                            case AST_SET: {
+                                assertLength(list, 3);
+                                String name = (String) list[1];
+                                compile(list[2]);
+                                int pos = closure.indexOf(name);
+                                if (pos >= 0) {
+                                    code.append(OP_SET_CLOSURE);
+                                    pushShort(pos);
+                                } else {
+                                    pos = locals.indexOf(name);
+                                    if (boxed.contains(name)) {
+                                        code.append(OP_SET_BOXED);
+                                    } else {
+                                        code.append(OP_SET_LOCAL);
+                                    }
+                                    pushShort(depth - pos - 1);
+                                }
+                                break;
+                            }
+                            case AST_IF: {
+                                //    code for list[1]
+                                //    jump_if_true -> label1
+                                //    code for list[3]
+                                //    jump -> label2
+                                // label1:
+                                //    code for list[2]
+                                // label2:
+
+                                assertLength(list, 4);
+
+                                int pos0, pos1, len;
+                                compile(list[1]);
+
+                                code.append(OP_JUMP_IF_TRUE);
+                                pushShort(0);
+                                pos0 = code.length();
+                                addDepth(-1);
+
+                                compile(list[3]);
+
+                                code.append(OP_JUMP);
+                                pushShort(0);
+                                pos1 = code.length();
+                                len = pos1 - pos0;
+                                setShort(pos0, len);
+
+                                addDepth(-1);
+
+                                compile(list[2]);
+                                len = code.length() - pos1;
+                                setShort(pos1, len);
+                                break;
+                            }
+                            case AST_AND: {
+                                assertLength(list, 3);
+                                int pos0, pos1, len;
+
+                                compile(list[1]);
+
+                                code.append(OP_JUMP_IF_TRUE);
+                                code.append((char) 0);
+                                code.append((char) 0);
+                                pos0 = code.length();
+                                addDepth(-1);
+
+                                code.append(OP_PUSH_NIL);
+
+                                code.append(OP_JUMP);
+                                code.append((char) 0);
+                                code.append((char) 0);
+                                pos1 = code.length();
+                                len = pos1 - pos0;
+                                setShort(pos0, len);
+                                addDepth(-1);
+
+                                compile(list[2]);
+                                len = code.length() - pos1;
+                                setShort(pos1, len);
+                                break;
+                            }
+                            case AST_OR: {
+                                assertLength(list, 3);
+                                int pos0, pos1, len;
+
+                                compile(list[1]);
+
+                                code.append(OP_DUP);
+                                addDepth(1);
+
+                                code.append(OP_JUMP_IF_TRUE);
+                                code.append((char) 0);
+                                code.append((char) 0);
+                                pos0 = code.length();
+                                addDepth(1);
+
+                                code.append(OP_DROP);
+                                addDepth(-1);
+
+                                compile(list[2]);
+
+                                pos1 = code.length();
+                                len = pos1 - pos0;
+                                setShort(pos0, len);
+
+
+                                break;
+                            }
+                            case AST_FOREACH: {
+                                //   push nil
+                                //   get iterator
+                                //   jump -> labelNext
+                                // labelStmts:
+                                //   swap
+                                //   drop
+                                //   code for stmt1
+                                //   ...
+                                //   drop
+                                //   code for stmtn
+                                //   swap
+                                // labelNext:
+                                //   dup
+                                //   get-next
+                                //   set counter-var
+                                //   jump if true labelStmts
+                                //   drop
+                                int pos0, pos1, len;
+                                code.append(OP_PUSH_NIL);
+                                addDepth(1);
+
+                                compile(list[2]);
+
+                                code.append(OP_JUMP);
+                                code.append((char) 0);
+                                code.append((char) 0);
+                                pos0 = code.length();
+
+                                code.append(OP_SWAP);
+                                for (int i = 3; i < list.length; i++) {
+                                    code.append(OP_DROP);
+                                    addDepth(-1);
+                                    compile(list[i]);
+                                }
+                                code.append(OP_SWAP);
+
+                                pos1 = code.length();
+                                len = pos1 - pos0;
+                                setShort(pos0, len);
+
+                                code.append(OP_DUP);
+                                addDepth(1);
+
+                                code.append(OP_NEXT);
+
+                                {
+                                    String name = (String) list[1];
+                                    int pos = closure.indexOf(name);
+                                    if (pos >= 0) {
+                                        code.append(OP_SET_CLOSURE);
+                                        pushShort(pos);
+                                    } else {
+                                        pos = locals.indexOf(name);
+                                        if (boxed.contains(name)) {
+                                            code.append(OP_SET_BOXED);
+                                        } else {
+                                            code.append(OP_SET_LOCAL);
+                                        }
+                                        pushShort(depth - pos - 1);
+                                    }
+                                }
+
+                                code.append(OP_JUMP_IF_TRUE);
+                                len = pos0 - (code.length() + 2);
+                                code.append((char) ((len >> 8) & 0xff));
+                                code.append((char) (len & 0xff));
+                                addDepth(-1);
+
+                                code.append(OP_DROP);
+                                addDepth(-1);
+
+
+                                break;
+                            }
+                            case AST_WHILE: {
+                                //   push nil
+                                //   jump -> labelCond:
+                                // labelBody:
+                                //   drop
+                                //   code for stmt1
+                                //   ...
+                                //   drop
+                                //   code for stmtn
+                                // labelCond:
+                                //   code for condition
+                                //   jump if true -> labelBody
+
+                                int pos0, pos1, len;
+                                code.append(OP_PUSH_NIL);
+                                addDepth(1);
+
+                                code.append(OP_JUMP);
+                                code.append((char) 0);
+                                code.append((char) 0);
+                                pos0 = code.length();
+
+                                for (int i = 2; i < list.length; i++) {
+                                    code.append(OP_DROP);
+                                    addDepth(-1);
+                                    compile(list[i]);
+                                }
+
+
+                                pos1 = code.length();
+                                len = pos1 - pos0;
+                                setShort(pos0, len);
+
+                                compile(list[1]);
+
+                                code.append(OP_JUMP_IF_TRUE);
+                                len = pos0 - (code.length() + 2);
+                                code.append((char) ((len >> 8) & 0xff));
+                                code.append((char) (len & 0xff));
+                                addDepth(-1);
+
+
+                                break;
+                            }
+                            case AST_STRINGJOIN: {
+                                code.append(OP_NEW_STRINGBUFFER);
+                                addDepth(1);
+
+                                for (int i = 1; i < list.length; i++) {
+                                    compile(list[i]);
+                                    code.append(OP_STR_APPEND);
+                                    addDepth(-1);
+                                }
+                                code.append(OP_TO_STRING);
+
+                                break;
+                            }
+                            case AST_LIST: {
+                                code.append(OP_NEW_LIST);
+                                addDepth(1);
+
+                                for (int i = 1; i < list.length; i++) {
+                                    compile(list[i]);
+                                    code.append(OP_PUSH);
+                                    addDepth(-1);
+                                }
+
+                                break;
+                            }
+                            case AST_DICT: {
+                                code.append(OP_NEW_DICT);
+                                addDepth(1);
+
+                                if (list.length % 2 == 0) {
+                                    throw new Error("Unmatched key/value: " + stringify(list));
+                                }
+                                for (int i = 1; i < list.length; i++) {
+                                    compile(list[i]);
+                                    i++;
+                                    compile(list[i]);
+                                    code.append(OP_PUT);
+                                    addDepth(-2);
+                                }
+
+                                break;
+                            }
+                        }
+                    // function evaluation
+                    }
+                } else {
+                    // save program counter
+                    code.append(OP_SAVE_PC);
+                    addDepth(RET_FRAME_SIZE);
+
+                    // find function and evaluate parameters
+                    for (int i = 0; i < list.length; i++) {
+                        compile(list[i]);
+                    }
+
+                    // call the function
+                    code.append(OP_CALL_FN);
+                    if (list.length > 128) {
+                        throw new Error("too many parameters");
+                    }
+                    code.append((char) (list.length - 1));
+                    addDepth(1 - list.length - RET_FRAME_SIZE);
+                }
+            // Identifier
+            } else if (o instanceof String) {
+                String name = (String) o;
+                int pos = closure.indexOf(name);
+                if (pos >= 0) {
+                    code.append(OP_GET_CLOSURE);
+                    pushShort(pos);
+                } else {
+                    pos = locals.indexOf(name);
+                    if (boxed.contains(name)) {
+                        code.append(OP_GET_BOXED);
+                    } else {
+                        code.append(OP_GET_LOCAL);
+                    }
+                    pushShort(depth - pos - 1);
+                }
+                addDepth(1);
+
+            // Literal
+            } else if (o instanceof Literal) {
+                code.append(OP_GET_LITERAL);
+                pushShort(constPoolId(((Literal) o).value));
+                addDepth(1);
+
+            // Function creation
+            } else if (o instanceof Closure) {
+                Object[] vars = ((Closure) o).closure;
+                for (int i = 0; i < vars.length; i++) {
+                    String name = (String) vars[i];
+                    if (boxed.contains(name)) {
+                        code.append(OP_GET_LOCAL);
+                        pushShort(depth - locals.indexOf(name) - 1);
+                    } else {
+                        code.append(OP_GET_BOXED_CLOSURE);
+                        pushShort(closure.indexOf(name));
+                    }
+                    addDepth(1);
+                }
+                code.append(OP_GET_LITERAL);
+                pushShort(constPoolId(o));
+                addDepth(1);
+                code.append(OP_BUILD_FN);
+                pushShort(vars.length);
+                addDepth(-vars.length);
+
+            // Should not happen
+            } else {
+                throw new Error("wrong kind of node:" + o.toString());
+            }
         }
 
         public String toString() {
             StringBuffer sb = new StringBuffer();
-            sb.append("closure" + argc + "{\n\tcode:");
-            for (int i = 0; i < code.length; i++) {
+            sb.append("\n\tFunction( argc:" + argc + ", locals:" + locals.toString() + ", boxed:" + boxed.toString() + ", closure:" + closure.toString() + ", body:" + stringify(body) + ", code:");
+            for (int i = 0; i < code.length(); i++) {
+                sb.append((int) code.charAt(i));
                 sb.append(" ");
-                sb.append(code[i]);
             }
-            sb.append("\n\tclosure:");
-            for (int i = 0; i < closure.length; i++) {
-                sb.append(" " + i + ":");
-                sb.append(stringify(closure[i]));
-            }
-            sb.append("\n\tconstPool:");
-            for (int i = 0; i < constPool.length; i++) {
-                sb.append(" " + i + ":");
-                sb.append(stringify(constPool[i]));
-            }
-            sb.append("\n}");
+            sb.append(" )");
             return sb.toString();
         }
     }
+
+    //////////////////////
+    // Virtual Machine //
+    ////////////////////
+    ///////////////////
+    //////////////////
+    /////////////////
+    ////////////////
+    
+    private static Random rnd = new Random();
 
     private static int readShort(int pc, byte[] code) {
         return (short) (((code[++pc] & 0xff) << 8) | (code[++pc] & 0xff));
@@ -925,10 +1514,6 @@ class LightScript {
                     stack[sp] = stack[sp].toString();
                     break;
                 }
-                case OP_NEW_COUNTER: {
-                    stack[sp] = new Counter(((Integer) stack[sp]).intValue());
-                    break;
-                }
                 case OP_SWAP: {
                     Object t = stack[sp - 1];
                     stack[sp - 1] = stack[sp];
@@ -939,644 +1524,27 @@ class LightScript {
         }
     }
 
-    public static class Counter implements Enumeration {
-
-        private int count;
-
-        public Counter(int i) {
-            count = i;
-        }
-
-        public boolean hasMoreElements() {
-            return count > 0;
-        }
-
-        public Object nextElement() {
-            count--;
-            return TRUE;
-        }
-    }
-
-    private static class Function {
-
-        private int argc;
-        private Object[] body;
-        private Stack locals;
-        private Stack boxed;
-        private Stack closure;
-        private Stack constPool;
-        private int maxDepth;
-        private int depth;
-        private StringBuffer code;
-
-        private Function(Object[] list) {
-            Enumeration e;
-            body = new Object[list.length - 2];
-            for (int i = 1; i < body.length; i++) {
-                body[i] = list[i + 2];
-            }
-            body[0] = new Integer(AST_DO);
-            argc = ((Object[]) list[1]).length;
-            locals = new Stack();
-            boxed = new Stack();
-            closure = new Stack();
-
-            findIds(locals, list[1]);
-            findIds(locals, list[2]);
-
-            findIds(closure, body);
-
-            // local variables are not placed in the closure
-            e = locals.elements();
-            while (e.hasMoreElements()) {
-                closure.removeElement(e.nextElement());
-            }
-
-            // closure variables are automatically boxed
-            e = closure.elements();
-            while (e.hasMoreElements()) {
-                boxed.removeElement(e.nextElement());
-            }
-
-            compile();
-        //System.out.println(this.toString());
-        }
-
-        public static Closure create(Object[] list) {
-            Function f = new Function(list);
-            return new Closure(f.argc, f.code, f.constPool, f.closure);
-        }
-
-        private void pushShort(int i) {
-            code.append((char) ((i >> 8) & 0xff));
-            code.append((char) (i & 0xff));
-        }
-
-        private void setShort(int pos, int i) {
-            code.setCharAt(pos - 2, (char) ((i >> 8) & 0xff));
-            code.setCharAt(pos - 1, (char) (i & 0xff));
-        }
-
-        private void compile() {
-            constPool = new Stack();
-            code = new StringBuffer();
-
-            // make sure that there are sufficient stack space for the function
-            code.append(OP_ENSURE_STACKSPACE);
-            pushShort(0);
-            int spacePos = code.length();
-
-            // allocate space for local vars
-            maxDepth = depth = locals.size();
-            int framesize = depth - argc;
-            while (framesize >= 127) {
-                code.append(OP_INC_SP);
-                code.append((char) 127);
-                framesize -= 127;
-            }
-            if (framesize > 0) {
-                code.append(OP_INC_SP);
-                code.append((char) framesize);
-            }
-
-            // box boxed values in frame
-            Enumeration e = boxed.elements();
-            while (e.hasMoreElements()) {
-                code.append(OP_BOX_IT);
-                pushShort(depth - locals.indexOf(e.nextElement()) - 1);
-            }
-
-            compile(body);
-
-            // emit return code, including current stack depth to drop
-            code.append(OP_RETURN);
-            pushShort(depth);
-
-            // patch amount of stack space needed
-            maxDepth -= argc;
-            setShort(spacePos, maxDepth);
-        }
-
-        private void addDepth(int i) {
-            depth += i;
-            if (depth > maxDepth) {
-                maxDepth = depth;
-            }
-        }
-
-        private void assertLength(Object[] list, int len) {
-            if (list.length != len) {
-                throw new Error("Wrong number of parameters:" + stringify(list));
-            }
-        }
-
-        private int constPoolId(Object o) {
-            int pos = constPool.indexOf(o);
-            if (pos < 0) {
-                pos = constPool.size();
-                constPool.push(o);
-            }
-            return pos;
-        }
-
-        private void compile(Object o) {
-            if (o instanceof Object[]) {
-                Object[] list = (Object[]) o;
-                Object head = list[0];
-                // builtin operator
-                if (head instanceof Integer) {
-                    int id = ((Integer) head).intValue();
-
-                    if ((id & AST_BUILTIN_FUNCTION) != 0) {
-                        char opcode = (char) (id & MASK_OP);
-                        assertLength(list, builtinArity(opcode) + 1);
-                        for (int i = 1; i < list.length; i++) {
-                            compile(list[i]);
-                        }
-                        addDepth(2 - list.length);
-                        code.append(opcode);
-                    } else {
-                        switch (id) {
-                            case AST_DO: {
-                                int i;
-                                for (i = 1; i < list.length - 1; i++) {
-                                    compile(list[i]);
-                                    code.append(OP_DROP);
-                                    addDepth(-1);
-                                }
-                                if (i < list.length) {
-                                    compile(list[i]);
-                                } else {
-                                    code.append(OP_PUSH_NIL);
-                                    addDepth(1);
-                                }
-
-                                break;
-                            }
-                            case AST_SET: {
-                                assertLength(list, 3);
-                                String name = (String) list[1];
-                                compile(list[2]);
-                                int pos = closure.indexOf(name);
-                                if (pos >= 0) {
-                                    code.append(OP_SET_CLOSURE);
-                                    pushShort(pos);
-                                } else {
-                                    pos = locals.indexOf(name);
-                                    if (boxed.contains(name)) {
-                                        code.append(OP_SET_BOXED);
-                                    } else {
-                                        code.append(OP_SET_LOCAL);
-                                    }
-                                    pushShort(depth - pos - 1);
-                                }
-                                break;
-                            }
-                            case AST_IF: {
-                                //    code for list[1]
-                                //    jump_if_true -> label1
-                                //    code for list[3]
-                                //    jump -> label2
-                                // label1:
-                                //    code for list[2]
-                                // label2:
-
-                                assertLength(list, 4);
-
-                                int pos0, pos1, len;
-                                compile(list[1]);
-
-                                code.append(OP_JUMP_IF_TRUE);
-                                pushShort(0);
-                                pos0 = code.length();
-                                addDepth(-1);
-
-                                compile(list[3]);
-
-                                code.append(OP_JUMP);
-                                pushShort(0);
-                                pos1 = code.length();
-                                len = pos1 - pos0;
-                                setShort(pos0, len);
-
-                                addDepth(-1);
-
-                                compile(list[2]);
-                                len = code.length() - pos1;
-                                setShort(pos1, len);
-                                break;
-                            }
-                            case AST_AND: {
-                                assertLength(list, 3);
-                                int pos0, pos1, len;
-
-                                compile(list[1]);
-
-                                code.append(OP_JUMP_IF_TRUE);
-                                code.append((char) 0);
-                                code.append((char) 0);
-                                pos0 = code.length();
-                                addDepth(-1);
-
-                                code.append(OP_PUSH_NIL);
-
-                                code.append(OP_JUMP);
-                                code.append((char) 0);
-                                code.append((char) 0);
-                                pos1 = code.length();
-                                len = pos1 - pos0;
-                                setShort(pos0, len);
-                                addDepth(-1);
-
-                                compile(list[2]);
-                                len = code.length() - pos1;
-                                setShort(pos1, len);
-                                break;
-                            }
-                            case AST_OR: {
-                                assertLength(list, 3);
-                                int pos0, pos1, len;
-
-                                compile(list[1]);
-
-                                code.append(OP_DUP);
-                                addDepth(1);
-
-                                code.append(OP_JUMP_IF_TRUE);
-                                code.append((char) 0);
-                                code.append((char) 0);
-                                pos0 = code.length();
-                                addDepth(1);
-
-                                code.append(OP_DROP);
-                                addDepth(-1);
-
-                                compile(list[2]);
-
-                                pos1 = code.length();
-                                len = pos1 - pos0;
-                                setShort(pos0, len);
-
-
-                                break;
-                            }
-                            case AST_REPEAT: {
-                                //   push nil
-                                //   evaluate count
-                                //   new Countdown
-                                //   jump -> labelRepeat
-                                // labelTop:
-                                //   swap
-                                //   drop
-                                //   code for stmt1
-                                //   ...
-                                //   drop
-                                //   code for stmtn
-                                //   swap
-                                // labelRepeat:
-                                //   dup
-                                //   get_next
-                                //   jump if true -> labelTop
-                                //   drop
-                                int pos0, pos1, len;
-                                code.append(OP_PUSH_NIL);
-                                addDepth(1);
-                                compile(list[1]);
-                                code.append(OP_NEW_COUNTER);
-
-                                code.append(OP_JUMP);
-                                code.append((char) 0);
-                                code.append((char) 0);
-                                pos0 = code.length();
-
-                                code.append(OP_SWAP);
-                                for (int i = 2; i < list.length; i++) {
-                                    code.append(OP_DROP);
-                                    addDepth(-1);
-                                    compile(list[i]);
-                                }
-                                code.append(OP_SWAP);
-
-
-                                pos1 = code.length();
-                                len = pos1 - pos0;
-                                setShort(pos0, len);
-
-                                code.append(OP_DUP);
-                                addDepth(1);
-
-                                code.append(OP_NEXT);
-
-                                code.append(OP_JUMP_IF_TRUE);
-                                len = pos0 - (code.length() + 2);
-                                code.append((char) ((len >> 8) & 0xff));
-                                code.append((char) (len & 0xff));
-                                addDepth(-1);
-
-                                code.append(OP_DROP);
-                                addDepth(-1);
-
-                                break;
-                            }
-                            case AST_FOREACH: {
-                                //   push nil
-                                //   get iterator
-                                //   jump -> labelNext
-                                // labelStmts:
-                                //   swap
-                                //   drop
-                                //   code for stmt1
-                                //   ...
-                                //   drop
-                                //   code for stmtn
-                                //   swap
-                                // labelNext:
-                                //   dup
-                                //   get-next
-                                //   set counter-var
-                                //   jump if true labelStmts
-                                //   drop
-                                int pos0, pos1, len;
-                                code.append(OP_PUSH_NIL);
-                                addDepth(1);
-
-                                compile(list[2]);
-
-                                code.append(OP_JUMP);
-                                code.append((char) 0);
-                                code.append((char) 0);
-                                pos0 = code.length();
-
-                                code.append(OP_SWAP);
-                                for (int i = 3; i < list.length; i++) {
-                                    code.append(OP_DROP);
-                                    addDepth(-1);
-                                    compile(list[i]);
-                                }
-                                code.append(OP_SWAP);
-
-                                pos1 = code.length();
-                                len = pos1 - pos0;
-                                setShort(pos0, len);
-
-                                code.append(OP_DUP);
-                                addDepth(1);
-
-                                code.append(OP_NEXT);
-
-                                {
-                                    String name = (String) list[1];
-                                    int pos = closure.indexOf(name);
-                                    if (pos >= 0) {
-                                        code.append(OP_SET_CLOSURE);
-                                        pushShort(pos);
-                                    } else {
-                                        pos = locals.indexOf(name);
-                                        if (boxed.contains(name)) {
-                                            code.append(OP_SET_BOXED);
-                                        } else {
-                                            code.append(OP_SET_LOCAL);
-                                        }
-                                        pushShort(depth - pos - 1);
-                                    }
-                                }
-
-                                code.append(OP_JUMP_IF_TRUE);
-                                len = pos0 - (code.length() + 2);
-                                code.append((char) ((len >> 8) & 0xff));
-                                code.append((char) (len & 0xff));
-                                addDepth(-1);
-
-                                code.append(OP_DROP);
-                                addDepth(-1);
-
-
-                                break;
-                            }
-                            case AST_WHILE: {
-                                //   push nil
-                                //   jump -> labelCond:
-                                // labelBody:
-                                //   drop
-                                //   code for stmt1
-                                //   ...
-                                //   drop
-                                //   code for stmtn
-                                // labelCond:
-                                //   code for condition
-                                //   jump if true -> labelBody
-
-                                int pos0, pos1, len;
-                                code.append(OP_PUSH_NIL);
-                                addDepth(1);
-
-                                code.append(OP_JUMP);
-                                code.append((char) 0);
-                                code.append((char) 0);
-                                pos0 = code.length();
-
-                                for (int i = 2; i < list.length; i++) {
-                                    code.append(OP_DROP);
-                                    addDepth(-1);
-                                    compile(list[i]);
-                                }
-
-
-                                pos1 = code.length();
-                                len = pos1 - pos0;
-                                setShort(pos0, len);
-
-                                compile(list[1]);
-
-                                code.append(OP_JUMP_IF_TRUE);
-                                len = pos0 - (code.length() + 2);
-                                code.append((char) ((len >> 8) & 0xff));
-                                code.append((char) (len & 0xff));
-                                addDepth(-1);
-
-
-                                break;
-                            }
-                            case AST_STRINGJOIN: {
-                                code.append(OP_NEW_STRINGBUFFER);
-                                addDepth(1);
-
-                                for (int i = 1; i < list.length; i++) {
-                                    compile(list[i]);
-                                    code.append(OP_STR_APPEND);
-                                    addDepth(-1);
-                                }
-                                code.append(OP_TO_STRING);
-
-                                break;
-                            }
-                            case AST_LIST: {
-                                code.append(OP_NEW_LIST);
-                                addDepth(1);
-
-                                for (int i = 1; i < list.length; i++) {
-                                    compile(list[i]);
-                                    code.append(OP_PUSH);
-                                    addDepth(-1);
-                                }
-
-                                break;
-                            }
-                            case AST_DICT: {
-                                code.append(OP_NEW_DICT);
-                                addDepth(1);
-
-                                if (list.length % 2 == 0) {
-                                    throw new Error("Unmatched key/value: " + stringify(list));
-                                }
-                                for (int i = 1; i < list.length; i++) {
-                                    compile(list[i]);
-                                    i++;
-                                    compile(list[i]);
-                                    code.append(OP_PUT);
-                                    addDepth(-2);
-                                }
-
-                                break;
-                            }
-                        }
-                    // function evaluation
-                    }
-                } else {
-                    // save program counter
-                    code.append(OP_SAVE_PC);
-                    addDepth(RET_FRAME_SIZE);
-
-                    // find function and evaluate parameters
-                    for (int i = 0; i < list.length; i++) {
-                        compile(list[i]);
-                    }
-
-                    // call the function
-                    code.append(OP_CALL_FN);
-                    if (list.length > 128) {
-                        throw new Error("too many parameters");
-                    }
-                    code.append((char) (list.length - 1));
-                    addDepth(1 - list.length - RET_FRAME_SIZE);
-                }
-            // Identifier
-            } else if (o instanceof String) {
-                String name = (String) o;
-                int pos = closure.indexOf(name);
-                if (pos >= 0) {
-                    code.append(OP_GET_CLOSURE);
-                    pushShort(pos);
-                } else {
-                    pos = locals.indexOf(name);
-                    if (boxed.contains(name)) {
-                        code.append(OP_GET_BOXED);
-                    } else {
-                        code.append(OP_GET_LOCAL);
-                    }
-                    pushShort(depth - pos - 1);
-                }
-                addDepth(1);
-
-            // Literal
-            } else if (o instanceof Literal) {
-                code.append(OP_GET_LITERAL);
-                pushShort(constPoolId(((Literal) o).value));
-                addDepth(1);
-
-            // Function creation
-            } else if (o instanceof Closure) {
-                Object[] vars = ((Closure) o).closure;
-                for (int i = 0; i < vars.length; i++) {
-                    String name = (String) vars[i];
-                    if (boxed.contains(name)) {
-                        code.append(OP_GET_LOCAL);
-                        pushShort(depth - locals.indexOf(name) - 1);
-                    } else {
-                        code.append(OP_GET_BOXED_CLOSURE);
-                        pushShort(closure.indexOf(name));
-                    }
-                    addDepth(1);
-                }
-                code.append(OP_GET_LITERAL);
-                pushShort(constPoolId(o));
-                addDepth(1);
-                code.append(OP_BUILD_FN);
-                pushShort(vars.length);
-                addDepth(-vars.length);
-
-            // Should not happen
-            } else {
-                throw new Error("wrong kind of node:" + o.toString());
-            }
-        }
-
-        private void findIds(Stack s, Object o) {
-            if (o instanceof Object[]) {
-                Object[] os = (Object[]) o;
-                for (int i = 0; i < os.length; i++) {
-                    findIds(s, os[i]);
-                }
-            } else if (o instanceof String) {
-                if (!s.contains(o)) {
-                    s.push(o);
-                }
-            } else if (o instanceof Closure) {
-                Object[] closure_vars = ((Closure) o).closure;
-                for (int i = 0; i < closure_vars.length; i++) {
-                    String name = (String) closure_vars[i];
-                    if (!s.contains(name)) {
-                        s.push(name);
-                    }
-                    if (!boxed.contains(name)) {
-                        boxed.push(name);
-                    }
-                }
-            }
-        }
-
-        public String toString() {
-            StringBuffer sb = new StringBuffer();
-            sb.append("\n\tFunction( argc:" + argc + ", locals:" + locals.toString() + ", boxed:" + boxed.toString() + ", closure:" + closure.toString() + ", body:" + stringify(body) + ", code:");
-            for (int i = 0; i < code.length(); i++) {
-                sb.append((int) code.charAt(i));
-                sb.append(" ");
-            }
-            sb.append(" )");
-            return sb.toString();
-        }
-    }
-
-    private static class Literal {
-
-        public Object value;
-
-        public Literal(Object value) {
-            this.value = value;
-        }
-    }
-
     /////////////////////////////////////
-    // Factories and constants used by the parser
+    // deprecated stuff, currently kept as reference
     ////
-    private static final Object[] emptylist = new Object[0];
-
+    /*
     private static Object createId(String name) {
-        int id = builtinId(name);
-        if (id != -1) {
-            return new Integer(id);
-        } else {
-            return name;
-        }
+    int id = builtinId(name);
+    if (id != -1) {
+    return new Integer(id);
+    } else {
+    return name;
     }
-
+    }
+    
     private static Object create(Object[] list) {
-        if (list.length > 0) {
-            Object fn = list[0];
-            if (fn.equals("function")) {
-                return Function.create(list);
-            }
-        }
-        return list;
+    if (list.length > 0) {
+    Object fn = list[0];
+    if (fn.equals("function")) {
+    return Function.create(list);
     }
+    }
+    return list;
+    }
+     */
 }
