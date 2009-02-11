@@ -10,7 +10,7 @@ public class Main {
      */
     public static void main(String[] args) throws Exception {
 	InputStream is = new FileInputStream(new File(args[0]));
-        System.out.println(Parser.parse(is));
+        System.out.println(LightScript.parse(is));
 	//Ys.Closure cl = (Ys.Closure)Ys.readExpression(is);
 	//System.out.println(Ys.stringify(cl));
 	//System.out.println();

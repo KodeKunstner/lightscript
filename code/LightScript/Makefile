@@ -1,4 +1,4 @@
-CLASSES = Main.class Parser.class
+CLASSES = Main.class LightScript.class
 
 run: $(CLASSES)
 	java Main test.ls
