@@ -1,3 +1,4 @@
+
 import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -14,6 +15,7 @@ import java.util.Stack;
 // - Compiler
 // - Virtual machine
 class LightScript {
+
     public static Object parse(InputStream is) {
         LightScript parser = new LightScript(is);
         parser.next();
@@ -30,17 +32,17 @@ class LightScript {
     // for the parser
     private static final Object[] END_TOKEN = {"(end)"};
     private static final Object[] SEP_TOKEN = {"(sep)"};
-    private static final String ID_APPLY = "apply";
     private static final Boolean TRUE = new Boolean(true);
+    
     
     private static final int ID_PAREN = 1;
     private static final int ID_LIST_LITERAL = 2;
-    private static final int ID_TABLE_LITERAL = 3;
-    private static final int ID_VAR = 4; 
+    private static final int ID_CURLY = 3;
+    private static final int ID_VAR = 4;
     private static final int ID_RETURN = 5;
-    private static final int ID_NOT = 6;   
+    private static final int ID_NOT = 6;
     private static final int ID_FUNCTION = 7;
-    private static final int ID_IF = 8; 
+    private static final int ID_IF = 8;
     private static final int ID_WHILE = 9;
     private static final int ID_SUBSCRIPT_STR = 10;
     private static final int ID_CALL_FUNCTION = 11;
@@ -58,7 +60,15 @@ class LightScript {
     private static final int ID_OR = 23;
     private static final int ID_ELSE = 24;
     private static final int ID_SET = 25;
-
+    private static final int ID_IDENT = 26;
+    private static final int ID_LITERAL = 27;
+    
+    private static final String[] idNames =    {"", "PAREN", "LIST_LITERAL", 
+    "CURLY", "VAR", "RETURN", "NOT", "FUNCTION", "IF", "WHILE", 
+    "SUBSCRIPT_STR", "CALL_FUNCTION", "SUBSCRIPT",
+    "MUL", "REM", "ADD", "SUB", "NEG", "EQUALS", "NOT_EQUALS", "LEQ", 
+    "LESS", "AND", "OR", "ELSE", "SET", "IDENT", "LITERAL" };
+             
     
     // Opcodes
     private static final char OP_ENSURE_STACKSPACE = 0;
@@ -135,14 +145,12 @@ class LightScript {
     private static final int AST_DICT = AST_LIST + 1;
     // Opcode mask, to extract opcode from AST_FUNCTIION type
     private static final int MASK_OP = 0xFF;
-
     private static final String[] fnNames = {"not", "+", "-", "*", "/", "%", "is-integer", "is-string", "is-list", "is-dictionary", "is-iterator", "equals", "is-empty", "put", "get", "random", "size", "<", "<=", "substring", "resize", "push", "pop", "keys", "values", "get-next", "log", "assert"};
     private static final int[] fnArity = {1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 1, 3, 2, 1, 1, 2, 2, 3, 2, 2, 1, 1, 1, 1, 1, 2};
     private static final char[] fnTypes = {OP_NOT, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_REM, OP_IS_INT, OP_IS_STR, OP_IS_LIST, OP_IS_DICT, OP_IS_ITER, OP_EQUAL, OP_IS_EMPTY, OP_PUT, OP_GET, OP_RAND, OP_SIZE, OP_LESS, OP_LESSEQUAL, OP_SUBSTR, OP_RESIZE, OP_PUSH, OP_POP, OP_KEYS, OP_VALUES, OP_NEXT, OP_LOG, OP_ASSERT};
     private static final String[] builtinNames = {"set", "if", "and", "or", "foreach", "while", "do", "stringjoin", "list", "dict"};
     private static final int[] builtinTypes = {AST_SET, AST_IF, AST_AND, AST_OR, AST_FOREACH, AST_WHILE, AST_DO, AST_STRINGJOIN, AST_LIST, AST_DICT};
-    
-    
+
     ////////////////////////
     // Utility functions //
     //////////////////////
@@ -159,29 +167,30 @@ class LightScript {
         } else if (o instanceof Object[]) {
             StringBuffer sb = new StringBuffer();
             Object[] os = (Object[]) o;
-            sb.append("[");
-            for (int i = 0; i < os.length; i++) {
-                sb.append(" " + stringify(os[i]));
+            sb.append("[ ");
+            if(os.length > 0 && os[0] instanceof Integer) {
+                int id = ((Integer)os[0]).intValue();
+                if(id >= 0 && id < idNames.length) {
+                    sb.append(idNames[id]);
+                }
             }
-            sb.append(" ]");
+            for (int i = 0; i < os.length; i++) {
+                sb.append(stringify(os[i]) + " ");
+            }
+            sb.append("]\n");
             return sb.toString();
         } else {
             return o.toString();
         }
     }
 
-    private static Object[] v(Object o1) {
-        Object[] result = {o1};
+    private static Object[] v(int id, Object o) {
+        Object[] result = {new Integer(id), o};
         return result;
     }
 
-    private static Object[] v(Object o1, Object o2) {
-        Object[] result = {o1, o2};
-        return result;
-    }
-
-    private static Object[] v(Object o1, Object o2, Object o3) {
-        Object[] result = {o1, o2, o3};
+    private static Object[] v(int id, Object o1, Object o2) {
+        Object[] result = {new Integer(id), o1, o2};
         return result;
     }
 
@@ -426,8 +435,17 @@ class LightScript {
         private int ledId;
         public boolean sep;
         public int bp;
-        private static final int NUD_ID = 0,  NUD_LITERAL = 1,  NUD_END = 2,  NUD_SEP = 3,  NUD_LIST = 4,  NUD_PREFIX = 5,  NUD_PREFIX2 = 6,  LED_INFIX = 7,  LED_INFIXR = 8,  LED_INFIX_LIST = 9;
-
+        private static final int NUD_ID = 0;
+        private static final int NUD_LITERAL = 1;
+        private static final int NUD_END = 2;
+        private static final int NUD_SEP = 3;
+        private static final int NUD_LIST = 4;
+        private static final int NUD_PREFIX = 5;
+        private static final int NUD_PREFIX2 = 6;
+        private static final int LED_INFIX = 7;
+        private static final int LED_INFIXR = 8;
+        private static final int LED_INFIX_LIST = 9;
+        
         private Object[] readList(Stack s) {
             Object[] p = parse(0);
             while (p != END_TOKEN) {
@@ -445,22 +463,22 @@ class LightScript {
         public Object[] nud() {
             switch (nudFn) {
                 case NUD_ID:
-                    return v("identifier", val);
+                    return v(ID_IDENT, val);
                 case NUD_LITERAL:
-                    return v("literal", val);
+                    return v(ID_LITERAL, val);
                 case NUD_END:
                     return END_TOKEN;
                 case NUD_SEP:
                     return SEP_TOKEN;
                 case NUD_LIST: {
                     Stack s = new Stack();
-                    s.push(val);
+                    s.push(new Integer(nudId));
                     return readList(s);
                 }
                 case NUD_PREFIX:
-                    return v(val, parse(0));
+                    return v(nudId, parse(0));
                 case NUD_PREFIX2:
-                    return v(val, parse(0), parse(0));
+                    return v(nudId, parse(0), parse(0));
                 default:
                     throw new Error("Unknown nud: " + nudFn);
             }
@@ -469,13 +487,12 @@ class LightScript {
         public Object[] led(Object left) {
             switch (ledFn) {
                 case LED_INFIX:
-                    return v(val, left, parse(bp));
+                    return v(ledId, left, parse(bp));
                 case LED_INFIXR:
-                    return v(val, left, parse(bp - 1));
+                    return v(ledId, left, parse(bp - 1));
                 case LED_INFIX_LIST: {
                     Stack s = new Stack();
-                    s.push(ID_APPLY);
-                    s.push(val);
+                    s.push(new Integer(ledId));
                     s.push(left);
                     return readList(s);
                 }
@@ -586,7 +603,7 @@ class LightScript {
 
             } else if ("{".equals(val)) {
                 nudFn = NUD_LIST;
-                nudId = ID_TABLE_LITERAL;
+                nudId = ID_CURLY;
 
             } else if ("var".equals(val)) {
                 nudFn = NUD_PREFIX;
@@ -1175,7 +1192,6 @@ class LightScript {
     //////////////////
     /////////////////
     ////////////////
-    
     private static Random rnd = new Random();
 
     private static int readShort(int pc, byte[] code) {
