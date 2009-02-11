@@ -1,9 +1,16 @@
 [function [] [x fib]
    [set fib [function [x] []
-      [if [< 1 x] [+ [fib [- x 1]] [fib [- x 2]]] 1]]]
-   [set x 0]
-   [repeat 32
-      [set x [+ x 1]]
-      [log [stringjoin x " " [fib x]]]
-      ]
+      [if [< 1 x] 
+          [+ [fib [- x 1]] [fib [- x 2]]] 
+          1]]]
+   [log [fib 35]]
+]
+    
+;   [set fib [function [x] []
+;      [if [< 1 x] [+ [fib [- x 1]] [fib [- x 2]]] 1]]]
+;   [set x 0]
+;   [repeat 32
+;      [set x [+ x 1]]
+;      [log [stringjoin x " " [fib x]]]
+;      ]
 ]

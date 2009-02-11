@@ -1,45 +1,13 @@
-;[set words1 
-;    [list "oste" "kakao" "senge" "gynge" "tanke" "flyve"]]
-;[set words2
-;    [list "mad"  "mælk"  "lampe" "hest"  "streg" "fisk"]]
-;[set x 0]
-;[repeat 5
-;    [println [stringjoin 
-;        [random words1]
-;        [random words2]
-;    ]]
-;]
-;
-;
-;[defun [f x]
-;    [+ x 1]]
-;
-;[defun [g x]
-;    [- [apply f x] 1]]
-;[g 2]
-;
-;[defun [f x]
-;    [- x 1]]
-;
-;[println [apply g 1]]
-;   
-;;[set x 1]
-;;
-;;[locals [x]
-;;  [set x 10]
-;;  [defun [f y] [+ x x] [+ x y]]]
-;;
-;;[println [f 2]]
-;
-
-[defun [fib x]
-    [if [< 1 x] [+ [fib [- x 1]] [fib [- x 2]]] 1]]
-
-[set x 0]
-[repeat 32
-          [set x [+ x 1]]
-                [println [stringjoin x " " [fib x]]]
-                      ]
-
-
-
+   [set fib [lambda [x]
+      [if [< 1 x] 
+          [+ [fib [- x 1]] [fib [- x 2]]] 
+          1]]]
+   [println [fib 35]]
+    
+;   [set fib [function [x] []
+;      [if [< 1 x] [+ [fib [- x 1]] [fib [- x 2]]] 1]]]
+;   [set x 0]
+;   [repeat 32
+;      [set x [+ x 1]]
+;      [log [stringjoin x " " [fib x]]]
+;      ]
