@@ -11,12 +11,45 @@ class Parser {
         }
         return sb.toString();
     }
+    static class Token {
+        Object str;
+        private int nudId;
+        private int ledId;
+        public boolean sep;
+        public int bp;
+
+        public Object[] nud() {
+            switch(nudId) {
+                default:
+                    throw new Error("Unknown nud: " + nudId);
+            }
+        }
+        public Object[] led(Object o) {
+            switch(ledId) {
+                default:
+                    throw new Error("Unknown led: " + ledId);
+            }
+        }
+
+        public Token(boolean isLiteral, Object val) {
+            this.str = val;
+            this.sep = false;
+            this.bp = 0;
+            this.nudId = 0;
+            this.ledId = 0;
+
+        }
+        public String toString() {
+            return str.toString();
+        }
+
+    }
     static class Tokeniser {
 
         InputStream is;
         int c;
         StringBuffer sb;
-        Object token;
+        Token token;
 
         public Object getToken() {
             return token;
@@ -61,7 +94,7 @@ class Parser {
                             nextc();
                         }
                     } else {
-                        token = "/";
+                        token = new Token(false, "/");
                         return true;
                     }
                 } 
@@ -86,7 +119,7 @@ class Parser {
                     pushc();
                 }
                 nextc();
-                token = new Literal(sb.toString());
+                token = new Token(true, sb.toString());
                 return true;
 
             // Number
@@ -94,7 +127,7 @@ class Parser {
                 do {
                     pushc();
                 } while(isNum());
-                token = new Literal(Integer.valueOf(sb.toString()));
+                token = new Token(true, Integer.valueOf(sb.toString()));
                 return true;
 
             // Identifier
@@ -113,15 +146,9 @@ class Parser {
             } else {
                 pushc();
             }
-            token = sb.toString();
+            token = new Token(false, sb.toString());
             return true;
         }
         
-    }
-    static class Literal {
-        public Object val;
-        public Literal(Object val) {
-            this.val = val;
-        }
     }
 }
