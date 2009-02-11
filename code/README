@@ -27,3 +27,6 @@ Retired:
 .old21 ... more experiments, including new parser impl.
 .old22 Mobile app with language
 .old23 notes.txt about language and vm
+.old24 a discarded draft compiler+vm with static scope
+.old25 a working compiler+vm with static scope
+.old26 parser for subset of javascript, written in java
