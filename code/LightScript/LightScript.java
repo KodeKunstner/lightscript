@@ -316,6 +316,7 @@ class LightScript {
     private Stack varsUsed;
     private Stack varsBoxed;
     private Stack varsLocals;
+    private Stack varsClosure;
     private int varsArgc;
 
     private LightScript(InputStream is) {
@@ -510,6 +511,10 @@ class LightScript {
                 case NUD_PREFIX2:
                     return v(nudId, parse(0), parse(0));
                 case NUD_FUNCTION: {
+                    // The functio nud is a bit more complex than 
+                    // the others because variable-use-analysis is done
+                    // during the parsing.
+                    
                     // save statistics for previous function
                     Stack prevUsed = varsUsed;
                     Stack prevBoxed = varsBoxed;
@@ -537,23 +542,35 @@ class LightScript {
                         varsLocals.push(os[1]);
                     }
 
+                    // parse the body of the function
+                    // notice that this may update vars{Used|Boxed|Locals}
                     Object[] body = parse(0);
+
+                    // non-local variables are boxed into the closure
                     for (int i = 0; i < varsUsed.size(); i++) {
                         Object o = varsUsed.elementAt(i);
                         if (!varsLocals.contains(o)) {
                             stackAdd(varsBoxed, o);
                         }
                     }
-                    Stack varsNeeded = new Stack();
+                    
+                    //  find the variables in the closure
+                    // and add that they need to be boxed at parent.
+                    Stack varsClosure = new Stack();
                     for (int i = 0; i < varsBoxed.size(); i++) {
                         Object o = varsBoxed.elementAt(i);
                         if (!varsLocals.contains(o)) {
                             stackAdd(prevBoxed, o);
-                            stackAdd(varsNeeded, o);
+                            stackAdd(varsClosure, o);
                         }
                     }
-                    Object[] result = v(nudId, varsNeeded, compile(body));
+                    Object[] result = v(nudId, varsClosure, compile(body));
+                    varsClosure = null;
                     
+                    // restore variable statistics
+                    // notice that varsClosure is not needed,
+                    // as it is calculated before the compile,
+                    // and not updated/used other places
                     varsUsed = prevUsed;
                     varsBoxed = prevBoxed;
                     varsLocals = prevLocals;
@@ -744,9 +761,14 @@ class LightScript {
     /////////////////
     ////////////////
     
-    private Object compile(Object[] body) {
-        return v(- varsArgc, varsLocals, varsBoxed, body);
+    private Object compile(Object[] fnbody) {
+        // ... initialise compile variables..
+        
+        // .. call compile subexpressions
+        
+        return v(- varsArgc, varsLocals, varsBoxed, fnbody);
     }
+    
     private static class Function {
 
         private int argc;
