@@ -1,8 +1,6 @@
 
 import java.io.InputStream;
-import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Random;
 import java.util.Stack;
 
 // class LightScript
@@ -18,7 +16,7 @@ class LightScript {
 
     public Code nextCode() {
         Object[] os = parse(0);
-        varsCode = varsUsed;
+        varsClosure = varsUsed;
         return compile(os);
     }
 
@@ -212,39 +210,22 @@ class LightScript {
         return result;
     }
 
-    Code createCode(int argc, StringBuffer code, Stack constPool, Stack closure) {
-        Code result = new Code();
-        result.argc = argc;
-
-        result.code = new byte[code.length()];
-        for (int i = 0; i < result.code.length; i++) {
-            result.code[i] = (byte) code.charAt(i);
-        }
-
-        result.constPool = new Object[constPool.size()];
-        for (int i = 0; i < result.constPool.length; i++) {
-            result.constPool[i] = constPool.elementAt(i);
-        }
-
-        result.closure = new Object[closure.size()];
-        for (int i = 0; i < result.closure.length; i++) {
-            result.closure[i] = closure.elementAt(i);
-        }
-        return result;
-    }
-
     /**
      * Analysis of variables in a function being compiled,
      * updated during the parsing.
      */
     public static class Code {
 
-        public byte[] code;
         public int argc;
-        public Object[] closure;
+        public byte[] code;
         public Object[] constPool;
+        public Object[] closure;
 
-        public Code() {
+        public Code(int argc, byte[] code, Object[] constPool, Object[] closure) {
+            this.argc = argc;
+            this.code = code;
+            this.constPool = constPool;
+            this.closure = closure;
         }
 
         public Code(Code cl) {
@@ -267,7 +248,7 @@ class LightScript {
     private Stack varsUsed;
     private Stack varsBoxed;
     private Stack varsLocals;
-    private Stack varsCode;
+    private Stack varsClosure;
     private int varsArgc;
 
     public LightScript(InputStream is) {
@@ -505,19 +486,19 @@ class LightScript {
 
                 //  find the variables in the closure
                 // and add that they need to be boxed at parent.
-                varsCode = new Stack();
+                varsClosure = new Stack();
                 for (int i = 0; i < varsBoxed.size(); i++) {
                     Object o = varsBoxed.elementAt(i);
                     if (!varsLocals.contains(o)) {
                         stackAdd(prevBoxed, o);
-                        stackAdd(varsCode, o);
+                        stackAdd(varsClosure, o);
                     }
                 }
                 Object[] result = v(nudId, compile(body));
-                varsCode = null;
+                varsClosure = null;
 
                 // restore variable statistics
-                // notice that varsCode is not needed,
+                // notice that varsClosure is not needed,
                 // as it is calculated before the compile,
                 // and not updated/used other places
                 varsUsed = prevUsed;
@@ -814,13 +795,21 @@ class LightScript {
         maxDepth -= varsArgc;
         setShort(spacePos, maxDepth);
 
-        Code result = createCode(varsArgc, code, constPool, varsCode);
-        code = null;
-        constPool = null;
+        // create a new code object;
+        Code result = new Code(varsArgc, new byte[code.length()], 
+                new Object[constPool.size()], new Object[varsClosure.size()]);
+
+        // copy values into the code object
+        constPool.copyInto(result.constPool);
+        varsClosure.copyInto(result.closure);
+        for (int i = 0; i < result.code.length; i++) {
+            result.code[i] = (byte) code.charAt(i);
+        }
+
         //System.out.println(stringify(body));
         //System.out.println(varsLocals);
         //System.out.println(varsBoxed);
-        //System.out.println(varsCode);
+        //System.out.println(varsClosure);
         return result;
     }
 
@@ -881,7 +870,7 @@ class LightScript {
             }
             case ID_IDENT: {
                 String name = (String) expr[1];
-                int pos = varsCode.indexOf(name);
+                int pos = varsClosure.indexOf(name);
                 if (pos >= 0) {
                     emit(ID_GET_CLOSURE);
                     pushShort(pos);
@@ -919,7 +908,7 @@ class LightScript {
                 if (targetType == ID_IDENT) {
                     String name = (String) ((Object[]) expr[1])[1];
                     compile(expr[2], true);
-                    int pos = varsCode.indexOf(name);
+                    int pos = varsClosure.indexOf(name);
                     if (pos >= 0) {
                         emit(ID_SET_CLOSURE);
                         pushShort(pos);
@@ -975,7 +964,7 @@ class LightScript {
                         pushShort(depth - varsLocals.indexOf(name) - 1);
                     } else {
                         code.append(ID_GET_BOXED_CLOSURE);
-                        pushShort(varsCode.indexOf(name));
+                        pushShort(varsClosure.indexOf(name));
                     }
                     addDepth(1);
                 }
