@@ -556,7 +556,7 @@ class LightScript {
                     
                     //  find the variables in the closure
                     // and add that they need to be boxed at parent.
-                    Stack varsClosure = new Stack();
+                    varsClosure = new Stack();
                     for (int i = 0; i < varsBoxed.size(); i++) {
                         Object o = varsBoxed.elementAt(i);
                         if (!varsLocals.contains(o)) {
@@ -760,22 +760,99 @@ class LightScript {
     //////////////////
     /////////////////
     ////////////////
+    private Stack constPool;
+    private int maxDepth;
+    private int depth;
+    private StringBuffer code;
+
+            private void pushShort(int i) {
+            code.append((char) ((i >> 8) & 0xff));
+            code.append((char) (i & 0xff));
+        }
+
+        private void setShort(int pos, int i) {
+            code.setCharAt(pos - 2, (char) ((i >> 8) & 0xff));
+            code.setCharAt(pos - 1, (char) (i & 0xff));
+        }
+
+        private void addDepth(int i) {
+            depth += i;
+            if (depth > maxDepth) {
+                maxDepth = depth;
+            }
+        }
+
+        private void assertLength(Object[] list, int len) {
+            if (list.length != len) {
+                throw new Error("Wrong number of parameters:" + stringify(list));
+            }
+        }
+
+        private int constPoolId(Object o) {
+            int pos = constPool.indexOf(o);
+            if (pos < 0) {
+                pos = constPool.size();
+                constPool.push(o);
+            }
+            return pos;
+        }
+
+
     
     private Object compile(Object[] fnbody) {
+            constPool = new Stack();
+            code = new StringBuffer();
+
+            // make sure that there are sufficient stack space for the function
+            code.append(OP_ENSURE_STACKSPACE);
+            pushShort(0);
+            int spacePos = code.length();
+
+            // allocate space for local vars
+            maxDepth = depth = varsLocals.size();
+            int framesize = depth - varsArgc;
+            while (framesize >= 127) {
+                code.append(OP_INC_SP);
+                code.append((char) 127);
+                framesize -= 127;
+            }
+            if (framesize > 0) {
+                code.append(OP_INC_SP);
+                code.append((char) framesize);
+            }
+
+            // box boxed values in frame
+            Enumeration e = varsBoxed.elements();
+            while (e.hasMoreElements()) {
+                code.append(OP_BOX_IT);
+                pushShort(depth - varsLocals.indexOf(e.nextElement()) - 1);
+            }
+
+            // oldVersionOfCompile(body);
+
+            // emit return code, including current stack depth to drop
+            code.append(OP_RETURN);
+            pushShort(depth);
+
+            // patch amount of stack space needed
+            maxDepth -= varsArgc;
+            setShort(spacePos, maxDepth);
+
         // ... initialise compile variables..
         
         // .. call compile subexpressions
+
         
         return v(- varsArgc, varsLocals, varsBoxed, fnbody);
     }
     
     private static class Function {
 
-        private int argc;
+        private int varsArgc;
         private Object[] body;
-        private Stack locals;
-        private Stack boxed;
-        private Stack closure;
+        private Stack varsLocals;
+        private Stack varsBoxed;
+        private Stack varsClosure;
         private Stack constPool;
         private int maxDepth;
         private int depth;
@@ -788,26 +865,26 @@ class LightScript {
                 body[i] = list[i + 2];
             }
             body[0] = new Integer(AST_DO);
-            argc = ((Object[]) list[1]).length;
-            locals = new Stack();
-            boxed = new Stack();
-            closure = new Stack();
+            varsArgc = ((Object[]) list[1]).length;
+            varsLocals = new Stack();
+            varsBoxed = new Stack();
+            varsClosure = new Stack();
 
-            findIds(locals, list[1]);
-            findIds(locals, list[2]);
+            findIds(varsLocals, list[1]);
+            findIds(varsLocals, list[2]);
 
-            findIds(closure, body);
+            findIds(varsClosure, body);
 
             // local variables are not placed in the closure
-            e = locals.elements();
+            e = varsLocals.elements();
             while (e.hasMoreElements()) {
-                closure.removeElement(e.nextElement());
+                varsClosure.removeElement(e.nextElement());
             }
 
             // closure variables are automatically boxed
-            e = closure.elements();
+            e = varsClosure.elements();
             while (e.hasMoreElements()) {
-                boxed.removeElement(e.nextElement());
+                varsBoxed.removeElement(e.nextElement());
             }
 
             oldVersionOfCompile();
@@ -816,7 +893,7 @@ class LightScript {
 
         public static Closure create(Object[] list) {
             Function f = new Function(list);
-            return new Closure(f.argc, f.code, f.constPool, f.closure);
+            return new Closure(f.varsArgc, f.code, f.constPool, f.varsClosure);
         }
 
         private void findIds(Stack s, Object o) {
@@ -836,8 +913,8 @@ class LightScript {
                     if (!s.contains(name)) {
                         s.push(name);
                     }
-                    if (!boxed.contains(name)) {
-                        boxed.push(name);
+                    if (!varsBoxed.contains(name)) {
+                        varsBoxed.push(name);
                     }
                 }
             }
@@ -885,8 +962,8 @@ class LightScript {
             int spacePos = code.length();
 
             // allocate space for local vars
-            maxDepth = depth = locals.size();
-            int framesize = depth - argc;
+            maxDepth = depth = varsLocals.size();
+            int framesize = depth - varsArgc;
             while (framesize >= 127) {
                 code.append(OP_INC_SP);
                 code.append((char) 127);
@@ -898,10 +975,10 @@ class LightScript {
             }
 
             // box boxed values in frame
-            Enumeration e = boxed.elements();
+            Enumeration e = varsBoxed.elements();
             while (e.hasMoreElements()) {
                 code.append(OP_BOX_IT);
-                pushShort(depth - locals.indexOf(e.nextElement()) - 1);
+                pushShort(depth - varsLocals.indexOf(e.nextElement()) - 1);
             }
 
             oldVersionOfCompile(body);
@@ -911,7 +988,7 @@ class LightScript {
             pushShort(depth);
 
             // patch amount of stack space needed
-            maxDepth -= argc;
+            maxDepth -= varsArgc;
             setShort(spacePos, maxDepth);
         }
 
@@ -953,13 +1030,13 @@ class LightScript {
                                 assertLength(list, 3);
                                 String name = (String) list[1];
                                 oldVersionOfCompile(list[2]);
-                                int pos = closure.indexOf(name);
+                                int pos = varsClosure.indexOf(name);
                                 if (pos >= 0) {
                                     code.append(OP_SET_CLOSURE);
                                     pushShort(pos);
                                 } else {
-                                    pos = locals.indexOf(name);
-                                    if (boxed.contains(name)) {
+                                    pos = varsLocals.indexOf(name);
+                                    if (varsBoxed.contains(name)) {
                                         code.append(OP_SET_BOXED);
                                     } else {
                                         code.append(OP_SET_LOCAL);
@@ -1104,13 +1181,13 @@ class LightScript {
 
                                 {
                                     String name = (String) list[1];
-                                    int pos = closure.indexOf(name);
+                                    int pos = varsClosure.indexOf(name);
                                     if (pos >= 0) {
                                         code.append(OP_SET_CLOSURE);
                                         pushShort(pos);
                                     } else {
-                                        pos = locals.indexOf(name);
-                                        if (boxed.contains(name)) {
+                                        pos = varsLocals.indexOf(name);
+                                        if (varsBoxed.contains(name)) {
                                             code.append(OP_SET_BOXED);
                                         } else {
                                             code.append(OP_SET_LOCAL);
@@ -1241,13 +1318,13 @@ class LightScript {
             // Identifier
             } else if (o instanceof String) {
                 String name = (String) o;
-                int pos = closure.indexOf(name);
+                int pos = varsClosure.indexOf(name);
                 if (pos >= 0) {
                     code.append(OP_GET_CLOSURE);
                     pushShort(pos);
                 } else {
-                    pos = locals.indexOf(name);
-                    if (boxed.contains(name)) {
+                    pos = varsLocals.indexOf(name);
+                    if (varsBoxed.contains(name)) {
                         code.append(OP_GET_BOXED);
                     } else {
                         code.append(OP_GET_LOCAL);
@@ -1267,12 +1344,12 @@ class LightScript {
                 Object[] vars = ((Closure) o).closure;
                 for (int i = 0; i < vars.length; i++) {
                     String name = (String) vars[i];
-                    if (boxed.contains(name)) {
+                    if (varsBoxed.contains(name)) {
                         code.append(OP_GET_LOCAL);
-                        pushShort(depth - locals.indexOf(name) - 1);
+                        pushShort(depth - varsLocals.indexOf(name) - 1);
                     } else {
                         code.append(OP_GET_BOXED_CLOSURE);
-                        pushShort(closure.indexOf(name));
+                        pushShort(varsClosure.indexOf(name));
                     }
                     addDepth(1);
                 }
@@ -1291,7 +1368,7 @@ class LightScript {
 
         public String toString() {
             StringBuffer sb = new StringBuffer();
-            sb.append("\n\tFunction( argc:" + argc + ", locals:" + locals.toString() + ", boxed:" + boxed.toString() + ", closure:" + closure.toString() + ", body:" + stringify(body) + ", code:");
+            sb.append("\n\tFunction( argc:" + varsArgc + ", locals:" + varsLocals.toString() + ", boxed:" + varsBoxed.toString() + ", closure:" + varsClosure.toString() + ", body:" + stringify(body) + ", code:");
             for (int i = 0; i < code.length(); i++) {
                 sb.append((int) code.charAt(i));
                 sb.append(" ");
