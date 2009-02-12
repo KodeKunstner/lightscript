@@ -18,7 +18,8 @@ class LightScript {
 
     public Closure nextClosure() {
         Object[] os = parse(0);
-        return (Closure)os[1];
+        varsClosure = varsUsed;
+        return compile(os);
     }
 
     ////////////////////////

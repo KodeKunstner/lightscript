@@ -12,11 +12,6 @@ public class Main {
 	InputStream is = new FileInputStream(new File(args[0]));
         LightScript ls = new LightScript(is);
         LightScript.Closure o = ls.nextClosure();
-        System.out.println("\nExecuting\n");
-        System.out.println(LightScript.execute(o));
-	//Ys.Closure cl = (Ys.Closure)Ys.readExpression(is);
-	//System.out.println(Ys.stringify(cl));
-	//System.out.println();
-	//Ys.stringify(Ys.execute(cl));
+        LightScript.execute(o);
     }
 }

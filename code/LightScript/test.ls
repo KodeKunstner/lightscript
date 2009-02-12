@@ -1,4 +1,4 @@
-function() {
+(function() {
     var fib = function(x) {
         if(1 < x) {
             return fib(x - 1) + fib(x - 2);
@@ -7,5 +7,5 @@ function() {
         }
 
     }
-    return fib(35);
-}
+    print(fib(35));
+})();
