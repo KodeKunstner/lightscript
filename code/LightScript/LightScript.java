@@ -57,116 +57,65 @@ class LightScript {
     private static final char ID_IDENT = 26;
     private static final char ID_ENSURE_STACKSPACE = 27;
     private static final char ID_INC_SP = 28;
-    private static final char ID_XXX1 = 29;
-    private static final char ID_SAVE_PC = 30;
-    private static final char ID_CALL_FN = 31;
-    private static final char ID_BUILD_FN = 32;
-    private static final char ID_SET_BOXED = 33;
-    private static final char ID_SET_LOCAL = 34;
-    private static final char ID_SET_CLOSURE = 35;
-    private static final char ID_GET_BOXED = 36;
-    private static final char ID_GET_LOCAL = 37;
-    private static final char ID_GET_CLOSURE = 38;
+    private static final char ID_SAVE_PC = 29;
+    private static final char ID_CALL_FN = 30;
+    private static final char ID_BUILD_FN = 31;
+    private static final char ID_SET_BOXED = 32;
+    private static final char ID_SET_LOCAL = 33;
+    private static final char ID_SET_CLOSURE = 34;
+    private static final char ID_GET_BOXED = 35;
+    private static final char ID_GET_LOCAL = 36;
+    private static final char ID_GET_CLOSURE = 37;
     // get a value from the closure without unboxing it
-    private static final char ID_GET_BOXED_CLOSURE = 39;
-    // private static final char ID_GET_LITERAL = 40;
+    private static final char ID_GET_BOXED_CLOSURE = 38;
     // box a value
-    private static final char ID_BOX_IT = 41;
-    private static final char ID_PRINT = 42;
-    private static final char ID_DROP = 43;
-    private static final char ID_PUSH_NIL = 44;
-    private static final char ID_XXX2 = 45;
-    private static final char ID_XXX3 = 46;
-    private static final char ID_XXX4 = 47;
-    private static final char ID_XXX5 = 48;
-    private static final char ID_DIV = 49;
-    private static final char ID_XXX6 = 50;
-    private static final char ID_IS_INT = 51;
-    private static final char ID_IS_STR = 52;
-    private static final char ID_IS_LIST = 53;
-    private static final char ID_IS_DICT = 54;
-    private static final char ID_IS_ITER = 55;
-    private static final char ID_EQUAL = 56;
-    private static final char ID_IS_EMPTY = 57;
-    private static final char ID_PUT = 58;
-    private static final char ID_GET = 59;
-    private static final char ID_RAND = 60;
-    private static final char ID_SIZE = 61;
-    private static final char ID_XXX7 = 62;
-    private static final char ID_LESSEQUAL = 63;
-    private static final char ID_SUBSTR = 64;
-    private static final char ID_RESIZE = 65;
-    private static final char ID_PUSH = 66;
-    private static final char ID_POP = 67;
-    private static final char ID_KEYS = 68;
-    private static final char ID_VALUES = 69;
-    private static final char ID_NEXT = 70;
-    private static final char ID_ASSERT = 71;
-    private static final char ID_JUMP = 72;
-    private static final char ID_JUMP_IF_TRUE = 73;
-    private static final char ID_DUP = 74;
-    private static final char ID_NEW_LIST = 75;
-    private static final char ID_NEW_DICT = 76;
-    private static final char ID_NEW_STRINGBUFFER = 77;
-    private static final char ID_STR_APPEND = 78;
-    private static final char ID_TO_STRING = 79;
-    private static final char ID_SWAP = 80;
-    private static final char ID_BLOCK = 81;
-    private static final char ID_SEP = 82;
-    private static final char ID_IN = 83;
-    private static final char ID_JUMP_IF_FALSE = 84;
+    private static final char ID_BOX_IT = 39;
+    private static final char ID_PRINT = 40;
+    private static final char ID_DROP = 41;
+    private static final char ID_PUSH_NIL = 42;
+    private static final char ID_PUT = 43;
+    private static final char ID_PUSH = 44;
+    private static final char ID_POP = 45;
+    private static final char ID_JUMP = 46;
+    private static final char ID_JUMP_IF_TRUE = 47;
+    private static final char ID_DUP = 48;
+    private static final char ID_NEW_LIST = 49;
+    private static final char ID_NEW_DICT = 50;
+    private static final char ID_BLOCK = 51;
+    private static final char ID_SEP = 52;
+    private static final char ID_IN = 53;
+    private static final char ID_JUMP_IF_FALSE = 54;
     private static final Object[] END_TOKEN = {"(end)"};
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
     private static final Boolean TRUE = new Boolean(true);
-    private static final String[] idNames = {"", "PAREN", "LIST_LITERAL",
-        "CURLY", "VAR", "RETURN", "NOT", "FUNCTION", "IF", "WHILE",
-        "LITERAL", "CALL_FUNCTION", "SUBSCRIPT", "MUL", "REM", "ADD",
-        "SUB", "NEG", "EQUALS", "NOT_EQUALS", "LEQ", "LESS", "AND", "OR",
-        "ELSE", "SET", "IDENT", "ENSURE_STACKSPACE", "INC_SP",
-        "xxx", "SAVE_PC", "CALL_FN", "BUILD_FN", "SET_BOXED",
-        "SET_LOCAL", "SET_CLOSURE", "GET_BOXED", "GET_LOCAL",
-        "GET_CLOSURE", "GET_BOXED_CLOSURE", "xxx", "BOX_IT",
-        "PRINT", "DROP", "PUSH_NIL", "xxx", "xxx", "xxx", "xxx", "DIV",
-        "xxx", "IS_INT", "IS_STR", "IS_LIST", "IS_DICT", "IS_ITER",
-        "EQUAL", "IS_EMPTY", "PUT", "GET", "RAND", "SIZE", "xxx",
-        "LESSEQUAL", "SUBSTR", "RESIZE", "PUSH", "POP", "KEYS",
-        "VALUES", "NEXT", "ASSERT", "JUMP", "JUMP_IF_TRUE", "DUP",
-        "NEW_LIST", "NEW_DICT", "NEW_STRINGBUFFER", "STR_APPEND",
-        "TO_STRING", "SWAP", "BLOCK", "SEP", "IN", "JUMP_IF_FALSE"
-    };
 
     // size of the return frame
     private static final char RET_FRAME_SIZE = 3;
 
-    /*
-    // Syntax tree
-    private static final int AST_BUILTIN_FUNCTION = 0x100;
-    private static final int AST_DO = 0;
-    private static final int AST_SET = 1;
-    private static final int AST_IF = AST_SET + 1;
-    private static final int AST_AND = AST_IF + 1;
-    private static final int AST_OR = AST_AND + 1;
-    private static final int AST_FOREACH = AST_OR + 1;
-    private static final int AST_WHILE = AST_FOREACH + 1;
-    private static final int AST_STRINGJOIN = AST_WHILE + 1;
-    private static final int AST_LIST = AST_STRINGJOIN + 1;
-    private static final int AST_DICT = AST_LIST + 1;
-    // Opcode mask, to extract opcode from AST_FUNCTIION type
-    private static final int MASK_OP = 0xFF;
-    private static final String[] fnNames = {"not", "+", "-", "*", "/", "%", "is-integer", "is-string", "is-list", "is-dictionary", "is-iterator", "equals", "is-empty", "put", "get", "random", "size", "<", "<=", "substring", "resize", "push", "pop", "keys", "values", "get-next", "log", "assert"};
-    private static final int[] fnArity = {1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 1, 3, 2, 1, 1, 2, 2, 3, 2, 2, 1, 1, 1, 1, 1, 2};
-    private static final char[] fnTypes = {ID_NOT, ID_ADD, ID_SUB, ID_MUL, ID_DIV, ID_REM, ID_IS_INT, ID_IS_STR, ID_IS_LIST, ID_IS_DICT, ID_IS_ITER, ID_EQUAL, ID_IS_EMPTY, ID_PUT, ID_GET, ID_RAND, ID_SIZE, ID_LESS, ID_LESSEQUAL, ID_SUBSTR, ID_RESIZE, ID_PUSH, ID_POP, ID_KEYS, ID_VALUES, ID_NEXT, ID_LOG, ID_ASSERT};
-    private static final String[] builtinNames = {"set", "if", "and", "or", "foreach", "while", "do", "stringjoin", "list", "dict"};
-    private static final int[] builtinTypes = {AST_SET, AST_IF, AST_AND, AST_OR, AST_FOREACH, AST_WHILE, AST_DO, AST_STRINGJOIN, AST_LIST, AST_DICT};
-     */
+
 
     ////////////////////////
-    // Utility functions //
+    ////// Debugging //////
     //////////////////////
     /////////////////////
     ////////////////////
     ///////////////////
     //////////////////
+
+    /*
+
+    private static final String[] idNames = {"", "PAREN", "LIST_LITERAL",
+        "CURLY", "VAR", "RETURN", "NOT", "FUNCTION", "IF", "WHILE",
+        "LITERAL", "CALL_FUNCTION", "SUBSCRIPT", "MUL", "REM", "ADD",
+        "SUB", "NEG", "EQUALS", "NOT_EQUALS", "LEQ", "LESS", "AND", "OR",
+        "ELSE", "SET", "IDENT", "ENSURE_STACKSPACE", "INC_SP",
+        "SAVE_PC", "CALL_FN", "BUILD_FN", "SET_BOXED",
+        "SET_LOCAL", "SET_CLOSURE", "GET_BOXED", "GET_LOCAL",
+        "GET_CLOSURE", "GET_BOXED_CLOSURE", "BOX_IT",
+        "PRINT", "DROP", "PUSH_NIL","PUT", "PUSH", "POP",  "JUMP", "JUMP_IF_TRUE", "DUP",
+        "NEW_LIST", "NEW_DICT", "BLOCK", "SEP", "IN", "JUMP_IF_FALSE"
+    };
+
     private static String idName(int id) {
         return "" + id + ((id > 0 && id < idNames.length) ? idNames[id] : "");
     }
@@ -213,6 +162,18 @@ class LightScript {
             return o.toString();
         }
     }
+    */
+    private static String stringify(Object o) {
+        return o.toString();
+    }
+
+    ////////////////////////
+    // Utility functions //
+    //////////////////////
+    /////////////////////
+    ////////////////////
+    ///////////////////
+    //////////////////
 
     private static Object[] v(int id, Object o) {
         Object[] result = {new Integer(id), o};
@@ -245,16 +206,6 @@ class LightScript {
     //////////////////
     /////////////////
     ////////////////
-    /*
-    private static class Literal {
-    
-    public Object value;
-    
-    public Literal(Object value) {
-    this.value = value;
-    }
-    }
-     */
     private Object[] stackToVector(Stack s) {
         Object[] result = new Object[s.size()];
         s.copyInto(result);
@@ -1514,7 +1465,7 @@ class LightScript {
                     break;
                 }
                 default: {
-                    throw new Error("Unknown opcode: " + idName(code[pc]));
+                    throw new Error("Unknown opcode: " + code[pc]);
                 }
             }
         }
