@@ -16,11 +16,8 @@ import java.util.Stack;
 // - Virtual machine
 class LightScript {
 
-    public static Closure parse(InputStream is) {
-        LightScript parser = new LightScript(is);
-        parser.next();
-        Object[] os = parser.parse(0);
-        System.out.println(stringify(os));
+    public Closure nextClosure() {
+        Object[] os = parse(0);
         return (Closure)os[1];
     }
 
@@ -42,7 +39,7 @@ class LightScript {
     private static final char ID_VAR = 4;
     private static final char ID_RETURN = 5;
     private static final char ID_NOT = 6;
-    private static final char ID_FUNCTION = 7;
+    private static final char ID_BUILD_FUNCTION = 7;
     private static final char ID_IF = 8;
     private static final char ID_WHILE = 9;
     private static final char ID_LITERAL = 10;
@@ -312,7 +309,7 @@ class LightScript {
     private Stack varsClosure;
     private int varsArgc;
 
-    private LightScript(InputStream is) {
+    public LightScript(InputStream is) {
         this.is = is;
         sb = new StringBuffer();
         c = ' ';
@@ -321,6 +318,7 @@ class LightScript {
         varsBoxed = new Stack();
         varsLocals = new Stack();
         varsArgc = 0;
+        next();
     }
 
     //////////////////////
@@ -717,9 +715,13 @@ class LightScript {
                 nudFn = NUD_PREFIX;
                 nudId = ID_NOT;
 
+            } else if ("print".equals(val)) {
+                nudFn = NUD_PREFIX;
+                nudId = ID_PRINT;
+
             } else if ("function".equals(val)) {
                 nudFn = NUD_FUNCTION;
-                nudId = ID_FUNCTION;
+                nudId = ID_BUILD_FUNCTION;
 
             } else if ("if".equals(val)) {
                 nudFn = NUD_PREFIX2;
@@ -792,6 +794,13 @@ class LightScript {
         return pos;
     }
 
+    private void curlyToBlock(Object oexpr) {
+        Object[] expr = (Object[]) oexpr;
+        if(((Integer)expr[0]).intValue() == ID_CURLY) {
+            expr[0] = new Integer(ID_BLOCK);
+        }
+    }
+
     private Closure compile(Object[] body) {
         constPool = new Stack();
         code = new StringBuffer();
@@ -815,17 +824,16 @@ class LightScript {
         }
 
         // box boxed values in frame
-        Enumeration e = varsBoxed.elements();
-        while (e.hasMoreElements()) {
-            code.append(ID_BOX_IT);
-            pushShort(depth - varsLocals.indexOf(e.nextElement()) - 1);
+        for(int i = 0; i < varsBoxed.size(); i++) {
+            int pos = varsLocals.indexOf(varsBoxed.elementAt(i));
+            if(pos != -1) {
+                code.append(ID_BOX_IT);
+                pushShort(depth - pos - 1);
+            }
         }
 
-        // oldVersionOfCompile(body);
-        if(((Integer)body[0]).intValue() != ID_CURLY) {
-            throw new Error("Error with function body");
-        }
-        body[0] = new Integer(ID_BLOCK);
+        // compile
+        curlyToBlock(body);
         compile(body, true);
 
         // emit return code, including current stack depth to drop
@@ -839,7 +847,10 @@ class LightScript {
         Closure result = new Closure(varsArgc, code, constPool, varsClosure);
         code = null;
         constPool = null;
-        System.out.println(stringify(body));
+        //System.out.println(stringify(body));
+        //System.out.println(varsLocals);
+        //System.out.println(varsBoxed);
+        //System.out.println(varsClosure);
         return result;
     }
 
@@ -862,7 +873,7 @@ class LightScript {
                 hasResult = true;
                 break;
             } 
-            case ID_NOT: case ID_NEG: {
+            case ID_PRINT: case ID_NOT: case ID_NEG: {
                 compile(expr[1], true);
                 emit(id);
                 hasResult = true;
@@ -881,7 +892,7 @@ class LightScript {
                 break;
             } case ID_RETURN: {
                 compile(expr[1], true);
-                code.append(ID_RETURN);
+                emit(ID_RETURN);
                 pushShort(depth);
                 addDepth(-1);
                 hasResult = false;
@@ -890,7 +901,7 @@ class LightScript {
                 String name = (String) expr[1];
                 int pos = varsClosure.indexOf(name);
                 if (pos >= 0) {
-                    code.append(ID_GET_CLOSURE);
+                    emit(ID_GET_CLOSURE);
                     pushShort(pos);
                 } else {
                     pos = varsLocals.indexOf(name);
@@ -898,9 +909,9 @@ class LightScript {
                         throw new Error("Unfound var: " + stringify(expr));
                     }
                     if (varsBoxed.contains(name)) {
-                        code.append(ID_GET_BOXED);
+                        emit(ID_GET_BOXED);
                     } else {
-                        code.append(ID_GET_LOCAL);
+                        emit(ID_GET_LOCAL);
                     }
                     pushShort(depth - pos - 1);
                 }
@@ -926,14 +937,14 @@ class LightScript {
                             compile(expr[2], true);
                             int pos = varsClosure.indexOf(name);
                             if (pos >= 0) {
-                                code.append(ID_SET_CLOSURE);
+                                emit(ID_SET_CLOSURE);
                                 pushShort(pos);
                             } else {
                                 pos = varsLocals.indexOf(name);
                                 if (varsBoxed.contains(name)) {
-                                    code.append(ID_SET_BOXED);
+                                    emit(ID_SET_BOXED);
                                 } else {
-                                    code.append(ID_SET_LOCAL);
+                                    emit(ID_SET_LOCAL);
                                 }
                                 pushShort(depth - pos - 1);
                             }
@@ -943,26 +954,113 @@ class LightScript {
                             }
                             break;
             } case ID_PAREN: {
+                if(expr.length != 2) {
+                    throw new Error("Unexpected content of parenthesis: " + stringify(expr));
+                }
+                compile(expr[1], yieldResult);
+                hasResult = yieldResult;
+                break;
+            } case ID_CALL_FUNCTION: {
+                // save program counter
+                emit(ID_SAVE_PC);
+                addDepth(RET_FRAME_SIZE);
+
+                // find function and evaluate parameters
+                for (int i = 1; i < expr.length; i++) {
+                    compile(expr[i], true);
+                }
+
+                // call the function
+                emit(ID_CALL_FN);
+                if (expr.length > 129) {
+                    throw new Error("too many parameters");
+                }
+                emit(expr.length - 2);
+                addDepth(2 - expr.length - RET_FRAME_SIZE);
+                hasResult = true;
+                break;
+            } case ID_BUILD_FUNCTION: {
+                Object[] vars = ((Closure) expr[1]).closure;
+                for (int i = 0; i < vars.length; i++) {
+                String name = (String) vars[i];
+                if (varsBoxed.contains(name)) {
+                    code.append(ID_GET_LOCAL);
+                    pushShort(depth - varsLocals.indexOf(name) - 1);
+                } else {
+                    code.append(ID_GET_BOXED_CLOSURE);
+                    pushShort(varsClosure.indexOf(name));
+                }
+                addDepth(1);
+            }
+            emit(ID_LITERAL);
+            pushShort(constPoolId(expr[1]));
+            addDepth(1);
+            emit(ID_BUILD_FN);
+            pushShort(vars.length);
+            addDepth(-vars.length);
+            hasResult = true;
+            break;
+
+            } case ID_IF: {
+                int subtype = childType(expr, 2);
+
+                if(subtype == ID_ELSE) {
+                            Object[] branch = (Object[])expr[2];
+
+                            //    code for condition
+                            //    jump_if_true -> label1
+                            //    code for branch2
+                            //    jump -> label2
+                            // label1:
+                            //    code for branch1
+                            // label2:
+
+                            int pos0, pos1, len;
+                            // compile condition
+                            compile(expr[1],true);
+
+                            code.append(ID_JUMP_IF_TRUE);
+                            pushShort(0);
+                            pos0 = code.length();
+                            addDepth(-1);
+
+                            curlyToBlock(branch[2]);
+                            compile(branch[2], yieldResult);
+
+                            code.append(ID_JUMP);
+                            pushShort(0);
+                            pos1 = code.length();
+                            len = pos1 - pos0;
+                            setShort(pos0, len);
+
+                            addDepth(yieldResult ? -1 : 0);
+
+                            curlyToBlock(branch[1]);
+                            compile(branch[1], yieldResult);
+
+                            len = code.length() - pos1;
+                            setShort(pos1, len);
+                            hasResult = yieldResult;
+                            break;
+                } else {
+                    throw new Error("unsupported if: " + stringify(expr));
+                }
             } case ID_LIST_LITERAL: {
             } case ID_CURLY: {
-            } case ID_FUNCTION: {
-            } case ID_IF: {
             } case ID_WHILE: {
-            } case ID_CALL_FUNCTION: {
             } case ID_SUBSCRIPT: {
             } case ID_AND: {
             } case ID_OR: {
-            } case ID_ELSE: {
             }
             default:
                 throw new Error("Uncompilable expression: " + stringify(expr));
         }
 
         if(hasResult && !yieldResult) {
-            code.append(ID_DROP);
+            emit(ID_DROP);
             addDepth(-1);
         } else if(yieldResult && !hasResult) {
-            code.append(ID_PUSH_NIL);
+            emit(ID_PUSH_NIL);
             addDepth(1);
         }
     }
@@ -987,7 +1085,7 @@ class LightScript {
         Object[] closure = cl.closure;
         for (;;) {
             ++pc;
-            System.out.println("pc:" + pc + " op:"  + idName(code[pc]) + " sp:" + sp + " stack.length:" + stack.length);
+            //System.out.println("pc:" + pc + " op:"  + idName(code[pc]) + " sp:" + sp + " stack.length:" + stack.length + " int:" + readShort(pc, code));
             switch (code[pc]) {
                 case ID_ENSURE_STACKSPACE: {
                     int arg = readShort(pc, code);
@@ -1314,40 +1412,6 @@ class LightScript {
                             }
                             break;
                         }
-                        case AST_IF: {
-                            //    code for list[1]
-                            //    jump_if_true -> label1
-                            //    code for list[3]
-                            //    jump -> label2
-                            // label1:
-                            //    code for list[2]
-                            // label2:
-
-                            assertLength(list, 4);
-
-                            int pos0, pos1, len;
-                            oldVersionOfCompile(list[1]);
-
-                            code.append(ID_JUMP_IF_TRUE);
-                            pushShort(0);
-                            pos0 = code.length();
-                            addDepth(-1);
-
-                            oldVersionOfCompile(list[3]);
-
-                            code.append(ID_JUMP);
-                            pushShort(0);
-                            pos1 = code.length();
-                            len = pos1 - pos0;
-                            setShort(pos0, len);
-
-                            addDepth(-1);
-
-                            oldVersionOfCompile(list[2]);
-                            len = code.length() - pos1;
-                            setShort(pos1, len);
-                            break;
-                        }
                         case AST_AND: {
                             assertLength(list, 3);
                             int pos0, pos1, len;
@@ -1567,22 +1631,6 @@ class LightScript {
                 // function evaluation
                 }
             } else {
-                // save program counter
-                code.append(ID_SAVE_PC);
-                addDepth(RET_FRAME_SIZE);
-
-                // find function and evaluate parameters
-                for (int i = 0; i < list.length; i++) {
-                    oldVersionOfCompile(list[i]);
-                }
-
-                // call the function
-                code.append(ID_CALL_FN);
-                if (list.length > 128) {
-                    throw new Error("too many parameters");
-                }
-                code.append((char) (list.length - 1));
-                addDepth(1 - list.length - RET_FRAME_SIZE);
             }
         // Identifier
         } else if (o instanceof String) {
@@ -1610,25 +1658,6 @@ class LightScript {
 
         // Function creation
         } else if (o instanceof Closure) {
-            Object[] vars = ((Closure) o).closure;
-            for (int i = 0; i < vars.length; i++) {
-                String name = (String) vars[i];
-                if (varsBoxed.contains(name)) {
-                    code.append(ID_GET_LOCAL);
-                    pushShort(depth - varsLocals.indexOf(name) - 1);
-                } else {
-                    code.append(ID_GET_BOXED_CLOSURE);
-                    pushShort(varsClosure.indexOf(name));
-                }
-                addDepth(1);
-            }
-            code.append(ID_GET_LITERAL);
-            pushShort(constPoolId(o));
-            addDepth(1);
-            code.append(ID_BUILD_FN);
-            pushShort(vars.length);
-            addDepth(-vars.length);
-
         // Should not happen
         } else {
             throw new Error("wrong kind of node:" + o.toString());

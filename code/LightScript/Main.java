@@ -10,10 +10,10 @@ public class Main {
      */
     public static void main(String[] args) throws Exception {
 	InputStream is = new FileInputStream(new File(args[0]));
-        LightScript.Closure cl = LightScript.parse(is);
-        System.out.println(cl);
+        LightScript ls = new LightScript(is);
+        LightScript.Closure o = ls.nextClosure();
         System.out.println("\nExecuting\n");
-        System.out.println(LightScript.execute(cl));
+        System.out.println(LightScript.execute(o));
 	//Ys.Closure cl = (Ys.Closure)Ys.readExpression(is);
 	//System.out.println(Ys.stringify(cl));
 	//System.out.println();
