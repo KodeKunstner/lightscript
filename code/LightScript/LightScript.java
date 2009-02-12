@@ -29,11 +29,6 @@ class LightScript {
     ////////////////////
     ///////////////////
     //////////////////
-    // for the parser
-    private static final Object[] END_TOKEN = {"(end)"};
-    private static final Object[] SEP_TOKEN = {"(sep)"};
-    private static final Boolean TRUE = new Boolean(true);
-
     private static final char ID_PAREN = 1;
     private static final char ID_LIST_LITERAL = 2;
     private static final char ID_CURLY = 3;
@@ -117,6 +112,13 @@ class LightScript {
     private static final char ID_TO_STRING = 79;
     private static final char ID_SWAP = 80;
     private static final char ID_BLOCK = 81;
+    private static final char ID_SEP = 82;
+    private static final char ID_IN = 83;
+    private static final char ID_JUMP_IF_FALSE = 84;
+
+    private static final Object[] END_TOKEN = {"(end)"};
+    private static final Object[] SEP_TOKEN = { new Integer(ID_SEP)};
+    private static final Boolean TRUE = new Boolean(true);
 
     private static final String[] idNames = {"", "PAREN", "LIST_LITERAL",
         "CURLY", "VAR", "RETURN", "NOT", "FUNCTION", "IF", "WHILE",
@@ -132,7 +134,7 @@ class LightScript {
         "LESSEQUAL", "SUBSTR", "RESIZE", "PUSH", "POP", "KEYS", 
         "VALUES", "NEXT", "ASSERT", "JUMP", "JUMP_IF_TRUE", "DUP", 
         "NEW_LIST", "NEW_DICT", "NEW_STRINGBUFFER", "STR_APPEND", 
-        "TO_STRING", "SWAP", "BLOCK"
+        "TO_STRING", "SWAP", "BLOCK", "SEP", "IN", "JUMP_IF_FALSE"
     };
 
     // size of the return frame
@@ -467,13 +469,12 @@ class LightScript {
         private static final int LED_INFIX_LIST = 9;
         private static final int NUD_FUNCTION = 10;
         private static final int NUD_VAR = 11;
+        private static final int LED_DOT = 12;
 
         private Object[] readList(Stack s) {
             Object[] p = parse(0);
             while (p != END_TOKEN) {
-                if (p != SEP_TOKEN) {
-                    s.push(p);
-                }
+                s.push(p);
                 p = parse(0);
             }
 
@@ -590,6 +591,7 @@ class LightScript {
 
         public Object[] led(Object left) {
             switch (ledFn) {
+                    
                 case LED_INFIX:
                     return v(ledId, left, parse(bp));
                 case LED_INFIXR:
@@ -599,6 +601,11 @@ class LightScript {
                     s.push(new Integer(ledId));
                     s.push(left);
                     return readList(s);
+                }
+                case LED_DOT: {
+                    Object[] right = parse(bp);
+                    right[0] = new Integer(ID_LITERAL);
+                    return v(ledId, left, right);
                 }
                 default:
                     throw new Error("Unknown led: " + ledFn);
@@ -613,12 +620,18 @@ class LightScript {
             ledFn = 0;
             nudId = 0;
             ledId = 0;
+
             if (isLiteral) {
                 nudFn = NUD_LITERAL;
 
             } else if (val == null || "]".equals(val) || ")".equals(val) || "}".equals(val)) {
                 nudFn = NUD_END;
                 sep = true;
+
+            } else if (".".equals(val)) {
+                bp = 700;
+                ledFn = LED_DOT;
+                ledId = ID_SUBSCRIPT;
 
             } else if ("(".equals(val)) {
                 bp = 600;
@@ -691,6 +704,11 @@ class LightScript {
                 ledFn = LED_INFIXR;
                 ledId = ID_ELSE;
 
+            } else if ("in".equals(val)) {
+                bp = 200;
+                ledFn = LED_INFIX;
+                ledId = ID_IN;
+
             } else if ("=".equals(val)) {
                 bp = 100;
                 ledFn = LED_INFIX;
@@ -733,7 +751,7 @@ class LightScript {
                 nudId = ID_WHILE;
 
             } else if ("undefined".equals(val) || "null".equals(val) || "false".equals(val)) {
-                val = null;
+                this.val = null;
                 nudFn = NUD_LITERAL;
 
             } else if ("true".equals(val)) {
@@ -866,6 +884,7 @@ class LightScript {
         switch(id) { 
             case ID_ADD: case ID_MUL: case ID_REM: case ID_SUB: 
             case ID_EQUALS: case ID_NOT_EQUALS: 
+            case ID_SUBSCRIPT:
             case ID_LESS_EQUALS: case ID_LESS: {
                 compile(expr[1], true);
                 compile(expr[2], true);
@@ -1046,12 +1065,126 @@ class LightScript {
                 } else {
                     throw new Error("unsupported if: " + stringify(expr));
                 }
-            } case ID_LIST_LITERAL: {
-            } case ID_CURLY: {
-            } case ID_WHILE: {
-            } case ID_SUBSCRIPT: {
+            } case ID_SEP: {
+                hasResult = false;
+                break;
             } case ID_AND: {
+                            assertLength(expr, 3);
+                            int pos0, pos1, len;
+
+                            compile(expr[1], true);
+
+                            emit(ID_JUMP_IF_TRUE);
+                            pushShort(0);
+                            pos0 = code.length();
+                            addDepth(-1);
+
+                            emit(ID_PUSH_NIL);
+                            addDepth(1);
+
+                            emit(ID_JUMP);
+                            pushShort(0);
+                            pos1 = code.length();
+                            len = pos1 - pos0;
+                            setShort(pos0, len);
+                            addDepth(-1);
+
+                            compile(expr[2], true);
+                            len = code.length() - pos1;
+                            setShort(pos1, len);
+                            hasResult = true;
+                            break;
             } case ID_OR: {
+                            assertLength(expr, 3);
+                            int pos0, pos1, len;
+
+                            compile(expr[1], true);
+
+                            emit(ID_DUP);
+                            addDepth(1);
+
+                            emit(ID_JUMP_IF_TRUE);
+                            pushShort(0);
+                            pos0 = code.length();
+                            addDepth(-1);
+
+                            emit(ID_DROP);
+                            addDepth(-1);
+
+                            compile(expr[2], true);
+
+                            pos1 = code.length();
+                            len = pos1 - pos0;
+                            setShort(pos0, len);
+
+                            hasResult = true;
+
+                            break;
+            } case ID_LIST_LITERAL: {
+                            code.append(ID_NEW_LIST);
+                            addDepth(1);
+
+                            for (int i = 1; i < expr.length; i++) {
+                                if(childType(expr, i) != ID_SEP) {
+                                    compile(expr[i], true);
+                                    code.append(ID_PUSH);
+                                    addDepth(-1);
+                                }
+                            }
+                            hasResult = true;
+
+                            break;
+            } case ID_CURLY: {
+                            code.append(ID_NEW_DICT);
+                            addDepth(1);
+
+                            int i = 0;
+                            while(i < expr.length - 3) {
+                                do {
+                                    ++i;
+                                } while(childType(expr, i) == ID_SEP);
+                                compile(expr[i], true);
+                                do {
+                                    ++i;
+                                } while(childType(expr, i) == ID_SEP) ;
+                                compile(expr[i], true);
+                                code.append(ID_PUT);
+                                addDepth(-2);
+                            }
+                            hasResult = true;
+
+                            break;
+            } case ID_WHILE: {
+                            // top:
+                            //   code for condition
+                            //   jump if false -> labelExit
+                            //   code for stmt1
+                            //   drop
+                            //   ...
+                            //   code for stmtn
+                            //   drop
+                            //   jump -> labelTop;
+                            // labelExit:
+
+                            int pos0, pos1, len;
+                            pos0 = code.length();
+
+                            compile(expr[1], true);
+                            emit(ID_JUMP_IF_FALSE);
+                            pushShort(0);
+                            pos1 = code.length();
+                            addDepth(-1);
+
+
+                            curlyToBlock(expr[2]);
+                            compile(expr[2], false);
+
+                            emit(ID_JUMP);
+                            pushShort(pos0 - code.length() - 2);
+                            
+                            setShort(pos1, code.length() - pos1);
+                            hasResult = false;
+                            break;
             }
             default:
                 throw new Error("Uncompilable expression: " + stringify(expr));
@@ -1281,7 +1414,7 @@ class LightScript {
                     }
                     break;
                 }
-                case ID_GET: {
+                case ID_SUBSCRIPT: {
                     Object key = stack[sp];
                     Object container = stack[--sp];
                     if (container instanceof Stack) {
@@ -1326,6 +1459,15 @@ class LightScript {
                     pc += readShort(pc, code) + 2;
                     break;
                 }
+                case ID_JUMP_IF_FALSE: {
+                    if (stack[sp] == null) {
+                        pc += readShort(pc, code) + 2;
+                    } else {
+                        pc += 2;
+                    }
+                    --sp;
+                    break;
+                }
                 case ID_JUMP_IF_TRUE: {
                     if (stack[sp] != null) {
                         pc += readShort(pc, code) + 2;
@@ -1355,738 +1497,3 @@ class LightScript {
         }
     }
 }
-
-    /////////////////////////////////////
-    // deprecated stuff, currently kept as reference
-    ////
-    /*
-    private void oldVersionOfCompile(Object o) {
-        if (o instanceof Object[]) {
-            Object[] list = (Object[]) o;
-            Object head = list[0];
-            // builtin operator
-            if (head instanceof Integer) {
-                int id = ((Integer) head).intValue();
-
-                if ((id & AST_BUILTIN_FUNCTION) != 0) {
-                    char opcode = (char) (id & MASK_OP);
-                    assertLength(list, builtinArity(opcode) + 1);
-                    for (int i = 1; i < list.length; i++) {
-                        oldVersionOfCompile(list[i]);
-                    }
-                    addDepth(2 - list.length);
-                    code.append(opcode);
-                } else {
-                    switch (id) {
-                        case AST_DO: {
-                            int i;
-                            for (i = 1; i < list.length - 1; i++) {
-                                oldVersionOfCompile(list[i]);
-                                code.append(ID_DROP);
-                                addDepth(-1);
-                            }
-                            if (i < list.length) {
-                                oldVersionOfCompile(list[i]);
-                            } else {
-                                code.append(ID_PUSH_NIL);
-                                addDepth(1);
-                            }
-
-                            break;
-                        }
-                        case AST_SET: {
-                            assertLength(list, 3);
-                            String name = (String) list[1];
-                            oldVersionOfCompile(list[2]);
-                            int pos = varsClosure.indexOf(name);
-                            if (pos >= 0) {
-                                code.append(ID_SET_CLOSURE);
-                                pushShort(pos);
-                            } else {
-                                pos = varsLocals.indexOf(name);
-                                if (varsBoxed.contains(name)) {
-                                    code.append(ID_SET_BOXED);
-                                } else {
-                                    code.append(ID_SET_LOCAL);
-                                }
-                                pushShort(depth - pos - 1);
-                            }
-                            break;
-                        }
-                        case AST_AND: {
-                            assertLength(list, 3);
-                            int pos0, pos1, len;
-
-                            oldVersionOfCompile(list[1]);
-
-                            code.append(ID_JUMP_IF_TRUE);
-                            code.append((char) 0);
-                            code.append((char) 0);
-                            pos0 = code.length();
-                            addDepth(-1);
-
-                            code.append(ID_PUSH_NIL);
-
-                            code.append(ID_JUMP);
-                            code.append((char) 0);
-                            code.append((char) 0);
-                            pos1 = code.length();
-                            len = pos1 - pos0;
-                            setShort(pos0, len);
-                            addDepth(-1);
-
-                            oldVersionOfCompile(list[2]);
-                            len = code.length() - pos1;
-                            setShort(pos1, len);
-                            break;
-                        }
-                        case AST_OR: {
-                            assertLength(list, 3);
-                            int pos0, pos1, len;
-
-                            oldVersionOfCompile(list[1]);
-
-                            code.append(ID_DUP);
-                            addDepth(1);
-
-                            code.append(ID_JUMP_IF_TRUE);
-                            code.append((char) 0);
-                            code.append((char) 0);
-                            pos0 = code.length();
-                            addDepth(1);
-
-                            code.append(ID_DROP);
-                            addDepth(-1);
-
-                            oldVersionOfCompile(list[2]);
-
-                            pos1 = code.length();
-                            len = pos1 - pos0;
-                            setShort(pos0, len);
-
-
-                            break;
-                        }
-                        case AST_FOREACH: {
-                            //   push nil
-                            //   get iterator
-                            //   jump -> labelNext
-                            // labelStmts:
-                            //   swap
-                            //   drop
-                            //   code for stmt1
-                            //   ...
-                            //   drop
-                            //   code for stmtn
-                            //   swap
-                            // labelNext:
-                            //   dup
-                            //   get-next
-                            //   set counter-var
-                            //   jump if true labelStmts
-                            //   drop
-                            int pos0, pos1, len;
-                            code.append(ID_PUSH_NIL);
-                            addDepth(1);
-
-                            oldVersionOfCompile(list[2]);
-
-                            code.append(ID_JUMP);
-                            code.append((char) 0);
-                            code.append((char) 0);
-                            pos0 = code.length();
-
-                            code.append(ID_SWAP);
-                            for (int i = 3; i < list.length; i++) {
-                                code.append(ID_DROP);
-                                addDepth(-1);
-                                oldVersionOfCompile(list[i]);
-                            }
-                            code.append(ID_SWAP);
-
-                            pos1 = code.length();
-                            len = pos1 - pos0;
-                            setShort(pos0, len);
-
-                            code.append(ID_DUP);
-                            addDepth(1);
-
-                            code.append(ID_NEXT);
-
-                            {
-                                String name = (String) list[1];
-                                int pos = varsClosure.indexOf(name);
-                                if (pos >= 0) {
-                                    code.append(ID_SET_CLOSURE);
-                                    pushShort(pos);
-                                } else {
-                                    pos = varsLocals.indexOf(name);
-                                    if (varsBoxed.contains(name)) {
-                                        code.append(ID_SET_BOXED);
-                                    } else {
-                                        code.append(ID_SET_LOCAL);
-                                    }
-                                    pushShort(depth - pos - 1);
-                                }
-                            }
-
-                            code.append(ID_JUMP_IF_TRUE);
-                            len = pos0 - (code.length() + 2);
-                            code.append((char) ((len >> 8) & 0xff));
-                            code.append((char) (len & 0xff));
-                            addDepth(-1);
-
-                            code.append(ID_DROP);
-                            addDepth(-1);
-
-
-                            break;
-                        }
-                        case AST_WHILE: {
-                            //   push nil
-                            //   jump -> labelCond:
-                            // labelBody:
-                            //   drop
-                            //   code for stmt1
-                            //   ...
-                            //   drop
-                            //   code for stmtn
-                            // labelCond:
-                            //   code for condition
-                            //   jump if true -> labelBody
-
-                            int pos0, pos1, len;
-                            code.append(ID_PUSH_NIL);
-                            addDepth(1);
-
-                            code.append(ID_JUMP);
-                            code.append((char) 0);
-                            code.append((char) 0);
-                            pos0 = code.length();
-
-                            for (int i = 2; i < list.length; i++) {
-                                code.append(ID_DROP);
-                                addDepth(-1);
-                                oldVersionOfCompile(list[i]);
-                            }
-
-
-                            pos1 = code.length();
-                            len = pos1 - pos0;
-                            setShort(pos0, len);
-
-                            oldVersionOfCompile(list[1]);
-
-                            code.append(ID_JUMP_IF_TRUE);
-                            len = pos0 - (code.length() + 2);
-                            code.append((char) ((len >> 8) & 0xff));
-                            code.append((char) (len & 0xff));
-                            addDepth(-1);
-
-
-                            break;
-                        }
-                        case AST_STRINGJOIN: {
-                            code.append(ID_NEW_STRINGBUFFER);
-                            addDepth(1);
-
-                            for (int i = 1; i < list.length; i++) {
-                                oldVersionOfCompile(list[i]);
-                                code.append(ID_STR_APPEND);
-                                addDepth(-1);
-                            }
-                            code.append(ID_TO_STRING);
-
-                            break;
-                        }
-                        case AST_LIST: {
-                            code.append(ID_NEW_LIST);
-                            addDepth(1);
-
-                            for (int i = 1; i < list.length; i++) {
-                                oldVersionOfCompile(list[i]);
-                                code.append(ID_PUSH);
-                                addDepth(-1);
-                            }
-
-                            break;
-                        }
-                        case AST_DICT: {
-                            code.append(ID_NEW_DICT);
-                            addDepth(1);
-
-                            if (list.length % 2 == 0) {
-                                throw new Error("Unmatched key/value: " + stringify(list));
-                            }
-                            for (int i = 1; i < list.length; i++) {
-                                oldVersionOfCompile(list[i]);
-                                i++;
-                                oldVersionOfCompile(list[i]);
-                                code.append(ID_PUT);
-                                addDepth(-2);
-                            }
-
-                            break;
-                        }
-                    }
-                // function evaluation
-                }
-            } else {
-            }
-        // Identifier
-        } else if (o instanceof String) {
-            String name = (String) o;
-            int pos = varsClosure.indexOf(name);
-            if (pos >= 0) {
-                code.append(ID_GET_CLOSURE);
-                pushShort(pos);
-            } else {
-                pos = varsLocals.indexOf(name);
-                if (varsBoxed.contains(name)) {
-                    code.append(ID_GET_BOXED);
-                } else {
-                    code.append(ID_GET_LOCAL);
-                }
-                pushShort(depth - pos - 1);
-            }
-            addDepth(1);
-
-        // Literal
-        } else if (o instanceof Literal) {
-            code.append(ID_GET_LITERAL);
-            pushShort(constPoolId(((Literal) o).value));
-            addDepth(1);
-
-        // Function creation
-        } else if (o instanceof Closure) {
-        // Should not happen
-        } else {
-            throw new Error("wrong kind of node:" + o.toString());
-        }
-    }
-    //////////////////////
-    // Virtual Machine //
-    ////////////////////
-    ///////////////////
-    //////////////////
-    /////////////////
-    ////////////////
-    private static Random rnd = new Random();
-
-    private static int readShort(int pc, byte[] code) {
-        return (short) (((code[++pc] & 0xff) << 8) | (code[++pc] & 0xff));
-    }
-
-    public static Object execute(Closure cl) {
-        int sp = -1;
-        Object[] stack = new Object[0];
-        int pc = -1;
-        byte[] code = cl.code;
-        Object[] constPool = cl.constPool;
-        Object[] closure = cl.closure;
-        for (;;) {
-            ++pc;
-            //System.out.println("pc:" + pc + " op:" + code[pc] + " sp:" + sp + " stack.length:" + stack.length);
-            switch (code[pc]) {
-                case ID_ENSURE_STACKSPACE: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    if (stack.length <= arg + sp + 1) {
-                        // keep the allocate stack tight to max, 
-                        // to catch errors;
-                        // FIXME: grow exponential when tested
-                        Object[] newstack = new Object[(arg + sp + 1)];
-                        System.arraycopy(stack, 0, newstack, 0, sp + 1);
-                        stack = newstack;
-                    }
-                    break;
-                }
-                case ID_INC_SP: {
-                    sp += code[++pc];
-                    break;
-                }
-                case ID_RETURN: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    Object result = stack[sp];
-                    sp -= arg - 1;
-                    if (sp == 0) {
-                        return result;
-                    }
-                    pc = ((Integer) stack[--sp]).intValue();
-                    code = (byte[]) stack[--sp];
-                    constPool = (Object[]) stack[--sp];
-                    closure = (Object[]) stack[--sp];
-                    stack[sp] = result;
-                    break;
-                }
-                case ID_SAVE_PC: {
-                    stack[++sp] = closure;
-                    stack[++sp] = constPool;
-                    stack[++sp] = code;
-                    break;
-                }
-                case ID_CALL_FN: {
-                    int argc = code[++pc];
-                    Closure fn = (Closure) stack[sp - argc];
-                    stack[sp - argc] = new Integer(pc);
-                    pc = -1;
-                    code = fn.code;
-                    constPool = fn.constPool;
-                    closure = fn.closure;
-                    break;
-                }
-                case ID_BUILD_FN: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    Closure fn = new Closure((Closure) stack[sp]);
-                    Object[] clos = new Object[arg];
-                    for (int i = arg - 1; i >= 0; i--) {
-                        --sp;
-                        clos[i] = stack[sp];
-                    }
-                    fn.closure = clos;
-                    stack[sp] = fn;
-                    break;
-                }
-                case ID_SET_BOXED: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    ((Object[]) stack[sp - arg])[0] = stack[sp];
-                    break;
-                }
-                case ID_SET_LOCAL: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    stack[sp - arg] = stack[sp];
-                    break;
-                }
-                case ID_SET_CLOSURE: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    ((Object[]) closure[arg])[0] = stack[sp];
-                    break;
-                }
-                case ID_GET_BOXED: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    Object o = ((Object[]) stack[sp - arg])[0];
-                    stack[++sp] = o;
-                    break;
-                }
-                case ID_GET_LOCAL: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    Object o = stack[sp - arg];
-                    stack[++sp] = o;
-                    break;
-                }
-                case ID_GET_CLOSURE: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    stack[++sp] = ((Object[]) closure[arg])[0];
-                    break;
-                }
-                case ID_GET_BOXED_CLOSURE: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    stack[++sp] = closure[arg];
-                    break;
-                }
-                case ID_GET_LITERAL: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    stack[++sp] = constPool[arg];
-                    break;
-                }
-                case ID_BOX_IT: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    Object[] box = {stack[sp - arg]};
-                    stack[sp - arg] = box;
-                    break;
-                }
-                case ID_LOG: {
-                    System.out.println(stringify(stack[sp]));
-                    break;
-                }
-                case ID_DROP: {
-                    --sp;
-                    break;
-                }
-                case ID_PUSH_NIL: {
-                    stack[++sp] = null;
-                    break;
-                }
-                case ID_NOT: {
-                    stack[sp] = stack[sp] == null ? TRUE : null;
-                    break;
-                }
-                case ID_ADD: {
-                    int result = ((Integer) stack[sp]).intValue();
-                    result += ((Integer) stack[--sp]).intValue();
-                    stack[sp] = new Integer(result);
-                    break;
-                }
-                case ID_SUB: {
-                    int result = ((Integer) stack[sp]).intValue();
-                    result = ((Integer) stack[--sp]).intValue() - result;
-                    stack[sp] = new Integer(result);
-                    break;
-                }
-                case ID_MUL: {
-                    int result = ((Integer) stack[sp]).intValue();
-                    result *= ((Integer) stack[--sp]).intValue();
-                    stack[sp] = new Integer(result);
-                    break;
-                }
-                case ID_DIV: {
-                    int result = ((Integer) stack[sp]).intValue();
-                    result = ((Integer) stack[--sp]).intValue() / result;
-                    stack[sp] = new Integer(result);
-                    break;
-                }
-                case ID_REM: {
-                    int result = ((Integer) stack[sp]).intValue();
-                    result = ((Integer) stack[--sp]).intValue() % result;
-                    stack[sp] = new Integer(result);
-                    break;
-                }
-                case ID_IS_INT: {
-                    stack[sp] = stack[sp] instanceof Integer
-                            ? TRUE : null;
-                    break;
-                }
-                case ID_IS_STR: {
-                    stack[sp] = stack[sp] instanceof String
-                            ? TRUE : null;
-                    break;
-                }
-                case ID_IS_LIST: {
-                    stack[sp] = stack[sp] instanceof Stack
-                            ? TRUE : null;
-                    break;
-                }
-                case ID_IS_DICT: {
-                    stack[sp] = stack[sp] instanceof Hashtable
-                            ? TRUE : null;
-                    break;
-                }
-                case ID_IS_ITER: {
-                    stack[sp] = stack[sp] instanceof Enumeration
-                            ? TRUE : null;
-                    break;
-                }
-                case ID_EQUAL: {
-                    Object o = stack[sp];
-                    --sp;
-                    stack[sp] = (o == null)
-                            ? (stack[sp] == null ? TRUE : null)
-                            : (o.equals(stack[sp]) ? TRUE : null);
-                    break;
-                }
-                case ID_IS_EMPTY: {
-                    Object o = stack[sp];
-                    if (o instanceof Hashtable) {
-                        stack[sp] = ((Hashtable) o).isEmpty() ? TRUE : null;
-                    } else if (o instanceof Stack) {
-                        stack[sp] = ((Stack) o).empty() ? TRUE : null;
-                    } else if (o instanceof Enumeration) {
-                        stack[sp] = ((Enumeration) o).hasMoreElements() ? null : TRUE;
-                    } else {
-                        stack[sp] = null;
-                    }
-                    break;
-                }
-                case ID_PUT: {
-                    Object val = stack[sp];
-                    Object key = stack[--sp];
-                    Object container = stack[--sp];
-                    if (container instanceof Stack) {
-                        ((Stack) container).setElementAt(val, ((Integer) key).intValue());
-                    } else if (container instanceof Hashtable) {
-                        if (val == null) {
-                            ((Hashtable) container).remove(key);
-                        } else {
-                            ((Hashtable) container).put(key, val);
-                        }
-                    }
-                    break;
-                }
-                case ID_GET: {
-                    Object key = stack[sp];
-                    Object container = stack[--sp];
-                    if (container instanceof Stack) {
-                        stack[sp] = ((Stack) container).elementAt(((Integer) key).intValue());
-                    } else if (container instanceof Hashtable) {
-                        stack[sp] = ((Hashtable) container).get(key);
-                    } else {
-                        stack[sp] = null;
-                    }
-                    break;
-                }
-                case ID_RAND: {
-                    Object o = stack[sp];
-                    if (o instanceof Integer) {
-                        stack[sp] = new Integer((rnd.nextInt() & 0x7fffffff) % ((Integer) o).intValue());
-                    } else if (o instanceof Stack) {
-                        Stack s = (Stack) o;
-                        stack[sp] = s.elementAt((rnd.nextInt() & 0x7fffffff) % s.size());
-                    } else {
-                        stack[sp] = null;
-                    }
-                    break;
-                }
-                case ID_SIZE: {
-                    Object o = stack[sp];
-                    int size;
-                    if (o instanceof Stack) {
-                        size = ((Stack) o).size();
-                    } else if (o instanceof String) {
-                        size = ((String) o).length();
-                    } else if (o instanceof Hashtable) {
-                        size = ((Hashtable) o).size();
-                    } else {
-                        size = 0;
-                    }
-                    stack[sp] = new Integer(size);
-                    break;
-                }
-                case ID_LESS: {
-                    Object o2 = stack[sp];
-                    Object o1 = stack[--sp];
-                    if (o1 instanceof Integer && o2 instanceof Integer) {
-                        stack[sp] = ((Integer) o1).intValue() < ((Integer) o2).intValue() ? TRUE : null;
-                    } else {
-                        stack[sp] = o1.toString().compareTo(o2.toString()) < 0 ? TRUE : null;
-                    }
-                    break;
-                }
-                case ID_LESSEQUAL: {
-                    Object o2 = stack[sp];
-                    Object o1 = stack[--sp];
-                    if (o1 instanceof Integer && o2 instanceof Integer) {
-                        stack[sp] = ((Integer) o1).intValue() <= ((Integer) o2).intValue() ? TRUE : null;
-                    } else {
-                        stack[sp] = o1.toString().compareTo(o2.toString()) <= 0 ? TRUE : null;
-                    }
-                    break;
-                }
-                case ID_SUBSTR: {
-                    int start = ((Integer) stack[sp]).intValue();
-                    int end = ((Integer) stack[--sp]).intValue();
-                    --sp;
-                    stack[sp] = ((String) stack[sp]).substring(start, end);
-                    break;
-                }
-                case ID_RESIZE: {
-                    int newsize = ((Integer) stack[sp]).intValue();
-                    ((Stack) stack[--sp]).setSize(newsize);
-                    break;
-                }
-                case ID_PUSH: {
-                    Object o = stack[sp];
-                    ((Stack) stack[--sp]).push(o);
-                    break;
-                }
-                case ID_POP: {
-                    stack[sp] = ((Stack) stack[sp]).pop();
-                    break;
-                }
-                case ID_KEYS: {
-                    stack[sp] = ((Hashtable) stack[sp]).keys();
-                    break;
-                }
-                case ID_VALUES: {
-                    Object container = stack[sp];
-                    if (container instanceof Stack) {
-                        stack[sp] = ((Stack) container).elements();
-                    } else if (container instanceof Hashtable) {
-                        stack[sp] = ((Hashtable) container).elements();
-                    } else {
-                        stack[sp] = null;
-                    }
-                    break;
-                }
-                case ID_NEXT: {
-                    Enumeration e = (Enumeration) stack[sp];
-                    stack[sp] = e.hasMoreElements()
-                            ? e.nextElement()
-                            : null;
-                    break;
-                }
-                case ID_ASSERT: {
-                    if (stack[sp] == null) {
-                        throw new Error("Assert error: " + stack[--sp].toString());
-                    }
-                    --sp;
-                    break;
-                }
-                case ID_JUMP: {
-                    pc += readShort(pc, code) + 2;
-                    break;
-                }
-                case ID_JUMP_IF_TRUE: {
-                    if (stack[sp] != null) {
-                        pc += readShort(pc, code) + 2;
-                    } else {
-                        pc += 2;
-                    }
-                    --sp;
-                    break;
-                }
-                case ID_DUP: {
-                    Object o = stack[sp];
-                    stack[++sp] = o;
-                    break;
-                }
-                case ID_NEW_LIST: {
-                    stack[++sp] = new Stack();
-                    break;
-                }
-                case ID_NEW_DICT: {
-                    stack[++sp] = new Hashtable();
-                    break;
-                }
-                case ID_NEW_STRINGBUFFER: {
-                    stack[++sp] = new StringBuffer();
-                    break;
-                }
-                case ID_STR_APPEND: {
-                    String s = stack[sp].toString();
-                    ((StringBuffer) stack[--sp]).append(s);
-                    break;
-                }
-                case ID_TO_STRING: {
-                    stack[sp] = stack[sp].toString();
-                    break;
-                }
-                case ID_SWAP: {
-                    Object t = stack[sp - 1];
-                    stack[sp - 1] = stack[sp];
-                    stack[sp] = t;
-                    break;
-                }
-            }
-        }
-    }
-
-    private static Object createId(String name) {
-    int id = builtinId(name);
-    if (id != -1) {
-    return new Integer(id);
-    } else {
-    return name;
-    }
-    }
-    
-    private static Object create(Object[] list) {
-    if (list.length > 0) {
-    Object fn = list[0];
-    if (fn.equals("function")) {
-    return Function.create(list);
-    }
-    }
-    return list;
-    }
-     */

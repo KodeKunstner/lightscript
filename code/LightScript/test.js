@@ -1,11 +1,3 @@
 (function() {
-    var fib = function(x) {
-        if(1 < x) {
-            return fib(x - 1) + fib(x - 2);
-        } else {
-            return 1;
-        }
-
-    }
-    print(fib(35));
+    print(["foo" : 1, "bar": 2, "baz": 3][2]);
 })();
