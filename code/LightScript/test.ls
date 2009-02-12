@@ -1,3 +1,6 @@
+function() {
+   1*2+3*4 
+}
 fib = function(x) {
     print(strjoin("fib", x));
     if(1 < x) {

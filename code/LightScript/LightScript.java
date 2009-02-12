@@ -33,99 +33,112 @@ class LightScript {
     private static final Object[] END_TOKEN = {"(end)"};
     private static final Object[] SEP_TOKEN = {"(sep)"};
     private static final Boolean TRUE = new Boolean(true);
-    private static final int ID_PAREN = 1;
-    private static final int ID_LIST_LITERAL = 2;
-    private static final int ID_CURLY = 3;
-    private static final int ID_VAR = 4;
-    private static final int ID_RETURN = 5;
-    private static final int ID_NOT = 6;
-    private static final int ID_FUNCTION = 7;
-    private static final int ID_IF = 8;
-    private static final int ID_WHILE = 9;
-    private static final int ID_LITERAL = 10;
-    private static final int ID_CALL_FUNCTION = 11;
-    private static final int ID_SUBSCRIPT = 12;
-    private static final int ID_MUL = 13;
-    private static final int ID_REM = 14;
-    private static final int ID_ADD = 15;
-    private static final int ID_SUB = 16;
-    private static final int ID_NEG = 17;
-    private static final int ID_EQUALS = 18;
-    private static final int ID_NOT_EQUALS = 19;
-    private static final int ID_LESS_EQUALS = 20;
-    private static final int ID_LESS = 21;
-    private static final int ID_AND = 22;
-    private static final int ID_OR = 23;
-    private static final int ID_ELSE = 24;
-    private static final int ID_SET = 25;
-    private static final int ID_IDENT = 26;
+
+    private static final char ID_PAREN = 1;
+    private static final char ID_LIST_LITERAL = 2;
+    private static final char ID_CURLY = 3;
+    private static final char ID_VAR = 4;
+    private static final char ID_RETURN = 5;
+    private static final char ID_NOT = 6;
+    private static final char ID_FUNCTION = 7;
+    private static final char ID_IF = 8;
+    private static final char ID_WHILE = 9;
+    private static final char ID_LITERAL = 10;
+    private static final char ID_CALL_FUNCTION = 11;
+    private static final char ID_SUBSCRIPT = 12;
+    private static final char ID_MUL = 13;
+    private static final char ID_REM = 14;
+    private static final char ID_ADD = 15;
+    private static final char ID_SUB = 16;
+    private static final char ID_NEG = 17;
+    private static final char ID_EQUALS = 18;
+    private static final char ID_NOT_EQUALS = 19;
+    private static final char ID_LESS_EQUALS = 20;
+    private static final char ID_LESS = 21;
+    private static final char ID_AND = 22;
+    private static final char ID_OR = 23;
+    private static final char ID_ELSE = 24;
+    private static final char ID_SET = 25;
+    private static final char ID_IDENT = 26;
+    private static final char ID_ENSURE_STACKSPACE = 27;
+    private static final char ID_INC_SP = 28;
+    private static final char ID_XXX1 = 29;
+    private static final char ID_SAVE_PC = 30;
+    private static final char ID_CALL_FN = 31;
+    private static final char ID_BUILD_FN = 32;
+    private static final char ID_SET_BOXED = 33;
+    private static final char ID_SET_LOCAL = 34;
+    private static final char ID_SET_CLOSURE = 35;
+    private static final char ID_GET_BOXED = 36;
+    private static final char ID_GET_LOCAL = 37;
+    private static final char ID_GET_CLOSURE = 38;
+    // get a value from the closure without unboxing it
+    private static final char ID_GET_BOXED_CLOSURE = 39;
+    private static final char ID_GET_LITERAL = 40;
+    // box a value
+    private static final char ID_BOX_IT = 41;
+    private static final char ID_LOG = 42;
+    private static final char ID_DROP = 43;
+    private static final char ID_PUSH_NIL = 44;
+    private static final char ID_XXX2 = 45;
+    private static final char ID_XXX3 = 46;
+    private static final char ID_XXX4 = 47;
+    private static final char ID_XXX5 = 48;
+    private static final char ID_DIV = 49;
+    private static final char ID_XXX6 = 50;
+    private static final char ID_IS_INT = 51;
+    private static final char ID_IS_STR = 52;
+    private static final char ID_IS_LIST = 53;
+    private static final char ID_IS_DICT = 54;
+    private static final char ID_IS_ITER = 55;
+    private static final char ID_EQUAL = 56;
+    private static final char ID_IS_EMPTY = 57;
+    private static final char ID_PUT = 58;
+    private static final char ID_GET = 59;
+    private static final char ID_RAND = 60;
+    private static final char ID_SIZE = 61;
+    private static final char ID_XXX7 = 62;
+    private static final char ID_LESSEQUAL = 63;
+    private static final char ID_SUBSTR = 64;
+    private static final char ID_RESIZE = 65;
+    private static final char ID_PUSH = 66;
+    private static final char ID_POP = 67;
+    private static final char ID_KEYS = 68;
+    private static final char ID_VALUES = 69;
+    private static final char ID_NEXT = 70;
+    private static final char ID_ASSERT = 71;
+    private static final char ID_JUMP = 72;
+    private static final char ID_JUMP_IF_TRUE = 73;
+    private static final char ID_DUP = 74;
+    private static final char ID_NEW_LIST = 75;
+    private static final char ID_NEW_DICT = 76;
+    private static final char ID_NEW_STRINGBUFFER = 77;
+    private static final char ID_STR_APPEND = 78;
+    private static final char ID_TO_STRING = 79;
+    private static final char ID_SWAP = 80;
+    private static final char ID_BLOCK = 81;
+
     private static final String[] idNames = {"", "PAREN", "LIST_LITERAL",
         "CURLY", "VAR", "RETURN", "NOT", "FUNCTION", "IF", "WHILE",
-        "SUBSCRIPT_STR", "CALL_FUNCTION", "SUBSCRIPT",
-        "MUL", "REM", "ADD", "SUB", "NEG", "EQUALS", "NOT_EQUALS", "LEQ",
-        "LESS", "AND", "OR", "ELSE", "SET", "IDENT", "LITERAL"
+        "LITERAL", "CALL_FUNCTION", "SUBSCRIPT", "MUL", "REM", "ADD", 
+        "SUB", "NEG", "EQUALS", "NOT_EQUALS", "LEQ", "LESS", "AND", "OR", 
+        "ELSE", "SET", "IDENT", "ENSURE_STACKSPACE", "INC_SP", 
+        "xxx", "SAVE_PC", "CALL_FN", "BUILD_FN", "SET_BOXED", 
+        "SET_LOCAL", "SET_CLOSURE", "GET_BOXED", "GET_LOCAL", 
+        "GET_CLOSURE", "GET_BOXED_CLOSURE", "GET_LITERAL", "BOX_IT", 
+        "LOG", "DROP", "PUSH_NIL", "xxx", "xxx", "xxx", "xxx", "DIV", 
+        "xxx", "IS_INT", "IS_STR", "IS_LIST", "IS_DICT", "IS_ITER", 
+        "EQUAL", "IS_EMPTY", "PUT", "GET", "RAND", "SIZE", "xxx", 
+        "LESSEQUAL", "SUBSTR", "RESIZE", "PUSH", "POP", "KEYS", 
+        "VALUES", "NEXT", "ASSERT", "JUMP", "JUMP_IF_TRUE", "DUP", 
+        "NEW_LIST", "NEW_DICT", "NEW_STRINGBUFFER", "STR_APPEND", 
+        "TO_STRING", "SWAP", "BLOCK"
     };
-    // Opcodes
-    private static final char OP_ENSURE_STACKSPACE = 0;
-    private static final char OP_INC_SP = 1;
-    private static final char OP_RETURN = 2;
-    private static final char OP_SAVE_PC = 3;
-    private static final char OP_CALL_FN = 4;
-    private static final char OP_BUILD_FN = 5;
-    private static final char OP_SET_BOXED = 6;
-    private static final char OP_SET_LOCAL = 7;
-    private static final char OP_SET_CLOSURE = 8;
-    private static final char OP_GET_BOXED = 9;
-    private static final char OP_GET_LOCAL = 10;
-    private static final char OP_GET_CLOSURE = 11;
-    // get a value from the closure without unboxing it
-    private static final char OP_GET_BOXED_CLOSURE = 12;
-    private static final char OP_GET_LITERAL = 13;
-    // box a value
-    private static final char OP_BOX_IT = 14;
-    private static final char OP_LOG = 15;
-    private static final char OP_DROP = 16;
-    private static final char OP_PUSH_NIL = 17;
-    private static final char OP_NOT = 18;
-    private static final char OP_ADD = 19;
-    private static final char OP_SUB = 20;
-    private static final char OP_MUL = 21;
-    private static final char OP_DIV = 22;
-    private static final char OP_REM = 23;
-    private static final char OP_IS_INT = 24;
-    private static final char OP_IS_STR = 25;
-    private static final char OP_IS_LIST = 26;
-    private static final char OP_IS_DICT = 27;
-    private static final char OP_IS_ITER = 28;
-    private static final char OP_EQUAL = 29;
-    private static final char OP_IS_EMPTY = 30;
-    private static final char OP_PUT = 31;
-    private static final char OP_GET = 32;
-    private static final char OP_RAND = 33;
-    private static final char OP_SIZE = 34;
-    private static final char OP_LESS = 35;
-    private static final char OP_LESSEQUAL = 36;
-    private static final char OP_SUBSTR = 37;
-    private static final char OP_RESIZE = 38;
-    private static final char OP_PUSH = 39;
-    private static final char OP_POP = 40;
-    private static final char OP_KEYS = 41;
-    private static final char OP_VALUES = 43;
-    private static final char OP_NEXT = 44;
-    private static final char OP_ASSERT = 45;
-    private static final char OP_JUMP = 46;
-    private static final char OP_JUMP_IF_TRUE = 47;
-    private static final char OP_DUP = 48;
-    private static final char OP_NEW_LIST = 49;
-    private static final char OP_NEW_DICT = 50;
-    private static final char OP_NEW_STRINGBUFFER = 51;
-    private static final char OP_STR_APPEND = 52;
-    private static final char OP_TO_STRING = 53;
-    private static final char OP_SWAP = 54;
 
     // size of the return frame
     private static final char RET_FRAME_SIZE = 3;
 
+    /*
     // Syntax tree
     private static final int AST_BUILTIN_FUNCTION = 0x100;
     private static final int AST_DO = 0;
@@ -142,9 +155,10 @@ class LightScript {
     private static final int MASK_OP = 0xFF;
     private static final String[] fnNames = {"not", "+", "-", "*", "/", "%", "is-integer", "is-string", "is-list", "is-dictionary", "is-iterator", "equals", "is-empty", "put", "get", "random", "size", "<", "<=", "substring", "resize", "push", "pop", "keys", "values", "get-next", "log", "assert"};
     private static final int[] fnArity = {1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 1, 3, 2, 1, 1, 2, 2, 3, 2, 2, 1, 1, 1, 1, 1, 2};
-    private static final char[] fnTypes = {OP_NOT, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_REM, OP_IS_INT, OP_IS_STR, OP_IS_LIST, OP_IS_DICT, OP_IS_ITER, OP_EQUAL, OP_IS_EMPTY, OP_PUT, OP_GET, OP_RAND, OP_SIZE, OP_LESS, OP_LESSEQUAL, OP_SUBSTR, OP_RESIZE, OP_PUSH, OP_POP, OP_KEYS, OP_VALUES, OP_NEXT, OP_LOG, OP_ASSERT};
+    private static final char[] fnTypes = {ID_NOT, ID_ADD, ID_SUB, ID_MUL, ID_DIV, ID_REM, ID_IS_INT, ID_IS_STR, ID_IS_LIST, ID_IS_DICT, ID_IS_ITER, ID_EQUAL, ID_IS_EMPTY, ID_PUT, ID_GET, ID_RAND, ID_SIZE, ID_LESS, ID_LESSEQUAL, ID_SUBSTR, ID_RESIZE, ID_PUSH, ID_POP, ID_KEYS, ID_VALUES, ID_NEXT, ID_LOG, ID_ASSERT};
     private static final String[] builtinNames = {"set", "if", "and", "or", "foreach", "while", "do", "stringjoin", "list", "dict"};
     private static final int[] builtinTypes = {AST_SET, AST_IF, AST_AND, AST_OR, AST_FOREACH, AST_WHILE, AST_DO, AST_STRINGJOIN, AST_LIST, AST_DICT};
+    */
 
     ////////////////////////
     // Utility functions //
@@ -153,21 +167,19 @@ class LightScript {
     ////////////////////
     ///////////////////
     //////////////////
+    private static String idName(int id) {
+        return (id > 0 && id < idNames.length) ? idNames[id] : "";
+    }
     private static String stringify(Object o) {
         if (o == null) {
             return "null";
-        }
-        if (o instanceof Literal) {
-            return ((Literal) o).value.toString();
         } else if (o instanceof Object[]) {
             StringBuffer sb = new StringBuffer();
             Object[] os = (Object[]) o;
             sb.append("[ ");
             if (os.length > 0 && os[0] instanceof Integer) {
                 int id = ((Integer) os[0]).intValue();
-                if (id > 0 && id < idNames.length) {
-                    sb.append(idNames[id]);
-                }
+                sb.append(idName(id));
             }
             for (int i = 0; i < os.length; i++) {
                 sb.append(stringify(os[i]) + " ");
@@ -194,31 +206,6 @@ class LightScript {
         return result;
     }
 
-    private static int builtinId(String name) {
-        for (int i = 0; i < fnNames.length; i++) {
-            if (name.equals(fnNames[i])) {
-                return fnTypes[i] | AST_BUILTIN_FUNCTION;
-            }
-
-        }
-        for (int i = 0; i < builtinNames.length; i++) {
-            if (name.equals(builtinNames[i])) {
-                return builtinTypes[i];
-            }
-
-        }
-        return -1;
-    }
-
-    private static int builtinArity(int id) {
-        for (int i = 0; i < fnNames.length; i++) {
-            if (fnTypes[i] == id) {
-                return fnArity[i];
-            }
-        }
-        return -1;
-    }
-
     private static int stackAdd(Stack s, Object val) {
         int pos = s.indexOf(val);
         if (pos == -1) {
@@ -235,6 +222,7 @@ class LightScript {
     //////////////////
     /////////////////
     ////////////////
+    /*
     private static class Literal {
 
         public Object value;
@@ -243,6 +231,7 @@ class LightScript {
             this.value = value;
         }
     }
+    */
 
     /**
      * Analysis of variables in a function being compiled,
@@ -286,6 +275,7 @@ class LightScript {
             for (int i = 0; i < code.length; i++) {
                 sb.append(" ");
                 sb.append(code[i]);
+                sb.append(idName(code[i]));
             }
             sb.append("\n\tclosure:");
             for (int i = 0; i < closure.length; i++) {
@@ -514,18 +504,18 @@ class LightScript {
                     // The functio nud is a bit more complex than 
                     // the others because variable-use-analysis is done
                     // during the parsing.
-                    
+
                     // save statistics for previous function
                     Stack prevUsed = varsUsed;
                     Stack prevBoxed = varsBoxed;
                     Stack prevLocals = varsLocals;
                     int prevArgc = varsArgc;
-                    
+
                     // create new statistics
                     varsUsed = new Stack();
                     varsBoxed = new Stack();
                     varsLocals = new Stack();
-                    
+
                     // parse arguments
                     Object[] args = parse(0);
 
@@ -553,7 +543,7 @@ class LightScript {
                             stackAdd(varsBoxed, o);
                         }
                     }
-                    
+
                     //  find the variables in the closure
                     // and add that they need to be boxed at parent.
                     varsClosure = new Stack();
@@ -564,9 +554,9 @@ class LightScript {
                             stackAdd(varsClosure, o);
                         }
                     }
-                    Object[] result = v(nudId, varsClosure, compile(body));
+                    Object[] result = v(nudId, compile(body));
                     varsClosure = null;
-                    
+
                     // restore variable statistics
                     // notice that varsClosure is not needed,
                     // as it is calculated before the compile,
@@ -751,8 +741,6 @@ class LightScript {
             return val.toString();
         }
     }
-
-
     //////////////////////
     ///// Compiler //////
     ////////////////////
@@ -765,619 +753,530 @@ class LightScript {
     private int depth;
     private StringBuffer code;
 
-            private void pushShort(int i) {
-            code.append((char) ((i >> 8) & 0xff));
-            code.append((char) (i & 0xff));
-        }
-
-        private void setShort(int pos, int i) {
-            code.setCharAt(pos - 2, (char) ((i >> 8) & 0xff));
-            code.setCharAt(pos - 1, (char) (i & 0xff));
-        }
-
-        private void addDepth(int i) {
-            depth += i;
-            if (depth > maxDepth) {
-                maxDepth = depth;
-            }
-        }
-
-        private void assertLength(Object[] list, int len) {
-            if (list.length != len) {
-                throw new Error("Wrong number of parameters:" + stringify(list));
-            }
-        }
-
-        private int constPoolId(Object o) {
-            int pos = constPool.indexOf(o);
-            if (pos < 0) {
-                pos = constPool.size();
-                constPool.push(o);
-            }
-            return pos;
-        }
-
-
-    
-    private Object compile(Object[] fnbody) {
-            constPool = new Stack();
-            code = new StringBuffer();
-
-            // make sure that there are sufficient stack space for the function
-            code.append(OP_ENSURE_STACKSPACE);
-            pushShort(0);
-            int spacePos = code.length();
-
-            // allocate space for local vars
-            maxDepth = depth = varsLocals.size();
-            int framesize = depth - varsArgc;
-            while (framesize >= 127) {
-                code.append(OP_INC_SP);
-                code.append((char) 127);
-                framesize -= 127;
-            }
-            if (framesize > 0) {
-                code.append(OP_INC_SP);
-                code.append((char) framesize);
-            }
-
-            // box boxed values in frame
-            Enumeration e = varsBoxed.elements();
-            while (e.hasMoreElements()) {
-                code.append(OP_BOX_IT);
-                pushShort(depth - varsLocals.indexOf(e.nextElement()) - 1);
-            }
-
-            // oldVersionOfCompile(body);
-
-            // emit return code, including current stack depth to drop
-            code.append(OP_RETURN);
-            pushShort(depth);
-
-            // patch amount of stack space needed
-            maxDepth -= varsArgc;
-            setShort(spacePos, maxDepth);
-
-        // ... initialise compile variables..
-        
-        // .. call compile subexpressions
-
-        
-        return v(- varsArgc, varsLocals, varsBoxed, fnbody);
+    private void pushShort(int i) {
+        code.append((char) ((i >> 8) & 0xff));
+        code.append((char) (i & 0xff));
     }
-    
-    private static class Function {
 
-        private int varsArgc;
-        private Object[] body;
-        private Stack varsLocals;
-        private Stack varsBoxed;
-        private Stack varsClosure;
-        private Stack constPool;
-        private int maxDepth;
-        private int depth;
-        private StringBuffer code;
+    private void setShort(int pos, int i) {
+        code.setCharAt(pos - 2, (char) ((i >> 8) & 0xff));
+        code.setCharAt(pos - 1, (char) (i & 0xff));
+    }
 
-        private Function(Object[] list) {
-            Enumeration e;
-            body = new Object[list.length - 2];
-            for (int i = 1; i < body.length; i++) {
-                body[i] = list[i + 2];
-            }
-            body[0] = new Integer(AST_DO);
-            varsArgc = ((Object[]) list[1]).length;
-            varsLocals = new Stack();
-            varsBoxed = new Stack();
-            varsClosure = new Stack();
+    private void addDepth(int i) {
+        depth += i;
+        if (depth > maxDepth) {
+            maxDepth = depth;
+        }
+    }
 
-            findIds(varsLocals, list[1]);
-            findIds(varsLocals, list[2]);
+    private void assertLength(Object[] list, int len) {
+        if (list.length != len) {
+            throw new Error("Wrong number of parameters:" + stringify(list));
+        }
+    }
 
-            findIds(varsClosure, body);
+    private void emit(int opcode) {
+        code.append((char)opcode);
+    }
 
-            // local variables are not placed in the closure
-            e = varsLocals.elements();
-            while (e.hasMoreElements()) {
-                varsClosure.removeElement(e.nextElement());
-            }
+    private int constPoolId(Object o) {
+        int pos = constPool.indexOf(o);
+        if (pos < 0) {
+            pos = constPool.size();
+            constPool.push(o);
+        }
+        return pos;
+    }
 
-            // closure variables are automatically boxed
-            e = varsClosure.elements();
-            while (e.hasMoreElements()) {
-                varsBoxed.removeElement(e.nextElement());
-            }
+    private Closure compile(Object[] body) {
+        constPool = new Stack();
+        code = new StringBuffer();
 
-            oldVersionOfCompile();
-        //System.out.println(this.toString());
+        // make sure that there are sufficient stack space for the function
+        code.append(ID_ENSURE_STACKSPACE);
+        pushShort(0);
+        int spacePos = code.length();
+
+        // allocate space for local vars
+        maxDepth = depth = varsLocals.size();
+        int framesize = depth - varsArgc;
+        while (framesize >= 127) {
+            code.append(ID_INC_SP);
+            code.append((char) 127);
+            framesize -= 127;
+        }
+        if (framesize > 0) {
+            code.append(ID_INC_SP);
+            code.append((char) framesize);
         }
 
-        public static Closure create(Object[] list) {
-            Function f = new Function(list);
-            return new Closure(f.varsArgc, f.code, f.constPool, f.varsClosure);
+        // box boxed values in frame
+        Enumeration e = varsBoxed.elements();
+        while (e.hasMoreElements()) {
+            code.append(ID_BOX_IT);
+            pushShort(depth - varsLocals.indexOf(e.nextElement()) - 1);
         }
 
-        private void findIds(Stack s, Object o) {
-            if (o instanceof Object[]) {
-                Object[] os = (Object[]) o;
-                for (int i = 0; i < os.length; i++) {
-                    findIds(s, os[i]);
+        // oldVersionOfCompile(body);
+        if(((Integer)body[0]).intValue() != ID_CURLY) {
+            throw new Error("Error with function body");
+        }
+        body[0] = new Integer(ID_BLOCK);
+        compile(body, true);
+
+        // emit return code, including current stack depth to drop
+        code.append(ID_RETURN);
+        pushShort(depth);
+
+        // patch amount of stack space needed
+        maxDepth -= varsArgc;
+        setShort(spacePos, maxDepth);
+
+        Closure result = new Closure(varsArgc, code, constPool, varsClosure);
+        code = null;
+        constPool = null;
+        System.out.println(stringify(body));
+        return result;
+    }
+
+    private void compile(Object rawexpr, boolean yieldResult) {
+        boolean hasResult;
+        Object[] expr = (Object[]) rawexpr;
+        int id = ((Integer)expr[0]).intValue();
+        switch(id) { 
+            case ID_ADD: case ID_MUL: case ID_REM: case ID_SUB: 
+            case ID_EQUALS: case ID_NOT_EQUALS: 
+            case ID_LESS_EQUALS: case ID_LESS: {
+                compile(expr[1], true);
+                compile(expr[2], true);
+                emit(id);
+                addDepth(-1);
+                hasResult = true;
+                break;
+            } 
+            case ID_NOT: case ID_NEG: {
+                compile(expr[1], true);
+                emit(id);
+                hasResult = true;
+                break;
+            } case ID_LITERAL: {
+                emit(id);
+                pushShort(constPoolId(expr[1]));
+                hasResult = true;
+                addDepth(1);
+                break;
+            } case ID_BLOCK: {
+                for(int i = 1; i < expr.length; i++) {
+                    compile(expr[i], false);
                 }
-            } else if (o instanceof String) {
-                if (!s.contains(o)) {
-                    s.push(o);
-                }
-            } else if (o instanceof Closure) {
-                Object[] closure_vars = ((Closure) o).closure;
-                for (int i = 0; i < closure_vars.length; i++) {
-                    String name = (String) closure_vars[i];
-                    if (!s.contains(name)) {
-                        s.push(name);
+                hasResult = false;
+                break;
+            } case ID_RETURN: {
+            } case ID_PAREN: {
+            } case ID_LIST_LITERAL: {
+            } case ID_CURLY: {
+            } case ID_VAR: {
+            } case ID_FUNCTION: {
+            } case ID_IF: {
+            } case ID_WHILE: {
+            } case ID_CALL_FUNCTION: {
+            } case ID_SUBSCRIPT: {
+            } case ID_AND: {
+            } case ID_OR: {
+            } case ID_ELSE: {
+            } case ID_SET: {
+            } case ID_IDENT: {
+            }
+            default:
+                throw new Error("Uncompilable expression: " + stringify(expr));
+        }
+
+        if(hasResult && !yieldResult) {
+            code.append(ID_DROP);
+            addDepth(-1);
+        } else if(yieldResult && !hasResult) {
+            code.append(ID_PUSH_NIL);
+            addDepth(1);
+        }
+    }
+
+
+    /*
+    private void oldVersionOfCompile(Object o) {
+        if (o instanceof Object[]) {
+            Object[] list = (Object[]) o;
+            Object head = list[0];
+            // builtin operator
+            if (head instanceof Integer) {
+                int id = ((Integer) head).intValue();
+
+                if ((id & AST_BUILTIN_FUNCTION) != 0) {
+                    char opcode = (char) (id & MASK_OP);
+                    assertLength(list, builtinArity(opcode) + 1);
+                    for (int i = 1; i < list.length; i++) {
+                        oldVersionOfCompile(list[i]);
                     }
-                    if (!varsBoxed.contains(name)) {
-                        varsBoxed.push(name);
-                    }
-                }
-            }
-        }
-
-        private void pushShort(int i) {
-            code.append((char) ((i >> 8) & 0xff));
-            code.append((char) (i & 0xff));
-        }
-
-        private void setShort(int pos, int i) {
-            code.setCharAt(pos - 2, (char) ((i >> 8) & 0xff));
-            code.setCharAt(pos - 1, (char) (i & 0xff));
-        }
-
-        private void addDepth(int i) {
-            depth += i;
-            if (depth > maxDepth) {
-                maxDepth = depth;
-            }
-        }
-
-        private void assertLength(Object[] list, int len) {
-            if (list.length != len) {
-                throw new Error("Wrong number of parameters:" + stringify(list));
-            }
-        }
-
-        private int constPoolId(Object o) {
-            int pos = constPool.indexOf(o);
-            if (pos < 0) {
-                pos = constPool.size();
-                constPool.push(o);
-            }
-            return pos;
-        }
-
-        private void oldVersionOfCompile() {
-            constPool = new Stack();
-            code = new StringBuffer();
-
-            // make sure that there are sufficient stack space for the function
-            code.append(OP_ENSURE_STACKSPACE);
-            pushShort(0);
-            int spacePos = code.length();
-
-            // allocate space for local vars
-            maxDepth = depth = varsLocals.size();
-            int framesize = depth - varsArgc;
-            while (framesize >= 127) {
-                code.append(OP_INC_SP);
-                code.append((char) 127);
-                framesize -= 127;
-            }
-            if (framesize > 0) {
-                code.append(OP_INC_SP);
-                code.append((char) framesize);
-            }
-
-            // box boxed values in frame
-            Enumeration e = varsBoxed.elements();
-            while (e.hasMoreElements()) {
-                code.append(OP_BOX_IT);
-                pushShort(depth - varsLocals.indexOf(e.nextElement()) - 1);
-            }
-
-            oldVersionOfCompile(body);
-
-            // emit return code, including current stack depth to drop
-            code.append(OP_RETURN);
-            pushShort(depth);
-
-            // patch amount of stack space needed
-            maxDepth -= varsArgc;
-            setShort(spacePos, maxDepth);
-        }
-
-        private void oldVersionOfCompile(Object o) {
-            if (o instanceof Object[]) {
-                Object[] list = (Object[]) o;
-                Object head = list[0];
-                // builtin operator
-                if (head instanceof Integer) {
-                    int id = ((Integer) head).intValue();
-
-                    if ((id & AST_BUILTIN_FUNCTION) != 0) {
-                        char opcode = (char) (id & MASK_OP);
-                        assertLength(list, builtinArity(opcode) + 1);
-                        for (int i = 1; i < list.length; i++) {
-                            oldVersionOfCompile(list[i]);
-                        }
-                        addDepth(2 - list.length);
-                        code.append(opcode);
-                    } else {
-                        switch (id) {
-                            case AST_DO: {
-                                int i;
-                                for (i = 1; i < list.length - 1; i++) {
-                                    oldVersionOfCompile(list[i]);
-                                    code.append(OP_DROP);
-                                    addDepth(-1);
-                                }
-                                if (i < list.length) {
-                                    oldVersionOfCompile(list[i]);
-                                } else {
-                                    code.append(OP_PUSH_NIL);
-                                    addDepth(1);
-                                }
-
-                                break;
+                    addDepth(2 - list.length);
+                    code.append(opcode);
+                } else {
+                    switch (id) {
+                        case AST_DO: {
+                            int i;
+                            for (i = 1; i < list.length - 1; i++) {
+                                oldVersionOfCompile(list[i]);
+                                code.append(ID_DROP);
+                                addDepth(-1);
                             }
-                            case AST_SET: {
-                                assertLength(list, 3);
+                            if (i < list.length) {
+                                oldVersionOfCompile(list[i]);
+                            } else {
+                                code.append(ID_PUSH_NIL);
+                                addDepth(1);
+                            }
+
+                            break;
+                        }
+                        case AST_SET: {
+                            assertLength(list, 3);
+                            String name = (String) list[1];
+                            oldVersionOfCompile(list[2]);
+                            int pos = varsClosure.indexOf(name);
+                            if (pos >= 0) {
+                                code.append(ID_SET_CLOSURE);
+                                pushShort(pos);
+                            } else {
+                                pos = varsLocals.indexOf(name);
+                                if (varsBoxed.contains(name)) {
+                                    code.append(ID_SET_BOXED);
+                                } else {
+                                    code.append(ID_SET_LOCAL);
+                                }
+                                pushShort(depth - pos - 1);
+                            }
+                            break;
+                        }
+                        case AST_IF: {
+                            //    code for list[1]
+                            //    jump_if_true -> label1
+                            //    code for list[3]
+                            //    jump -> label2
+                            // label1:
+                            //    code for list[2]
+                            // label2:
+
+                            assertLength(list, 4);
+
+                            int pos0, pos1, len;
+                            oldVersionOfCompile(list[1]);
+
+                            code.append(ID_JUMP_IF_TRUE);
+                            pushShort(0);
+                            pos0 = code.length();
+                            addDepth(-1);
+
+                            oldVersionOfCompile(list[3]);
+
+                            code.append(ID_JUMP);
+                            pushShort(0);
+                            pos1 = code.length();
+                            len = pos1 - pos0;
+                            setShort(pos0, len);
+
+                            addDepth(-1);
+
+                            oldVersionOfCompile(list[2]);
+                            len = code.length() - pos1;
+                            setShort(pos1, len);
+                            break;
+                        }
+                        case AST_AND: {
+                            assertLength(list, 3);
+                            int pos0, pos1, len;
+
+                            oldVersionOfCompile(list[1]);
+
+                            code.append(ID_JUMP_IF_TRUE);
+                            code.append((char) 0);
+                            code.append((char) 0);
+                            pos0 = code.length();
+                            addDepth(-1);
+
+                            code.append(ID_PUSH_NIL);
+
+                            code.append(ID_JUMP);
+                            code.append((char) 0);
+                            code.append((char) 0);
+                            pos1 = code.length();
+                            len = pos1 - pos0;
+                            setShort(pos0, len);
+                            addDepth(-1);
+
+                            oldVersionOfCompile(list[2]);
+                            len = code.length() - pos1;
+                            setShort(pos1, len);
+                            break;
+                        }
+                        case AST_OR: {
+                            assertLength(list, 3);
+                            int pos0, pos1, len;
+
+                            oldVersionOfCompile(list[1]);
+
+                            code.append(ID_DUP);
+                            addDepth(1);
+
+                            code.append(ID_JUMP_IF_TRUE);
+                            code.append((char) 0);
+                            code.append((char) 0);
+                            pos0 = code.length();
+                            addDepth(1);
+
+                            code.append(ID_DROP);
+                            addDepth(-1);
+
+                            oldVersionOfCompile(list[2]);
+
+                            pos1 = code.length();
+                            len = pos1 - pos0;
+                            setShort(pos0, len);
+
+
+                            break;
+                        }
+                        case AST_FOREACH: {
+                            //   push nil
+                            //   get iterator
+                            //   jump -> labelNext
+                            // labelStmts:
+                            //   swap
+                            //   drop
+                            //   code for stmt1
+                            //   ...
+                            //   drop
+                            //   code for stmtn
+                            //   swap
+                            // labelNext:
+                            //   dup
+                            //   get-next
+                            //   set counter-var
+                            //   jump if true labelStmts
+                            //   drop
+                            int pos0, pos1, len;
+                            code.append(ID_PUSH_NIL);
+                            addDepth(1);
+
+                            oldVersionOfCompile(list[2]);
+
+                            code.append(ID_JUMP);
+                            code.append((char) 0);
+                            code.append((char) 0);
+                            pos0 = code.length();
+
+                            code.append(ID_SWAP);
+                            for (int i = 3; i < list.length; i++) {
+                                code.append(ID_DROP);
+                                addDepth(-1);
+                                oldVersionOfCompile(list[i]);
+                            }
+                            code.append(ID_SWAP);
+
+                            pos1 = code.length();
+                            len = pos1 - pos0;
+                            setShort(pos0, len);
+
+                            code.append(ID_DUP);
+                            addDepth(1);
+
+                            code.append(ID_NEXT);
+
+                            {
                                 String name = (String) list[1];
-                                oldVersionOfCompile(list[2]);
                                 int pos = varsClosure.indexOf(name);
                                 if (pos >= 0) {
-                                    code.append(OP_SET_CLOSURE);
+                                    code.append(ID_SET_CLOSURE);
                                     pushShort(pos);
                                 } else {
                                     pos = varsLocals.indexOf(name);
                                     if (varsBoxed.contains(name)) {
-                                        code.append(OP_SET_BOXED);
+                                        code.append(ID_SET_BOXED);
                                     } else {
-                                        code.append(OP_SET_LOCAL);
+                                        code.append(ID_SET_LOCAL);
                                     }
                                     pushShort(depth - pos - 1);
                                 }
-                                break;
                             }
-                            case AST_IF: {
-                                //    code for list[1]
-                                //    jump_if_true -> label1
-                                //    code for list[3]
-                                //    jump -> label2
-                                // label1:
-                                //    code for list[2]
-                                // label2:
 
-                                assertLength(list, 4);
+                            code.append(ID_JUMP_IF_TRUE);
+                            len = pos0 - (code.length() + 2);
+                            code.append((char) ((len >> 8) & 0xff));
+                            code.append((char) (len & 0xff));
+                            addDepth(-1);
 
-                                int pos0, pos1, len;
-                                oldVersionOfCompile(list[1]);
-
-                                code.append(OP_JUMP_IF_TRUE);
-                                pushShort(0);
-                                pos0 = code.length();
-                                addDepth(-1);
-
-                                oldVersionOfCompile(list[3]);
-
-                                code.append(OP_JUMP);
-                                pushShort(0);
-                                pos1 = code.length();
-                                len = pos1 - pos0;
-                                setShort(pos0, len);
-
-                                addDepth(-1);
-
-                                oldVersionOfCompile(list[2]);
-                                len = code.length() - pos1;
-                                setShort(pos1, len);
-                                break;
-                            }
-                            case AST_AND: {
-                                assertLength(list, 3);
-                                int pos0, pos1, len;
-
-                                oldVersionOfCompile(list[1]);
-
-                                code.append(OP_JUMP_IF_TRUE);
-                                code.append((char) 0);
-                                code.append((char) 0);
-                                pos0 = code.length();
-                                addDepth(-1);
-
-                                code.append(OP_PUSH_NIL);
-
-                                code.append(OP_JUMP);
-                                code.append((char) 0);
-                                code.append((char) 0);
-                                pos1 = code.length();
-                                len = pos1 - pos0;
-                                setShort(pos0, len);
-                                addDepth(-1);
-
-                                oldVersionOfCompile(list[2]);
-                                len = code.length() - pos1;
-                                setShort(pos1, len);
-                                break;
-                            }
-                            case AST_OR: {
-                                assertLength(list, 3);     
-                                int pos0, pos1, len;
-
-                                oldVersionOfCompile(list[1]);
-
-                                code.append(OP_DUP);
-                                addDepth(1);
-
-                                code.append(OP_JUMP_IF_TRUE);
-                                code.append((char) 0);
-                                code.append((char) 0);
-                                pos0 = code.length();
-                                addDepth(1);
-
-                                code.append(OP_DROP);
-                                addDepth(-1);
-
-                                oldVersionOfCompile(list[2]);
-
-                                pos1 = code.length();
-                                len = pos1 - pos0;
-                                setShort(pos0, len);
+                            code.append(ID_DROP);
+                            addDepth(-1);
 
 
-                                break;
-                            }
-                            case AST_FOREACH: {
-                                //   push nil
-                                //   get iterator
-                                //   jump -> labelNext
-                                // labelStmts:
-                                //   swap
-                                //   drop
-                                //   code for stmt1
-                                //   ...
-                                //   drop
-                                //   code for stmtn
-                                //   swap
-                                // labelNext:
-                                //   dup
-                                //   get-next
-                                //   set counter-var
-                                //   jump if true labelStmts
-                                //   drop
-                                int pos0, pos1, len;
-                                code.append(OP_PUSH_NIL);
-                                addDepth(1);
-
-                                oldVersionOfCompile(list[2]);
-
-                                code.append(OP_JUMP);
-                                code.append((char) 0);
-                                code.append((char) 0);
-                                pos0 = code.length();
-
-                                code.append(OP_SWAP);
-                                for (int i = 3; i < list.length; i++) {
-                                    code.append(OP_DROP);
-                                    addDepth(-1);
-                                    oldVersionOfCompile(list[i]);
-                                }
-                                code.append(OP_SWAP);
-
-                                pos1 = code.length();
-                                len = pos1 - pos0;
-                                setShort(pos0, len);
-
-                                code.append(OP_DUP);
-                                addDepth(1);
-
-                                code.append(OP_NEXT);
-
-                                {
-                                    String name = (String) list[1];
-                                    int pos = varsClosure.indexOf(name);
-                                    if (pos >= 0) {
-                                        code.append(OP_SET_CLOSURE);
-                                        pushShort(pos);
-                                    } else {
-                                        pos = varsLocals.indexOf(name);
-                                        if (varsBoxed.contains(name)) {
-                                            code.append(OP_SET_BOXED);
-                                        } else {
-                                            code.append(OP_SET_LOCAL);
-                                        }
-                                        pushShort(depth - pos - 1);
-                                    }
-                                }
-
-                                code.append(OP_JUMP_IF_TRUE);
-                                len = pos0 - (code.length() + 2);
-                                code.append((char) ((len >> 8) & 0xff));
-                                code.append((char) (len & 0xff));
-                                addDepth(-1);
-
-                                code.append(OP_DROP);
-                                addDepth(-1);
-
-
-                                break;
-                            }
-                            case AST_WHILE: {
-                                //   push nil
-                                //   jump -> labelCond:
-                                // labelBody:
-                                //   drop
-                                //   code for stmt1
-                                //   ...
-                                //   drop
-                                //   code for stmtn
-                                // labelCond:
-                                //   code for condition
-                                //   jump if true -> labelBody
-
-                                int pos0, pos1, len;
-                                code.append(OP_PUSH_NIL);
-                                addDepth(1);
-
-                                code.append(OP_JUMP);
-                                code.append((char) 0);
-                                code.append((char) 0);
-                                pos0 = code.length();
-
-                                for (int i = 2; i < list.length; i++) {
-                                    code.append(OP_DROP);
-                                    addDepth(-1);
-                                    oldVersionOfCompile(list[i]);
-                                }
-
-
-                                pos1 = code.length();
-                                len = pos1 - pos0;
-                                setShort(pos0, len);
-
-                                oldVersionOfCompile(list[1]);
-
-                                code.append(OP_JUMP_IF_TRUE);
-                                len = pos0 - (code.length() + 2);
-                                code.append((char) ((len >> 8) & 0xff));
-                                code.append((char) (len & 0xff));
-                                addDepth(-1);
-
-
-                                break;
-                            }
-                            case AST_STRINGJOIN: {
-                                code.append(OP_NEW_STRINGBUFFER);
-                                addDepth(1);
-
-                                for (int i = 1; i < list.length; i++) {
-                                    oldVersionOfCompile(list[i]);
-                                    code.append(OP_STR_APPEND);
-                                    addDepth(-1);
-                                }
-                                code.append(OP_TO_STRING);
-
-                                break;
-                            }
-                            case AST_LIST: {
-                                code.append(OP_NEW_LIST);
-                                addDepth(1);
-
-                                for (int i = 1; i < list.length; i++) {
-                                    oldVersionOfCompile(list[i]);
-                                    code.append(OP_PUSH);
-                                    addDepth(-1);
-                                }
-
-                                break;
-                            }
-                            case AST_DICT: {
-                                code.append(OP_NEW_DICT);
-                                addDepth(1);
-
-                                if (list.length % 2 == 0) {
-                                    throw new Error("Unmatched key/value: " + stringify(list));
-                                }
-                                for (int i = 1; i < list.length; i++) {
-                                    oldVersionOfCompile(list[i]);
-                                    i++;
-                                    oldVersionOfCompile(list[i]);
-                                    code.append(OP_PUT);
-                                    addDepth(-2);
-                                }
-
-                                break;
-                            }
+                            break;
                         }
-                    // function evaluation
-                    }
-                } else {
-                    // save program counter
-                    code.append(OP_SAVE_PC);
-                    addDepth(RET_FRAME_SIZE);
+                        case AST_WHILE: {
+                            //   push nil
+                            //   jump -> labelCond:
+                            // labelBody:
+                            //   drop
+                            //   code for stmt1
+                            //   ...
+                            //   drop
+                            //   code for stmtn
+                            // labelCond:
+                            //   code for condition
+                            //   jump if true -> labelBody
 
-                    // find function and evaluate parameters
-                    for (int i = 0; i < list.length; i++) {
-                        oldVersionOfCompile(list[i]);
-                    }
+                            int pos0, pos1, len;
+                            code.append(ID_PUSH_NIL);
+                            addDepth(1);
 
-                    // call the function
-                    code.append(OP_CALL_FN);
-                    if (list.length > 128) {
-                        throw new Error("too many parameters");
+                            code.append(ID_JUMP);
+                            code.append((char) 0);
+                            code.append((char) 0);
+                            pos0 = code.length();
+
+                            for (int i = 2; i < list.length; i++) {
+                                code.append(ID_DROP);
+                                addDepth(-1);
+                                oldVersionOfCompile(list[i]);
+                            }
+
+
+                            pos1 = code.length();
+                            len = pos1 - pos0;
+                            setShort(pos0, len);
+
+                            oldVersionOfCompile(list[1]);
+
+                            code.append(ID_JUMP_IF_TRUE);
+                            len = pos0 - (code.length() + 2);
+                            code.append((char) ((len >> 8) & 0xff));
+                            code.append((char) (len & 0xff));
+                            addDepth(-1);
+
+
+                            break;
+                        }
+                        case AST_STRINGJOIN: {
+                            code.append(ID_NEW_STRINGBUFFER);
+                            addDepth(1);
+
+                            for (int i = 1; i < list.length; i++) {
+                                oldVersionOfCompile(list[i]);
+                                code.append(ID_STR_APPEND);
+                                addDepth(-1);
+                            }
+                            code.append(ID_TO_STRING);
+
+                            break;
+                        }
+                        case AST_LIST: {
+                            code.append(ID_NEW_LIST);
+                            addDepth(1);
+
+                            for (int i = 1; i < list.length; i++) {
+                                oldVersionOfCompile(list[i]);
+                                code.append(ID_PUSH);
+                                addDepth(-1);
+                            }
+
+                            break;
+                        }
+                        case AST_DICT: {
+                            code.append(ID_NEW_DICT);
+                            addDepth(1);
+
+                            if (list.length % 2 == 0) {
+                                throw new Error("Unmatched key/value: " + stringify(list));
+                            }
+                            for (int i = 1; i < list.length; i++) {
+                                oldVersionOfCompile(list[i]);
+                                i++;
+                                oldVersionOfCompile(list[i]);
+                                code.append(ID_PUT);
+                                addDepth(-2);
+                            }
+
+                            break;
+                        }
                     }
-                    code.append((char) (list.length - 1));
-                    addDepth(1 - list.length - RET_FRAME_SIZE);
+                // function evaluation
                 }
-            // Identifier
-            } else if (o instanceof String) {
-                String name = (String) o;
-                int pos = varsClosure.indexOf(name);
-                if (pos >= 0) {
-                    code.append(OP_GET_CLOSURE);
-                    pushShort(pos);
-                } else {
-                    pos = varsLocals.indexOf(name);
-                    if (varsBoxed.contains(name)) {
-                        code.append(OP_GET_BOXED);
-                    } else {
-                        code.append(OP_GET_LOCAL);
-                    }
-                    pushShort(depth - pos - 1);
-                }
-                addDepth(1);
-
-            // Literal
-            } else if (o instanceof Literal) {
-                code.append(OP_GET_LITERAL);
-                pushShort(constPoolId(((Literal) o).value));
-                addDepth(1);
-
-            // Function creation
-            } else if (o instanceof Closure) {
-                Object[] vars = ((Closure) o).closure;
-                for (int i = 0; i < vars.length; i++) {
-                    String name = (String) vars[i];
-                    if (varsBoxed.contains(name)) {
-                        code.append(OP_GET_LOCAL);
-                        pushShort(depth - varsLocals.indexOf(name) - 1);
-                    } else {
-                        code.append(OP_GET_BOXED_CLOSURE);
-                        pushShort(varsClosure.indexOf(name));
-                    }
-                    addDepth(1);
-                }
-                code.append(OP_GET_LITERAL);
-                pushShort(constPoolId(o));
-                addDepth(1);
-                code.append(OP_BUILD_FN);
-                pushShort(vars.length);
-                addDepth(-vars.length);
-
-            // Should not happen
             } else {
-                throw new Error("wrong kind of node:" + o.toString());
-            }
-        }
+                // save program counter
+                code.append(ID_SAVE_PC);
+                addDepth(RET_FRAME_SIZE);
 
-        public String toString() {
-            StringBuffer sb = new StringBuffer();
-            sb.append("\n\tFunction( argc:" + varsArgc + ", locals:" + varsLocals.toString() + ", boxed:" + varsBoxed.toString() + ", closure:" + varsClosure.toString() + ", body:" + stringify(body) + ", code:");
-            for (int i = 0; i < code.length(); i++) {
-                sb.append((int) code.charAt(i));
-                sb.append(" ");
+                // find function and evaluate parameters
+                for (int i = 0; i < list.length; i++) {
+                    oldVersionOfCompile(list[i]);
+                }
+
+                // call the function
+                code.append(ID_CALL_FN);
+                if (list.length > 128) {
+                    throw new Error("too many parameters");
+                }
+                code.append((char) (list.length - 1));
+                addDepth(1 - list.length - RET_FRAME_SIZE);
             }
-            sb.append(" )");
-            return sb.toString();
+        // Identifier
+        } else if (o instanceof String) {
+            String name = (String) o;
+            int pos = varsClosure.indexOf(name);
+            if (pos >= 0) {
+                code.append(ID_GET_CLOSURE);
+                pushShort(pos);
+            } else {
+                pos = varsLocals.indexOf(name);
+                if (varsBoxed.contains(name)) {
+                    code.append(ID_GET_BOXED);
+                } else {
+                    code.append(ID_GET_LOCAL);
+                }
+                pushShort(depth - pos - 1);
+            }
+            addDepth(1);
+
+        // Literal
+        } else if (o instanceof Literal) {
+            code.append(ID_GET_LITERAL);
+            pushShort(constPoolId(((Literal) o).value));
+            addDepth(1);
+
+        // Function creation
+        } else if (o instanceof Closure) {
+            Object[] vars = ((Closure) o).closure;
+            for (int i = 0; i < vars.length; i++) {
+                String name = (String) vars[i];
+                if (varsBoxed.contains(name)) {
+                    code.append(ID_GET_LOCAL);
+                    pushShort(depth - varsLocals.indexOf(name) - 1);
+                } else {
+                    code.append(ID_GET_BOXED_CLOSURE);
+                    pushShort(varsClosure.indexOf(name));
+                }
+                addDepth(1);
+            }
+            code.append(ID_GET_LITERAL);
+            pushShort(constPoolId(o));
+            addDepth(1);
+            code.append(ID_BUILD_FN);
+            pushShort(vars.length);
+            addDepth(-vars.length);
+
+        // Should not happen
+        } else {
+            throw new Error("wrong kind of node:" + o.toString());
         }
     }
-
+    */
     //////////////////////
     // Virtual Machine //
     ////////////////////
@@ -1402,7 +1301,7 @@ class LightScript {
             ++pc;
             //System.out.println("pc:" + pc + " op:" + code[pc] + " sp:" + sp + " stack.length:" + stack.length);
             switch (code[pc]) {
-                case OP_ENSURE_STACKSPACE: {
+                case ID_ENSURE_STACKSPACE: {
                     int arg = readShort(pc, code);
                     pc += 2;
                     if (stack.length <= arg + sp + 1) {
@@ -1415,11 +1314,11 @@ class LightScript {
                     }
                     break;
                 }
-                case OP_INC_SP: {
+                case ID_INC_SP: {
                     sp += code[++pc];
                     break;
                 }
-                case OP_RETURN: {
+                case ID_RETURN: {
                     int arg = readShort(pc, code);
                     pc += 2;
                     Object result = stack[sp];
@@ -1434,13 +1333,13 @@ class LightScript {
                     stack[sp] = result;
                     break;
                 }
-                case OP_SAVE_PC: {
+                case ID_SAVE_PC: {
                     stack[++sp] = closure;
                     stack[++sp] = constPool;
                     stack[++sp] = code;
                     break;
                 }
-                case OP_CALL_FN: {
+                case ID_CALL_FN: {
                     int argc = code[++pc];
                     Closure fn = (Closure) stack[sp - argc];
                     stack[sp - argc] = new Integer(pc);
@@ -1450,7 +1349,7 @@ class LightScript {
                     closure = fn.closure;
                     break;
                 }
-                case OP_BUILD_FN: {
+                case ID_BUILD_FN: {
                     int arg = readShort(pc, code);
                     pc += 2;
                     Closure fn = new Closure((Closure) stack[sp]);
@@ -1463,135 +1362,135 @@ class LightScript {
                     stack[sp] = fn;
                     break;
                 }
-                case OP_SET_BOXED: {
+                case ID_SET_BOXED: {
                     int arg = readShort(pc, code);
                     pc += 2;
                     ((Object[]) stack[sp - arg])[0] = stack[sp];
                     break;
                 }
-                case OP_SET_LOCAL: {
+                case ID_SET_LOCAL: {
                     int arg = readShort(pc, code);
                     pc += 2;
                     stack[sp - arg] = stack[sp];
                     break;
                 }
-                case OP_SET_CLOSURE: {
+                case ID_SET_CLOSURE: {
                     int arg = readShort(pc, code);
                     pc += 2;
                     ((Object[]) closure[arg])[0] = stack[sp];
                     break;
                 }
-                case OP_GET_BOXED: {
+                case ID_GET_BOXED: {
                     int arg = readShort(pc, code);
                     pc += 2;
                     Object o = ((Object[]) stack[sp - arg])[0];
                     stack[++sp] = o;
                     break;
                 }
-                case OP_GET_LOCAL: {
+                case ID_GET_LOCAL: {
                     int arg = readShort(pc, code);
                     pc += 2;
                     Object o = stack[sp - arg];
                     stack[++sp] = o;
                     break;
                 }
-                case OP_GET_CLOSURE: {
+                case ID_GET_CLOSURE: {
                     int arg = readShort(pc, code);
                     pc += 2;
                     stack[++sp] = ((Object[]) closure[arg])[0];
                     break;
                 }
-                case OP_GET_BOXED_CLOSURE: {
+                case ID_GET_BOXED_CLOSURE: {
                     int arg = readShort(pc, code);
                     pc += 2;
                     stack[++sp] = closure[arg];
                     break;
                 }
-                case OP_GET_LITERAL: {
+                case ID_GET_LITERAL: {
                     int arg = readShort(pc, code);
                     pc += 2;
                     stack[++sp] = constPool[arg];
                     break;
                 }
-                case OP_BOX_IT: {
+                case ID_BOX_IT: {
                     int arg = readShort(pc, code);
                     pc += 2;
                     Object[] box = {stack[sp - arg]};
                     stack[sp - arg] = box;
                     break;
                 }
-                case OP_LOG: {
+                case ID_LOG: {
                     System.out.println(stringify(stack[sp]));
                     break;
                 }
-                case OP_DROP: {
+                case ID_DROP: {
                     --sp;
                     break;
                 }
-                case OP_PUSH_NIL: {
+                case ID_PUSH_NIL: {
                     stack[++sp] = null;
                     break;
                 }
-                case OP_NOT: {
+                case ID_NOT: {
                     stack[sp] = stack[sp] == null ? TRUE : null;
                     break;
                 }
-                case OP_ADD: {
+                case ID_ADD: {
                     int result = ((Integer) stack[sp]).intValue();
                     result += ((Integer) stack[--sp]).intValue();
                     stack[sp] = new Integer(result);
                     break;
                 }
-                case OP_SUB: {
+                case ID_SUB: {
                     int result = ((Integer) stack[sp]).intValue();
                     result = ((Integer) stack[--sp]).intValue() - result;
                     stack[sp] = new Integer(result);
                     break;
                 }
-                case OP_MUL: {
+                case ID_MUL: {
                     int result = ((Integer) stack[sp]).intValue();
                     result *= ((Integer) stack[--sp]).intValue();
                     stack[sp] = new Integer(result);
                     break;
                 }
-                case OP_DIV: {
+                case ID_DIV: {
                     int result = ((Integer) stack[sp]).intValue();
                     result = ((Integer) stack[--sp]).intValue() / result;
                     stack[sp] = new Integer(result);
                     break;
                 }
-                case OP_REM: {
+                case ID_REM: {
                     int result = ((Integer) stack[sp]).intValue();
                     result = ((Integer) stack[--sp]).intValue() % result;
                     stack[sp] = new Integer(result);
                     break;
                 }
-                case OP_IS_INT: {
+                case ID_IS_INT: {
                     stack[sp] = stack[sp] instanceof Integer
                             ? TRUE : null;
                     break;
                 }
-                case OP_IS_STR: {
+                case ID_IS_STR: {
                     stack[sp] = stack[sp] instanceof String
                             ? TRUE : null;
                     break;
                 }
-                case OP_IS_LIST: {
+                case ID_IS_LIST: {
                     stack[sp] = stack[sp] instanceof Stack
                             ? TRUE : null;
                     break;
                 }
-                case OP_IS_DICT: {
+                case ID_IS_DICT: {
                     stack[sp] = stack[sp] instanceof Hashtable
                             ? TRUE : null;
                     break;
                 }
-                case OP_IS_ITER: {
+                case ID_IS_ITER: {
                     stack[sp] = stack[sp] instanceof Enumeration
                             ? TRUE : null;
                     break;
                 }
-                case OP_EQUAL: {
+                case ID_EQUAL: {
                     Object o = stack[sp];
                     --sp;
                     stack[sp] = (o == null)
@@ -1599,7 +1498,7 @@ class LightScript {
                             : (o.equals(stack[sp]) ? TRUE : null);
                     break;
                 }
-                case OP_IS_EMPTY: {
+                case ID_IS_EMPTY: {
                     Object o = stack[sp];
                     if (o instanceof Hashtable) {
                         stack[sp] = ((Hashtable) o).isEmpty() ? TRUE : null;
@@ -1612,7 +1511,7 @@ class LightScript {
                     }
                     break;
                 }
-                case OP_PUT: {
+                case ID_PUT: {
                     Object val = stack[sp];
                     Object key = stack[--sp];
                     Object container = stack[--sp];
@@ -1627,7 +1526,7 @@ class LightScript {
                     }
                     break;
                 }
-                case OP_GET: {
+                case ID_GET: {
                     Object key = stack[sp];
                     Object container = stack[--sp];
                     if (container instanceof Stack) {
@@ -1639,7 +1538,7 @@ class LightScript {
                     }
                     break;
                 }
-                case OP_RAND: {
+                case ID_RAND: {
                     Object o = stack[sp];
                     if (o instanceof Integer) {
                         stack[sp] = new Integer((rnd.nextInt() & 0x7fffffff) % ((Integer) o).intValue());
@@ -1651,7 +1550,7 @@ class LightScript {
                     }
                     break;
                 }
-                case OP_SIZE: {
+                case ID_SIZE: {
                     Object o = stack[sp];
                     int size;
                     if (o instanceof Stack) {
@@ -1666,7 +1565,7 @@ class LightScript {
                     stack[sp] = new Integer(size);
                     break;
                 }
-                case OP_LESS: {
+                case ID_LESS: {
                     Object o2 = stack[sp];
                     Object o1 = stack[--sp];
                     if (o1 instanceof Integer && o2 instanceof Integer) {
@@ -1676,7 +1575,7 @@ class LightScript {
                     }
                     break;
                 }
-                case OP_LESSEQUAL: {
+                case ID_LESSEQUAL: {
                     Object o2 = stack[sp];
                     Object o1 = stack[--sp];
                     if (o1 instanceof Integer && o2 instanceof Integer) {
@@ -1686,32 +1585,32 @@ class LightScript {
                     }
                     break;
                 }
-                case OP_SUBSTR: {
+                case ID_SUBSTR: {
                     int start = ((Integer) stack[sp]).intValue();
                     int end = ((Integer) stack[--sp]).intValue();
                     --sp;
                     stack[sp] = ((String) stack[sp]).substring(start, end);
                     break;
                 }
-                case OP_RESIZE: {
+                case ID_RESIZE: {
                     int newsize = ((Integer) stack[sp]).intValue();
                     ((Stack) stack[--sp]).setSize(newsize);
                     break;
                 }
-                case OP_PUSH: {
+                case ID_PUSH: {
                     Object o = stack[sp];
                     ((Stack) stack[--sp]).push(o);
                     break;
                 }
-                case OP_POP: {
+                case ID_POP: {
                     stack[sp] = ((Stack) stack[sp]).pop();
                     break;
                 }
-                case OP_KEYS: {
+                case ID_KEYS: {
                     stack[sp] = ((Hashtable) stack[sp]).keys();
                     break;
                 }
-                case OP_VALUES: {
+                case ID_VALUES: {
                     Object container = stack[sp];
                     if (container instanceof Stack) {
                         stack[sp] = ((Stack) container).elements();
@@ -1722,25 +1621,25 @@ class LightScript {
                     }
                     break;
                 }
-                case OP_NEXT: {
+                case ID_NEXT: {
                     Enumeration e = (Enumeration) stack[sp];
                     stack[sp] = e.hasMoreElements()
                             ? e.nextElement()
                             : null;
                     break;
                 }
-                case OP_ASSERT: {
+                case ID_ASSERT: {
                     if (stack[sp] == null) {
                         throw new Error("Assert error: " + stack[--sp].toString());
                     }
                     --sp;
                     break;
                 }
-                case OP_JUMP: {
+                case ID_JUMP: {
                     pc += readShort(pc, code) + 2;
                     break;
                 }
-                case OP_JUMP_IF_TRUE: {
+                case ID_JUMP_IF_TRUE: {
                     if (stack[sp] != null) {
                         pc += readShort(pc, code) + 2;
                     } else {
@@ -1749,33 +1648,33 @@ class LightScript {
                     --sp;
                     break;
                 }
-                case OP_DUP: {
+                case ID_DUP: {
                     Object o = stack[sp];
                     stack[++sp] = o;
                     break;
                 }
-                case OP_NEW_LIST: {
+                case ID_NEW_LIST: {
                     stack[++sp] = new Stack();
                     break;
                 }
-                case OP_NEW_DICT: {
+                case ID_NEW_DICT: {
                     stack[++sp] = new Hashtable();
                     break;
                 }
-                case OP_NEW_STRINGBUFFER: {
+                case ID_NEW_STRINGBUFFER: {
                     stack[++sp] = new StringBuffer();
                     break;
                 }
-                case OP_STR_APPEND: {
+                case ID_STR_APPEND: {
                     String s = stack[sp].toString();
                     ((StringBuffer) stack[--sp]).append(s);
                     break;
                 }
-                case OP_TO_STRING: {
+                case ID_TO_STRING: {
                     stack[sp] = stack[sp].toString();
                     break;
                 }
-                case OP_SWAP: {
+                case ID_SWAP: {
                     Object t = stack[sp - 1];
                     stack[sp - 1] = stack[sp];
                     stack[sp] = t;
