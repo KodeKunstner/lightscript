@@ -305,7 +305,6 @@ class LightScript {
     private InputStream is;
     private int c;
     private StringBuffer sb;
-    private Token token;
     private Stack varsUsed;
     private Stack varsBoxed;
     private Stack varsLocals;
@@ -316,7 +315,6 @@ class LightScript {
         this.is = is;
         sb = new StringBuffer();
         c = ' ';
-        token = null;
         varsUsed = new Stack();
         varsBoxed = new Stack();
         varsLocals = new Stack();
@@ -331,10 +329,6 @@ class LightScript {
     //////////////////
     /////////////////
     ////////////////
-    private Object getToken() {
-        return token;
-    }
-
     private void nextc() {
         try {
             c = is.read();
@@ -373,7 +367,7 @@ class LightScript {
                         nextc();
                     }
                 } else {
-                    token = new Token(false, "/");
+                    newToken(false, "/");
                     return true;
                 }
             }
@@ -382,7 +376,7 @@ class LightScript {
 
         // End of file
         if (c == -1) {
-            token = new Token(false, null);
+            newToken(false, null);
             return false;
 
         // String
@@ -398,7 +392,7 @@ class LightScript {
                 pushc();
             }
             nextc();
-            token = new Token(true, sb.toString());
+            newToken(true, sb.toString());
             return true;
 
         // Number
@@ -406,7 +400,7 @@ class LightScript {
             do {
                 pushc();
             } while (isNum());
-            token = new Token(true, Integer.valueOf(sb.toString()));
+            newToken(true, Integer.valueOf(sb.toString()));
             return true;
 
         // Identifier
@@ -425,7 +419,7 @@ class LightScript {
         } else {
             pushc();
         }
-        token = new Token(false, sb.toString());
+        newToken(false, sb.toString());
         return true;
     }
 
@@ -437,26 +431,30 @@ class LightScript {
     /////////////////
     ////////////////
     private Object[] parse(int rbp) {
-        Token t = token;
+        boolean tSep = tokenSep;
+        int tNudFn = tokenNudFn;
+        int tNudId = tokenNudId;
+        Object tVal = tokenVal;
         next();
-        Object[] left = t.nud();
-        while (rbp < token.bp && !t.sep) {
-            t = token;
+        Object[] left = nud(tNudFn, tNudId, tVal);
+        while (rbp < tokenBp && !tSep) {
+            tSep = tokenSep;
+            int tLedFn = tokenLedFn;
+            int tLedId = tokenLedId;
+            int tBp = tokenBp;
             next();
-            left = t.led(left);
+            left = led(tLedFn, tLedId, left, tBp);
         }
         return left;
     }
 
-    private class Token {
-
-        private Object val;
-        private int nudFn;
-        private int ledFn;
-        private int nudId;
-        private int ledId;
-        public boolean sep;
-        public int bp;
+        private Object tokenVal;
+        private int tokenNudFn;
+        private int tokenLedFn;
+        private int tokenNudId;
+        private int tokenLedId;
+        public boolean tokenSep;
+        public int tokenBp;
         private static final int NUD_ID = 0;
         private static final int NUD_LITERAL = 1;
         private static final int NUD_END = 2;
@@ -483,7 +481,7 @@ class LightScript {
             return result;
         }
 
-        public Object[] nud() {
+        public Object[] nud(int nudFn, int nudId, Object val) {
             switch (nudFn) {
                 case NUD_ID:
                     stackAdd(varsUsed, val);
@@ -589,7 +587,7 @@ class LightScript {
             }
         }
 
-        public Object[] led(Object left) {
+        private Object[] led(int ledFn, int ledId, Object left, int bp) {
             switch (ledFn) {
                     
                 case LED_INFIX:
@@ -612,159 +610,156 @@ class LightScript {
             }
         }
 
-        public Token(boolean isLiteral, Object val) {
-            this.val = val;
-            sep = false;
-            bp = 0;
-            nudFn = 0;
-            ledFn = 0;
-            nudId = 0;
-            ledId = 0;
+        public void newToken(boolean isLiteral, Object val) {
+            this.tokenVal = val;
+            tokenSep = false;
+            tokenBp = 0;
+            tokenNudFn = 0;
+            tokenLedFn = 0;
+            tokenNudId = 0;
+            tokenLedId = 0;
 
             if (isLiteral) {
-                nudFn = NUD_LITERAL;
+                tokenNudFn = NUD_LITERAL;
 
             } else if (val == null || "]".equals(val) || ")".equals(val) || "}".equals(val)) {
-                nudFn = NUD_END;
-                sep = true;
+                tokenNudFn = NUD_END;
+                tokenSep = true;
 
             } else if (".".equals(val)) {
-                bp = 700;
-                ledFn = LED_DOT;
-                ledId = ID_SUBSCRIPT;
+                tokenBp = 700;
+                tokenLedFn = LED_DOT;
+                tokenLedId = ID_SUBSCRIPT;
 
             } else if ("(".equals(val)) {
-                bp = 600;
-                ledFn = LED_INFIX_LIST;
-                ledId = ID_CALL_FUNCTION;
-                nudFn = NUD_LIST;
-                nudId = ID_PAREN;
+                tokenBp = 600;
+                tokenLedFn = LED_INFIX_LIST;
+                tokenLedId = ID_CALL_FUNCTION;
+                tokenNudFn = NUD_LIST;
+                tokenNudId = ID_PAREN;
 
             } else if ("[".equals(val)) {
-                bp = 600;
-                ledFn = LED_INFIX_LIST;
-                ledId = ID_SUBSCRIPT;
-                nudFn = NUD_LIST;
-                nudId = ID_LIST_LITERAL;
+                tokenBp = 600;
+                tokenLedFn = LED_INFIX_LIST;
+                tokenLedId = ID_SUBSCRIPT;
+                tokenNudFn = NUD_LIST;
+                tokenNudId = ID_LIST_LITERAL;
 
             } else if ("*".equals(val)) {
-                bp = 500;
-                ledFn = LED_INFIX;
-                ledId = ID_MUL;
+                tokenBp = 500;
+                tokenLedFn = LED_INFIX;
+                tokenLedId = ID_MUL;
 
             } else if ("%".equals(val)) {
-                bp = 500;
-                ledFn = LED_INFIX;
-                ledId = ID_REM;
+                tokenBp = 500;
+                tokenLedFn = LED_INFIX;
+                tokenLedId = ID_REM;
 
             } else if ("+".equals(val)) {
-                bp = 400;
-                ledFn = LED_INFIX;
-                ledId = ID_ADD;
+                tokenBp = 400;
+                tokenLedFn = LED_INFIX;
+                tokenLedId = ID_ADD;
 
             } else if ("-".equals(val)) {
-                bp = 400;
-                ledFn = LED_INFIX;
-                ledId = ID_SUB;
-                nudFn = NUD_PREFIX;
-                nudId = ID_NEG;
+                tokenBp = 400;
+                tokenLedFn = LED_INFIX;
+                tokenLedId = ID_SUB;
+                tokenNudFn = NUD_PREFIX;
+                tokenNudId = ID_NEG;
 
             } else if ("===".equals(val)) {
-                bp = 300;
-                ledFn = LED_INFIX;
-                ledId = ID_EQUALS;
+                tokenBp = 300;
+                tokenLedFn = LED_INFIX;
+                tokenLedId = ID_EQUALS;
 
             } else if ("!==".equals(val)) {
-                bp = 300;
-                ledFn = LED_INFIX;
-                ledId = ID_NOT_EQUALS;
+                tokenBp = 300;
+                tokenLedFn = LED_INFIX;
+                tokenLedId = ID_NOT_EQUALS;
 
             } else if ("<=".equals(val)) {
-                bp = 300;
-                ledFn = LED_INFIX;
-                ledId = ID_LESS_EQUALS;
+                tokenBp = 300;
+                tokenLedFn = LED_INFIX;
+                tokenLedId = ID_LESS_EQUALS;
 
             } else if ("<".equals(val)) {
-                bp = 300;
-                ledFn = LED_INFIX;
-                ledId = ID_LESS;
+                tokenBp = 300;
+                tokenLedFn = LED_INFIX;
+                tokenLedId = ID_LESS;
 
             } else if ("&&".equals(val)) {
-                bp = 200;
-                ledFn = LED_INFIXR;
-                ledId = ID_AND;
+                tokenBp = 200;
+                tokenLedFn = LED_INFIXR;
+                tokenLedId = ID_AND;
 
             } else if ("||".equals(val)) {
-                bp = 200;
-                ledFn = LED_INFIXR;
-                ledId = ID_OR;
+                tokenBp = 200;
+                tokenLedFn = LED_INFIXR;
+                tokenLedId = ID_OR;
 
             } else if ("else".equals(val)) {
-                bp = 200;
-                ledFn = LED_INFIXR;
-                ledId = ID_ELSE;
+                tokenBp = 200;
+                tokenLedFn = LED_INFIXR;
+                tokenLedId = ID_ELSE;
 
             } else if ("in".equals(val)) {
-                bp = 200;
-                ledFn = LED_INFIX;
-                ledId = ID_IN;
+                tokenBp = 200;
+                tokenLedFn = LED_INFIX;
+                tokenLedId = ID_IN;
 
             } else if ("=".equals(val)) {
-                bp = 100;
-                ledFn = LED_INFIX;
-                ledId = ID_SET;
+                tokenBp = 100;
+                tokenLedFn = LED_INFIX;
+                tokenLedId = ID_SET;
 
             } else if (":".equals(val) || ";".equals(val) || ",".equals(val)) {
-                nudFn = NUD_SEP;
-                sep = true;
+                tokenNudFn = NUD_SEP;
+                tokenSep = true;
 
             } else if ("{".equals(val)) {
-                nudFn = NUD_LIST;
-                nudId = ID_CURLY;
+                tokenNudFn = NUD_LIST;
+                tokenNudId = ID_CURLY;
 
             } else if ("var".equals(val)) {
-                nudFn = NUD_VAR;
-                nudId = ID_VAR;
+                tokenNudFn = NUD_VAR;
+                tokenNudId = ID_VAR;
 
             } else if ("return".equals(val)) {
-                nudFn = NUD_PREFIX;
-                nudId = ID_RETURN;
+                tokenNudFn = NUD_PREFIX;
+                tokenNudId = ID_RETURN;
 
             } else if ("!".equals(val)) {
-                nudFn = NUD_PREFIX;
-                nudId = ID_NOT;
+                tokenNudFn = NUD_PREFIX;
+                tokenNudId = ID_NOT;
 
             } else if ("print".equals(val)) {
-                nudFn = NUD_PREFIX;
-                nudId = ID_PRINT;
+                tokenNudFn = NUD_PREFIX;
+                tokenNudId = ID_PRINT;
 
             } else if ("function".equals(val)) {
-                nudFn = NUD_FUNCTION;
-                nudId = ID_BUILD_FUNCTION;
+                tokenNudFn = NUD_FUNCTION;
+                tokenNudId = ID_BUILD_FUNCTION;
 
             } else if ("if".equals(val)) {
-                nudFn = NUD_PREFIX2;
-                nudId = ID_IF;
+                tokenNudFn = NUD_PREFIX2;
+                tokenNudId = ID_IF;
 
             } else if ("while".equals(val)) {
-                nudFn = NUD_PREFIX2;
-                nudId = ID_WHILE;
+                tokenNudFn = NUD_PREFIX2;
+                tokenNudId = ID_WHILE;
 
             } else if ("undefined".equals(val) || "null".equals(val) || "false".equals(val)) {
-                this.val = null;
-                nudFn = NUD_LITERAL;
+                this.tokenVal = null;
+                tokenNudFn = NUD_LITERAL;
 
             } else if ("true".equals(val)) {
                 val = TRUE;
-                nudFn = NUD_LITERAL;
+                tokenNudFn = NUD_LITERAL;
             }
 
         }
 
-        public String toString() {
-            return val.toString();
-        }
-    }
+
     //////////////////////
     ///// Compiler //////
     ////////////////////
