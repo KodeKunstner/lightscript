@@ -11,7 +11,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
 	InputStream is = new FileInputStream(new File(args[0]));
         LightScript ls = new LightScript(is);
-        LightScript.Closure o = ls.nextClosure();
+        LightScript.Code o = ls.nextCode();
         LightScript.execute(o);
     }
 }

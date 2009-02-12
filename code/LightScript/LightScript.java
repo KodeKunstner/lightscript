@@ -16,9 +16,9 @@ import java.util.Stack;
 // - Virtual machine
 class LightScript {
 
-    public Closure nextClosure() {
+    public Code nextCode() {
         Object[] os = parse(0);
-        varsClosure = varsUsed;
+        varsCode = varsUsed;
         return compile(os);
     }
 
@@ -190,6 +190,26 @@ class LightScript {
             }
             sb.append("]");
             return sb.toString();
+        } else if(o instanceof Code) {
+            Code c = (Code) o;
+            StringBuffer sb = new StringBuffer();
+            sb.append("closure" + c.argc + "{\n\tcode:");
+            for (int i = 0; i < c.code.length; i++) {
+                sb.append(" ");
+                sb.append(idName(c.code[i]));
+            }
+            sb.append("\n\tclosure:");
+            for (int i = 0; i < c.closure.length; i++) {
+                sb.append(" " + i + ":");
+                sb.append(stringify(c.closure[i]));
+            }
+            sb.append("\n\tconstPool:");
+            for (int i = 0; i < c.constPool.length; i++) {
+                sb.append(" " + i + ":");
+                sb.append(stringify(c.constPool[i]));
+            }
+            sb.append("\n}");
+            return sb.toString();
         } else {
             return o.toString();
         }
@@ -237,61 +257,51 @@ class LightScript {
     }
     */
 
+    private Object[] stackToVector(Stack s) {
+        Object[] result = new Object[s.size()];
+        s.copyInto(result);
+        return result;
+    }
+
+        Code createCode(int argc, StringBuffer code, Stack constPool, Stack closure) {
+            Code result = new Code();
+            result.argc = argc;
+
+            result.code = new byte[code.length()];
+            for (int i = 0; i < result.code.length; i++) {
+                result.code[i] = (byte) code.charAt(i);
+            }
+
+            result.constPool = new Object[constPool.size()];
+            for (int i = 0; i < result.constPool.length; i++) {
+                result.constPool[i] = constPool.elementAt(i);
+            }
+
+            result.closure = new Object[closure.size()];
+            for (int i = 0; i < result.closure.length; i++) {
+                result.closure[i] = closure.elementAt(i);
+            }
+            return result;
+        }
+
+
     /**
      * Analysis of variables in a function being compiled,
      * updated during the parsing.
      */
-    public static class Closure {
+    public static class Code {
 
         public byte[] code;
         public int argc;
         public Object[] closure;
         public Object[] constPool;
 
-        public Closure(int argc, StringBuffer code, Stack constPool, Stack closure) {
-            this.argc = argc;
-
-            this.code = new byte[code.length()];
-            for (int i = 0; i < this.code.length; i++) {
-                this.code[i] = (byte) code.charAt(i);
-            }
-
-            this.constPool = new Object[constPool.size()];
-            for (int i = 0; i < this.constPool.length; i++) {
-                this.constPool[i] = constPool.elementAt(i);
-            }
-
-            this.closure = new Object[closure.size()];
-            for (int i = 0; i < this.closure.length; i++) {
-                this.closure[i] = closure.elementAt(i);
-            }
+        public Code() {
         }
-
-        public Closure(Closure cl) {
+        public Code(Code cl) {
             this.argc = cl.argc;
             this.code = cl.code;
             this.constPool = cl.constPool;
-        }
-
-        public String toString() {
-            StringBuffer sb = new StringBuffer();
-            sb.append("closure" + argc + "{\n\tcode:");
-            for (int i = 0; i < code.length; i++) {
-                sb.append(" ");
-                sb.append(idName(code[i]));
-            }
-            sb.append("\n\tclosure:");
-            for (int i = 0; i < closure.length; i++) {
-                sb.append(" " + i + ":");
-                sb.append(stringify(closure[i]));
-            }
-            sb.append("\n\tconstPool:");
-            for (int i = 0; i < constPool.length; i++) {
-                sb.append(" " + i + ":");
-                sb.append(stringify(constPool[i]));
-            }
-            sb.append("\n}");
-            return sb.toString();
         }
     }
 
@@ -308,7 +318,7 @@ class LightScript {
     private Stack varsUsed;
     private Stack varsBoxed;
     private Stack varsLocals;
-    private Stack varsClosure;
+    private Stack varsCode;
     private int varsArgc;
 
     public LightScript(InputStream is) {
@@ -547,19 +557,19 @@ class LightScript {
 
                     //  find the variables in the closure
                     // and add that they need to be boxed at parent.
-                    varsClosure = new Stack();
+                    varsCode = new Stack();
                     for (int i = 0; i < varsBoxed.size(); i++) {
                         Object o = varsBoxed.elementAt(i);
                         if (!varsLocals.contains(o)) {
                             stackAdd(prevBoxed, o);
-                            stackAdd(varsClosure, o);
+                            stackAdd(varsCode, o);
                         }
                     }
                     Object[] result = v(nudId, compile(body));
-                    varsClosure = null;
+                    varsCode = null;
 
                     // restore variable statistics
-                    // notice that varsClosure is not needed,
+                    // notice that varsCode is not needed,
                     // as it is calculated before the compile,
                     // and not updated/used other places
                     varsUsed = prevUsed;
@@ -815,7 +825,7 @@ class LightScript {
         }
     }
 
-    private Closure compile(Object[] body) {
+    private Code compile(Object[] body) {
         constPool = new Stack();
         code = new StringBuffer();
 
@@ -858,13 +868,13 @@ class LightScript {
         maxDepth -= varsArgc;
         setShort(spacePos, maxDepth);
 
-        Closure result = new Closure(varsArgc, code, constPool, varsClosure);
+        Code result = createCode(varsArgc, code, constPool, varsCode);
         code = null;
         constPool = null;
         //System.out.println(stringify(body));
         //System.out.println(varsLocals);
         //System.out.println(varsBoxed);
-        //System.out.println(varsClosure);
+        //System.out.println(varsCode);
         return result;
     }
 
@@ -914,7 +924,7 @@ class LightScript {
                 break;
             } case ID_IDENT: {
                 String name = (String) expr[1];
-                int pos = varsClosure.indexOf(name);
+                int pos = varsCode.indexOf(name);
                 if (pos >= 0) {
                     emit(ID_GET_CLOSURE);
                     pushShort(pos);
@@ -950,7 +960,7 @@ class LightScript {
                             if(targetType == ID_IDENT) {
                             String name = (String) ((Object[]) expr[1])[1];
                             compile(expr[2], true);
-                            int pos = varsClosure.indexOf(name);
+                            int pos = varsCode.indexOf(name);
                             if (pos >= 0) {
                                 emit(ID_SET_CLOSURE);
                                 pushShort(pos);
@@ -995,7 +1005,7 @@ class LightScript {
                 hasResult = true;
                 break;
             } case ID_BUILD_FUNCTION: {
-                Object[] vars = ((Closure) expr[1]).closure;
+                Object[] vars = ((Code) expr[1]).closure;
                 for (int i = 0; i < vars.length; i++) {
                 String name = (String) vars[i];
                 if (varsBoxed.contains(name)) {
@@ -1003,7 +1013,7 @@ class LightScript {
                     pushShort(depth - varsLocals.indexOf(name) - 1);
                 } else {
                     code.append(ID_GET_BOXED_CLOSURE);
-                    pushShort(varsClosure.indexOf(name));
+                    pushShort(varsCode.indexOf(name));
                 }
                 addDepth(1);
             }
@@ -1205,7 +1215,7 @@ class LightScript {
         return (short) (((code[++pc] & 0xff) << 8) | (code[++pc] & 0xff));
     }
 
-    public static Object execute(Closure cl) {
+    public static Object execute(Code cl) {
         int sp = -1;
         Object[] stack = new Object[0];
         int pc = -1;
@@ -1256,7 +1266,7 @@ class LightScript {
                 }
                 case ID_CALL_FN: {
                     int argc = code[++pc];
-                    Closure fn = (Closure) stack[sp - argc];
+                    Code fn = (Code) stack[sp - argc];
                     stack[sp - argc] = new Integer(pc);
                     pc = -1;
                     code = fn.code;
@@ -1267,7 +1277,7 @@ class LightScript {
                 case ID_BUILD_FN: {
                     int arg = readShort(pc, code);
                     pc += 2;
-                    Closure fn = new Closure((Closure) stack[sp]);
+                    Code fn = new Code((Code) stack[sp]);
                     Object[] clos = new Object[arg];
                     for (int i = arg - 1; i >= 0; i--) {
                         --sp;
