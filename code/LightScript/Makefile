@@ -1,7 +1,7 @@
 CLASSES = Main.class LightScript.class
 
 run: $(CLASSES)
-	java Main test.ls
+	java Main test.js
 
 all: $(CLASSES)
 
