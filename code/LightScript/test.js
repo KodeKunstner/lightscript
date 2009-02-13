@@ -1,3 +1,3 @@
 (function() {
-    print(["foo" : 1, "bar": 2, "baz": 3][2]);
+    print(false?"Hello":"world");
 })();

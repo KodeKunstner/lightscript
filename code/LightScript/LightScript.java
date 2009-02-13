@@ -83,6 +83,10 @@ class LightScript {
     private static final char ID_SEP = 52;
     private static final char ID_IN = 53;
     private static final char ID_JUMP_IF_FALSE = 54;
+    private static final char ID_SET_THIS = 55;
+    private static final char ID_THIS = 56;
+    private static final char ID_SWAP = 57;
+    private static final char ID_FOR = 58;
     private static final Object[] END_TOKEN = {"(end)"};
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
     private static final Boolean TRUE = new Boolean(true);
@@ -100,8 +104,6 @@ class LightScript {
     ///////////////////
     //////////////////
 
-    /*
-
     private static final String[] idNames = {"", "PAREN", "LIST_LITERAL",
         "CURLY", "VAR", "RETURN", "NOT", "FUNCTION", "IF", "WHILE",
         "LITERAL", "CALL_FUNCTION", "SUBSCRIPT", "MUL", "REM", "ADD",
@@ -111,7 +113,8 @@ class LightScript {
         "SET_LOCAL", "SET_CLOSURE", "GET_BOXED", "GET_LOCAL",
         "GET_CLOSURE", "GET_BOXED_CLOSURE", "BOX_IT",
         "PRINT", "DROP", "PUSH_NIL","PUT", "PUSH", "POP",  "JUMP", "JUMP_IF_TRUE", "DUP",
-        "NEW_LIST", "NEW_DICT", "BLOCK", "SEP", "IN", "JUMP_IF_FALSE"
+        "NEW_LIST", "NEW_DICT", "BLOCK", "SEP", "IN", "JUMP_IF_FALSE",
+        "SET_THIS", "THIS", "SWAP", "FOR"
     };
 
     private static String idName(int id) {
@@ -160,10 +163,12 @@ class LightScript {
             return o.toString();
         }
     }
-    */
+    /*
+
     private static String stringify(Object o) {
         return o.toString();
     }
+    */
 
     ////////////////////////
     // Utility functions //
@@ -188,13 +193,15 @@ class LightScript {
         return result;
     }
 
-    private static int stackAdd(Stack s, Object val) {
+    private static void stackAdd(Stack s, Object val) {
+        if(s == null) {
+            return;
+        }
         int pos = s.indexOf(val);
         if (pos == -1) {
             pos = s.size();
             s.push(val);
         }
-        return pos;
     }
 
     //////////////////////
@@ -407,6 +414,8 @@ class LightScript {
     private static final int NUD_FUNCTION = 10;
     private static final int NUD_VAR = 11;
     private static final int LED_DOT = 12;
+    private static final int NUD_ATOM = 13;
+    private static final int LED_INFIX_IF = 14;
 
     private Object[] readList(Stack s) {
         Object[] p = parse(0);
@@ -435,6 +444,10 @@ class LightScript {
                 Stack s = new Stack();
                 s.push(new Integer(nudId));
                 return readList(s);
+            }
+            case NUD_ATOM: {
+                Object[] result = { new Integer(nudId) };
+                return result;
             }
             case NUD_PREFIX:
                 return v(nudId, parse(0));
@@ -540,9 +553,20 @@ class LightScript {
                 return readList(s);
             }
             case LED_DOT: {
+                Stack t = varsUsed;
+                varsUsed= null;
                 Object[] right = parse(bp);
+                varsUsed = t;
                 right[0] = new Integer(ID_LITERAL);
                 return v(ledId, left, right);
+            }
+            case LED_INFIX_IF: {
+                Object branch1 = parse(0);
+                if(parse(0) != SEP_TOKEN) {
+                    throw new Error("infix if error");
+                }
+                Object branch2 = parse(0);
+                return v(ID_IF, left, v(ID_ELSE, branch1, branch2));
             }
             default:
                 throw new Error("Unknown led: " + ledFn);
@@ -646,6 +670,10 @@ class LightScript {
             tokenLedFn = LED_INFIX;
             tokenLedId = ID_IN;
 
+        } else if ("?".equals(val)) {
+            tokenBp = 200;
+            tokenLedFn = LED_INFIX_IF;
+
         } else if ("=".equals(val)) {
             tokenBp = 100;
             tokenLedFn = LED_INFIX;
@@ -679,6 +707,10 @@ class LightScript {
             tokenNudFn = NUD_FUNCTION;
             tokenNudId = ID_BUILD_FUNCTION;
 
+        } else if ("for".equals(val)) {
+            tokenNudFn = NUD_PREFIX2;
+            tokenNudId = ID_FOR;
+
         } else if ("if".equals(val)) {
             tokenNudFn = NUD_PREFIX2;
             tokenNudId = ID_IF;
@@ -688,8 +720,12 @@ class LightScript {
             tokenNudId = ID_WHILE;
 
         } else if ("undefined".equals(val) || "null".equals(val) || "false".equals(val)) {
-            this.tokenVal = null;
-            tokenNudFn = NUD_LITERAL;
+            tokenNudFn = NUD_ATOM;
+            tokenNudId = ID_PUSH_NIL;
+
+        } else if ("this".equals(val)) {
+            tokenNudFn = NUD_ATOM;
+            tokenNudId = ID_THIS;
 
         } else if ("true".equals(val)) {
             val = TRUE;
@@ -846,6 +882,12 @@ class LightScript {
                 hasResult = true;
                 break;
             }
+            case ID_THIS: case ID_PUSH_NIL: {
+                emit(id);
+                addDepth(1);
+                hasResult = true;
+                break;
+            }
             case ID_LITERAL: {
                 emit(id);
                 pushShort(constPoolId(expr[1]));
@@ -922,6 +964,14 @@ class LightScript {
                         pushShort(depth - pos - 1);
                     }
                     hasResult = true;
+                } else if(targetType == ID_SUBSCRIPT) {
+                    Object[] subs = (Object[]) expr[1];
+                    compile(subs[1], true);
+                    compile(subs[2], true);
+                    compile(expr[2], true);
+                    emit(ID_PUT);
+                    addDepth(-2);
+                    hasResult = true;
                 } else {
                     throw new Error("Uncompilable assignment operator: " + stringify(expr));
                 }
@@ -936,12 +986,34 @@ class LightScript {
                 break;
             }
             case ID_CALL_FUNCTION: {
+                boolean methodcall = (childType(expr, 1) == ID_SUBSCRIPT);
+
+                if(methodcall) {
+                    emit(ID_THIS);
+                    addDepth(1);
+                } 
+
                 // save program counter
                 emit(ID_SAVE_PC);
                 addDepth(RET_FRAME_SIZE);
 
-                // find function and evaluate parameters
-                for (int i = 1; i < expr.length; i++) {
+                // find the method/function
+                if(methodcall) {
+                    Object[] subs = (Object[]) expr[1];
+                    compile(subs[1], true);
+                    emit(ID_DUP);
+                    addDepth(1);
+                    emit(ID_SET_THIS);
+                    addDepth(-1);
+                    compile(subs[2], true);
+                    emit(ID_SUBSCRIPT);
+                    addDepth(-1);
+                } else {
+                    compile(expr[1], true);
+                }
+
+                // evaluate parameters
+                for (int i = 2; i < expr.length; i++) {
                     compile(expr[i], true);
                 }
 
@@ -952,6 +1024,11 @@ class LightScript {
                 }
                 emit(expr.length - 2);
                 addDepth(2 - expr.length - RET_FRAME_SIZE);
+                if(methodcall) {
+                    emit(ID_SWAP);
+                    emit(ID_SET_THIS);
+                    addDepth(-1);
+                } 
                 hasResult = true;
                 break;
             }
@@ -1017,11 +1094,47 @@ class LightScript {
 
                     len = code.length() - pos1;
                     setShort(pos1, len);
+
                     hasResult = yieldResult;
                     break;
                 } else {
-                    throw new Error("unsupported if: " + stringify(expr));
+                    int pos0, len;
+
+                    compile(expr[1], true);
+
+                    code.append(ID_JUMP_IF_FALSE);
+                    pushShort(0);
+                    pos0 = code.length();
+                    addDepth(-1);
+
+                    curlyToBlock(expr[2]);
+                    compile(expr[2], false);
+
+                    len = code.length() - pos0;
+                    setShort(pos0, len);
+
+                    hasResult = false;
+                    break;
                 }
+            }
+            case ID_FOR: {
+                Object[] args = (Object[]) expr[1];
+                Object init, cond, step;
+                if(args.length > 2) {
+                    int pos = 1;
+                    init = args[pos];
+                    pos += (init == SEP_TOKEN) ? 1 : 2;
+                    cond = args[pos];
+                    pos += (cond == SEP_TOKEN) ? 1 : 2;
+                    step = (pos < args.length) ? args[pos] : SEP_TOKEN;
+                } else {
+                    throw new Error("unsupported for: " + stringify(expr));
+                }
+
+                curlyToBlock(expr[2]);
+                compile(v(ID_BLOCK, init, v(ID_WHILE, cond, v(ID_BLOCK, expr[2], step))), yieldResult);
+                hasResult = yieldResult;
+                break;
             }
             case ID_SEP: {
                 hasResult = false;
@@ -1180,6 +1293,7 @@ class LightScript {
         byte[] code = cl.code;
         Object[] constPool = cl.constPool;
         Object[] closure = cl.closure;
+        Object thisPtr = null;
         for (;;) {
             ++pc;
             //System.out.println("pc:" + pc + " op:"  + idName(code[pc]) + " sp:" + sp + " stack.length:" + stack.length + " int:" + readShort(pc, code));
@@ -1451,6 +1565,21 @@ class LightScript {
                 }
                 case ID_NEW_DICT: {
                     stack[++sp] = new Hashtable();
+                    break;
+                }
+                case ID_SET_THIS: {
+                    thisPtr = stack[sp];
+                    --sp;
+                    break;
+                }
+                case ID_THIS: {
+                    stack[++sp] = thisPtr;
+                    break;
+                }
+                case ID_SWAP: {
+                    Object t = stack[sp];
+                    stack[sp] = stack[sp - 1];
+                    stack[sp - 1] = t;
                     break;
                 }
                 default: {
