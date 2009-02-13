@@ -1611,7 +1611,7 @@ public class LightScript {
                     if(exceptionHandler < 0) {
                         throw e;
                     } else {
-                        System.out.println(stringify(stack));
+                        //System.out.println(stringify(stack));
                         sp = exceptionHandler;
                         exceptionHandler = ((Integer) stack[sp]).intValue();
                         pc = ((Integer) stack[--sp]).intValue();
@@ -1875,7 +1875,7 @@ public class LightScript {
                     if(exceptionHandler < 0) {
                         throw new LightScriptException(result);
                     } else {
-                        System.out.println(stringify(stack));
+                        //System.out.println(stringify(stack));
                         sp = exceptionHandler;
                         exceptionHandler = ((Integer) stack[sp]).intValue();
                         pc = ((Integer) stack[--sp]).intValue();
