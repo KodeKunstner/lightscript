@@ -141,12 +141,17 @@ public class LightScript {
     private static final char ID_SWAP = 57;
     private static final char ID_FOR = 58;
     private static final char ID_END = 59;
+    private static final char ID_THROW = 60;
+    private static final char ID_TRY = 61;
+    private static final char ID_CATCH = 62;
+    private static final char ID_UNTRY = 63;
     private static final Object[] END_TOKEN = {new Integer(ID_END)};
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
     private static final Boolean TRUE = new Boolean(true);
 
     // size of the return frame
     private static final char RET_FRAME_SIZE = 3;
+    private static final char TRY_FRAME_SIZE = 5;
 
 
 
@@ -168,7 +173,7 @@ public class LightScript {
         "GET_CLOSURE", "GET_BOXED_CLOSURE", "BOX_IT",
         "PRINT", "DROP", "PUSH_NIL","PUT", "PUSH", "POP",  "JUMP", "JUMP_IF_TRUE", "DUP",
         "NEW_LIST", "NEW_DICT", "BLOCK", "SEP", "IN", "JUMP_IF_FALSE",
-        "SET_THIS", "THIS", "SWAP", "FOR", "END"
+        "SET_THIS", "THIS", "SWAP", "FOR", "END", "THROW", "TRY", "CATCH", "UNTRY"
     };
 
     private static String idName(int id) {
@@ -463,6 +468,7 @@ public class LightScript {
     private static final int LED_DOT = 12;
     private static final int NUD_ATOM = 13;
     private static final int LED_INFIX_IF = 14;
+    private static final int NUD_CATCH = 14;
 
     private Object[] readList(Stack s) {
         Object[] p = parse(0);
@@ -500,6 +506,11 @@ public class LightScript {
                 return v(nudId, parse(0));
             case NUD_PREFIX2:
                 return v(nudId, parse(0), parse(0));
+            case NUD_CATCH: {
+                Object[] o = parse(0);
+                stackAdd(varsLocals, ((Object[])o[1])[1]);
+                return v(nudId, o, parse(0));
+            }
             case NUD_FUNCTION: {
                 // The functio nud is a bit more complex than 
                 // the others because variable-use-analysis is done
@@ -749,6 +760,18 @@ public class LightScript {
         } else if ("print".equals(val)) {
             tokenNudFn = NUD_PREFIX;
             tokenNudId = ID_PRINT;
+
+        } else if ("throw".equals(val)) {
+            tokenNudFn = NUD_PREFIX;
+            tokenNudId = ID_THROW;
+
+        } else if ("try".equals(val)) {
+            tokenNudFn = NUD_PREFIX2;
+            tokenNudId = ID_TRY;
+
+        } else if ("catch".equals(val)) {
+            tokenNudFn = NUD_CATCH;
+            tokenNudId = ID_CATCH;
 
         } else if ("function".equals(val)) {
             tokenNudFn = NUD_FUNCTION;
@@ -1277,6 +1300,74 @@ public class LightScript {
 
                 break;
             }
+            case ID_THROW: {
+                compile(expr[1], true);
+                code.append(ID_THROW);
+                addDepth(-1);
+                hasResult = false;
+                break;
+            }
+            case ID_TRY: {
+                //   try -> labelHandle;
+                //   ... body
+                //   untry
+                //   jump -> labelExit;
+                // labelHandle:
+                //   set var <- Exception
+                //   handleExpr
+                // labelExit:
+                int pos0, pos1, len;
+
+                Object[] catchExpr = (Object[])expr[2];
+
+                emit(ID_TRY);
+                pushShort(0);
+                pos0 = code.length();
+                addDepth(TRY_FRAME_SIZE);
+
+                curlyToBlock(expr[1]);
+                compile(expr[1], false);
+
+                emit(ID_UNTRY);
+                addDepth(-TRY_FRAME_SIZE);
+
+                emit(ID_JUMP);
+                pushShort(0);
+                pos1 = code.length();
+
+                // lableHandle:
+                setShort(pos0, code.length() - pos0);
+
+                addDepth(1);
+                Object name = ((Object [])((Object[])catchExpr[1])[1])[1];
+
+                    int pos = varsClosure.indexOf(name);
+                    if (pos >= 0) {
+                        emit(ID_SET_CLOSURE);
+                        pushShort(pos);
+                    } else {
+                        pos = varsLocals.indexOf(name);
+                        if (varsBoxed.contains(name)) {
+                            emit(ID_SET_BOXED);
+                        } else {
+                            emit(ID_SET_LOCAL);
+                        }
+                        pushShort(depth - pos - 1);
+                    }
+
+                emit(ID_DROP);
+                addDepth(-1);
+
+                curlyToBlock(catchExpr[2]);
+                compile(catchExpr[2], false);
+
+                setShort(pos1, code.length() - pos1);
+
+                hasResult = false;
+
+                break;
+
+            }
             case ID_WHILE: {
                 // top:
                 //   code for condition
@@ -1333,7 +1424,8 @@ public class LightScript {
         return (short) (((code[++pc] & 0xff) << 8) | (code[++pc] & 0xff));
     }
 
-    private static Object execute(Code cl) {
+    private static Object execute(Code cl) throws LightScriptException {
+        //System.out.println(stringify(cl));
         int sp = -1;
         Object[] stack = new Object[0];
         int pc = -1;
@@ -1341,6 +1433,7 @@ public class LightScript {
         Object[] constPool = cl.constPool;
         Object[] closure = cl.closure;
         Object thisPtr = null;
+        int exceptionHandler = -1;
         for (;;) {
             ++pc;
             //System.out.println("pc:" + pc + " op:"  + idName(code[pc]) + " sp:" + sp + " stack.length:" + stack.length + " int:" + readShort(pc, code));
@@ -1627,6 +1720,37 @@ public class LightScript {
                     Object t = stack[sp];
                     stack[sp] = stack[sp - 1];
                     stack[sp - 1] = t;
+                    break;
+                }
+                case ID_THROW: {
+                    Object result = stack[sp];
+                    if(exceptionHandler < 0) {
+                        throw new LightScriptException(result);
+                    } else {
+                        System.out.println(stringify(stack));
+                        sp = exceptionHandler;
+                        exceptionHandler = ((Integer) stack[sp]).intValue();
+                        pc = ((Integer) stack[--sp]).intValue();
+                        code = (byte[]) stack[--sp];
+                        constPool = (Object[]) stack[--sp];
+                        closure = (Object[]) stack[--sp];
+                        stack[sp] = result;
+                    }
+                    break;
+                }
+                case ID_TRY: {
+                    stack[++sp] = closure;
+                    stack[++sp] = constPool;
+                    stack[++sp] = code;
+                    stack[++sp] = new Integer(pc + readShort(pc, code) + 2);
+                    stack[++sp] = new Integer(exceptionHandler);
+                    exceptionHandler = sp;
+                    pc += 2;
+                    break;
+                }
+                case ID_UNTRY: {
+                    exceptionHandler = ((Integer) stack[sp]).intValue();
+                    sp -= TRY_FRAME_SIZE;
                     break;
                 }
                 default: {

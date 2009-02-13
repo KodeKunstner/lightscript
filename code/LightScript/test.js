@@ -1,2 +1,8 @@
-x = x * 2;
-(x, s, 2, f,)
+f = function() {
+    throw "blah";
+}
+try {
+    f();
+} catch(exp) {
+    print(exp);
+}

@@ -3,7 +3,13 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Hashtable;
 
-public class Main {
+public class Main implements LightScriptFunction {
+    Object apply(Object thisPtr, Object[] args, int argpos, int argcount) {
+        System.out.println("T" + thisPtr);
+        for(int i = 0; i < argcount; i++) {
+            System.out.println("M" + args[argpos + i]);
+        }
+    }
 
     /**
      * @param args the command line arguments
@@ -11,9 +17,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
 	InputStream is = new FileInputStream(new File(args[0]));
         LightScript ls = new LightScript();
-        ls.set("x", new Integer(17));
+        ls.set("Main", new Main());
         ls.eval(is);
-        ls.eval("print(x);");
-
     }
 }
