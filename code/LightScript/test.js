@@ -1,8 +1,13 @@
+for(x in {"a":1, "b": 2}) {
+    print(x);
+}
+print(x);
 x = 0;
 do {
     print("Hello");
     x = x + 1;
 } while(x < 10);
+print(null + null);
 try {
     f = function(x, y, z) {
                     print(x);

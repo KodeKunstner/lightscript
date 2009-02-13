@@ -1,4 +1,5 @@
 import java.io.InputStream;
+import java.util.Enumeration;
 import java.io.ByteArrayInputStream;
 import java.util.Hashtable;
 import java.util.Stack;
@@ -146,6 +147,7 @@ public class LightScript {
     private static final char ID_CATCH = 62;
     private static final char ID_UNTRY = 63;
     private static final char ID_DO = 64;
+    private static final char ID_NEXT = 65;
     private static final Object[] END_TOKEN = {new Integer(ID_END)};
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
     private static final Boolean TRUE = new Boolean(true);
@@ -175,7 +177,7 @@ public class LightScript {
         "XXX", "DROP", "PUSH_NIL","PUT", "PUSH", "POP",  "JUMP", "JUMP_IF_TRUE", "DUP",
         "NEW_LIST", "NEW_DICT", "BLOCK", "SEP", "IN", "JUMP_IF_FALSE",
         "SET_THIS", "THIS", "SWAP", "FOR", "END", "THROW", "TRY", "CATCH", "UNTRY",
-        "DO"
+        "DO", "NEXT"
         
     };
 
@@ -946,6 +948,27 @@ public class LightScript {
         return ((Integer) ((Object[]) expr[i])[0]).intValue();
     }
 
+    /** 
+     * Generates code that sets the variable to the value of the 
+     * top of the stack, not altering the stack
+     * @param name the name of the variable.
+     */
+    private void compileSet(Object name) {
+                    int pos = varsClosure.indexOf(name);
+                    if (pos >= 0) {
+                        emit(ID_SET_CLOSURE);
+                        pushShort(pos);
+                    } else {
+                        pos = varsLocals.indexOf(name);
+                        if (varsBoxed.contains(name)) {
+                            emit(ID_SET_BOXED);
+                        } else {
+                            emit(ID_SET_LOCAL);
+                        }
+                        pushShort(depth - pos - 1);
+                    }
+    }
+
     private void compile(Object rawexpr, boolean yieldResult) {
         boolean hasResult;
         Object[] expr = (Object[]) rawexpr;
@@ -1042,19 +1065,7 @@ public class LightScript {
                 if (targetType == ID_IDENT) {
                     String name = (String) ((Object[]) expr[1])[1];
                     compile(expr[2], true);
-                    int pos = varsClosure.indexOf(name);
-                    if (pos >= 0) {
-                        emit(ID_SET_CLOSURE);
-                        pushShort(pos);
-                    } else {
-                        pos = varsLocals.indexOf(name);
-                        if (varsBoxed.contains(name)) {
-                            emit(ID_SET_BOXED);
-                        } else {
-                            emit(ID_SET_LOCAL);
-                        }
-                        pushShort(depth - pos - 1);
-                    }
+                    compileSet(name);
                     hasResult = true;
                 } else if(targetType == ID_SUBSCRIPT) {
                     Object[] subs = (Object[]) expr[1];
@@ -1214,20 +1225,76 @@ public class LightScript {
                 Object[] args = (Object[]) expr[1];
                 Object init, cond, step;
                 if(args.length > 2) {
+                    //for(..;..;..)
                     int pos = 1;
                     init = args[pos];
                     pos += (init == SEP_TOKEN) ? 1 : 2;
                     cond = args[pos];
                     pos += (cond == SEP_TOKEN) ? 1 : 2;
                     step = (pos < args.length) ? args[pos] : SEP_TOKEN;
+                    curlyToBlock(expr[2]);
+                    compile(v(ID_BLOCK, init, v(ID_WHILE, cond, v(ID_BLOCK, expr[2], step))), yieldResult);
+                    hasResult = yieldResult;
+                    break;
                 } else {
-                    throw new Error("unsupported for: " + stringify(expr));
+                    // for(a in b) c
+                    //
+                    //   evalute b
+                    // labelTop:
+                    //   getNextElement
+                    //   save -> a
+                    //   if no element jump to labelEnd
+                    //   c
+                    //   jump -> labelTop
+                    // labelEnd:
+                    //   drop iterator.
+                    int pos0, pos1;
+                    
+                    // find the name
+                    Object[] in = (Object[])((Object[])expr[1])[1];
+                    Object name = ((Object[])in[1])[1];
+                    if(!(name instanceof String)) {
+                        // var name
+                        name = ((Object[])name)[1];
+                    }
+                    if(!(name instanceof String)) {
+                        throw new Error("for-in has no var");
+                    }
+
+                    // evaluate b
+                    compile(in[2], true);
+
+                    pos0 = code.length();
+                    // get next
+                    emit(ID_NEXT);
+                    addDepth(1);
+
+                    // store value in variable
+                    compileSet(name);
+
+                    // exit if done
+                    emit(ID_JUMP_IF_FALSE);
+                    pushShort(0);
+                    pos1 = code.length();
+                    addDepth(-1);
+
+                    // compile block
+                    curlyToBlock(expr[2]);
+                    compile(expr[2], false);
+
+                    emit(ID_JUMP);
+                    pushShort(0);
+
+                    setShort(pos1, code.length() - pos1);
+                    setShort(code.length(), pos0 - code.length());
+
+                    emit(ID_DROP);
+                    addDepth(-1);
+                    hasResult = false;
+                    
+                    break;
                 }
 
-                curlyToBlock(expr[2]);
-                compile(v(ID_BLOCK, init, v(ID_WHILE, cond, v(ID_BLOCK, expr[2], step))), yieldResult);
-                hasResult = yieldResult;
-                break;
             }
             case ID_SEP: {
                 hasResult = false;
@@ -1364,20 +1431,7 @@ public class LightScript {
                 addDepth(1);
                 Object name = ((Object [])((Object[])catchExpr[1])[1])[1];
 
-                    int pos = varsClosure.indexOf(name);
-                    if (pos >= 0) {
-                        emit(ID_SET_CLOSURE);
-                        pushShort(pos);
-                    } else {
-                        pos = varsLocals.indexOf(name);
-                        if (varsBoxed.contains(name)) {
-                            emit(ID_SET_BOXED);
-                        } else {
-                            emit(ID_SET_LOCAL);
-                        }
-                        pushShort(depth - pos - 1);
-                    }
-
+                compileSet(name);
                 emit(ID_DROP);
                 addDepth(-1);
 
@@ -1642,9 +1696,16 @@ public class LightScript {
                     break;
                 }
                 case ID_ADD: {
-                    int result = ((Integer) stack[sp]).intValue();
-                    result += ((Integer) stack[--sp]).intValue();
-                    stack[sp] = new Integer(result);
+                    Object o = stack[sp];
+                    --sp;
+                    Object o2 = stack[sp];
+                    if(o instanceof Integer && o2 instanceof Integer) {
+                        int result = ((Integer) o).intValue();
+                        result += ((Integer) o2).intValue();
+                        stack[sp] = new Integer(result);
+                    } else {
+                        stack[sp] = String.valueOf(o) + String.valueOf(o2);
+                    }
                     break;
                 }
                 case ID_SUB: {
@@ -1820,6 +1881,21 @@ public class LightScript {
                 case ID_UNTRY: {
                     exceptionHandler = ((Integer) stack[sp]).intValue();
                     sp -= TRY_FRAME_SIZE;
+                    break;
+                }
+                case ID_NEXT: {
+                    Object o = stack[sp];
+                    if(o instanceof Hashtable) {
+                        o = ((Hashtable)o).keys();
+                        stack[sp] = o;
+                    }
+
+                    Enumeration e = (Enumeration)o;
+                    if(e.hasMoreElements()) {
+                        stack[++sp] = e.nextElement();
+                    } else {
+                        stack[++sp] = null;
+                    } 
                     break;
                 }
                 default: {
