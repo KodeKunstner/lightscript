@@ -1,3 +1,8 @@
+x = 0;
+do {
+    print("Hello");
+    x = x + 1;
+} while(x < 10);
 try {
     f = function(x, y, z) {
                     print(x);

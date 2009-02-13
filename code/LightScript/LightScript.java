@@ -145,6 +145,7 @@ public class LightScript {
     private static final char ID_TRY = 61;
     private static final char ID_CATCH = 62;
     private static final char ID_UNTRY = 63;
+    private static final char ID_DO = 64;
     private static final Object[] END_TOKEN = {new Integer(ID_END)};
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
     private static final Boolean TRUE = new Boolean(true);
@@ -173,7 +174,9 @@ public class LightScript {
         "GET_CLOSURE", "GET_BOXED_CLOSURE", "BOX_IT",
         "XXX", "DROP", "PUSH_NIL","PUT", "PUSH", "POP",  "JUMP", "JUMP_IF_TRUE", "DUP",
         "NEW_LIST", "NEW_DICT", "BLOCK", "SEP", "IN", "JUMP_IF_FALSE",
-        "SET_THIS", "THIS", "SWAP", "FOR", "END", "THROW", "TRY", "CATCH", "UNTRY"
+        "SET_THIS", "THIS", "SWAP", "FOR", "END", "THROW", "TRY", "CATCH", "UNTRY",
+        "DO"
+        
     };
 
     private static String idName(int id) {
@@ -791,6 +794,10 @@ public class LightScript {
         } else if ("function".equals(val)) {
             tokenNudFn = NUD_FUNCTION;
             tokenNudId = ID_BUILD_FUNCTION;
+
+        } else if ("do".equals(val)) {
+            tokenNudFn = NUD_PREFIX2;
+            tokenNudId = ID_DO;
 
         } else if ("for".equals(val)) {
             tokenNudFn = NUD_PREFIX2;
@@ -1413,6 +1420,20 @@ public class LightScript {
                 pushShort(pos0 - code.length() - 2);
 
                 setShort(pos1, code.length() - pos1);
+                hasResult = false;
+                break;
+            }
+            case ID_DO: {
+                int pos0;
+                pos0 = code.length();
+
+                curlyToBlock(expr[1]);
+                compile(expr[1], false);
+
+                compile(((Object[])expr[2])[1], true);
+                emit(ID_JUMP_IF_TRUE);
+                pushShort(pos0 - code.length() - 2);
+                addDepth(-1);
                 hasResult = false;
                 break;
             }
