@@ -280,8 +280,14 @@ public class LightScript {
      * Analysis of variables in a function being compiled,
      * updated during the parsing.
      */
-    private static class Code {
-
+    private static class Code implements LightScriptFunction {
+        public Object apply(Object thisPtr, Object[] args, int argpos, int argcount) throws LightScriptException {
+            if(argcount == argc) {
+                return execute(this, args, argpos+argcount-1, thisPtr, argcount);
+            } else {
+                throw new Error("Wrong number of arguments");
+            }
+        }
         public int argc;
         public byte[] code;
         public Object[] constPool;
@@ -1438,15 +1444,19 @@ public class LightScript {
     }
 
     private static Object execute(Code cl) throws LightScriptException {
-        //System.out.println(stringify(cl));
         int sp = -1;
         Object[] stack = new Object[0];
+        Object thisPtr = null;
+        return execute(cl, stack, sp, thisPtr, 0);
+    }
+    private static Object execute(Code cl, Object[] stack, int sp, Object thisPtr, int argcount) throws LightScriptException {
+        //System.out.println(stringify(cl));
         int pc = -1;
         byte[] code = cl.code;
         Object[] constPool = cl.constPool;
         Object[] closure = cl.closure;
-        Object thisPtr = null;
-        int exceptionHandler = -1;
+        int exceptionHandler = - 1;
+        int startStackPos = sp + 1 - argcount;
         for (;;) {
             ++pc;
             //System.out.println("pc:" + pc + " op:"  + idName(code[pc]) + " sp:" + sp + " stack.length:" + stack.length + " int:" + readShort(pc, code));
@@ -1473,7 +1483,10 @@ public class LightScript {
                     pc += 2;
                     Object result = stack[sp];
                     sp -= arg - 1;
-                    if (sp == 0) {
+                    if (sp <= startStackPos) {
+                        if(sp < startStackPos) {
+                            throw new Error("Wrong stack discipline" + sp + " " +startStackPos);
+                        }
                         return result;
                     }
                     pc = ((Integer) stack[--sp]).intValue();
