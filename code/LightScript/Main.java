@@ -4,12 +4,12 @@ import java.io.InputStream;
 import java.util.Hashtable;
 
 public class Main implements LightScriptFunction {
-    public Object apply(Object thisPtr, Object[] args, int argpos, int argcount) {
+    public Object apply(Object thisPtr, Object[] args, int argpos, int argcount) throws LightScriptException {
         System.out.println("T" + thisPtr);
         for(int i = 0; i < argcount; i++) {
             System.out.println("M" + args[argpos + i]);
         }
-        return "hello";
+        throw new LightScriptException("Blah");
     }
 
     /**

@@ -1500,9 +1500,25 @@ public class LightScript {
                         constPool = fn.constPool;
                         closure = fn.closure;
                     } else if (o instanceof LightScriptFunction) {
-                        Object result = ((LightScriptFunction)o).apply(thisPtr, stack, sp - argc + 1, argc);
-                        sp -= argc + RET_FRAME_SIZE;
-                        stack[sp] = result;
+                        try {
+                            Object result = ((LightScriptFunction)o).apply(thisPtr, stack, sp - argc + 1, argc);
+                            sp -= argc + RET_FRAME_SIZE;
+                            stack[sp] = result;
+                        } catch(LightScriptException e) {
+                    if(exceptionHandler < 0) {
+                        throw e;
+                    } else {
+                        System.out.println(stringify(stack));
+                        sp = exceptionHandler;
+                        exceptionHandler = ((Integer) stack[sp]).intValue();
+                        pc = ((Integer) stack[--sp]).intValue();
+                        code = (byte[]) stack[--sp];
+                        constPool = (Object[]) stack[--sp];
+                        closure = (Object[]) stack[--sp];
+                        stack[sp] = e.value;
+                    }
+                    break;
+                        }
                     } else {
                         throw new Error("Unknown function:" + o);
                     }

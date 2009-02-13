@@ -1,9 +1,8 @@
-f = function() {
-    throw "blah";
-}
 try {
-    f();
+    print(Main("foo", "bar"));
 } catch(exp) {
     print(exp);
+    print(exp);
+    print(exp);
+    print(exp);
 }
-print(Main("foo", "bar"));
