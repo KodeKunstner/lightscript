@@ -1478,12 +1478,21 @@ public class LightScript {
                 }
                 case ID_CALL_FN: {
                     int argc = code[++pc];
-                    Code fn = (Code) stack[sp - argc];
-                    stack[sp - argc] = new Integer(pc);
-                    pc = -1;
-                    code = fn.code;
-                    constPool = fn.constPool;
-                    closure = fn.closure;
+                    Object o = stack[sp - argc];
+                    if(o instanceof Code) {
+                        Code fn = (Code) o;
+                        stack[sp - argc] = new Integer(pc);
+                        pc = -1;
+                        code = fn.code;
+                        constPool = fn.constPool;
+                        closure = fn.closure;
+                    } else if (o instanceof LightScriptFunction) {
+                        Object result = ((LightScriptFunction)o).apply(thisPtr, stack, sp - argc + 1, argc);
+                        sp -= argc + RET_FRAME_SIZE;
+                        stack[sp] = result;
+                    } else {
+                        throw new Error("Unknown function:" + o);
+                    }
                     break;
                 }
                 case ID_BUILD_FN: {

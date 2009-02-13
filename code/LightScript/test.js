@@ -6,3 +6,4 @@ try {
 } catch(exp) {
     print(exp);
 }
+print(Main("foo", "bar"));
