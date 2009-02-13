@@ -1,4 +1,4 @@
-CLASSES = Main.class LightScript.class LightScriptException.class
+CLASSES = Main.class LightScript.class LightScriptException.class LightScriptFunction.class LightScriptObject.class
 
 run: $(CLASSES)
 	java Main test.js

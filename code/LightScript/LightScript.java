@@ -1679,6 +1679,8 @@ public class LightScript {
                         } else {
                             ((Hashtable) container).put(key, val);
                         }
+                    } else if (container instanceof LightScriptObject) {
+                        ((LightScriptObject) container).set(key, val);
                     }
                     break;
                 }
@@ -1689,6 +1691,8 @@ public class LightScript {
                         stack[sp] = ((Stack) container).elementAt(((Integer) key).intValue());
                     } else if (container instanceof Hashtable) {
                         stack[sp] = ((Hashtable) container).get(key);
+                    } else if (container instanceof LightScriptObject) {
+                        stack[sp] = ((LightScriptObject) container).get(key);
                     } else {
                         stack[sp] = null;
                     }
