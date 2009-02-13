@@ -1,4 +1,4 @@
-class LightScriptStdLib {
+class LightScriptStdLib implements LightScriptFunction {
     private int id;
 
     private static final int PRINT = 0;

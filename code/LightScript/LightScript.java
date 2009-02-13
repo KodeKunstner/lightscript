@@ -121,7 +121,7 @@ public class LightScript {
     private static final char ID_GET_BOXED_CLOSURE = 38;
     // box a value
     private static final char ID_BOX_IT = 39;
-    private static final char ID_PRINT = 40;
+    private static final char ID_XXX = 40;
     private static final char ID_DROP = 41;
     private static final char ID_PUSH_NIL = 42;
     private static final char ID_PUT = 43;
@@ -171,7 +171,7 @@ public class LightScript {
         "SAVE_PC", "CALL_FN", "BUILD_FN", "SET_BOXED",
         "SET_LOCAL", "SET_CLOSURE", "GET_BOXED", "GET_LOCAL",
         "GET_CLOSURE", "GET_BOXED_CLOSURE", "BOX_IT",
-        "PRINT", "DROP", "PUSH_NIL","PUT", "PUSH", "POP",  "JUMP", "JUMP_IF_TRUE", "DUP",
+        "XXX", "DROP", "PUSH_NIL","PUT", "PUSH", "POP",  "JUMP", "JUMP_IF_TRUE", "DUP",
         "NEW_LIST", "NEW_DICT", "BLOCK", "SEP", "IN", "JUMP_IF_FALSE",
         "SET_THIS", "THIS", "SWAP", "FOR", "END", "THROW", "TRY", "CATCH", "UNTRY"
     };
@@ -776,10 +776,6 @@ public class LightScript {
             tokenNudFn = NUD_PREFIX;
             tokenNudId = ID_NOT;
 
-        } else if ("print".equals(val)) {
-            tokenNudFn = NUD_PREFIX;
-            tokenNudId = ID_PRINT;
-
         } else if ("throw".equals(val)) {
             tokenNudFn = NUD_PREFIX;
             tokenNudId = ID_THROW;
@@ -935,6 +931,7 @@ public class LightScript {
         //System.out.println(varsLocals);
         //System.out.println(varsBoxed);
         //System.out.println(varsClosure);
+        //System.out.println(result);
         return result;
     }
 
@@ -963,7 +960,6 @@ public class LightScript {
                 hasResult = true;
                 break;
             }
-            case ID_PRINT:
             case ID_NOT:
             case ID_NEG: {
                 compile(expr[1], true);
@@ -1126,12 +1122,12 @@ public class LightScript {
                 Object[] vars = ((Code) expr[1]).closure;
                 for (int i = 0; i < vars.length; i++) {
                     String name = (String) vars[i];
-                    if (varsBoxed.contains(name)) {
-                        code.append(ID_GET_LOCAL);
-                        pushShort(depth - varsLocals.indexOf(name) - 1);
-                    } else {
+                    if (varsClosure.contains(name)) {
                         code.append(ID_GET_BOXED_CLOSURE);
                         pushShort(varsClosure.indexOf(name));
+                    } else {
+                        code.append(ID_GET_LOCAL);
+                        pushShort(depth - varsLocals.indexOf(name) - 1);
                     }
                     addDepth(1);
                 }
@@ -1606,10 +1602,6 @@ public class LightScript {
                     pc += 2;
                     Object[] box = {stack[sp - arg]};
                     stack[sp - arg] = box;
-                    break;
-                }
-                case ID_PRINT: {
-                    System.out.println(stringify(stack[sp]));
                     break;
                 }
                 case ID_DROP: {
