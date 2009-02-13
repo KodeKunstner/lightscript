@@ -482,6 +482,18 @@ public class LightScript {
         return result;
     }
 
+    private Object[] stripSep(Object[] os) {
+        Stack s = new Stack();
+        for(int i = 0; i < os.length; i++) {
+            if(os[i] != SEP_TOKEN) {
+                s.push(os[i]);
+            }
+        }
+        os = new Object[s.size()];
+        s.copyInto(os);
+        return os;
+    }
+
     private Object[] nud(int nudFn, int nudId, Object val) {
         switch (nudFn) {
             case NUD_ID:
@@ -528,7 +540,7 @@ public class LightScript {
                 varsLocals = new Stack();
 
                 // parse arguments
-                Object[] args = parse(0);
+                Object[] args = stripSep(parse(0));
 
                 // add function arguments to statistics
                 varsArgc = args.length - 1;
@@ -1056,6 +1068,7 @@ public class LightScript {
                 break;
             }
             case ID_CALL_FUNCTION: {
+                expr = stripSep(expr);
                 boolean methodcall = (childType(expr, 1) == ID_SUBSCRIPT);
 
                 if(methodcall) {
