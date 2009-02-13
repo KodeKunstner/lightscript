@@ -1,5 +1,5 @@
-
 import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 import java.util.Hashtable;
 import java.util.Stack;
 
@@ -12,12 +12,57 @@ import java.util.Stack;
 // - Parser
 // - Compiler
 // - Virtual machine
-class LightScript {
+public class LightScript {
 
-    public Code nextCode() {
-        Object[] os = parse(0);
-        varsClosure = varsUsed;
-        return compile(os);
+    private Hashtable boxedGlobals;
+
+    public void eval(String s) {
+        eval(new ByteArrayInputStream(s.getBytes()));
+    }
+    public void eval( InputStream is) {
+        this.is = is;
+        sb = new StringBuffer();
+        c = ' ';
+        varsArgc = 0;
+        nextToken();
+        while(tokenVal != null || tokenNudFn != NUD_END) {
+            // parse with every var in closure
+            varsUsed = varsLocals = varsBoxed = new Stack();
+            Object[] os = parse(0);
+            varsClosure = varsUsed;
+    
+            // compile
+            Code c = compile(os);
+    
+            // create closure from globals
+            for(int i = 0; i < c.closure.length; i ++) {
+                Object box = boxedGlobals.get(c.closure[i]);
+                if(box == null) {
+                    box = new Object[1];
+                    boxedGlobals.put(c.closure[i], box);
+                }
+                c.closure[i] = box;
+            }
+            execute(c);
+        }
+    }
+
+    public void set(Object key, Object value) {
+        Object[] box = (Object[])boxedGlobals.get(key);
+        if(box == null) {
+            box = new Object[1];
+            boxedGlobals.put(key, box);
+        }
+        box[0] = value;
+    }
+    public Object get(Object key) {
+        Object[] box = (Object[])boxedGlobals.get(key);
+        if(box == null) {
+            return null;
+        } else {
+            return box[0];
+        }
+    
     }
 
     ////////////////////////
@@ -87,7 +132,8 @@ class LightScript {
     private static final char ID_THIS = 56;
     private static final char ID_SWAP = 57;
     private static final char ID_FOR = 58;
-    private static final Object[] END_TOKEN = {"(end)"};
+    private static final char ID_END = 59;
+    private static final Object[] END_TOKEN = {new Integer(ID_END)};
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
     private static final Boolean TRUE = new Boolean(true);
 
@@ -114,7 +160,7 @@ class LightScript {
         "GET_CLOSURE", "GET_BOXED_CLOSURE", "BOX_IT",
         "PRINT", "DROP", "PUSH_NIL","PUT", "PUSH", "POP",  "JUMP", "JUMP_IF_TRUE", "DUP",
         "NEW_LIST", "NEW_DICT", "BLOCK", "SEP", "IN", "JUMP_IF_FALSE",
-        "SET_THIS", "THIS", "SWAP", "FOR"
+        "SET_THIS", "THIS", "SWAP", "FOR", "END"
     };
 
     private static String idName(int id) {
@@ -221,7 +267,7 @@ class LightScript {
      * Analysis of variables in a function being compiled,
      * updated during the parsing.
      */
-    public static class Code {
+    private static class Code {
 
         public int argc;
         public byte[] code;
@@ -258,15 +304,8 @@ class LightScript {
     private Stack varsClosure;
     private int varsArgc;
 
-    public LightScript(InputStream is) {
-        this.is = is;
-        sb = new StringBuffer();
-        c = ' ';
-        varsUsed = new Stack();
-        varsBoxed = new Stack();
-        varsLocals = new Stack();
-        varsArgc = 0;
-        next();
+    public LightScript() {
+        boxedGlobals = new Hashtable();
     }
 
     //////////////////////
@@ -301,7 +340,7 @@ class LightScript {
         return c == '=' || c == '!' || c == '<' || c == '&' || c == '|';
     }
 
-    private boolean next() {
+    private boolean nextToken() {
         sb.setLength(0);
 
         // skip whitespaces
@@ -382,14 +421,14 @@ class LightScript {
         int tNudFn = tokenNudFn;
         int tNudId = tokenNudId;
         Object tVal = tokenVal;
-        next();
+        nextToken();
         Object[] left = nud(tNudFn, tNudId, tVal);
         while (rbp < tokenBp && !tSep) {
             tSep = tokenSep;
             int tLedFn = tokenLedFn;
             int tLedId = tokenLedId;
             int tBp = tokenBp;
-            next();
+            nextToken();
             left = led(tLedFn, tLedId, left, tBp);
         }
         return left;
@@ -399,8 +438,8 @@ class LightScript {
     private int tokenLedFn;
     private int tokenNudId;
     private int tokenLedId;
-    public boolean tokenSep;
-    public int tokenBp;
+    private boolean tokenSep;
+    private int tokenBp;
     private static final int NUD_ID = 0;
     private static final int NUD_LITERAL = 1;
     private static final int NUD_END = 2;
@@ -429,7 +468,7 @@ class LightScript {
         return result;
     }
 
-    public Object[] nud(int nudFn, int nudId, Object val) {
+    private Object[] nud(int nudFn, int nudId, Object val) {
         switch (nudFn) {
             case NUD_ID:
                 stackAdd(varsUsed, val);
@@ -573,7 +612,7 @@ class LightScript {
         }
     }
 
-    public void newToken(boolean isLiteral, Object val) {
+    private void newToken(boolean isLiteral, Object val) {
         this.tokenVal = val;
         tokenSep = false;
         tokenBp = 0;
@@ -1286,7 +1325,7 @@ class LightScript {
         return (short) (((code[++pc] & 0xff) << 8) | (code[++pc] & 0xff));
     }
 
-    public static Object execute(Code cl) {
+    private static Object execute(Code cl) {
         int sp = -1;
         Object[] stack = new Object[0];
         int pc = -1;

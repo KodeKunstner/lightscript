@@ -10,8 +10,10 @@ public class Main {
      */
     public static void main(String[] args) throws Exception {
 	InputStream is = new FileInputStream(new File(args[0]));
-        LightScript ls = new LightScript(is);
-        LightScript.Code o = ls.nextCode();
-        LightScript.execute(o);
+        LightScript ls = new LightScript();
+        ls.set("x", new Integer(17));
+        ls.eval(is);
+        ls.eval("print(x);");
+
     }
 }

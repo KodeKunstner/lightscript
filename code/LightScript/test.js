@@ -1,3 +1,1 @@
-(function() {
-    print(false?"Hello":"world");
-})();
+x = x * 2;
