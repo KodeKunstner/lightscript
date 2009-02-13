@@ -16,35 +16,43 @@ public class LightScript {
 
     private Hashtable boxedGlobals;
 
-    public void eval(String s) {
+    public void eval(String s) throws LightScriptException {
         eval(new ByteArrayInputStream(s.getBytes()));
     }
-    public void eval( InputStream is) {
-        this.is = is;
-        sb = new StringBuffer();
-        c = ' ';
-        varsArgc = 0;
-        nextToken();
-        while(tokenVal != null || tokenNudFn != NUD_END) {
-            // parse with every var in closure
-            varsUsed = varsLocals = varsBoxed = new Stack();
-            Object[] os = parse(0);
-            varsClosure = varsUsed;
-    
-            // compile
-            Code c = compile(os);
-    
-            // create closure from globals
-            for(int i = 0; i < c.closure.length; i ++) {
-                Object box = boxedGlobals.get(c.closure[i]);
-                if(box == null) {
-                    box = new Object[1];
-                    boxedGlobals.put(c.closure[i], box);
+    public void eval( InputStream is) throws LightScriptException {
+        /*
+        try {
+        */
+            this.is = is;
+            sb = new StringBuffer();
+            c = ' ';
+            varsArgc = 0;
+            nextToken();
+            while(tokenVal != null || tokenNudFn != NUD_END) {
+                // parse with every var in closure
+                varsUsed = varsLocals = varsBoxed = new Stack();
+                Object[] os = parse(0);
+                varsClosure = varsUsed;
+        
+                // compile
+                Code c = compile(os);
+        
+                // create closure from globals
+                for(int i = 0; i < c.closure.length; i ++) {
+                    Object box = boxedGlobals.get(c.closure[i]);
+                    if(box == null) {
+                        box = new Object[1];
+                        boxedGlobals.put(c.closure[i], box);
+                    }
+                    c.closure[i] = box;
                 }
-                c.closure[i] = box;
+                execute(c);
             }
-            execute(c);
+            /*
+        } catch(Error e) {
+            throw new LightScriptException(e);
         }
+        */
     }
 
     public void set(Object key, Object value) {
