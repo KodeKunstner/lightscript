@@ -11,4 +11,4 @@ clean:
 .SUFFIXES: .java .class
 
 .java.class:
-	javac -source 1.2 $*.java
+	javac -source 1.2 *.java

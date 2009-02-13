@@ -285,7 +285,7 @@ public class LightScript {
             if(argcount == argc) {
                 return execute(this, args, argpos+argcount-1, thisPtr, argcount);
             } else {
-                throw new Error("Wrong number of arguments");
+                throw new LightScriptException("Wrong number of arguments");
             }
         }
         public int argc;
@@ -325,6 +325,7 @@ public class LightScript {
 
     public LightScript() {
         boxedGlobals = new Hashtable();
+        LightScriptStdLib.register(this);
     }
 
     //////////////////////
