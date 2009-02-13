@@ -148,6 +148,8 @@ public class LightScript {
     private static final char ID_UNTRY = 63;
     private static final char ID_DO = 64;
     private static final char ID_NEXT = 65;
+    private static final char ID_INC = 66;
+    private static final char ID_DEC = 67;
     private static final Object[] END_TOKEN = {new Integer(ID_END)};
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
     private static final Boolean TRUE = new Boolean(true);
@@ -177,7 +179,7 @@ public class LightScript {
         "XXX", "DROP", "PUSH_NIL","PUT", "PUSH", "POP",  "JUMP", "JUMP_IF_TRUE", "DUP",
         "NEW_LIST", "NEW_DICT", "BLOCK", "SEP", "IN", "JUMP_IF_FALSE",
         "SET_THIS", "THIS", "SWAP", "FOR", "END", "THROW", "TRY", "CATCH", "UNTRY",
-        "DO", "NEXT"
+        "DO", "NEXT", "INC", "DEC"
         
     };
 
@@ -362,7 +364,7 @@ public class LightScript {
     }
 
     private boolean isSymb() {
-        return c == '=' || c == '!' || c == '<' || c == '&' || c == '|';
+        return c == '=' || c == '!' || c == '<' || c == '&' || c == '|' || c == '+' || c == '-';
     }
 
     private boolean nextToken() {
@@ -780,6 +782,14 @@ public class LightScript {
         } else if ("!".equals(val)) {
             tokenNudFn = NUD_PREFIX;
             tokenNudId = ID_NOT;
+
+        } else if ("++".equals(val)) {
+            tokenNudFn = NUD_PREFIX;
+            tokenNudId = ID_INC;
+
+        } else if ("--".equals(val)) {
+            tokenNudFn = NUD_PREFIX;
+            tokenNudId = ID_DEC;
 
         } else if ("throw".equals(val)) {
             tokenNudFn = NUD_PREFIX;
@@ -1490,6 +1500,14 @@ public class LightScript {
                 addDepth(-1);
                 hasResult = false;
                 break;
+            }
+            case ID_DEC: {
+                compile(v(ID_SET, expr[1], v(ID_SUB, expr[1], v(ID_LITERAL, new Integer(1)))), yieldResult);
+                return;
+            }
+            case ID_INC: {
+                compile(v(ID_SET, expr[1], v(ID_ADD, expr[1], v(ID_LITERAL, new Integer(1)))), yieldResult);
+                return;
             }
             default:
                 throw new Error("Uncompilable expression: " + stringify(expr));

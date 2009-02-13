@@ -4,8 +4,8 @@ for(x in {"a":1, "b": 2}) {
 print(x);
 x = 0;
 do {
-    print("Hello");
-    x = x + 1;
+    ++x;
+    print(x);
 } while(x < 10);
 print(null + null);
 try {
@@ -20,3 +20,4 @@ try {
 } catch(exp) {
     print(exp);
 }
+++x;
