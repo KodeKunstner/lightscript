@@ -1,8 +1,6 @@
-x = [];
-x.push("testing...");
-x.push("testing...");
-x.push("testing...");
+x = [1, 2, 3, 4, 5, 6, 7];
 print(x);
+print(x.join("-"));
 for(x in {"a":1, "b": 2}) {
     print(x);
 }

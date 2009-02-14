@@ -153,7 +153,7 @@ public class LightScript {
     private static final char ID_DEC = 67;
     private static final Object[] END_TOKEN = {new Integer(ID_END)};
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
-    private static final Boolean TRUE = new Boolean(true);
+    public static final Boolean TRUE = new Boolean(true);
 
     // size of the return frame
     private static final char RET_FRAME_SIZE = 3;
@@ -1812,13 +1812,25 @@ public class LightScript {
                         if(key instanceof Integer) {
                             stack[sp] = ((Stack) container).elementAt(((Integer) key).intValue());
                         } else {
-                            System.out.println(      (((Object[])closure[0])[0]));
                             stack[sp] = ((Hashtable) ((Object[])((Object[])closure[0])[0])[0]).get(key);
                         }
                     } else if (container instanceof Hashtable) {
-                        stack[sp] = ((Hashtable) container).get(key);
-                    } else if (container instanceof LightScriptObject) {
-                        stack[sp] = ((LightScriptObject) container).get(key);
+                        Object result;
+                        if (container instanceof LightScriptObject) {
+                            result = ((LightScriptObject) container).get(key);
+                        } else {
+                            result = ((Hashtable) container).get(key);
+                        }
+                        if(result == null) {
+                            stack[sp] = ((Hashtable) ((Object[])((Object[])closure[0])[0])[1]).get(key);
+                        }
+                    } else if (container instanceof String) {
+                        if(key instanceof Integer) {
+                            int pos = ((Integer) key).intValue();
+                            stack[sp] = ((String) container).substring(pos, pos+1);
+                        } else {
+                            stack[sp] = ((Hashtable) ((Object[])((Object[])closure[0])[0])[2]).get(key);
+                        }
                     } else {
                         stack[sp] = null;
                     }

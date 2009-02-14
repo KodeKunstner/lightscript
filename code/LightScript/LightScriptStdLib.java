@@ -7,15 +7,19 @@ class LightScriptStdLib implements LightScriptFunction {
     // globally named functions
     private static final int PRINT = 0;
     private static final int TYPEOF = 1;
+    private static final int PARSEINT = 2;
 
+    private static final String[] names = {"print", "gettype", "parseint"};
     // methods and other stuff added manually to lightscript
-    private static final int NOT_NAMED = 2;
-    private static final int STACK_PUSH = NOT_NAMED + 0;
+    private static final int NOT_NAMED = 3;
+    private static final int HAS_OWN_PROPERTY = NOT_NAMED + 0;
+    private static final int ARRAY_PUSH = NOT_NAMED + 1;
+    private static final int ARRAY_POP = NOT_NAMED + 2;
+    private static final int ARRAY_JOIN = NOT_NAMED + 3;
 
-    private static final String[] names = {"print", "gettype"};
-    private static final int[] argcs = {1, 1,
+    private static final int[] argcs = {1, 1, 2
         // not named
-        1
+        , 0, 1, 0, 1
     };
 
 
@@ -47,9 +51,33 @@ class LightScriptStdLib implements LightScriptFunction {
                      return "builtin";
                  }
             }
-            case STACK_PUSH: {
+            case PARSEINT: {
+                return Integer.valueOf((String)args[argpos], ((Integer)args[argpos +1]).intValue());
+            }
+            case HAS_OWN_PROPERTY: {
+                return ((Hashtable)thisPtr).contains(args[argpos])?LightScript.TRUE:null;
+            }
+            case ARRAY_PUSH: {
                  ((Stack)thisPtr).push(args[argpos]);
                  break;
+            }
+            case ARRAY_POP: {
+                 ((Stack)thisPtr).pop();
+                 break;
+            }
+            case ARRAY_JOIN: {
+                Stack s = (Stack) thisPtr;
+                if(s.size() == 0) {
+                    return "";
+                }
+                StringBuffer sb = new StringBuffer();
+                sb.append(s.elementAt(0).toString());
+                String sep = args[argpos].toString();
+                for(int i = 1; i < s.size(); i++) {
+                    sb.append(sep);
+                    sb.append(s.elementAt(i));
+                }
+                return sb.toString();
             }
         }
         return null;
@@ -61,11 +89,20 @@ class LightScriptStdLib implements LightScriptFunction {
 
         // Create members for stack
         Hashtable stackMembers = new Hashtable();
-        stackMembers.put("push", new LightScriptStdLib(STACK_PUSH));
+        stackMembers.put("push", new LightScriptStdLib(ARRAY_PUSH));
+        stackMembers.put("pop", new LightScriptStdLib(ARRAY_POP));
+        stackMembers.put("join", new LightScriptStdLib(ARRAY_JOIN));
+
+        Hashtable objectMembers = new Hashtable();
+        objectMembers.put("hasOwnProperty", new LightScriptStdLib(HAS_OWN_PROPERTY));
+
+        Hashtable stringMembers = new Hashtable();
 
         // Special environment object, containing methods for stack, ...
-        Object[] env = new Object[1];
+        Object[] env = new Object[3];
         env[0] = stackMembers;
+        env[1] = objectMembers;
+        env[2] = stringMembers;
         ls.set("(ENV)", env);
     }
 }
