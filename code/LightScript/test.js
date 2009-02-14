@@ -1,12 +1,18 @@
+x = [];
+x.push("testing...");
+x.push("testing...");
+x.push("testing...");
+print(x);
 for(x in {"a":1, "b": 2}) {
     print(x);
 }
 print(x);
 x = 0;
 do {
-    ++x;
+    x += 2;
+    x -= 1;
     print(x);
-} while(x < 10);
+} while(10 > x);
 print(null + null);
 try {
     f = function(x, y, z) {

@@ -32,6 +32,7 @@ public class LightScript {
             while(tokenVal != null || tokenNudFn != NUD_END) {
                 // parse with every var in closure
                 varsUsed = varsLocals = varsBoxed = new Stack();
+                varsBoxed.push("(ENV)");
                 Object[] os = parse(0);
                 varsClosure = varsUsed;
         
@@ -482,7 +483,9 @@ public class LightScript {
     private static final int LED_DOT = 12;
     private static final int NUD_ATOM = 13;
     private static final int LED_INFIX_IF = 14;
-    private static final int NUD_CATCH = 14;
+    private static final int NUD_CATCH = 15;
+    private static final int LED_OPASSIGN = 16;
+    private static final int LED_INFIX_SWAP = 17;
 
     private Object[] readList(Stack s) {
         Object[] p = parse(0);
@@ -551,6 +554,7 @@ public class LightScript {
                 // create new statistics
                 varsUsed = new Stack();
                 varsBoxed = new Stack();
+                varsBoxed.push("(ENV)");
                 varsLocals = new Stack();
 
                 // parse arguments
@@ -628,6 +632,10 @@ public class LightScript {
 
             case LED_INFIX:
                 return v(ledId, left, parse(bp));
+            case LED_INFIX_SWAP:
+                return v(ledId, parse(bp), left);
+            case LED_OPASSIGN:
+                return v(ID_SET, left, v(ledId, left, parse(bp)));
             case LED_INFIXR:
                 return v(ledId, left, parse(bp - 1));
             case LED_INFIX_LIST: {
@@ -734,6 +742,16 @@ public class LightScript {
             tokenLedFn = LED_INFIX;
             tokenLedId = ID_LESS;
 
+        } else if (">".equals(val)) {
+            tokenBp = 300;
+            tokenLedFn = LED_INFIX_SWAP;
+            tokenLedId = ID_LESS;
+
+        } else if (">=".equals(val)) {
+            tokenBp = 300;
+            tokenLedFn = LED_INFIX_SWAP;
+            tokenLedId = ID_LESS_EQUALS;
+
         } else if ("&&".equals(val)) {
             tokenBp = 200;
             tokenLedFn = LED_INFIXR;
@@ -762,6 +780,16 @@ public class LightScript {
             tokenBp = 100;
             tokenLedFn = LED_INFIX;
             tokenLedId = ID_SET;
+
+        } else if ("+=".equals(val)) {
+            tokenBp = 100;
+            tokenLedFn = LED_OPASSIGN;
+            tokenLedId = ID_ADD;
+
+        } else if ("-=".equals(val)) {
+            tokenBp = 100;
+            tokenLedFn = LED_OPASSIGN;
+            tokenLedId = ID_SUB;
 
         } else if (":".equals(val) || ";".equals(val) || ",".equals(val)) {
             tokenNudFn = NUD_SEP;
@@ -1781,7 +1809,12 @@ public class LightScript {
                     Object key = stack[sp];
                     Object container = stack[--sp];
                     if (container instanceof Stack) {
-                        stack[sp] = ((Stack) container).elementAt(((Integer) key).intValue());
+                        if(key instanceof Integer) {
+                            stack[sp] = ((Stack) container).elementAt(((Integer) key).intValue());
+                        } else {
+                            System.out.println(      (((Object[])closure[0])[0]));
+                            stack[sp] = ((Hashtable) ((Object[])((Object[])closure[0])[0])[0]).get(key);
+                        }
                     } else if (container instanceof Hashtable) {
                         stack[sp] = ((Hashtable) container).get(key);
                     } else if (container instanceof LightScriptObject) {
