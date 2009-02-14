@@ -1,6 +1,9 @@
 x = [1, 2, 3, 4, 5, 6, 7];
 print(x);
 print(x.join("-"));
+for(var i = 0; i < x.length; ++i) {
+    print(x);
+}
 for(x in {"a":1, "b": 2}) {
     print(x);
 }

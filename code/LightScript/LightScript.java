@@ -13,7 +13,7 @@ import java.util.Stack;
 // - Parser
 // - Compiler
 // - Virtual machine
-public class LightScript {
+public final class LightScript {
 
     private Hashtable boxedGlobals;
 
@@ -123,7 +123,7 @@ public class LightScript {
     private static final char ID_GET_BOXED_CLOSURE = 38;
     // box a value
     private static final char ID_BOX_IT = 39;
-    private static final char ID_XXX = 40;
+    private static final char ID_LENGTH = 40;
     private static final char ID_DROP = 41;
     private static final char ID_PUSH_NIL = 42;
     private static final char ID_PUT = 43;
@@ -177,7 +177,7 @@ public class LightScript {
         "SAVE_PC", "CALL_FN", "BUILD_FN", "SET_BOXED",
         "SET_LOCAL", "SET_CLOSURE", "GET_BOXED", "GET_LOCAL",
         "GET_CLOSURE", "GET_BOXED_CLOSURE", "BOX_IT",
-        "XXX", "DROP", "PUSH_NIL","PUT", "PUSH", "POP",  "JUMP", "JUMP_IF_TRUE", "DUP",
+        "LENGTH", "DROP", "PUSH_NIL","PUT", "PUSH", "POP",  "JUMP", "JUMP_IF_TRUE", "DUP",
         "NEW_LIST", "NEW_DICT", "BLOCK", "SEP", "IN", "JUMP_IF_FALSE",
         "SET_THIS", "THIS", "SWAP", "FOR", "END", "THROW", "TRY", "CATCH", "UNTRY",
         "DO", "NEXT", "INC", "DEC"
@@ -649,8 +649,16 @@ public class LightScript {
                 varsUsed= null;
                 Object[] right = parse(bp);
                 varsUsed = t;
-                right[0] = new Integer(ID_LITERAL);
-                return v(ledId, left, right);
+                if(((Integer)right[0]).intValue() != ID_IDENT) {
+                    throw new Error("right side of dot not a string: " + stringify(right));
+                }
+
+                if("length".equals(right[1])) {
+                    return v(ID_LENGTH, left);
+                } else {
+                    right[0] = new Integer(ID_LITERAL);
+                    return v(ID_SUBSCRIPT, left, right);
+                }
             }
             case LED_INFIX_IF: {
                 Object branch1 = parse(0);
@@ -1029,6 +1037,7 @@ public class LightScript {
                 break;
             }
             case ID_NOT:
+            case ID_LENGTH:
             case ID_NEG: {
                 compile(expr[1], true);
                 emit(id);
@@ -1731,6 +1740,21 @@ public class LightScript {
                 }
                 case ID_PUSH_NIL: {
                     stack[++sp] = null;
+                    break;
+                }
+                case ID_LENGTH: {
+                    Object o = stack[sp];
+                    if(o instanceof Stack) {
+                        stack[sp] = new Integer(((Stack)o).size());
+                    } else if(o instanceof String) {
+                        stack[sp] = new Integer(((String)o).length());
+                    } else if(o instanceof LightScriptObject) {
+                        stack[sp] = ((LightScriptObject)o).get("length");
+                    } else if(o instanceof Hashtable) {
+                        stack[sp] = ((Hashtable)o).get("length");
+                    } else {
+                        stack[sp] = null;
+                    }
                     break;
                 }
                 case ID_NOT: {
