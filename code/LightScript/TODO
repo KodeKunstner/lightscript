@@ -1,4 +1,5 @@
 - consider catch-issue
+- function f(blah) { ... }
 - stdlib: clone, div, ...
 - testsuite
 - evt stack-zeroing

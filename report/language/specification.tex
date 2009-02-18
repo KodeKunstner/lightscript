@@ -6,6 +6,7 @@
 %Identifiers are evaluated into the value the identifier is set to represent via the \verb|set| function.
 %Literal integer and string values are evaluated into their respective values.
 %NB: concatenative intermediate code
+
 This chapter specifies the Yolan programming language.
 The purpose of the language is to enable high level scripting on low end mobile devices. Language features include:
 \begin{itemize}
@@ -16,7 +17,7 @@ The purpose of the language is to enable high level scripting on low end mobile 
 \item Standard library with dictionaries, lists/vectors/stacks, iterators, strings and integers
 \end{itemize}
 
-The chapter starts by describing the syntax, then there is an overview of the types, there is the semantics of the evaluation, and finally the standard library is specified.
+The chapter starts by describing the syntax, then gives an overview of the types, the presents the semantics of the evaluation, and finally specifies the standard library.
 
 
 \section{Syntax}
@@ -26,8 +27,8 @@ The difference is that square brackets are used rather than parenthesis,
 as the lists are just function applications and very different from lisp-lists.
 The motivation behind this syntax, is that it makes it possible to make a very small parser code footprint, while still having a syntax that can feel somewhat familiar.
 
-\subsubsection{Lists / function application}
-Lists are enclosed within square brackets \verb|[ |$\cdots$\verb| ]|, and may be nested. The elements within the lists are seperated whitespaces. A list must have at least one element.
+\subsubsection{Function application}
+Function application is written as lists enclosed within square brackets \verb|[ |$\cdots$\verb| ]|, and may be nested. The elements within the lists are seperated by whitespaces. A list must have at least one element, which is the function that is called.
 
 \subsubsection{Variable names}
 A variable name is a sequence of symbols. The possible symbols are letters, numbers, the symbols \verb]!#$%&'()*+,-./:<=>?@\^_`{|}~], and any symbol with an unicode value of 127 or higher. The first symbol must be non-numeric.
@@ -58,9 +59,9 @@ Lists are zero-indexed, so the first element has the id 0, and the last element 
 
 Dictionaries are mappings between keys and values. Keys must be integers or strings, and values can be any type except nil. Keys which are numbers written as strings may or may not map to the same integer-key, depending on implementation. Access time may be linear in the size of the dictionary in worst case.
 
-Iterators are sequences of values, for example the values of a list or the keys of a dictionary. 
+Iterators are sequences of values. An iterator can for example be used to walk through the values of a list or the keys of a dictionary. 
 
-Functions defined by the lambda-operator or defun can be passed around like any other value, and is evaluated with the usual list notation.
+Functions are defined by the lambda-operator or defun, and can be passed around like any other value, and are applied with the usual list notation.
 
 \section{Evaluation}
 
@@ -68,11 +69,11 @@ The language consists of literals, variable names and function applications.
 Literals are evaluated into their literal values, 
 variable names are evaluated by looking up the corresponding value, and
 function applications are evaluated by executing the function.
-Details on how variables and functions works is described in the following sections.
+Details on how variables and functions work is described in the following sections.
 
 \subsection{Variables}
 
-Variables can be thought of as simple mappings names to values.
+A variables can be thought of as simple mapping from a name to a value.
 Evaluation of a variable just replaces the name with the corresponding value if there is a mapping from the name, or else it evaluates to nil.
 The function \verb|set| can be used to add or change the mappings. Setting a variable name to map to nil has the same effect as deleting it.
 It is possible to have local variables for a piece of code, by saving the mappings right before entering the code, and restore them after exiting it.

@@ -151,6 +151,7 @@ public final class LightScript {
     private static final char ID_NEXT = 65;
     private static final char ID_INC = 66;
     private static final char ID_DEC = 67;
+    private static final char ID_SHIFT_RIGHT = 68;
     private static final Object[] END_TOKEN = {new Integer(ID_END)};
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
     public static final Boolean TRUE = new Boolean(true);
@@ -180,7 +181,7 @@ public final class LightScript {
         "LENGTH", "DROP", "PUSH_NIL","PUT", "PUSH", "POP",  "JUMP", "JUMP_IF_TRUE", "DUP",
         "NEW_LIST", "NEW_DICT", "BLOCK", "SEP", "IN", "JUMP_IF_FALSE",
         "SET_THIS", "THIS", "SWAP", "FOR", "END", "THROW", "TRY", "CATCH", "UNTRY",
-        "DO", "NEXT", "INC", "DEC"
+        "DO", "NEXT", "INC", "DEC", "SHIFT_RIGHT"
         
     };
 
@@ -365,7 +366,7 @@ public final class LightScript {
     }
 
     private boolean isSymb() {
-        return c == '=' || c == '!' || c == '<' || c == '&' || c == '|' || c == '+' || c == '-';
+        return c == '=' || c == '!' || c == '<' || c == '&' || c == '|' || c == '+' || c == '-' || c == '>';
     }
 
     private boolean nextToken() {
@@ -560,17 +561,30 @@ public final class LightScript {
                 // parse arguments
                 Object[] args = stripSep(parse(0));
 
+                boolean isNamed = false;
+                String fnName = null;
                 // add function arguments to statistics
                 varsArgc = args.length - 1;
-                if (((Integer) args[0]).intValue() != ID_PAREN) {
-                    throw new Error("parameter not variable name" + stringify(args));
-                }
-                for (int i = 1; i < args.length; i++) {
-                    Object[] os = (Object[]) args[i];
-                    if (((Integer) os[0]).intValue() != ID_IDENT) {
+                if (((Integer) args[0]).intValue() == ID_PAREN) {
+                    for (int i = 1; i < args.length; i++) {
+                        Object[] os = (Object[]) args[i];
+                        if (((Integer) os[0]).intValue() != ID_IDENT) {
+                            throw new Error("parameter not variable name" + stringify(args));
+                        }
+                        varsLocals.push(os[1]);
+                    }
+                } else {
+                    if (((Integer) args[0]).intValue() != ID_CALL_FUNCTION) {
                         throw new Error("parameter not variable name" + stringify(args));
                     }
-                    varsLocals.push(os[1]);
+                    varsArgc--;
+                    fnName = (String)varsUsed.elementAt(0);
+                    varsUsed.removeElementAt(0);
+                    isNamed = true;
+                    for(int i = 0; i < varsUsed.size(); i++) {
+                        varsLocals.push(varsUsed.elementAt(i));
+                    }
+
                 }
 
                 // parse the body of the function
@@ -596,6 +610,10 @@ public final class LightScript {
                     }
                 }
                 Object[] result = v(nudId, compile(body));
+                if(isNamed) {
+                    result = v(ID_SET, v(ID_IDENT, fnName), result);
+                    stackAdd(prevUsed, fnName);
+                }
                 varsClosure = null;
 
                 // restore variable statistics
@@ -707,6 +725,12 @@ public final class LightScript {
             tokenLedId = ID_SUBSCRIPT;
             tokenNudFn = NUD_LIST;
             tokenNudId = ID_LIST_LITERAL;
+
+        } else if (">>".equals(val)) {
+            // FIXME: what is priority?
+            tokenBp = 500;
+            tokenLedFn = LED_INFIX;
+            tokenLedId = ID_SHIFT_RIGHT;
 
         } else if ("*".equals(val)) {
             tokenBp = 500;
@@ -1022,6 +1046,7 @@ public final class LightScript {
         switch (id) {
             case ID_ADD:
             case ID_MUL:
+            case ID_SHIFT_RIGHT:
             case ID_REM:
             case ID_SUB:
             case ID_EQUALS:
@@ -1766,9 +1791,9 @@ public final class LightScript {
                     break;
                 }
                 case ID_ADD: {
-                    Object o = stack[sp];
-                    --sp;
                     Object o2 = stack[sp];
+                    --sp;
+                    Object o = stack[sp];
                     if(o instanceof Integer && o2 instanceof Integer) {
                         int result = ((Integer) o).intValue();
                         result += ((Integer) o2).intValue();
@@ -1781,6 +1806,12 @@ public final class LightScript {
                 case ID_SUB: {
                     int result = ((Integer) stack[sp]).intValue();
                     result = ((Integer) stack[--sp]).intValue() - result;
+                    stack[sp] = new Integer(result);
+                    break;
+                }
+                case ID_SHIFT_RIGHT: {
+                    int result = ((Integer) stack[sp]).intValue();
+                    result = ((Integer) stack[--sp]).intValue() >> result;
                     stack[sp] = new Integer(result);
                     break;
                 }
@@ -1800,8 +1831,8 @@ public final class LightScript {
                     Object o = stack[sp];
                     --sp;
                     stack[sp] = (o == null)
-                            ? (stack[sp] == null ? TRUE : null)
-                            : (o.equals(stack[sp]) ? TRUE : null);
+                            ? (stack[sp] == null ? null:  TRUE )
+                            : (o.equals(stack[sp]) ? null : TRUE );
                     break;
                 }
                 case ID_EQUALS: {
@@ -1817,7 +1848,12 @@ public final class LightScript {
                     Object key = stack[--sp];
                     Object container = stack[--sp];
                     if (container instanceof Stack) {
-                        ((Stack) container).setElementAt(val, ((Integer) key).intValue());
+                        int pos = ((Integer) key).intValue();
+                        Stack s = (Stack) container;
+                        if(pos >= s.size()) {
+                            s.setSize(pos + 1);
+                        }
+                        s.setElementAt(val, pos);
                     } else if (container instanceof Hashtable) {
                         if (val == null) {
                             ((Hashtable) container).remove(key);

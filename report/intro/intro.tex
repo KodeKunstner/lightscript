@@ -1,11 +1,12 @@
+TODO: should mention the name of the language
 The original idea for the project was to create a EcmaScript like language for mobile devices. 
 Unfortunately during the project, it turned out that such an implementation already exists,
-though it is proprietary and only little information is available about it\cite{mojax}.
+though it is proprietary and only little information is available about it \cite{mojax}.
 
 So there needed to be a change in the project.
-The new approach to the project is then to focus on a another niche within scripting languages on mobile devices. Namely to create a scripting language which runs on even the very low end mobile devices.
-The motivation for this is that even scripting languages optimised for mobile devices, such as hecl\cite{hecl}, kahlua\cite{kahlua}, fscriptme\cite{fscriptme}, simkin\cite{simkin}, has very large code footprints compared to the amount of space available on the lowest end mobile devices\footnote{ca. 50-200KB code footprint for the scripting language vs. 64K available on low end device for the entire application, including embedded scripting language}.
+The new approach to the project is to focus on another niche within scripting languages on mobile devices. Namely to create a scripting language which runs on even the very low end mobile devices.
+The motivation for this is that even scripting languages optimised for mobile devices, such as hecl\cite{hecl}, kahlua\cite{kahlua}, fscriptme\cite{fscriptme}, simkin\cite{simkin}, have very large code footprints compared to the amount of space available on the lowest end mobile devices: ca. 50-200KB code footprint for the scripting language vs. 64K available on low end device for the entire application, including embedded scripting language.
 So the new target is to create a scripting language designed for small footprint, while staying highly expressive.
 
-The project creates a scripting language, where the implementation can be, and is done significantly smaller than any other scripting language on the mobile platform.
-This comes at the price of having lisp-like syntax and dynamic scoping, but otherwise it is similar to other scripting languages / extension languages. It is also very easy to embed and extend into other applications.
+The project creates a scripting language, where the implementation can be, and is done significantly smaller than any other scripting language currently available for a mobile platform.
+This comes at the price of having lisp-like syntax and dynamic scoping, but otherwise it is similar to other scripting languages / extension languages. It is also very easy to embed and use as an extension language for other applications.
