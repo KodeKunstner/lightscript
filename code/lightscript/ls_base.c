@@ -38,10 +38,11 @@ static void ls_resize(heap_entry * cont);
 
 static int ls_type(lsval val)
 {
+    assert((val & 1) == 0);
     return ls_to_entry(val)->type;
 }
 
-size_t ls_size(lsval val)
+int ls_size(lsval val)
 {
     assert(ls_type(val) != T_INT);
     return ls_to_entry(val)->val.size;
@@ -77,7 +78,6 @@ lsval ls_pop(lsval stack)
     assert(entry->count > 0);
     entry->count = entry->count - 1;;
     return SUB(entry, entry->count);
-
 }
 
 lsval ls_new_array()

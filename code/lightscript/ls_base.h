@@ -25,7 +25,7 @@ sint32 ls_to_int(lsval val);
 
 lsval ls_new_array();
 void ls_push(lsval stack, lsval val);
-size_t ls_size(lsval container);
+int ls_size(lsval container);
 void ls_set(lsval container, lsval key, lsval val);
 lsval ls_get(lsval container, lsval key);
 lsval ls_pop(lsval stack);
