@@ -1,6 +1,6 @@
 CPP  = gcc
-OBJ  = test.o ls_base.o 
-HEADERFILES = ls_base.h util.h
+OBJ  = test.o runtime.o runtime_internal.o
+HEADERFILES = runtime.h util.h lightscript.h
 LINKOBJ  = $(OBJ) 
 LIBS = -lpthread
 CINCS =  
@@ -10,7 +10,6 @@ RM = rm -rf
 BIN = test 
 
 .PHONY: all clean indent 
-
 run: $(BIN)
 	./test
 
@@ -24,6 +23,8 @@ $(BIN): $(OBJ)
 
 clean:
 	rm -f *~ *.o $(BIN)
+
+runtime.o runtime_internal.o: runtime_internal.h
 
 
 .SUFFIXES: .c .o

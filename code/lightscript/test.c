@@ -1,4 +1,4 @@
-#include "ls_base.h"
+#include "runtime.h"
 #include "util.h"
 
 #define HEAPSIZE 100000

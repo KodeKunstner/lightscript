@@ -22,13 +22,15 @@ void ls_init_heap(void *mem, size_t size);
 
 lsval ls_from_int(sint32 num);
 sint32 ls_to_int(lsval val);
-
 lsval ls_new_array();
-void ls_push(lsval stack, lsval val);
-int ls_size(lsval container);
 void ls_set(lsval container, lsval key, lsval val);
 lsval ls_get(lsval container, lsval key);
+/** Push the value to the end of an array */
+void ls_push(lsval stack, lsval val);
+/** Pop and return the value at the end of an array */
 lsval ls_pop(lsval stack);
+/** The number of elements in an array */
+int ls_count(lsval stack);
 
 
 #endif				/* __LS_BASE_H__ */
