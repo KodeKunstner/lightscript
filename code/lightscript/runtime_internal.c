@@ -23,6 +23,11 @@ void ls_init_heap(void *mem, size_t size)
 {
     assert((size & 7) == 0);
     /*assert(sizeof(heap_entry) == 8); */
+    entries = malloc(sizeof(heap_entry));
+    entries->type = T_ARRAY;
+    entries->count = 0;
+    entries->val.ptr = NULL;
+    entries->val.size = 0;
 }
 
 void gc()
@@ -54,6 +59,9 @@ heap_entry *ls_to_entry(lsval val)
 lsval new_entry()
 {
     lsval result;
+    /* add to live-list, pop from here when positioned */
+
+    
     if (free_entry == -1) {
 	int new_size = ((entries_size + 1) * 5) / 4;
 	entries = realloc(entries, new_size * sizeof(heap_entry));

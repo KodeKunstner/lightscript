@@ -95,6 +95,19 @@ lsval ls_get(lsval cont, lsval key)
 	assert(ikey >= 0);
 	assert(ikey < entry->count);
 	return SUB(entry, ikey);
+    } else if (entry->type == T_OBJECT) {
+        for(;;) {
+            lsval parent;
+            int pos = find_key(entry, key);
+            if(pos != -1) {
+                return SUB(entry, pos + 1);
+            }
+            parent = SUB(entry, 0);
+            if(parent == UNDEFINED) {
+                return parent;
+            }
+            entry = ls_to_entry(parent);
+        }
     } else {
 	assert(0);
 	error("Get not supported on that datastructure");
