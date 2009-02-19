@@ -13,6 +13,10 @@ typedef uint32 size_t;
 
 #define NULL ((void *)0)
 #define EXIT_SUCCESS 0
+
+void print(const char *s);
+void error(const char *s);
+
 /**
  * Logging and assert
  */

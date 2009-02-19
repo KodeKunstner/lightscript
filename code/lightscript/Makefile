@@ -1,11 +1,11 @@
 CPP  = gcc
-OBJ  = test.o runtime.o runtime_internal.o
-HEADERFILES = runtime.h util.h lightscript.h
+OBJ  = test.o runtime.o runtime_internal.o util.o
+HEADERFILES = runtime.h util.h lightscript.h runtime_internal.h
 LINKOBJ  = $(OBJ) 
-LIBS = -lpthread
+LIBS = 
 CINCS =  
 CFLAGS = $(INCS) -DNDEBUG -O3 -fomit-frame-pointer -march=i686 -msse -mfpmath=sse
-CFLAGS = $(INCS) -D__DEBUG__ -O0 -Wall -Werror -g3
+CFLAGS = $(INCS) -O0 -Wall -Werror -g3
 RM = rm -rf
 BIN = test 
 
@@ -23,8 +23,6 @@ $(BIN): $(OBJ)
 
 clean:
 	rm -f *~ *.o $(BIN)
-
-runtime.o runtime_internal.o: runtime_internal.h
 
 
 .SUFFIXES: .c .o
