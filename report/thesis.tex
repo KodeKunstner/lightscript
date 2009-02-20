@@ -1,7 +1,9 @@
 %\documentclass[11pt]{book} 
 %\usepackage[paperheight=220mm,paperwidth=170mm]{geometry}
+%\usepackage[paperheight=150mm,paperwidth=200mm]{geometry}
 \documentclass[11pt]{report} 
 \usepackage{a4} 
+\usepackage{geometry}
 \usepackage{makeidx}
 %\usepackage[danish]{babel} 
 \usepackage[utf8]{inputenc}
@@ -16,8 +18,6 @@
 %\usepackage[colorlinks,pagebackref]{hyperref}
 \usepackage{backref}
 \usepackage{url}
-\usepackage[paperheight=150mm,paperwidth=200mm]{geometry}
-\usepackage{geometry}
 \frenchspacing
 \makeindex
 \pagestyle{plain}
@@ -53,34 +53,17 @@ for mobile devices}
 %
 %\part{Aspects of creating the language}
 
-%\part{Language documentation}
-\chapter{Introduction}
-\input{intro/intro}
-\chapter{Language Specification}
-\input{language/specification}
-\chapter{Embedding Yolan in Java \\ -- developers guide}
-\input{language/devguide-java}
-
-\chapter{The J2ME / Java Micro Edition platform}
-\input{aspects/j2me}
-
-\chapter{Scoping}
-\input{aspects/scope}
-
-\input{.old1/report}
-\input{.old1/ecmascript}
-
-\chapter{Platforms}
-\input{aspects/platforms}
-
-\input{.old1/intro/intro}
-\input{.old1/design}
-\input{.old1/survey/survey}
-\input{.old1/language/language}
-\input{.old1/language/design}
-\input{.old1/language/informal}
-%\input{.old1/vm/vm}
-\input{.old1/design}
+\part{Scripting language design and implementation for mobile devices}
+  \chapter{Mobile platforms}
+  \chapter{The J2ME / Java Micro Edition platform}
+  \chapter{Scoping and the fun-arg problem}
+  \chapter{Parsing - the Pratt parser}
+    \input{parser}
+  \chapter{Efficient dispatch for interpreters}
+\part{Yolan}
+  \chapter{Language specification}
+  \chapter{Developers guide}
+\part{LightScript}
 
 %\chapter{Introduction to scripting \\ -- a user guide}
 %\input{language/userguide}
