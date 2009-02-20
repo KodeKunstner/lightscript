@@ -1,0 +1,77 @@
+This chapter surveys existing languages.
+
+\section{JVM scripting languages resource usage}
+This section looks at some of the scripting languages that exists for the JVM,
+mainly with focus on the mobile platform and low resource usage.
+
+To compare the resource usage, I have added an estimate of the jar file size. 
+The estimate is done by making a zip archive of the non-obscurified class files,
+trying to exclude class files that are part of extra libraries.
+The motivation for this approach is that some of the languages have large GUI libraries,
+which would count against them, if we just looked at the jar file. 
+In addition, compilation of some of the languages is obscurified/optimised by default,
+which would give those an advantage. So this should give a more fair comparison.
+As a rule of thumb with classfiles, the compressed files are approximately half the size of original.
+ 
+\begin{figure}
+\begin{center}
+\begin{tabular}{|c|r|}
+\hline 
+Jscheme & 30K \\
+\hline 
+Kahlua & 40K \\
+\hline 
+Hecl & 50K \\
+\hline 
+Simkin & 80K \\
+\hline 
+CellularBasic & 90K \\
+\hline 
+Rhino & 400K \\
+\hline 
+\end{tabular}
+\end{center}
+\caption{Approximation of jar size of scripting languages for the jvm}
+\end{figure}
+
+Looking for scripting languages for Java Mobile Edition, there seem to be Simkin, CellularBasic, Kahlua, FscriptME and Hecl. There is also Mojax, but that is a proprietary system, and thus only little information is availabe about it.
+These are compared with JScheme and rhino for perspective.
+
+
+\subsection{Hecl}
+Hecl seems to be the major scripting language for mobile devices.
+It has different editions targeting both CLDC1.0, CLDC1.1 and Android.
+The design is modular, where libraries can be enabled/disabled.
+It is a shrunk down dialect of Tcl. Arithmetic operators are also functions, which mean that calculated expressions must be written Lisp-like: e.g. \verb|[+ 1 2 [* 3 4]]|
+
+\subsection{Lua/kahlua}
+\subsection{FscriptME}
+Fscript\cite{fscriptme}, and FscriptME as an implementation for Java Micro Edition.
+This language
+This language is still in beta, 
+
+\subsection{Simkin}
+Simkin is an XML scripting language
+
+\subsection{CellularBasic}
+This is an implementation of a basic dialect for mobile devices.
+This also demonstrates how parser generators can be expensive code-footprint-wise, as the generated parser class itself is larger than 90KB.
+CellularBasic include floating point emulation, which is excluded for the code footprint approximation.
+
+\subsection{JScheme}
+JScheme\cite{jscheme} is not directly targeted mobile devices, but it is interesting here, in the sense that it is tiny and elegant implementation of a minimalistic language.
+Unfortunately it is also rather slow, TODO:benchmark example.
+
+\subsection{Mojax}
+\subsection{Rhino}
+Rhino is a JavaScript/EcmaScript implementation on top of the JVM. 
+\subsection{Jython}
+
+\section{Other languages}
+\subsection{JavaScript/EcmaScript}
+\subsection{Python}
+\subsection{Forth and other stack languages}
+\subsection{Self - prototypes}
+\subsection{Scheme/Lisp - minimalistic syntax}
+\subsection{Haskell - lazyness}
+

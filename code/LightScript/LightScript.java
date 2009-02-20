@@ -446,14 +446,12 @@ public final class LightScript {
     /////////////////
     ////////////////
     private Object[] parse(int rbp) {
-        boolean tSep = tokenSep;
         int tNudFn = tokenNudFn;
         int tNudId = tokenNudId;
         Object tVal = tokenVal;
         nextToken();
         Object[] left = nud(tNudFn, tNudId, tVal);
-        while (rbp < tokenBp && !tSep) {
-            tSep = tokenSep;
+        while (rbp < tokenBp) {
             int tLedFn = tokenLedFn;
             int tLedId = tokenLedId;
             int tBp = tokenBp;
@@ -467,7 +465,6 @@ public final class LightScript {
     private int tokenLedFn;
     private int tokenNudId;
     private int tokenLedId;
-    private boolean tokenSep;
     private int tokenBp;
     private static final int NUD_ID = 0;
     private static final int NUD_LITERAL = 1;
@@ -693,7 +690,6 @@ public final class LightScript {
 
     private void newToken(boolean isLiteral, Object val) {
         this.tokenVal = val;
-        tokenSep = false;
         tokenBp = 0;
         tokenNudFn = 0;
         tokenLedFn = 0;
@@ -705,7 +701,6 @@ public final class LightScript {
 
         } else if (val == null || "]".equals(val) || ")".equals(val) || "}".equals(val)) {
             tokenNudFn = NUD_END;
-            tokenSep = true;
 
         } else if (".".equals(val)) {
             tokenBp = 700;
@@ -825,7 +820,6 @@ public final class LightScript {
 
         } else if (":".equals(val) || ";".equals(val) || ",".equals(val)) {
             tokenNudFn = NUD_SEP;
-            tokenSep = true;
 
         } else if ("{".equals(val)) {
             tokenNudFn = NUD_LIST;
