@@ -486,11 +486,11 @@ public final class LightScript {
     private static final int LED_INFIX_SWAP = 17;
 
     private Object[] readList(Stack s) {
-        Object[] p = parse(0);
-        while (p != END_TOKEN) {
+        while (tokenNudFn != NUD_END) {
+            Object[] p = parse(0);
             s.push(p);
-            p = parse(0);
         }
+        nextToken();
 
         Object[] result = new Object[s.size()];
         s.copyInto(result);
