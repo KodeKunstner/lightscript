@@ -153,10 +153,62 @@ public final class LightScript {
     private static final char ID_INC = 66;
     private static final char ID_DEC = 67;
     private static final char ID_SHIFT_RIGHT = 68;
+
+    private static final int NUD_NONE= 12;
+    private static final int NUD_IDENT = 1;
+    private static final int NUD_LITERAL = 2;
+    private static final int NUD_END = 3;
+    private static final int NUD_SEP = 4;
+    private static final int NUD_LIST = 5;
+    private static final int NUD_PREFIX = 6;
+    private static final int NUD_PREFIX2 = 7;
+    private static final int NUD_FUNCTION = 8;
+    private static final int NUD_VAR = 9;
+    private static final int NUD_ATOM = 10;
+    private static final int NUD_CATCH = 11;
+
+    private static final int LED_NONE= 8;
+    private static final int LED_DOT = 1;
+    private static final int LED_INFIX = 2;
+    private static final int LED_INFIXR = 3;
+    private static final int LED_INFIX_LIST = 4;
+    private static final int LED_INFIX_IF = 5;
+    private static final int LED_OPASSIGN = 6;
+    private static final int LED_INFIX_SWAP = 7;
+
+
     private static final Object[] END_TOKEN = {new Integer(ID_END)};
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
     public static final Boolean TRUE = new Boolean(true);
     private static final String EOF = "(EOF)";
+
+    private static final int SIZE_FN= 4;
+    private static final int SIZE_ID = 7;
+    private static final int MASK_ID = ((1<<SIZE_ID) - 1);
+    private static final int MASK_FN = ((1<<SIZE_FN) - 1);
+    private static final int MASK_BP = (-1 << (2*SIZE_ID + 2 *SIZE_FN));
+
+    private static final int TOKEN_END = ((((((((
+                      0 << SIZE_FN)
+                    | NUD_END) << SIZE_ID)
+                    | ID_NONE) << SIZE_FN)
+                    | LED_NONE) << SIZE_ID)
+                    | ID_NONE);
+
+    private static final int TOKEN_LITERAL = ((((((((
+                      0 << SIZE_FN)
+                    | NUD_LITERAL) << SIZE_ID)
+                    | ID_NONE) << SIZE_FN)
+                    | LED_NONE) << SIZE_ID)
+                    | ID_NONE);
+
+    private static final int TOKEN_IDENT = ((((((((
+                      0 << SIZE_FN)
+                    | NUD_IDENT) << SIZE_ID)
+                    | ID_NONE) << SIZE_FN)
+                    | LED_NONE) << SIZE_ID)
+                    | ID_NONE);
+
 
     // size of the return frame
     private static final char RET_FRAME_SIZE = 3;
@@ -449,8 +501,8 @@ public final class LightScript {
     ////////////////
     private Object[] parse(int rbp) {
         Object[] left = nud(tokenNudFn, tokenNudId, tokenVal);
-        while (rbp < tokenBp) {
-            left = led(tokenLedFn, tokenLedId, left, tokenBp);
+        while (rbp < (tokenBp * 256)) {
+            left = led(tokenLedFn, tokenLedId, left, (tokenBp * 256));
         }
         return left;
     }
@@ -460,33 +512,7 @@ public final class LightScript {
     private int tokenNudId;
     private int tokenLedId;
     private int tokenBp;
-    private static final int NUD_NONE= 12;
-    private static final int NUD_IDENT = 1;
-    private static final int NUD_LITERAL = 2;
-    private static final int NUD_END = 3;
-    private static final int NUD_SEP = 4;
-    private static final int NUD_LIST = 5;
-    private static final int NUD_PREFIX = 6;
-    private static final int NUD_PREFIX2 = 7;
-    private static final int NUD_FUNCTION = 8;
-    private static final int NUD_VAR = 9;
-    private static final int NUD_ATOM = 10;
-    private static final int NUD_CATCH = 11;
-
-    private static final int LED_NONE= 8;
-    private static final int LED_DOT = 1;
-    private static final int LED_INFIX = 2;
-    private static final int LED_INFIXR = 3;
-    private static final int LED_INFIX_LIST = 4;
-    private static final int LED_INFIX_IF = 5;
-    private static final int LED_OPASSIGN = 6;
-    private static final int LED_INFIX_SWAP = 7;
-
-    private static final int SIZE_FN= 4;
-    private static final int SIZE_ID = 7;
-    private static final int MASK_ID = ((1<<SIZE_ID) - 1);
-    private static final int MASK_FN = ((1<<SIZE_FN) - 1);
-
+    private int token;
 
     private Object[] readList(Stack s) {
         while (tokenNudFn != NUD_END) {
@@ -1018,20 +1044,23 @@ public final class LightScript {
 
     private void newToken(boolean isLiteral, Object val) {
         this.tokenVal = val;
-        tokenBp = 0;
-        tokenNudFn = NUD_IDENT;
-        tokenLedFn = LED_NONE;
-        tokenNudId = ID_NONE;
-        tokenLedId = ID_NONE;
+
 
         if (isLiteral) {
+            tokenBp = 0;
             tokenNudFn = NUD_LITERAL;
+            tokenNudId = ID_NONE;
+            tokenLedFn = LED_NONE;
+            tokenLedId = ID_NONE;
+
+            token = TOKEN_LITERAL;
             return;
         } 
 
         Object o = idMapping.get(val);
         if(o != null) {
             int encoded = ((Integer)o).intValue();
+            token = encoded;
             tokenLedId = encoded & MASK_ID;
             encoded >>>= SIZE_ID;
             tokenLedFn = encoded & MASK_FN;
@@ -1040,8 +1069,17 @@ public final class LightScript {
             encoded >>>= SIZE_ID;
             tokenNudFn = encoded & MASK_FN;
             encoded >>>= SIZE_FN;
-            tokenBp = (encoded - 1) * 100;
+            tokenBp = encoded - 1;
+            return;
         }
+
+        tokenBp = 0;
+        tokenNudFn = NUD_IDENT;
+        tokenNudId = ID_NONE;
+        tokenLedFn = LED_NONE;
+        tokenLedId = ID_NONE;
+        token = TOKEN_IDENT;
+
     }
     //////////////////////
     ///// Compiler //////
