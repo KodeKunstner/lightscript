@@ -13,139 +13,139 @@ import java.util.Stack;
 // - Parser
 // - Compiler
 // - Virtual machine
+
+#define __DEBUG__
+
 public final class LightScript {
-    private static final char ID_NONE = 127;
-    private static final char ID_PAREN = 1;
-    private static final char ID_LIST_LITERAL = 2;
-    private static final char ID_CURLY = 3;
-    private static final char ID_VAR = 4;
-    private static final char ID_RETURN = 5;
-    private static final char ID_NOT = 6;
-    private static final char ID_BUILD_FUNCTION = 7;
-    private static final char ID_IF = 8;
-    private static final char ID_WHILE = 9;
-    private static final char ID_LITERAL = 10;
-    private static final char ID_CALL_FUNCTION = 11;
-    private static final char ID_SUBSCRIPT = 12;
-    private static final char ID_MUL = 13;
-    private static final char ID_REM = 14;
-    private static final char ID_ADD = 15;
-    private static final char ID_SUB = 16;
-    private static final char ID_NEG = 17;
-    private static final char ID_EQUALS = 18;
-    private static final char ID_NOT_EQUALS = 19;
-    private static final char ID_LESS_EQUALS = 20;
-    private static final char ID_LESS = 21;
-    private static final char ID_AND = 22;
-    private static final char ID_OR = 23;
-    private static final char ID_ELSE = 24;
-    private static final char ID_SET = 25;
-    private static final char ID_IDENT = 26;
-    private static final char ID_ENSURE_STACKSPACE = 27;
-    private static final char ID_INC_SP = 28;
-    private static final char ID_SAVE_PC = 29;
-    private static final char ID_CALL_FN = 30;
-    private static final char ID_BUILD_FN = 31;
-    private static final char ID_SET_BOXED = 32;
-    private static final char ID_SET_LOCAL = 33;
-    private static final char ID_SET_CLOSURE = 34;
-    private static final char ID_GET_BOXED = 35;
-    private static final char ID_GET_LOCAL = 36;
-    private static final char ID_GET_CLOSURE = 37;
+#define ID_NONE ((char)127)
+#define ID_PAREN ((char)1)
+#define ID_LIST_LITERAL ((char)2)
+#define ID_CURLY ((char)3)
+#define ID_VAR ((char)4)
+#define ID_RETURN ((char)5)
+#define ID_NOT ((char)6)
+#define ID_BUILD_FUNCTION ((char)7)
+#define ID_IF ((char)8)
+#define ID_WHILE ((char)9)
+#define ID_LITERAL ((char)10)
+#define ID_CALL_FUNCTION ((char)11)
+#define ID_SUBSCRIPT ((char)12)
+#define ID_MUL ((char)13)
+#define ID_REM ((char)14)
+#define ID_ADD ((char)15)
+#define ID_SUB ((char)16)
+#define ID_NEG ((char)17)
+#define ID_EQUALS ((char)18)
+#define ID_NOT_EQUALS ((char)19)
+#define ID_LESS_EQUALS ((char)20)
+#define ID_LESS ((char)21)
+#define ID_AND ((char)22)
+#define ID_OR ((char)23)
+#define ID_ELSE ((char)24)
+#define ID_SET ((char)25)
+#define ID_IDENT ((char)26)
+#define ID_ENSURE_STACKSPACE ((char)27)
+#define ID_INC_SP ((char)28)
+#define ID_SAVE_PC ((char)29)
+#define ID_CALL_FN ((char)30)
+#define ID_BUILD_FN ((char)31)
+#define ID_SET_BOXED ((char)32)
+#define ID_SET_LOCAL ((char)33)
+#define ID_SET_CLOSURE ((char)34)
+#define ID_GET_BOXED ((char)35)
+#define ID_GET_LOCAL ((char)36)
+#define ID_GET_CLOSURE ((char)37)
     // get a value from the closure without unboxing it
-    private static final char ID_GET_BOXED_CLOSURE = 38;
+#define ID_GET_BOXED_CLOSURE ((char)38)
     // box a value
-    private static final char ID_BOX_IT = 39;
-    private static final char ID_LENGTH = 40;
-    private static final char ID_DROP = 41;
-    private static final char ID_PUSH_NIL = 42;
-    private static final char ID_PUT = 43;
-    private static final char ID_PUSH = 44;
-    private static final char ID_POP = 45;
-    private static final char ID_JUMP = 46;
-    private static final char ID_JUMP_IF_TRUE = 47;
-    private static final char ID_DUP = 48;
-    private static final char ID_NEW_LIST = 49;
-    private static final char ID_NEW_DICT = 50;
-    private static final char ID_BLOCK = 51;
-    private static final char ID_SEP = 52;
-    private static final char ID_IN = 53;
-    private static final char ID_JUMP_IF_FALSE = 54;
-    private static final char ID_SET_THIS = 55;
-    private static final char ID_THIS = 56;
-    private static final char ID_SWAP = 57;
-    private static final char ID_FOR = 58;
-    private static final char ID_END = 59;
-    private static final char ID_THROW = 60;
-    private static final char ID_TRY = 61;
-    private static final char ID_CATCH = 62;
-    private static final char ID_UNTRY = 63;
-    private static final char ID_DO = 64;
-    private static final char ID_NEXT = 65;
-    private static final char ID_INC = 66;
-    private static final char ID_DEC = 67;
-    private static final char ID_SHIFT_RIGHT = 68;
+#define ID_BOX_IT ((char)39)
+#define ID_LENGTH ((char)40)
+#define ID_DROP ((char)41)
+#define ID_PUSH_NIL ((char)42)
+#define ID_PUT ((char)43)
+#define ID_PUSH ((char)44)
+#define ID_POP ((char)45)
+#define ID_JUMP ((char)46)
+#define ID_JUMP_IF_TRUE ((char)47)
+#define ID_DUP ((char)48)
+#define ID_NEW_LIST ((char)49)
+#define ID_NEW_DICT ((char)50)
+#define ID_BLOCK ((char)51)
+#define ID_SEP ((char)52)
+#define ID_IN ((char)53)
+#define ID_JUMP_IF_FALSE ((char)54)
+#define ID_SET_THIS ((char)55)
+#define ID_THIS ((char)56)
+#define ID_SWAP ((char)57)
+#define ID_FOR ((char)58)
+#define ID_END ((char)59)
+#define ID_THROW ((char)60)
+#define ID_TRY ((char)61)
+#define ID_CATCH ((char)62)
+#define ID_UNTRY ((char)63)
+#define ID_DO ((char)64)
+#define ID_NEXT ((char)65)
+#define ID_INC ((char)66)
+#define ID_DEC ((char)67)
+#define ID_SHIFT_RIGHT ((char)68)
 
-    private static final int NUD_NONE = 12;
-    private static final int NUD_IDENT = 1;
-    private static final int NUD_LITERAL = 2;
-    private static final int NUD_END = 3;
-    private static final int NUD_SEP = 4;
-    private static final int NUD_LIST = 5;
-    private static final int NUD_PREFIX = 6;
-    private static final int NUD_PREFIX2 = 7;
-    private static final int NUD_FUNCTION = 8;
-    private static final int NUD_VAR = 9;
-    private static final int NUD_ATOM = 10;
-    private static final int NUD_CATCH = 11;
+#define NUD_NONE 12
+#define NUD_IDENT 1
+#define NUD_LITERAL 2
+#define NUD_END 3
+#define NUD_SEP 4
+#define NUD_LIST 5
+#define NUD_PREFIX 6
+#define NUD_PREFIX2 7
+#define NUD_FUNCTION 8
+#define NUD_VAR 9
+#define NUD_ATOM 10
+#define NUD_CATCH 11
 
-    private static final int LED_NONE = 8;
-    private static final int LED_DOT = 1;
-    private static final int LED_INFIX = 2;
-    private static final int LED_INFIXR = 3;
-    private static final int LED_INFIX_LIST = 4;
-    private static final int LED_INFIX_IF = 5;
-    private static final int LED_OPASSIGN = 6;
-    private static final int LED_INFIX_SWAP = 7;
+#define LED_NONE 8
+#define LED_DOT 1
+#define LED_INFIX 2
+#define LED_INFIXR 3
+#define LED_INFIX_LIST 4
+#define LED_INFIX_IF 5
+#define LED_OPASSIGN 6
+#define LED_INFIX_SWAP 7
+
+
+#define SIZE_FN 4
+#define SIZE_ID 7
+#define MASK_ID ((1<<SIZE_ID) - 1)
+#define MASK_FN ((1<<SIZE_FN) - 1)
+#define MASK_BP (-1 << (2*SIZE_ID + 2 *SIZE_FN))
+
+#define TOKEN_END ((((((((\
+                      0 << SIZE_FN)\
+                    | NUD_END) << SIZE_ID)\
+                    | ID_NONE) << SIZE_FN)\
+                    | LED_NONE) << SIZE_ID)\
+                    | ID_NONE)
+
+#define TOKEN_LITERAL ((((((((\
+                      0 << SIZE_FN)\
+                    | NUD_LITERAL) << SIZE_ID)\
+                    | ID_NONE) << SIZE_FN)\
+                    | LED_NONE) << SIZE_ID)\
+                    | ID_NONE)
+
+#define TOKEN_IDENT ((((((((\
+                      0 << SIZE_FN)\
+                    | NUD_IDENT) << SIZE_ID)\
+                    | ID_NONE) << SIZE_FN)\
+                    | LED_NONE) << SIZE_ID)\
+                    | ID_NONE)
+#define RET_FRAME_SIZE 3
+#define TRY_FRAME_SIZE 5
 
 
     private static final Object[] END_TOKEN = {new Integer(ID_END)};
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
     public static final Boolean TRUE = new Boolean(true);
     private static final String EOF = "(EOF)";
-
-    private static final int SIZE_FN = 4;
-    private static final int SIZE_ID = 7;
-    private static final int MASK_ID = ((1<<SIZE_ID) - 1);
-    private static final int MASK_FN = ((1<<SIZE_FN) - 1);
-    private static final int MASK_BP = (-1 << (2*SIZE_ID + 2 *SIZE_FN));
-
-    private static final int TOKEN_END = ((((((((
-                      0 << SIZE_FN)
-                    | NUD_END) << SIZE_ID)
-                    | ID_NONE) << SIZE_FN)
-                    | LED_NONE) << SIZE_ID)
-                    | ID_NONE);
-
-    private static final int TOKEN_LITERAL = ((((((((
-                      0 << SIZE_FN)
-                    | NUD_LITERAL) << SIZE_ID)
-                    | ID_NONE) << SIZE_FN)
-                    | LED_NONE) << SIZE_ID)
-                    | ID_NONE);
-
-    private static final int TOKEN_IDENT = ((((((((
-                      0 << SIZE_FN)
-                    | NUD_IDENT) << SIZE_ID)
-                    | ID_NONE) << SIZE_FN)
-                    | LED_NONE) << SIZE_ID)
-                    | ID_NONE);
-
-
-    // size of the return frame
-    private static final char RET_FRAME_SIZE = 3;
-    private static final char TRY_FRAME_SIZE = 5;
-
 
 
     private Hashtable boxedGlobals;
@@ -154,9 +154,9 @@ public final class LightScript {
         eval(new ByteArrayInputStream(s.getBytes()));
     }
     public void eval( InputStream is) throws LightScriptException {
-        /*
+#ifndef __DEBUG__
         try {
-        */
+#endif
             this.is = is;
             sb = new StringBuffer();
             c = ' ';
@@ -183,11 +183,11 @@ public final class LightScript {
                 }
                 execute(c);
             }
-            /*
+#ifndef __DEBUG__
         } catch(Error e) {
             throw new LightScriptException(e);
         }
-        */
+#endif
     }
 
     public void set(Object key, Object value) {
@@ -224,6 +224,7 @@ public final class LightScript {
     ///////////////////
     //////////////////
 
+#ifdef __DEBUG__
     private static final String[] idNames = {"", "PAREN", "LIST_LITERAL",
         "CURLY", "VAR", "RETURN", "NOT", "FUNCTION", "IF", "WHILE",
         "LITERAL", "CALL_FUNCTION", "SUBSCRIPT", "MUL", "REM", "ADD",
@@ -285,12 +286,12 @@ public final class LightScript {
             return o.toString();
         }
     }
-    /*
-
+#else /* not debug */
+#define idName(...) ""
     private static String stringify(Object o) {
         return o.toString();
     }
-    */
+#endif
 
     ////////////////////////
     // Utility functions //
@@ -347,9 +348,12 @@ public final class LightScript {
         public Object apply(Object thisPtr, Object[] args, int argpos, int argcount) throws LightScriptException {
             if(argcount == argc) {
                 return execute(this, args, argpos+argcount-1, thisPtr, argcount);
-            } else {
+            } 
+#ifdef __DEBUG__
+            else {
                 throw new LightScriptException("Wrong number of arguments");
             }
+#endif
         }
         public int argc;
         public byte[] code;
@@ -596,15 +600,19 @@ public final class LightScript {
                 if (((Integer) args[0]).intValue() == ID_PAREN) {
                     for (int i = 1; i < args.length; i++) {
                         Object[] os = (Object[]) args[i];
+#ifdef __DEBUG__
                         if (((Integer) os[0]).intValue() != ID_IDENT) {
                             throw new Error("parameter not variable name" + stringify(args));
                         }
+#endif
                         varsLocals.push(os[1]);
                     }
                 } else {
+#ifdef __DEBUG__
                     if (((Integer) args[0]).intValue() != ID_CALL_FUNCTION) {
                         throw new Error("parameter not variable name" + stringify(args));
                     }
+#endif
                     varsArgc--;
                     fnName = (String)varsUsed.elementAt(0);
                     varsUsed.removeElementAt(0);
@@ -663,13 +671,18 @@ public final class LightScript {
                     Object[] expr2 = (Object[]) expr[1];
                     if (type == ID_SET && ((Integer) expr2[0]).intValue() == ID_IDENT) {
                         stackAdd(varsLocals, expr2[1]);
-                    } else {
+                    } 
+#ifdef __DEBUG__
+                    else {
                         throw new Error("Error in var");
                     }
+#endif
                 }
                 return v(nudId, expr);
             default:
+#ifdef __DEBUG__
                 throw new Error("Unknown token: " + token+ ", val: " + val);
+#endif
         }
     }
 
@@ -698,9 +711,11 @@ public final class LightScript {
                 varsUsed= null;
                 Object[] right = parse(bp);
                 varsUsed = t;
+#ifdef __DEBUG__
                 if(((Integer)right[0]).intValue() != ID_IDENT) {
                     throw new Error("right side of dot not a string: " + stringify(right));
                 }
+#endif
 
                 if("length".equals(right[1])) {
                     return v(ID_LENGTH, left);
@@ -711,14 +726,18 @@ public final class LightScript {
             }
             case LED_INFIX_IF: {
                 Object branch1 = parse(0);
+#ifdef __DEBUG__
                 if(parse(0) != SEP_TOKEN) {
                     throw new Error("infix if error");
                 }
+#endif
                 Object branch2 = parse(0);
                 return v(ID_IF, left, v(ID_ELSE, branch1, branch2));
             }
             default:
+#ifdef __DEBUG__
                 throw new Error("Unknown led token: " + token);
+#endif
         }
     }
     private static Hashtable idMapping;
@@ -1083,11 +1102,15 @@ public final class LightScript {
         }
     }
 
+#ifdef __DEBUG__
     private void assertLength(Object[] list, int len) {
         if (list.length != len) {
             throw new Error("Wrong number of parameters:" + stringify(list));
         }
     }
+#else
+#define assertLength(...)
+#endif
 
     private void emit(int opcode) {
         code.append((char) opcode);
@@ -1262,9 +1285,11 @@ public final class LightScript {
                     pushShort(pos);
                 } else {
                     pos = varsLocals.indexOf(name);
+#ifdef __DEBUG__
                     if (pos == -1) {
                         throw new Error("Unfound var: " + stringify(expr));
                     }
+#endif
                     if (varsBoxed.contains(name)) {
                         emit(ID_GET_BOXED);
                     } else {
@@ -1283,9 +1308,12 @@ public final class LightScript {
                 } else if (id2 == ID_SET) {
                     compile(expr[1], yieldResult);
                     hasResult = yieldResult;
-                } else {
+                } 
+#ifdef __DEBUG__
+                else {
                     throw new Error("Error in var statement: " + stringify(expr));
                 }
+#endif
                 break;
             }
             case ID_SET: {
@@ -1304,15 +1332,20 @@ public final class LightScript {
                     emit(ID_PUT);
                     addDepth(-2);
                     hasResult = true;
-                } else {
+                } 
+#ifdef __DEBUG__
+                else {
                     throw new Error("Uncompilable assignment operator: " + stringify(expr));
                 }
+#endif
                 break;
             }
             case ID_PAREN: {
+#ifdef __DEBUG__
                 if (expr.length != 2) {
                     throw new Error("Unexpected content of parenthesis: " + stringify(expr));
                 }
+#endif
                 compile(expr[1], yieldResult);
                 hasResult = yieldResult;
                 break;
@@ -1352,9 +1385,11 @@ public final class LightScript {
 
                 // call the function
                 emit(ID_CALL_FN);
+#ifdef __DEBUG__
                 if (expr.length > 129) {
                     throw new Error("too many parameters");
                 }
+#endif
                 emit(expr.length - 2);
                 addDepth(2 - expr.length - RET_FRAME_SIZE);
                 if(methodcall) {
@@ -1486,9 +1521,11 @@ public final class LightScript {
                         // var name
                         name = ((Object[])name)[1];
                     }
+#ifdef __DEBUG__
                     if(!(name instanceof String)) {
                         throw new Error("for-in has no var");
                     }
+#endif
 
                     // evaluate b
                     compile(in[2], true);
@@ -1729,7 +1766,9 @@ public final class LightScript {
                 return;
             }
             default:
+#ifdef __DEBUG__
                 throw new Error("Uncompilable expression: " + stringify(expr));
+#endif
         }
 
         if (hasResult && !yieldResult) {
