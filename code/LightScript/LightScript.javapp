@@ -14,74 +14,6 @@ import java.util.Stack;
 // - Compiler
 // - Virtual machine
 public final class LightScript {
-
-    private Hashtable boxedGlobals;
-
-    public void eval(String s) throws LightScriptException {
-        eval(new ByteArrayInputStream(s.getBytes()));
-    }
-    public void eval( InputStream is) throws LightScriptException {
-        /*
-        try {
-        */
-            this.is = is;
-            sb = new StringBuffer();
-            c = ' ';
-            varsArgc = 0;
-            nextToken();
-            while(tokenVal != EOF || token != TOKEN_END) {
-                // parse with every var in closure
-                varsUsed = varsLocals = varsBoxed = new Stack();
-                varsBoxed.push("(ENV)");
-                Object[] os = parse(0);
-                varsClosure = varsUsed;
-        
-                // compile
-                Code c = compile(os);
-        
-                // create closure from globals
-                for(int i = 0; i < c.closure.length; i ++) {
-                    Object box = boxedGlobals.get(c.closure[i]);
-                    if(box == null) {
-                        box = new Object[1];
-                        boxedGlobals.put(c.closure[i], box);
-                    }
-                    c.closure[i] = box;
-                }
-                execute(c);
-            }
-            /*
-        } catch(Error e) {
-            throw new LightScriptException(e);
-        }
-        */
-    }
-
-    public void set(Object key, Object value) {
-        Object[] box = (Object[])boxedGlobals.get(key);
-        if(box == null) {
-            box = new Object[1];
-            boxedGlobals.put(key, box);
-        }
-        box[0] = value;
-    }
-    public Object get(Object key) {
-        Object[] box = (Object[])boxedGlobals.get(key);
-        if(box == null) {
-            return null;
-        } else {
-            return box[0];
-        }
-    
-    }
-
-    ////////////////////////
-    ////// Constants //////
-    //////////////////////
-    /////////////////////
-    ////////////////////
-    ///////////////////
-    //////////////////
     private static final char ID_NONE = 127;
     private static final char ID_PAREN = 1;
     private static final char ID_LIST_LITERAL = 2;
@@ -215,6 +147,74 @@ public final class LightScript {
     private static final char TRY_FRAME_SIZE = 5;
 
 
+
+    private Hashtable boxedGlobals;
+
+    public void eval(String s) throws LightScriptException {
+        eval(new ByteArrayInputStream(s.getBytes()));
+    }
+    public void eval( InputStream is) throws LightScriptException {
+        /*
+        try {
+        */
+            this.is = is;
+            sb = new StringBuffer();
+            c = ' ';
+            varsArgc = 0;
+            nextToken();
+            while(tokenVal != EOF || token != TOKEN_END) {
+                // parse with every var in closure
+                varsUsed = varsLocals = varsBoxed = new Stack();
+                varsBoxed.push("(ENV)");
+                Object[] os = parse(0);
+                varsClosure = varsUsed;
+        
+                // compile
+                Code c = compile(os);
+        
+                // create closure from globals
+                for(int i = 0; i < c.closure.length; i ++) {
+                    Object box = boxedGlobals.get(c.closure[i]);
+                    if(box == null) {
+                        box = new Object[1];
+                        boxedGlobals.put(c.closure[i], box);
+                    }
+                    c.closure[i] = box;
+                }
+                execute(c);
+            }
+            /*
+        } catch(Error e) {
+            throw new LightScriptException(e);
+        }
+        */
+    }
+
+    public void set(Object key, Object value) {
+        Object[] box = (Object[])boxedGlobals.get(key);
+        if(box == null) {
+            box = new Object[1];
+            boxedGlobals.put(key, box);
+        }
+        box[0] = value;
+    }
+    public Object get(Object key) {
+        Object[] box = (Object[])boxedGlobals.get(key);
+        if(box == null) {
+            return null;
+        } else {
+            return box[0];
+        }
+    
+    }
+
+    ////////////////////////
+    ////// Constants //////
+    //////////////////////
+    /////////////////////
+    ////////////////////
+    ///////////////////
+    //////////////////
 
     ////////////////////////
     ////// Debugging //////
