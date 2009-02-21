@@ -502,13 +502,11 @@ public final class LightScript {
     private Object[] parse(int rbp) {
         Object[] left = nud(token, tokenVal);
         while (rbp < (token & MASK_BP)) {
-            left = led(token, tokenLedFn, tokenLedId, left);
+            left = led(token, left);
         }
         return left;
     }
     private Object tokenVal;
-    private int tokenLedFn;
-    private int tokenLedId;
     private int token;
 
     private Object[] readList(Stack s) {
@@ -671,10 +669,12 @@ public final class LightScript {
         }
     }
 
-    private Object[] led(int tok, int ledFn, int ledId, Object left) {
+    private Object[] led(int tok, Object left) {
         nextToken();
         int bp = tok & MASK_BP;
-        switch (ledFn) {
+        int ledId = tok & ((1 << SIZE_ID) - 1);
+        // extract led function id from token
+        switch ((tok >> SIZE_ID) & ((1 << SIZE_FN) - 1)) {
             case LED_INFIX:
                 return v(ledId, left, parse(bp));
             case LED_INFIX_SWAP:
@@ -714,7 +714,7 @@ public final class LightScript {
                 return v(ID_IF, left, v(ID_ELSE, branch1, branch2));
             }
             default:
-                throw new Error("Unknown led: " + ledFn);
+                throw new Error("Unknown led token: " + token);
         }
     }
     private static String identifiers = ""
@@ -1047,8 +1047,6 @@ public final class LightScript {
 
 
         if (isLiteral) {
-            tokenLedFn = LED_NONE;
-            tokenLedId = ID_NONE;
 
             token = TOKEN_LITERAL;
             return;
@@ -1058,17 +1056,9 @@ public final class LightScript {
         if(o != null) {
             int encoded = ((Integer)o).intValue() + MASK_BP;
             token = encoded;
-            tokenLedId = encoded & MASK_ID;
-            encoded >>>= SIZE_ID;
-            tokenLedFn = encoded & MASK_FN;
-            encoded >>>= SIZE_FN;
-            encoded >>>= SIZE_ID;
-            encoded >>>= SIZE_FN;
             return;
         }
 
-        tokenLedFn = LED_NONE;
-        tokenLedId = ID_NONE;
         token = TOKEN_IDENT;
 
     }
