@@ -446,17 +446,9 @@ public final class LightScript {
     /////////////////
     ////////////////
     private Object[] parse(int rbp) {
-        int tNudFn = tokenNudFn;
-        int tNudId = tokenNudId;
-        Object tVal = tokenVal;
-        nextToken();
-        Object[] left = nud(tNudFn, tNudId, tVal);
+        Object[] left = nud(tokenNudFn, tokenNudId, tokenVal);
         while (rbp < tokenBp) {
-            int tLedFn = tokenLedFn;
-            int tLedId = tokenLedId;
-            int tBp = tokenBp;
-            nextToken();
-            left = led(tLedFn, tLedId, left, tBp);
+            left = led(tokenLedFn, tokenLedId, left, tokenBp);
         }
         return left;
     }
@@ -510,6 +502,7 @@ public final class LightScript {
     }
 
     private Object[] nud(int nudFn, int nudId, Object val) {
+        nextToken();
         switch (nudFn) {
             case NUD_ID:
                 stackAdd(varsUsed, val);
@@ -643,6 +636,7 @@ public final class LightScript {
     }
 
     private Object[] led(int ledFn, int ledId, Object left, int bp) {
+        nextToken();
         switch (ledFn) {
 
             case LED_INFIX:
