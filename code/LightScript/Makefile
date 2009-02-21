@@ -10,4 +10,4 @@ Main.class: $(source)
 all: Main.class
 
 clean:
-	rm -f *.class *.class.gz
+	rm -f *.class *.class.gz LightScript.java

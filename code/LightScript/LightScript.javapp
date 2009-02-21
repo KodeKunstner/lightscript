@@ -14,9 +14,21 @@ import java.util.Stack;
 // - Compiler
 // - Virtual machine
 
-//#define __DEBUG__
 
-public final class LightScript {
+    ////////////////////////
+    ////// Constants //////
+    //////////////////////
+    /////////////////////
+    ////////////////////
+    ///////////////////
+    //////////////////
+//#define __DEBUG__
+#define __COMPILE_TOKENISER__
+#define __COMPILE_API__
+#define __COMPILE_PARSER__
+#define __COMPILE_COMPILER__
+#define __COMPILE_VM__
+
 #define ID_NONE 127
 #define ID_PAREN 1
 #define ID_LIST_LITERAL 2
@@ -142,12 +154,40 @@ public final class LightScript {
 #define TRY_FRAME_SIZE 5
 
 
-    private static final Object[] END_TOKEN = {new Integer(ID_END)};
+public final class LightScript {
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
     public static final Boolean TRUE = new Boolean(true);
     private static final String EOF = "(EOF)";
 
+    private Stack constPool;
+    private int maxDepth;
+    private int depth;
+    private StringBuffer code;
 
+#ifdef __COMPILE_TOKENISER__
+    private InputStream is;
+    private int c;
+    private StringBuffer sb;
+#endif /* __COMPILE_TOKENISER__ */
+    private Stack varsUsed;
+    private Stack varsBoxed;
+    private Stack varsLocals;
+    private Stack varsClosure;
+    private int varsArgc;
+    private Object tokenVal;
+    private int token;
+
+#ifndef __COMPILE_API__
+    public void eval(String s) throws LightScriptException {
+    }
+    public void eval( InputStream is) throws LightScriptException {
+    }
+    public void set(Object key, Object value) {
+    }
+    public Object get(Object key) {
+        return null;
+    }
+#else
     private Hashtable boxedGlobals;
 
     public void eval(String s) throws LightScriptException {
@@ -157,9 +197,11 @@ public final class LightScript {
 #ifndef __DEBUG__
         try {
 #endif
+#ifdef __COMPILE_TOKENISER__
             this.is = is;
             sb = new StringBuffer();
             c = ' ';
+#endif
             varsArgc = 0;
             nextToken();
             while(tokenVal != EOF || token != TOKEN_END) {
@@ -187,7 +229,7 @@ public final class LightScript {
         } catch(Error e) {
             throw new LightScriptException(e);
         }
-#endif
+#endif /*__DEBUG__*/
     }
 
     public void set(Object key, Object value) {
@@ -207,14 +249,7 @@ public final class LightScript {
         }
     
     }
-
-    ////////////////////////
-    ////// Constants //////
-    //////////////////////
-    /////////////////////
-    ////////////////////
-    ///////////////////
-    //////////////////
+#endif /* __COMPILE_API__ */
 
     ////////////////////////
     ////// Debugging //////
@@ -316,16 +351,18 @@ public final class LightScript {
         return result;
     }
 
-    private static void stackAdd(Stack s, Object val) {
-        if(s == null) {
-            return;
+    private Object[] stripSep(Object[] os) {
+        Stack s = new Stack();
+        for(int i = 0; i < os.length; i++) {
+            if(os[i] != SEP_TOKEN) {
+                s.push(os[i]);
+            }
         }
-        int pos = s.indexOf(val);
-        if (pos == -1) {
-            pos = s.size();
-            s.push(val);
-        }
+        os = new Object[s.size()];
+        s.copyInto(os);
+        return os;
     }
+
 
     //////////////////////
     // Utility classes //
@@ -334,12 +371,6 @@ public final class LightScript {
     //////////////////
     /////////////////
     ////////////////
-    private Object[] stackToVector(Stack s) {
-        Object[] result = new Object[s.size()];
-        s.copyInto(result);
-        return result;
-    }
-
     /**
      * Analysis of variables in a function being compiled,
      * updated during the parsing.
@@ -377,25 +408,20 @@ public final class LightScript {
     }
 
     //////////////////////
-    /// Variables and ///
-    /// constructor  ///
+    /// Constructor   ///
+    ////////////////////
     ///////////////////
     //////////////////
     /////////////////
     ////////////////
-    private InputStream is;
-    private int c;
-    private StringBuffer sb;
-    private Stack varsUsed;
-    private Stack varsBoxed;
-    private Stack varsLocals;
-    private Stack varsClosure;
-    private int varsArgc;
 
+#ifdef __COMPILE_API__
     public LightScript() {
         boxedGlobals = new Hashtable();
         LightScriptStdLib.register(this);
     }
+#endif /* __COMPILE_API__ */
+
 
     //////////////////////
     //// Tokeniser //////
@@ -404,6 +430,10 @@ public final class LightScript {
     //////////////////
     /////////////////
     ////////////////
+#ifndef __COMPILE_TOKENISER__
+    private void nextToken() {
+    }
+#else
     private void nextc() {
         try {
             c = is.read();
@@ -429,7 +459,7 @@ public final class LightScript {
         return c == '=' || c == '!' || c == '<' || c == '&' || c == '|' || c == '+' || c == '-' || c == '>';
     }
 
-    private boolean nextToken() {
+    private void nextToken() {
         sb.setLength(0);
 
         // skip whitespaces
@@ -443,7 +473,7 @@ public final class LightScript {
                     }
                 } else {
                     resolveToken("/");
-                    return true;
+                    return;
                 }
             }
             nextc();
@@ -453,7 +483,7 @@ public final class LightScript {
         if (c == -1) {
             token = TOKEN_END;
             tokenVal = EOF;
-            return false;
+            return;
 
         // String
         } else if (c == '"') {
@@ -470,7 +500,7 @@ public final class LightScript {
             nextc();
             token = TOKEN_LITERAL;
             tokenVal = sb.toString();
-            return true;
+            return;
 
         // Number
         } else if (isNum()) {
@@ -479,7 +509,7 @@ public final class LightScript {
             } while (isNum());
             token = TOKEN_LITERAL;
             tokenVal = Integer.valueOf(sb.toString());
-            return true;
+            return;
 
         // Identifier
         } else if (isAlphaNum()) {
@@ -498,8 +528,9 @@ public final class LightScript {
             pushc();
         }
         resolveToken(sb.toString());
-        return true;
+        return;
     }
+#endif /* __COMPILE_TOKENISER__ */
 
     //////////////////////
     ////// Parser ///////
@@ -508,6 +539,24 @@ public final class LightScript {
     //////////////////
     /////////////////
     ////////////////
+#ifndef __COMPILE_PARSER__
+    private Object[] parse(int rbp) {
+        return null;
+    }
+    private void resolveToken(Object o) {
+    }
+#else
+    private static void stackAdd(Stack s, Object val) {
+        if(s == null) {
+            return;
+        }
+        int pos = s.indexOf(val);
+        if (pos == -1) {
+            pos = s.size();
+            s.push(val);
+        }
+    }
+
     private Object[] parse(int rbp) {
         Object[] left = nud(token);
         while (rbp < (token & MASK_BP)) {
@@ -515,8 +564,6 @@ public final class LightScript {
         }
         return left;
     }
-    private Object tokenVal;
-    private int token;
 
     private Object[] readList(Stack s) {
         while (token != TOKEN_END) {
@@ -530,18 +577,6 @@ public final class LightScript {
         return result;
     }
 
-    private Object[] stripSep(Object[] os) {
-        Stack s = new Stack();
-        for(int i = 0; i < os.length; i++) {
-            if(os[i] != SEP_TOKEN) {
-                s.push(os[i]);
-            }
-        }
-        os = new Object[s.size()];
-        s.copyInto(os);
-        return os;
-    }
-
     private Object[] nud(int tok) {
         Object val = tokenVal;
         nextToken();
@@ -553,8 +588,8 @@ public final class LightScript {
                 return v(ID_IDENT, val);
             case NUD_LITERAL:
                 return v(ID_LITERAL, val);
-            case NUD_END:
-                return END_TOKEN;
+            case NUD_END: 
+                return null;// result does not matter, as this is removed during parsing
             case NUD_SEP:
                 return SEP_TOKEN;
             case NUD_LIST: {
@@ -1080,6 +1115,7 @@ public final class LightScript {
             token = ((Integer)o).intValue() + MASK_BP;
         }
     }
+#endif /* __COMPILE_PARSER__ */
 
     //////////////////////
     ///// Compiler //////
@@ -1088,11 +1124,12 @@ public final class LightScript {
     //////////////////
     /////////////////
     ////////////////
-    private Stack constPool;
-    private int maxDepth;
-    private int depth;
-    private StringBuffer code;
 
+#ifndef __COMPILE_COMPILER__
+    private Code compile(Object[] body) {
+        return null;
+    }
+#else
     private void pushShort(int i) {
         emit(((i >> 8) & 0xff));
         emit((i & 0xff));
@@ -1789,6 +1826,7 @@ public final class LightScript {
             addDepth(1);
         }
     }
+#endif /*__COMPILE_COMPILER__*/
 
     //////////////////////
     // Virtual Machine //
@@ -1797,6 +1835,14 @@ public final class LightScript {
     //////////////////
     /////////////////
     ////////////////
+#ifndef __COMPILE_VM__
+    private static Object execute(Code cl) throws LightScriptException {
+        return null;
+    }
+    private static Object execute(Code cl, Object[] stack, int sp, Object thisPtr, int argcount) throws LightScriptException {
+        return null;
+    }
+#else
     private static int readShort(int pc, byte[] code) {
         return (short) (((code[++pc] & 0xff) << 8) | (code[++pc] & 0xff));
     }
@@ -2240,4 +2286,5 @@ public final class LightScript {
             }
         }
     }
+#endif /*__COMPILE_VM__*/
 }
