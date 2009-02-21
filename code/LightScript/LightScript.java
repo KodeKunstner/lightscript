@@ -501,8 +501,8 @@ public final class LightScript {
     ////////////////
     private Object[] parse(int rbp) {
         Object[] left = nud(tokenNudFn, tokenNudId, tokenVal);
-        while (rbp < (tokenBp * 256)) {
-            left = led(tokenLedFn, tokenLedId, left, (tokenBp * 256));
+        while (rbp < (token & MASK_BP)) {
+            left = led(tokenLedFn, tokenLedId, left, token & MASK_BP);
         }
         return left;
     }
@@ -511,7 +511,6 @@ public final class LightScript {
     private int tokenLedFn;
     private int tokenNudId;
     private int tokenLedId;
-    private int tokenBp;
     private int token;
 
     private Object[] readList(Stack s) {
@@ -1047,7 +1046,6 @@ public final class LightScript {
 
 
         if (isLiteral) {
-            tokenBp = 0;
             tokenNudFn = NUD_LITERAL;
             tokenNudId = ID_NONE;
             tokenLedFn = LED_NONE;
@@ -1059,7 +1057,7 @@ public final class LightScript {
 
         Object o = idMapping.get(val);
         if(o != null) {
-            int encoded = ((Integer)o).intValue();
+            int encoded = ((Integer)o).intValue() + MASK_BP;
             token = encoded;
             tokenLedId = encoded & MASK_ID;
             encoded >>>= SIZE_ID;
@@ -1069,11 +1067,9 @@ public final class LightScript {
             encoded >>>= SIZE_ID;
             tokenNudFn = encoded & MASK_FN;
             encoded >>>= SIZE_FN;
-            tokenBp = encoded - 1;
             return;
         }
 
-        tokenBp = 0;
         tokenNudFn = NUD_IDENT;
         tokenNudId = ID_NONE;
         tokenLedFn = LED_NONE;
