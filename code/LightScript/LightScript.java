@@ -1019,34 +1019,29 @@ public final class LightScript {
     private void newToken(boolean isLiteral, Object val) {
         this.tokenVal = val;
         tokenBp = 0;
-        tokenNudFn = NUD_NONE;
+        tokenNudFn = NUD_IDENT;
         tokenLedFn = LED_NONE;
         tokenNudId = ID_NONE;
         tokenLedId = ID_NONE;
 
         if (isLiteral) {
             tokenNudFn = NUD_LITERAL;
-        } else {
-            Object o = idMapping.get(val);
-            if(o != null) {
-                    int encoded = ((Integer)o).intValue();
-                    tokenLedId = encoded & MASK_ID;
-                    encoded >>>= SIZE_ID;
-                    tokenLedFn = encoded & MASK_FN;
-                    encoded >>>= SIZE_FN;
-                    tokenNudId = encoded & MASK_ID;
-                    encoded >>>= SIZE_ID;
-                    tokenNudFn = encoded & MASK_FN;
-                    encoded >>>= SIZE_FN;
-                    tokenBp = (encoded - 1) * 100;
+            return;
+        } 
 
-            
-            } else {
-                tokenNudFn = NUD_IDENT;
-            }
+        Object o = idMapping.get(val);
+        if(o != null) {
+            int encoded = ((Integer)o).intValue();
+            tokenLedId = encoded & MASK_ID;
+            encoded >>>= SIZE_ID;
+            tokenLedFn = encoded & MASK_FN;
+            encoded >>>= SIZE_FN;
+            tokenNudId = encoded & MASK_ID;
+            encoded >>>= SIZE_ID;
+            tokenNudFn = encoded & MASK_FN;
+            encoded >>>= SIZE_FN;
+            tokenBp = (encoded - 1) * 100;
         }
-
-
     }
     //////////////////////
     ///// Compiler //////
