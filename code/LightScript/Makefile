@@ -8,7 +8,10 @@ all: $(CLASSES) test.js
 clean:
 	rm -f *.class *.class.gz
 
-.SUFFIXES: .java .class
+.SUFFIXES: .java .class .javapp
 
 .java.class:
-	javac -source 1.2 *.java
+	./build.sh
+
+.javapp.class:
+	./build.sh
