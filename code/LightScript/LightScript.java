@@ -29,7 +29,7 @@ public final class LightScript {
             c = ' ';
             varsArgc = 0;
             nextToken();
-            while(tokenVal != EOF || tokenNudFn != NUD_END) {
+            while(tokenVal != EOF || token != TOKEN_END) {
                 // parse with every var in closure
                 varsUsed = varsLocals = varsBoxed = new Stack();
                 varsBoxed.push("(ENV)");
@@ -500,21 +500,19 @@ public final class LightScript {
     /////////////////
     ////////////////
     private Object[] parse(int rbp) {
-        Object[] left = nud(tokenNudFn, tokenNudId, tokenVal);
+        Object[] left = nud(token, tokenVal);
         while (rbp < (token & MASK_BP)) {
-            left = led(tokenLedFn, tokenLedId, left, token & MASK_BP);
+            left = led(token, tokenLedFn, tokenLedId, left);
         }
         return left;
     }
     private Object tokenVal;
-    private int tokenNudFn;
     private int tokenLedFn;
-    private int tokenNudId;
     private int tokenLedId;
     private int token;
 
     private Object[] readList(Stack s) {
-        while (tokenNudFn != NUD_END) {
+        while (token != TOKEN_END) {
             Object[] p = parse(0);
             s.push(p);
         }
@@ -537,9 +535,11 @@ public final class LightScript {
         return os;
     }
 
-    private Object[] nud(int nudFn, int nudId, Object val) {
+    private Object[] nud(int tok, Object val) {
         nextToken();
-        switch (nudFn) {
+        int nudId = (tok >> (SIZE_ID + SIZE_FN)) & ((1 << SIZE_ID) - 1);
+        // extract the token function id from tok
+        switch ((tok >> (SIZE_ID * 2 + SIZE_FN)) & ((1 << SIZE_FN) - 1)) {
             case NUD_IDENT:
                 stackAdd(varsUsed, val);
                 return v(ID_IDENT, val);
@@ -667,12 +667,13 @@ public final class LightScript {
                 }
                 return v(nudId, expr);
             default:
-                throw new Error("Unknown nud: " + nudFn + ", val: " + tokenVal);
+                throw new Error("Unknown token: " + token+ ", val: " + tokenVal);
         }
     }
 
-    private Object[] led(int ledFn, int ledId, Object left, int bp) {
+    private Object[] led(int tok, int ledFn, int ledId, Object left) {
         nextToken();
+        int bp = tok & MASK_BP;
         switch (ledFn) {
             case LED_INFIX:
                 return v(ledId, left, parse(bp));
@@ -1046,8 +1047,6 @@ public final class LightScript {
 
 
         if (isLiteral) {
-            tokenNudFn = NUD_LITERAL;
-            tokenNudId = ID_NONE;
             tokenLedFn = LED_NONE;
             tokenLedId = ID_NONE;
 
@@ -1063,15 +1062,11 @@ public final class LightScript {
             encoded >>>= SIZE_ID;
             tokenLedFn = encoded & MASK_FN;
             encoded >>>= SIZE_FN;
-            tokenNudId = encoded & MASK_ID;
             encoded >>>= SIZE_ID;
-            tokenNudFn = encoded & MASK_FN;
             encoded >>>= SIZE_FN;
             return;
         }
 
-        tokenNudFn = NUD_IDENT;
-        tokenNudId = ID_NONE;
         tokenLedFn = LED_NONE;
         tokenLedId = ID_NONE;
         token = TOKEN_IDENT;
