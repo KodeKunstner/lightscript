@@ -29,7 +29,7 @@ public final class LightScript {
             c = ' ';
             varsArgc = 0;
             nextToken();
-            while(tokenVal != null || tokenNudFn != NUD_END) {
+            while(tokenVal != EOF || tokenNudFn != NUD_END) {
                 // parse with every var in closure
                 varsUsed = varsLocals = varsBoxed = new Stack();
                 varsBoxed.push("(ENV)");
@@ -156,6 +156,7 @@ public final class LightScript {
     private static final Object[] END_TOKEN = {new Integer(ID_END)};
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
     public static final Boolean TRUE = new Boolean(true);
+    private static final String EOF = "(EOF)";
 
     // size of the return frame
     private static final char RET_FRAME_SIZE = 3;
@@ -392,7 +393,7 @@ public final class LightScript {
 
         // End of file
         if (c == -1) {
-            newToken(false, null);
+            newToken(false, EOF);
             return false;
 
         // String
@@ -690,7 +691,13 @@ public final class LightScript {
                 throw new Error("Unknown led: " + ledFn);
         }
     }
-    public static String identifiers = ""
+    private static String identifiers = ""
+        + "(EOF)"
+            + (char) 1
+            + (char) NUD_END
+            + (char) ID_NONE
+            + (char) LED_NONE
+            + (char) ID_NONE
         + "]"
             + (char) 1
             + (char) NUD_END
@@ -977,7 +984,7 @@ public final class LightScript {
             + (char) LED_NONE
             + (char) ID_NONE
         ;
-    public static Hashtable idMapping;
+    private static Hashtable idMapping;
     static {
         idMapping = new Hashtable();
         StringBuffer sb = new StringBuffer();
@@ -1019,9 +1026,6 @@ public final class LightScript {
 
         if (isLiteral) {
             tokenNudFn = NUD_LITERAL;
-
-        } else if (val == null) {
-            tokenNudFn = NUD_END;
         } else {
             Object o = idMapping.get(val);
             if(o != null) {
