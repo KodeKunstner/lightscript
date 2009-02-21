@@ -86,7 +86,7 @@ public final class LightScript {
     private static final char ID_DEC = 67;
     private static final char ID_SHIFT_RIGHT = 68;
 
-    private static final int NUD_NONE= 12;
+    private static final int NUD_NONE = 12;
     private static final int NUD_IDENT = 1;
     private static final int NUD_LITERAL = 2;
     private static final int NUD_END = 3;
@@ -99,7 +99,7 @@ public final class LightScript {
     private static final int NUD_ATOM = 10;
     private static final int NUD_CATCH = 11;
 
-    private static final int LED_NONE= 8;
+    private static final int LED_NONE = 8;
     private static final int LED_DOT = 1;
     private static final int LED_INFIX = 2;
     private static final int LED_INFIXR = 3;
@@ -114,7 +114,7 @@ public final class LightScript {
     public static final Boolean TRUE = new Boolean(true);
     private static final String EOF = "(EOF)";
 
-    private static final int SIZE_FN= 4;
+    private static final int SIZE_FN = 4;
     private static final int SIZE_ID = 7;
     private static final int MASK_ID = ((1<<SIZE_ID) - 1);
     private static final int MASK_FN = ((1<<SIZE_FN) - 1);
