@@ -82,6 +82,7 @@ public final class LightScript {
     ////////////////////
     ///////////////////
     //////////////////
+    private static final char ID_NONE = 0;
     private static final char ID_PAREN = 1;
     private static final char ID_LIST_LITERAL = 2;
     private static final char ID_CURLY = 3;
@@ -458,24 +459,27 @@ public final class LightScript {
     private int tokenNudId;
     private int tokenLedId;
     private int tokenBp;
-    private static final int NUD_ID = 0;
-    private static final int NUD_LITERAL = 1;
-    private static final int NUD_END = 2;
-    private static final int NUD_SEP = 3;
-    private static final int NUD_LIST = 4;
-    private static final int NUD_PREFIX = 5;
-    private static final int NUD_PREFIX2 = 6;
-    private static final int LED_INFIX = 7;
-    private static final int LED_INFIXR = 8;
-    private static final int LED_INFIX_LIST = 9;
-    private static final int NUD_FUNCTION = 10;
-    private static final int NUD_VAR = 11;
-    private static final int LED_DOT = 12;
-    private static final int NUD_ATOM = 13;
-    private static final int LED_INFIX_IF = 14;
-    private static final int NUD_CATCH = 15;
-    private static final int LED_OPASSIGN = 16;
-    private static final int LED_INFIX_SWAP = 17;
+    private static final int NUD_NONE= 0;
+    private static final int NUD_IDENT = 1;
+    private static final int NUD_LITERAL = 2;
+    private static final int NUD_END = 3;
+    private static final int NUD_SEP = 4;
+    private static final int NUD_LIST = 5;
+    private static final int NUD_PREFIX = 6;
+    private static final int NUD_PREFIX2 = 7;
+    private static final int NUD_FUNCTION = 8;
+    private static final int NUD_VAR = 9;
+    private static final int NUD_ATOM = 10;
+    private static final int NUD_CATCH = 11;
+
+    private static final int LED_NONE= 0;
+    private static final int LED_DOT = 1;
+    private static final int LED_INFIX = 2;
+    private static final int LED_INFIXR = 3;
+    private static final int LED_INFIX_LIST = 4;
+    private static final int LED_INFIX_IF = 5;
+    private static final int LED_OPASSIGN = 6;
+    private static final int LED_INFIX_SWAP = 7;
 
     private Object[] readList(Stack s) {
         while (tokenNudFn != NUD_END) {
@@ -504,7 +508,7 @@ public final class LightScript {
     private Object[] nud(int nudFn, int nudId, Object val) {
         nextToken();
         switch (nudFn) {
-            case NUD_ID:
+            case NUD_IDENT:
                 stackAdd(varsUsed, val);
                 return v(ID_IDENT, val);
             case NUD_LITERAL:
@@ -638,7 +642,6 @@ public final class LightScript {
     private Object[] led(int ledFn, int ledId, Object left, int bp) {
         nextToken();
         switch (ledFn) {
-
             case LED_INFIX:
                 return v(ledId, left, parse(bp));
             case LED_INFIX_SWAP:
@@ -681,14 +684,22 @@ public final class LightScript {
                 throw new Error("Unknown led: " + ledFn);
         }
     }
+    static String identifiers = ""
+        + ""
+            + (char) 0
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_NONE
+            + (char) ID_NONE
+        ;
 
     private void newToken(boolean isLiteral, Object val) {
         this.tokenVal = val;
         tokenBp = 0;
-        tokenNudFn = 0;
-        tokenLedFn = 0;
-        tokenNudId = 0;
-        tokenLedId = 0;
+        tokenNudFn = NUD_IDENT;
+        tokenLedFn = NUD_NONE;
+        tokenNudId = ID_NONE;
+        tokenLedId = ID_NONE;
 
         if (isLiteral) {
             tokenNudFn = NUD_LITERAL;
