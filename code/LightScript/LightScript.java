@@ -82,7 +82,7 @@ public final class LightScript {
     ////////////////////
     ///////////////////
     //////////////////
-    private static final char ID_NONE = 0;
+    private static final char ID_NONE = 127;
     private static final char ID_PAREN = 1;
     private static final char ID_LIST_LITERAL = 2;
     private static final char ID_CURLY = 3;
@@ -459,7 +459,7 @@ public final class LightScript {
     private int tokenNudId;
     private int tokenLedId;
     private int tokenBp;
-    private static final int NUD_NONE= 0;
+    private static final int NUD_NONE= 12;
     private static final int NUD_IDENT = 1;
     private static final int NUD_LITERAL = 2;
     private static final int NUD_END = 3;
@@ -472,7 +472,7 @@ public final class LightScript {
     private static final int NUD_ATOM = 10;
     private static final int NUD_CATCH = 11;
 
-    private static final int LED_NONE= 0;
+    private static final int LED_NONE= 8;
     private static final int LED_DOT = 1;
     private static final int LED_INFIX = 2;
     private static final int LED_INFIXR = 3;
@@ -480,6 +480,12 @@ public final class LightScript {
     private static final int LED_INFIX_IF = 5;
     private static final int LED_OPASSIGN = 6;
     private static final int LED_INFIX_SWAP = 7;
+
+    private static final int SIZE_FN= 4;
+    private static final int SIZE_ID = 7;
+    private static final int MASK_ID = ((1<<SIZE_ID) - 1);
+    private static final int MASK_FN = ((1<<SIZE_FN) - 1);
+
 
     private Object[] readList(Stack s) {
         while (tokenNudFn != NUD_END) {
@@ -635,7 +641,7 @@ public final class LightScript {
                 }
                 return v(nudId, expr);
             default:
-                throw new Error("Unknown nud: " + nudFn);
+                throw new Error("Unknown nud: " + nudFn + ", val: " + tokenVal);
         }
     }
 
@@ -684,216 +690,358 @@ public final class LightScript {
                 throw new Error("Unknown led: " + ledFn);
         }
     }
-    static String identifiers = ""
-        + ""
-            + (char) 0
+    public static String identifiers = ""
+        + "]"
+            + (char) 1
+            + (char) NUD_END
+            + (char) ID_NONE
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + ")"
+            + (char) 1
+            + (char) NUD_END
+            + (char) ID_NONE
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "}"
+            + (char) 1
+            + (char) NUD_END
+            + (char) ID_NONE
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "."
+            + (char) 8
             + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_DOT
+            + (char) ID_SUBSCRIPT
+        + "("
+            + (char) 7
+            + (char) NUD_LIST
+            + (char) ID_PAREN
+            + (char) LED_INFIX_LIST
+            + (char) ID_CALL_FUNCTION
+        + "["
+            + (char) 7
+            + (char) NUD_LIST
+            + (char) ID_LIST_LITERAL
+            + (char) LED_INFIX_LIST
+            + (char) ID_SUBSCRIPT
+        + ">>"
+            + (char) 6  // FIXME: priority?
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX
+            + (char) ID_SHIFT_RIGHT
+        + "*"
+            + (char) 6
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX
+            + (char) ID_MUL
+        + "%"
+            + (char) 6
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX
+            + (char) ID_REM
+        + "+"
+            + (char) 5
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX
+            + (char) ID_ADD
+        + "-"
+            + (char) 5
+            + (char) NUD_PREFIX
+            + (char) ID_NEG
+            + (char) LED_INFIX
+            + (char) ID_SUB
+        + "==="
+            + (char) 4
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX
+            + (char) ID_EQUALS
+        + "!=="
+            + (char) 4
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX
+            + (char) ID_NOT_EQUALS
+        + "<="
+            + (char) 4
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX
+            + (char) ID_LESS_EQUALS
+        + "<"
+            + (char) 4
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX
+            + (char) ID_LESS
+        + ">="
+            + (char) 4
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX_SWAP
+            + (char) ID_LESS_EQUALS
+        + ">"
+            + (char) 4
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX_SWAP
+            + (char) ID_LESS
+        + "&&"
+            + (char) 3
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIXR
+            + (char) ID_AND
+        + "||"
+            + (char) 3
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIXR
+            + (char) ID_OR
+        + "else"
+            + (char) 3
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIXR
+            + (char) ID_ELSE
+        + "in"
+            + (char) 3
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX
+            + (char) ID_IN
+        + "?"
+            + (char) 3
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX_IF
+            + (char) ID_NONE
+        + "="
+            + (char) 2
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX
+            + (char) ID_SET
+        + "+="
+            + (char) 2
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_OPASSIGN
+            + (char) ID_ADD
+        + "-="
+            + (char) 2
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_OPASSIGN
+            + (char) ID_SUB
+        + ":"
+            + (char) 1
+            + (char) NUD_SEP
+            + (char) ID_NONE
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + ";"
+            + (char) 1
+            + (char) NUD_SEP
+            + (char) ID_NONE
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + ","
+            + (char) 1
+            + (char) NUD_SEP
+            + (char) ID_NONE
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "{"
+            + (char) 1
+            + (char) NUD_LIST
+            + (char) ID_CURLY
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "var"
+            + (char) 1
+            + (char) NUD_VAR
+            + (char) ID_VAR
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "return"
+            + (char) 1
+            + (char) NUD_PREFIX
+            + (char) ID_RETURN
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "!"
+            + (char) 1
+            + (char) NUD_PREFIX
+            + (char) ID_NOT
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "++"
+            + (char) 1
+            + (char) NUD_PREFIX
+            + (char) ID_INC
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "--"
+            + (char) 1
+            + (char) NUD_PREFIX
+            + (char) ID_DEC
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "throw"
+            + (char) 1
+            + (char) NUD_PREFIX
+            + (char) ID_THROW
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "try"
+            + (char) 1
+            + (char) NUD_PREFIX2
+            + (char) ID_TRY
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "catch"
+            + (char) 1
+            + (char) NUD_CATCH
+            + (char) ID_CATCH
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "function"
+            + (char) 1
+            + (char) NUD_FUNCTION
+            + (char) ID_BUILD_FUNCTION
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "do"
+            + (char) 1
+            + (char) NUD_PREFIX2
+            + (char) ID_DO
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "for"
+            + (char) 1
+            + (char) NUD_PREFIX2
+            + (char) ID_FOR
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "if"
+            + (char) 1
+            + (char) NUD_PREFIX2
+            + (char) ID_IF
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "while"
+            + (char) 1
+            + (char) NUD_PREFIX2
+            + (char) ID_WHILE
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "undefined"
+            + (char) 1
+            + (char) NUD_ATOM
+            + (char) ID_PUSH_NIL
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "null"
+            + (char) 1
+            + (char) NUD_ATOM
+            + (char) ID_PUSH_NIL
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "false"
+            + (char) 1
+            + (char) NUD_ATOM
+            + (char) ID_PUSH_NIL
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "this"
+            + (char) 1
+            + (char) NUD_ATOM
+            + (char) ID_THIS
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "true"
+            + (char) 1
+            // true translates to the string true, 
+            // could be changed to TRUE
+            // by adding another nud-case
+            + (char) NUD_LITERAL 
             + (char) ID_NONE
             + (char) LED_NONE
             + (char) ID_NONE
         ;
+    public static Hashtable idMapping;
+    static {
+        idMapping = new Hashtable();
+        StringBuffer sb = new StringBuffer();
+        for(int i = 0; i < identifiers.length(); i++) {
+            int result = identifiers.charAt(i);
+            // result is an encoded binding-power/function/id object
+            if(result < 32) {
+                // binding power have been read
+                i++;
+                // read nud function
+                result = (result << SIZE_FN) + identifiers.charAt(i);
+                i++;
+                // read nud identifier
+                result = (result << SIZE_ID) + identifiers.charAt(i);
+                i++;
+                // read led function
+                result = (result << SIZE_FN) + identifiers.charAt(i);
+                i++;
+                // read led identifier
+                result = (result << SIZE_ID) + identifiers.charAt(i);
+                // save to mapping, and start next string.
+                idMapping.put(sb.toString(), new Integer(result));
+                sb.setLength(0);
+
+            // result is a char to be addded to the string
+            } else {
+                sb.append((char)result);
+            }
+        }
+    }
 
     private void newToken(boolean isLiteral, Object val) {
         this.tokenVal = val;
         tokenBp = 0;
-        tokenNudFn = NUD_IDENT;
-        tokenLedFn = NUD_NONE;
+        tokenNudFn = NUD_NONE;
+        tokenLedFn = LED_NONE;
         tokenNudId = ID_NONE;
         tokenLedId = ID_NONE;
 
         if (isLiteral) {
             tokenNudFn = NUD_LITERAL;
 
-        } else if (val == null || "]".equals(val) || ")".equals(val) || "}".equals(val)) {
+        } else if (val == null) {
             tokenNudFn = NUD_END;
+        } else {
+            Object o = idMapping.get(val);
+            if(o != null) {
+                    int encoded = ((Integer)o).intValue();
+                    tokenLedId = encoded & MASK_ID;
+                    encoded >>>= SIZE_ID;
+                    tokenLedFn = encoded & MASK_FN;
+                    encoded >>>= SIZE_FN;
+                    tokenNudId = encoded & MASK_ID;
+                    encoded >>>= SIZE_ID;
+                    tokenNudFn = encoded & MASK_FN;
+                    encoded >>>= SIZE_FN;
+                    tokenBp = (encoded - 1) * 100;
 
-        } else if (".".equals(val)) {
-            tokenBp = 700;
-            tokenLedFn = LED_DOT;
-            tokenLedId = ID_SUBSCRIPT;
-
-        } else if ("(".equals(val)) {
-            tokenBp = 600;
-            tokenLedFn = LED_INFIX_LIST;
-            tokenLedId = ID_CALL_FUNCTION;
-            tokenNudFn = NUD_LIST;
-            tokenNudId = ID_PAREN;
-
-        } else if ("[".equals(val)) {
-            tokenBp = 600;
-            tokenLedFn = LED_INFIX_LIST;
-            tokenLedId = ID_SUBSCRIPT;
-            tokenNudFn = NUD_LIST;
-            tokenNudId = ID_LIST_LITERAL;
-
-        } else if (">>".equals(val)) {
-            // FIXME: what is priority?
-            tokenBp = 500;
-            tokenLedFn = LED_INFIX;
-            tokenLedId = ID_SHIFT_RIGHT;
-
-        } else if ("*".equals(val)) {
-            tokenBp = 500;
-            tokenLedFn = LED_INFIX;
-            tokenLedId = ID_MUL;
-
-        } else if ("%".equals(val)) {
-            tokenBp = 500;
-            tokenLedFn = LED_INFIX;
-            tokenLedId = ID_REM;
-
-        } else if ("+".equals(val)) {
-            tokenBp = 400;
-            tokenLedFn = LED_INFIX;
-            tokenLedId = ID_ADD;
-
-        } else if ("-".equals(val)) {
-            tokenBp = 400;
-            tokenLedFn = LED_INFIX;
-            tokenLedId = ID_SUB;
-            tokenNudFn = NUD_PREFIX;
-            tokenNudId = ID_NEG;
-
-        } else if ("===".equals(val)) {
-            tokenBp = 300;
-            tokenLedFn = LED_INFIX;
-            tokenLedId = ID_EQUALS;
-
-        } else if ("!==".equals(val)) {
-            tokenBp = 300;
-            tokenLedFn = LED_INFIX;
-            tokenLedId = ID_NOT_EQUALS;
-
-        } else if ("<=".equals(val)) {
-            tokenBp = 300;
-            tokenLedFn = LED_INFIX;
-            tokenLedId = ID_LESS_EQUALS;
-
-        } else if ("<".equals(val)) {
-            tokenBp = 300;
-            tokenLedFn = LED_INFIX;
-            tokenLedId = ID_LESS;
-
-        } else if (">".equals(val)) {
-            tokenBp = 300;
-            tokenLedFn = LED_INFIX_SWAP;
-            tokenLedId = ID_LESS;
-
-        } else if (">=".equals(val)) {
-            tokenBp = 300;
-            tokenLedFn = LED_INFIX_SWAP;
-            tokenLedId = ID_LESS_EQUALS;
-
-        } else if ("&&".equals(val)) {
-            tokenBp = 200;
-            tokenLedFn = LED_INFIXR;
-            tokenLedId = ID_AND;
-
-        } else if ("||".equals(val)) {
-            tokenBp = 200;
-            tokenLedFn = LED_INFIXR;
-            tokenLedId = ID_OR;
-
-        } else if ("else".equals(val)) {
-            tokenBp = 200;
-            tokenLedFn = LED_INFIXR;
-            tokenLedId = ID_ELSE;
-
-        } else if ("in".equals(val)) {
-            tokenBp = 200;
-            tokenLedFn = LED_INFIX;
-            tokenLedId = ID_IN;
-
-        } else if ("?".equals(val)) {
-            tokenBp = 200;
-            tokenLedFn = LED_INFIX_IF;
-
-        } else if ("=".equals(val)) {
-            tokenBp = 100;
-            tokenLedFn = LED_INFIX;
-            tokenLedId = ID_SET;
-
-        } else if ("+=".equals(val)) {
-            tokenBp = 100;
-            tokenLedFn = LED_OPASSIGN;
-            tokenLedId = ID_ADD;
-
-        } else if ("-=".equals(val)) {
-            tokenBp = 100;
-            tokenLedFn = LED_OPASSIGN;
-            tokenLedId = ID_SUB;
-
-        } else if (":".equals(val) || ";".equals(val) || ",".equals(val)) {
-            tokenNudFn = NUD_SEP;
-
-        } else if ("{".equals(val)) {
-            tokenNudFn = NUD_LIST;
-            tokenNudId = ID_CURLY;
-
-        } else if ("var".equals(val)) {
-            tokenNudFn = NUD_VAR;
-            tokenNudId = ID_VAR;
-
-        } else if ("return".equals(val)) {
-            tokenNudFn = NUD_PREFIX;
-            tokenNudId = ID_RETURN;
-
-        } else if ("!".equals(val)) {
-            tokenNudFn = NUD_PREFIX;
-            tokenNudId = ID_NOT;
-
-        } else if ("++".equals(val)) {
-            tokenNudFn = NUD_PREFIX;
-            tokenNudId = ID_INC;
-
-        } else if ("--".equals(val)) {
-            tokenNudFn = NUD_PREFIX;
-            tokenNudId = ID_DEC;
-
-        } else if ("throw".equals(val)) {
-            tokenNudFn = NUD_PREFIX;
-            tokenNudId = ID_THROW;
-
-        } else if ("try".equals(val)) {
-            tokenNudFn = NUD_PREFIX2;
-            tokenNudId = ID_TRY;
-
-        } else if ("catch".equals(val)) {
-            tokenNudFn = NUD_CATCH;
-            tokenNudId = ID_CATCH;
-
-        } else if ("function".equals(val)) {
-            tokenNudFn = NUD_FUNCTION;
-            tokenNudId = ID_BUILD_FUNCTION;
-
-        } else if ("do".equals(val)) {
-            tokenNudFn = NUD_PREFIX2;
-            tokenNudId = ID_DO;
-
-        } else if ("for".equals(val)) {
-            tokenNudFn = NUD_PREFIX2;
-            tokenNudId = ID_FOR;
-
-        } else if ("if".equals(val)) {
-            tokenNudFn = NUD_PREFIX2;
-            tokenNudId = ID_IF;
-
-        } else if ("while".equals(val)) {
-            tokenNudFn = NUD_PREFIX2;
-            tokenNudId = ID_WHILE;
-
-        } else if ("undefined".equals(val) || "null".equals(val) || "false".equals(val)) {
-            tokenNudFn = NUD_ATOM;
-            tokenNudId = ID_PUSH_NIL;
-
-        } else if ("this".equals(val)) {
-            tokenNudFn = NUD_ATOM;
-            tokenNudId = ID_THIS;
-
-        } else if ("true".equals(val)) {
-            val = TRUE;
-            tokenNudFn = NUD_LITERAL;
+            
+            } else {
+                tokenNudFn = NUD_IDENT;
+            }
         }
+
 
     }
     //////////////////////
