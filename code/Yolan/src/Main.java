@@ -20,7 +20,7 @@ public class Main implements Function {
         Yolan.addFunction("println", new Main(0));
         Yolan.addFunction("fn-test", new Main(1));
         Yolan.addFunction("string-test", new Main(2));
-        Yolan.eval(new FileInputStream(new File("/home/voel/Desktop/speciale/code/Yolan/src/test.yl")));
+        Yolan.eval(new FileInputStream(new File(args[0])));
     }
 
     public Main(int i) {

@@ -1,0 +1,5 @@
+[set fib [lambda [x]
+    [if [< 1 x]
+        [+ [fib [- x 1]] [fib [- x 2]]]
+        1]]]
+[println [fib 30]]

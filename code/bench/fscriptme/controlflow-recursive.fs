@@ -1,0 +1,10 @@
+proc ack {m n} {
+    if { = $m 0 } { return [+ $n 1 ] }
+    if { = $n 0 } { return [ack [- $m 1] 1 ] }
+    return [ack [- $m 1] [ack $m [- $n 1]]]
+}
+
+for {set i 3} {< $i 7} {incr $i} {
+    puts [ack 3 $i]
+}
+

@@ -1,0 +1,26 @@
+[set ack [lambda [m n]
+    [if [equals m 0]
+        [+ n 1]
+        [if [equals n 0]
+            [ack [- m 1] 1]
+            [ack [- m 1] [ack m [- n 1]]]]]]]
+
+[set fib [lambda [n]
+    [if [< n 2]
+        1
+        [+ [fib [- n 2]] [fib [- n 1]]]]]]
+
+[set tak [lambda [x y z] 
+    [if [<= x y]
+        z
+        [tak
+            [tak [- x 1] y z]
+            [tak [- y 1] z x]
+            [tak [- z 1] x y]]]]]
+
+[set i 3]
+[while [<= i 7]
+    [println [ack 3 i]]
+    [println [fib [+ 17 i]]]
+    [println [tak [+ [* 3 i] 3] [+ [* 2 i] 2] [+ i 1]]]
+    [set i [+ i 1]]]

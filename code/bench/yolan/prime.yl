@@ -1,0 +1,12 @@
+[set isPrime [lambda [x] [do
+    [set d 2]
+    [while [and [< d x] [not [equals [% x d] 0]]]
+        [set d [+ d 1]]]
+    [equals x d]]]]
+
+[set i 9999990]
+[while [< i 10000020]
+    [if [isPrime i]
+        [println i]
+        0]
+    [set i [+ i 1]]]

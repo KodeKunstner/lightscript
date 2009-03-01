@@ -1,4 +1,4 @@
-[println [stringjoin "foo" [array "bar baz"]]]
+;[println [stringjoin "foo" [array "bar baz"]]]
 ;[foreach navn 
 ;    [elements [stack "Rasmus" "Anne" "Kirsten" "Frank"]]
 ;    [do [println "Hej"] [println navn]]]
