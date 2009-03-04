@@ -1,3 +1,12 @@
-\begin{figure}
+\chapter{Benchmarks}
 \input{benchmark/timings}
-\end{figure}
+\input{benchmark/sizes}
+\input{benchmark/lightscriptsize}
+To compare the code footprint size, I have added an estimate of the jar file size. 
+The estimate is done by making a zip archive of the non-obscurified class files,
+trying to exclude class files that are part of extra libraries.
+The motivation for this approach is that some of the languages have large GUI libraries,
+which would count against them, if we just looked at the jar file. 
+In addition, compilation of some of the languages is obscurified/optimised by default,
+which would give those an advantage. So this should give a more fair comparison.
+As a rule of thumb with classfiles, the compressed files are approximately half the size of original.

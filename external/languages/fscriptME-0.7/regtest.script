@@ -1,0 +1,343 @@
+#To run: java FSTest regtest.script
+#Big test script should exercise most sections of code
+func mathtest()
+#This function tests the various math opperators
+	int a,b
+
+	a=4
+	b=5
+	if (a+b)==9
+		println("All Is Well")
+	else
+		println("Failed addition test")
+		error=1
+	endif
+
+	if (a*b)==20
+		println("All Is Well")
+	else 
+		println("Failed multiplication test")
+		error=1
+	endif
+
+	if (a-b)==-1
+		println("All is Well")
+	else
+		println("Failed subtraction test")
+		error=1
+	endif
+
+	if (a/a)==1
+		println("All is Well")
+	else
+		println("Failed Division test")
+		error=1
+	endif
+
+	if (a*b)+(a-b)+(a/a)==20
+		println("All is Well")
+	else
+		println("Arggg!")
+		error=1
+	endif
+
+endfunc
+
+func logictest()
+	#thest the various logic ops
+	int a,b
+	
+	a=0
+	b=1
+
+	if b
+		println("All is Well")
+	else
+		println("Simple truth test failed")
+		error=1
+	endif
+
+	if !a 
+		println("All is Well")
+	else
+		println("Not test failed")
+		error=1
+	endif
+
+	if a || b 
+		println("All is Well")
+	else
+		println("Or test failed")
+		error=1
+	endif
+
+	if b && b 
+		println("All is Well")
+	else
+		println("And test failed")
+		error=1
+	endif
+
+	if ((!b && !b) && (a || b)) || 1
+		println("All is Well")
+	else
+		println("Compound test failed")
+		error=1
+	endif
+endfunc
+
+func comptest()
+	#Test comparision ops
+	int a,b
+	string s
+	a=40
+	b=50
+
+	if a==40
+		println("All is Well")
+	else
+		println("Failed == test")
+		error=1
+	endif
+
+	if a<b
+		println("All is Well")
+	else
+		println("Failed < test")
+		error=1
+	endif
+
+	if b>a
+		println("All is Well")
+	else
+		println("Failed > test")
+		error=1
+	endif
+
+	if (b>=a) && (b>=50)
+		println("All is Well")
+	else
+		println("Failed >= test")	
+		error=1
+	endif
+
+	if (a<=b) && (a<=40)
+		println("All is Well")
+	else
+		println("Failed <= test")
+		error=1
+	endif
+
+	if a!=b
+		println("All is Well")
+	else
+		println("Failed != integer test")
+		error=1
+	endif
+	
+	s="test"
+
+	if s=="test" 
+		println("All is Well")
+	else
+		println("Failed string ==")
+		error=1
+	endif
+
+	if s!="fish"
+		println("All is Well")
+	else
+		println("Failed string !=")
+		error=1
+	endif
+
+endfunc
+
+func iftest()
+	#tests the if function
+	int a,b,s
+	a=1
+	b=0
+	
+	if !b
+		println("All is Well")
+		if a 
+			println("All is Well")
+			if b==0 then s=1234
+			if s==1234
+				println("All is well")
+			else
+				println("If test (single line1 failed")
+				error=1
+			endif
+		else
+			println("Else Test failed")
+			error=1
+		endif
+
+		if b then
+			println("Else Test2 failed")
+			error=1
+			if b then s=2468 
+		else
+			println("All is Well")
+		endif
+
+	endif
+
+	if s==2468
+		println("If test (single line2 failed")
+		error=1
+	endif
+endfunc
+
+func whiletest()
+	println("Should print 0-5")
+	int a
+	while a<6
+		println(a)
+		a=a+1
+	endwhile
+
+	a=0
+	int b
+	
+	println("Should print 0-5 twice")
+
+	while a<2
+		b=0
+		while b<6
+			println(b)
+			b=b+1
+		endwhile
+		a=a+1
+	endwhile
+endfunc
+
+func vartest()
+	#Test for Local/Global access
+	string t
+	t="Local var"
+	if t=="Local var"
+		println( "All is Well")
+	else 
+		println( "Local access failed")
+		error=1
+	endif
+
+	if s=="Global var"
+		println("All is Well")
+	else
+		println("Global access failed")
+		error=1
+	endif
+
+
+	s="Local too"
+	
+	if s=="Local too"	
+		println("All is Well")
+	else
+		println("Scope test failed")
+		error=1
+	endif
+
+endfunc
+
+func functestx(int a,int b,int c)
+	return (a*b)+c
+endfunc
+
+func functest()
+	int a,b
+		 
+	a=5
+	if functestx(a,a+(2*2),9)==54
+		println("All is Well")
+	else
+		println("Function call failed")
+		error=1
+	endif
+endfunc
+
+func rectestx(int a)
+	if a<20
+		return rectestx(a+1)
+	else
+		return a
+	endif
+endfunc
+
+func rectest()
+	#initiate a recursive call which should return 20
+	if rectestx(1)==20
+		println("All is Well")
+	else
+		println("Recursion test failed")
+		error=1
+	endif
+endfunc
+
+func assigntest()
+	#Test variable assignment
+	int a,b,c=100
+	int d=c+100
+	string n,m="Hello"
+
+	if a==0 && b==0 && c==100 && d==200
+		println("All is well")
+	else
+		print("Variable assignment test1 failed")
+		error=1
+	endif	
+	
+	if n=="" && m=="Hello"
+		println("All is well")
+	else
+		println("Variable assignment test2 failed")
+		error=1
+	endif
+endfunc
+
+func abortTest(string s)
+	println("Running exit/abort test")
+	abort(s)
+	println("Abort Test Failed! - in function")
+endfunc
+
+#The Start of the actual tests
+int error
+println("Testing variable assignment...")
+assigntest()
+println("Testing Math...")
+mathtest()
+println("Testing Logic...")
+logictest()
+println("Testing if logic...")
+iftest()
+println("Testing comparisons...")
+comptest()
+println("Testing while logic...")
+whiletest()
+
+string s
+s="Global var"
+println("Testing variable access...")
+vartest()
+
+println("Testing function call...")
+functest()
+
+println("Testing recursive calls...")
+rectest()
+
+if !error 
+	println()	
+	println("*All tests completed OK*")
+else
+	println()
+	println("!!!!At least one test Failed!!!!")
+endif
+
+abortTest("Tests complete")
+println("Abort test failed in main")

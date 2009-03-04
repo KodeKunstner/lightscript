@@ -1,10 +1,13 @@
-arr = {};
+[set arr [dict]]
 
-for(i = 0; i< 100; ++i) {
-    arr[i] = i;
-}
-for(x in arr)
-    for(y in arr)
-        for(z in arr)
-                    ++i;
-print(i);
+[set i 0]
+[while [< i 100]
+    [put arr i i]
+    [set i [+ i 1]]]
+
+[foreach x [keys arr]
+    [foreach y [keys arr]
+        [foreach x [keys arr]
+            [set i [+ i 1]]]]]
+
+[println i]

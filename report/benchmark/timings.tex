@@ -1,11 +1,25 @@
-\begin{tabular}{r|r|r|r|r|r|r|r|r|r}
-% fib30 loops controlflo erasthones for-in prime except access-fannkch
-& \multicolumn{2}{|l|}{Fibonacci} & \multicolumn{2}{|l|}{Recursion} & \multicolumn{2}{|l|}{For-in} & \multicolumn{2}{|l|}{Exceptions} & \\
-& & \multicolumn{2}{|l|}{Nested loops} & \multicolumn{2}{|l|}{Erasthones} & \multicolumn{2}{|l|}{Primes} & \multicolumn{2}{|l}{Fannkuch} \\
+\begin{figure}
+\begin{center}
+\begin{tabular}{|r|r|r|r|r|r|r|r|rr|}
+\hline 
+& \multicolumn{2}{|l|}{Fibonacci} & \multicolumn{2}{|l|}{Recursion} & \multicolumn{2}{|l|}{For-in} & \multicolumn{2}{|l}{Exceptions} & \\
+& & \multicolumn{2}{|l|}{Loops} & \multicolumn{2}{|l|}{Sieve} & \multicolumn{2}{|l|}{Primes} & \multicolumn{2}{|l|}{Fannkuch} \\
+\hline 
 Rhino       & 1.20 & 1.74 & 1.75   & 2.97 & 1.18 & 12.35 & 45.99 & 6.35 & \\ 
+\hline 
 SpiderMonkey& 1.28 & 1.71 & $\bot$ & 2.08 & 1.14 & 11.03 & 0.45  & 5.10 & \\ 
+\hline 
 LightScript & 1.37 & 3.45 & 2.35   & 1.19 & 0.57 & 11.70 & 0.65  & 11.15 & \\
-Yolan       & 1.47 & 2.23 & $\bot$ & 1.95 & 0.32 &  9.20 &  &  \\
-Hecl      & 207.96 & 47.21 & $\bot$ & & & & &  & \\ 
-FscriptME & 176.27 & 112.68& $\bot$ & & & & &  & \\ 
+\hline 
+Yolan       & 1.47 & 2.23 & $\bot$ & 1.95 & 0.32 &  9.20 &  &  & \\
+\hline 
+JScheme    & 29.77 & 93.22 & $\bot$ & & & & & & \\ 
+\hline 
+Hecl      & 207.96 & 47.21 & $\bot$ & & & & & & \\ 
+\hline 
+FscriptME & 176.27 & 112.68& $\bot$ & & & & & & \\ 
+\hline 
 \end{tabular}
+\caption{Performance of different scripting languages. The timings are seconds per benchmark. $\bot$ indicates that the benchmark never finished, due to running out of stack space.}
+\end{center}
+\end{figure}

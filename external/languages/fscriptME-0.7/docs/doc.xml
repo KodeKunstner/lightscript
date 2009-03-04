@@ -1,0 +1,87 @@
+<doclite name="FScriptME">
+
+<page name="FScriptME">
+
+<header>
+	<center><h2>_TITLE_</h2><i>by murlen</i></center>_NAVIGATE_<hr/>
+</header>
+
+<footer>
+	<hr/>_NAVIGATE_<br/><i><font size="-2">created with DocLite</font></i>
+</footer>
+
+<section name="What is FScriptME?">
+<p>FScriptME is an implementation of FScript designed for Java Micro Edition.
+See the Sun J2ME <a href="http://java.sun.com/j2me">site</a>.
+Currently FScriptME is still in beta, in that it has only recently been released
+and is still relatively untested.  However it is based upon the FScript
+source code and as such should be stable.</p>
+<p>I am currently using FScriptME to develop a scripting environment for the 
+Palm platform using <a href="http://java.sun.com/products/midp4palm/index.html">
+MIDP for Palm</a>, this is still unreleased but the FScript
+section was considered mature enough for independent release.</p>
+</section>
+<section name="How does FScriptME differ from FScript?">
+<p>A number of changes were made to FScriptME to enable it to work with J2ME,
+some of these changes are due to the restrictions of J2ME and some are to keep 
+the code base simpler (and therefore smaller). The main changes are:
+<ul>
+<li>Double values are not supported</li>
+<li>FScript extensions are not supported</li>
+<li>The BasicIO class is not available</li>
+<li>ArrayLists are replaced by Vectors in FScript methods</li>
+<li>FScript's <i>run</i> method has been renamed to <i>runCode</i> so subclasses
+can be made Runnable</li>
+<li>Only the <i>elseif</i> keyword is supported not the optional <i>elsif</i> that is supported in fscript</li>
+<li>A new keyword <i>exit</i> has been added that allows scripts to exit (somewhat like return, but terminating script execution), <i>exit</i> takes a parameter that is returned from the top level calling method (in FScript) e.g. <i>runCode</i>.  A corresponding <i>exit</i> method has been added to the <i>FScript</i> class, to allow functions implemented in subclasses to also <i>exit</i> correctly.</li>
+</ul>
+</p>
+<p>This document does <b>not</b> contain FScript information (syntax, usage etc.),
+download FScript proper from the 
+<a href="http://www.sourceforge.net/projects/fscript">homepage</a> and use the 
+existing FScript documentation (as FScript and FScriptME are very similar).</p>
+</section>
+<section name="Why GPL?">
+<p>FScript was originally developed for inclusion in a commercial product, hence
+the choice of the LGPL.  As FScriptME has no such restrictions I have chosen
+to release it under GPL.  This does mean that FScriptME may <b>not</b> be used
+as part of a commercial product. <i>However</i> I am open to relicensing on 
+a product by product basis, please contact me (murlen no-spam at users dot
+sourceforge dot net) if this may be of interest to you.</p>
+</section>
+</page>
+<page name="Other Details">
+<section name="Installation">
+<p>Initially FScriptME is a source only release.  The source is in the
+<i>murlen/util/FscriptME</i> directory.  There is no makefile or the like
+provided, but basically something like <i>javac
+murlen/util/fscriptME/*.class</i> would be a good start.</p>
+</section>
+<section name="Code size">
+<p>This depends on compiler used and other factors but around 30KB would be
+a typical size of a compiled FScriptME code base. By way of an example 
+the MIDP for Palm application mentioned earlier is approx. 45KB</p>
+</section>
+<section name="Homepage">
+<p>The official homepage of FScript is 
+<a href="http://fscript.sourceforge.net">here</a>.</p>
+<p>The SourceForge project page is 
+<a href="http://www.sourceforge.net/projects/fscript">here</a>.</p>
+</section>
+<section name="JavaDoc">
+<p>The <a href="doc/index.html">JavaDocs</a> are in the <i>docs/doc</i>
+directory.</p>
+</section>
+<section name="Bugs">
+<p>This is beta software so bugs are to be expected.
+Any bugs or feature requests can be reported to me at: <br/>
+murlen (at to stop spam) users dot sourceforge dot net</p>
+<p>Or via the bug tracking on 
+<a href="http://www.sourceforge.net/projects/fscript">the project home page.
+</a></p> 
+<p>Note that email is probably going to get a faster response, as the project
+page is checked less frequently.</p>
+</section>
+</page>
+</doclite>
+

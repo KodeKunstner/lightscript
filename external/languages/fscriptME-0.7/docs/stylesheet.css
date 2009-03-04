@@ -1,0 +1,36 @@
+
+body {
+	background-color: #FFFFFF;
+	font-family: arial, helvetica, sans-serif;
+	font-size: 10pt
+}
+p {
+	font-size: 10pt
+}
+li{
+	font-size: 10pt
+}
+h1 {
+	font-size: 16pt;
+	font-family: arial, helvetica, sans-serif;
+}
+h2 {
+	font-size: 14pt;
+	font-family: arial, helvetica, sans-serif;
+}
+h3 {
+	font-size: 13pt;
+	font-family: arial, helvetica, sans-serif;
+}
+h4 {
+	font-size: 12pt;
+	font-family: arial, helvetica, sans-serif;
+}
+a {
+	font-size: 10pt;
+	text-decoration: none;
+    color: #0000FF;	
+}
+a:hover {
+	color: #FF0000;
+}

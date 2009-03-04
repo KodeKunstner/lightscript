@@ -1,0 +1,101 @@
+<html>
+<head><title>FScriptME</title>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" title="style"/>
+</head>
+<body>
+<center><h2>FScriptME</h2>
+<i>by murlen</i>
+</center>
+<a href="index.html">[Contents]</a>&nbsp;<a href="page2.html">[Next]</a><hr></hr>
+
+<h2>FScriptME</h2>
+
+
+
+
+
+
+
+<a name="link0"></a><h4>What is FScriptME?</h4>
+
+<p>FScriptME is an implementation of FScript designed for Java Micro Edition.
+See the Sun J2ME <a href="http://java.sun.com/j2me">site</a>
+.
+Currently FScriptME is still in beta, in that it has only recently been released
+and is still relatively untested.  However it is based upon the FScript
+source code and as such should be stable.</p>
+
+<p>I am currently using FScriptME to develop a scripting environment for the 
+Palm platform using <a href="http://java.sun.com/products/midp4palm/index.html">
+MIDP for Palm</a>
+, this is still unreleased but the FScript
+section was considered mature enough for independent release.</p>
+
+
+
+<a name="link1"></a><h4>How does FScriptME differ from FScript?</h4>
+
+<p>A number of changes were made to FScriptME to enable it to work with J2ME,
+some of these changes are due to the restrictions of J2ME and some are to keep 
+the code base simpler (and therefore smaller). The main changes are:
+<ul>
+<li>Double values are not supported</li>
+
+<li>FScript extensions are not supported</li>
+
+<li>The BasicIO class is not available</li>
+
+<li>ArrayLists are replaced by Vectors in FScript methods</li>
+
+<li>FScript's <i>run</i>
+ method has been renamed to <i>runCode</i>
+ so subclasses
+can be made Runnable</li>
+
+<li>Only the <i>elseif</i>
+ keyword is supported not the optional <i>elsif</i>
+ that is supported in fscript</li>
+
+<li>A new keyword <i>exit</i>
+ has been added that allows scripts to exit (somewhat like return, but terminating script execution), <i>exit</i>
+ takes a parameter that is returned from the top level calling method (in FScript) e.g. <i>runCode</i>
+.  A corresponding <i>exit</i>
+ method has been added to the <i>FScript</i>
+ class, to allow functions implemented in subclasses to also <i>exit</i>
+ correctly.</li>
+
+</ul>
+
+</p>
+
+<p>This document does <b>not</b>
+ contain FScript information (syntax, usage etc.),
+download FScript proper from the 
+<a href="http://www.sourceforge.net/projects/fscript">homepage</a>
+ and use the 
+existing FScript documentation (as FScript and FScriptME are very similar).</p>
+
+
+
+<a name="link2"></a><h4>Why GPL?</h4>
+
+<p>FScript was originally developed for inclusion in a commercial product, hence
+the choice of the LGPL.  As FScriptME has no such restrictions I have chosen
+to release it under GPL.  This does mean that FScriptME may <b>not</b>
+ be used
+as part of a commercial product. <i>However</i>
+ I am open to relicensing on 
+a product by product basis, please contact me (murlen no-spam at users dot
+sourceforge dot net) if this may be of interest to you.</p>
+
+
+
+
+<hr></hr>
+<a href="index.html">[Contents]</a>&nbsp;<a href="page2.html">[Next]</a><br></br>
+<i><font size="-2">created with DocLite</font>
+</i>
+
+
+</body>
+</html>

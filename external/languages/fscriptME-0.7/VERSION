@@ -1,0 +1,14 @@
+ 15th Mar 2008
+ 	Added 'elseif' functionallity
+	'exit' keyword and supporting function added
+
+ 6th Jul 2003
+ 	Updated to match syntax of FScript:
+		\",\\,\n,\t,\r now recognised
+		Better bracket & quote match checking
+		
+14th May 2002
+	Documentation formatting change (no code changes)
+
+12th May 2002
+	Initial release
