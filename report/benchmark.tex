@@ -1,0 +1,61 @@
+\chapter{Benchmarks}
+\section{Compared systems}
+\section{Code footprint}
+To compare the code footprint size, I have added an estimate of the jar file size. 
+The estimate is done by making a zip archive of the non-obscurified class files,
+trying to exclude class files that are part of extra libraries.
+The motivation for this approach is that some of the languages have large GUI libraries,
+which would count against them, if we just looked at the jar file. 
+In addition, compilation of some of the languages is obscurified/optimised by default,
+which would give those an advantage. So this should give a more fair comparison.
+As a rule of thumb with classfiles, the compressed files are approximately half the size of original.
+\begin{figure} \begin{center}
+\begin{tabular}{|c|r|} \hline 
+Yolan & 7K \\ \hline 
+LightScript & 14K \\ \hline 
+\end{tabular}
+\begin{tabular}{|c|r|} \hline 
+FScriptME & 17K \\ \hline 
+Jscheme & 29K \\ \hline 
+Kahlua & 39K \\ \hline 
+Hecl & 54K \\ \hline 
+Simkin & 81K \\ \hline 
+CellularBasic & 83K \\ \hline 
+Rhino & 397K \\ \hline 
+\end{tabular}
+\end{center}
+\caption{Approximation of jar size of scripting languages for the jvm}
+\end{figure}
+
+
+\section{Execution speed}
+
+\begin{figure} \begin{center} \begin{tabular}{|r|r|r|r|r|r|r|r|rr|} \hline 
+& \multicolumn{2}{|l|}{Fibonacci} & \multicolumn{2}{|l|}{Recursion} & \multicolumn{2}{|l|}{For-in} & \multicolumn{2}{|l}{Exceptions} & \\
+& & \multicolumn{2}{|l|}{Loops} & \multicolumn{2}{|l|}{Sieve} & \multicolumn{2}{|l|}{Primes} & \multicolumn{2}{|l|}{Fannkuch} \\
+\hline Rhino       & 1.20 & 1.74 & 1.75   & 2.97 & 1.18 & 12.35 & 45.99 & 6.35 & \\ 
+\hline SpiderMonkey& 1.28 & 1.71 & $\bot$ & 2.08 & 1.14 & 11.03 & 0.45  & 5.10 & \\ 
+\hline LightScript & 1.37 & 3.45 & 2.35   & 1.19 & 0.57 & 11.70 & 0.65  & 11.15 & \\
+\hline Yolan       & 1.47 & 2.23 & $\bot$ & 1.95 & 0.32 &  9.20 &  &  & \\
+\hline Kahlua      & 2.13 & 1.18 & $\bot$ &  5.73 & 2.26 & 5.49 &  &  & \\ 
+\hline JScheme    & 29.77 & 93.22 & $\bot$ & & & & & & \\ 
+\hline FscriptME & 176.27 & 112.68& $\bot$ & & & & & & \\ 
+\hline Hecl      & 207.96 & 47.21 & $\bot$ & & & & & & \\ 
+\hline \end{tabular}
+\caption{Performance of different scripting languages. The timings are seconds per benchmark. $\bot$ indicates that the benchmark does not complete due to running out of stack space}
+\end{center} \end{figure}
+
+\section{Details on the footprint of LightScript}
+\begin{figure}
+\begin{center} \begin{tabular}{|r|r|rl|} \hline
+\multicolumn{2}{|r|}{Reduction} & \multicolumn{2}{|l|}{Alone}\\ \hline
+Everything & 15030 & 17706 & \\ \hline
+API & 645  & 3597  & \\ \hline
+Tokeniser & 1261 & 4048 & \\ \hline
+Parser & 2542 & 5850 & \\ \hline
+Compiler & 5324 & 8413 & \\ \hline
+Vm & 4589 & 7650 & \\ \hline
+Parser+Tokeniser & 3825 & 7093 & \\ \hline
+\end{tabular} \end{center}
+\caption{ Measurement of size of LightScript.class. Reduction is the reduction of the full class file when the mentioned part is left out. Alone is the size of the class file with everything else than the mentioned part left out. These numbers are different as some things are shared and some things cannot be left out when compiling the class file.}
+\end{figure}
