@@ -1,0 +1,24 @@
+\begin{figure}
+\begin{center}
+\begin{tabular}{|r|r|rl|}
+\hline
+\multicolumn{2}{|r|}{Reduction} & \multicolumn{2}{|l|}{Alone}\\
+\hline
+Everything & 15030 & 17706 & \\
+\hline
+API & 645  & 3597  & \\
+\hline
+Tokeniser & 1261 & 4048 & \\
+\hline
+Parser & 2542 & 5850 & \\
+\hline
+Compiler & 5324 & 8413 & \\
+\hline
+Vm & 4589 & 7650 & \\
+\hline
+Parser+Tokeniser & 3825 & 7093 & \\
+\hline
+\end{tabular}
+\end{center}
+\caption{ Measurement of size of LightScript.class. Reduction is the reduction of the full class file when the mentioned part is left out. Alone is the size of the class file with everything else than the mentioned part left out. These numbers are different as some things are shared and some things cannot be left out when compiling the class file.}
+\end{figure}

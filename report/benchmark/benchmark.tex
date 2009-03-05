@@ -1,7 +1,6 @@
 \chapter{Benchmarks}
-\input{benchmark/timings}
-\input{benchmark/sizes}
-\input{benchmark/lightscriptsize}
+\section{Compared systems}
+\section{Code footprint}
 To compare the code footprint size, I have added an estimate of the jar file size. 
 The estimate is done by making a zip archive of the non-obscurified class files,
 trying to exclude class files that are part of extra libraries.
@@ -10,3 +9,8 @@ which would count against them, if we just looked at the jar file.
 In addition, compilation of some of the languages is obscurified/optimised by default,
 which would give those an advantage. So this should give a more fair comparison.
 As a rule of thumb with classfiles, the compressed files are approximately half the size of original.
+\input{benchmark/sizes}
+\section{Execution speed}
+\input{benchmark/timings}
+\section{Details on the footprint of LightScript}
+\input{benchmark/lightscriptsize}
