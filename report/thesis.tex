@@ -53,23 +53,63 @@ for mobile devices}
 %
 %\part{Aspects of creating the language}
 
-\input{benchmark/benchmark}
+\begin{comment}
+- introduction
+  - motivation
+- survey
+  - mobile platforms
+    - java mobile edition
+  - mobile scripting languages
+  - programming languages
+  - interpreter implementation
+- approach
+  - prototypes
+    - waterfall vs. stepwise refinement
+    - approx 30 partial prototypes
+  - overall design choices
+    - null is false
+    - scope: lightscript static, yolan dynamic
+    - dynamic type system
+    - building on top of jvm/cldc-1.0
+    - fast variable access
+    - scope: lightscript tdop, yolan trivial
+    - prototypes for evaluation
+    - parser robudt, but not validating
+    - online execution, a statement at a time
+  - evaluation criteria
+    - code footprint
+    - execution speed
+- lightscript
+  - implementation details
+    - imperative top down operator precedence parser 
+    - stack vs. array
+  - language specification
+  - implementors/developers guide
+- yolan
+  - implementation details
+    - AST-rewriting
+  - language specification
+  - implementors/developers guide
+- benchmarks
+- discussion
+  - surprisingly good performance
+- conclusion
+\end{comment}
 
-\part{Scripting language design and implementation for mobile devices}
-  \chapter{Mobile platforms}
-    \input{platforms}
-  \chapter{The J2ME / Java Micro Edition platform}
-  \chapter{Languages}
-    \input{languages}
-  \chapter{Scoping and the fun-arg problem}
-  \chapter{Parsing - the Pratt parser}
-    \input{parser}
-  \chapter{Efficient dispatch for interpreters}
-\part{Yolan}
-  \chapter{Language specification}
-  \chapter{Developers guide}
-\part{LightScript}
-  \chapter{Examining the code footprint}
+
+% introduction
+\input{introduction}
+% survey
+\input{survey}
+\input{implementation}
+% method
+% results
+\input{yolan/yolan}
+\input{lightscript/lightscript}
+\input{benchmark/benchmark}
+% discussion
+% conclusion 
+
 
 %\chapter{Introduction to scripting \\ -- a user guide}
 %\input{language/userguide}
