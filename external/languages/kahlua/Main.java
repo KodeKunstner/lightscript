@@ -51,7 +51,9 @@ public class Main {
 
 		LuaState state = getState(dir);
 
-	        LuaClosure closure = LuaPrototype.loadByteCode(new FileInputStream(new File(args[0])), state.environment);
+	        LuaClosure closure = LuaPrototype.loadByteCode(new FileInputStream(new File("stdlib.lbc")), state.environment);
+		state.pcall(closure);
+	        closure = LuaPrototype.loadByteCode(new FileInputStream(new File(args[0])), state.environment);
 		state.pcall(closure);
 	}
 }
