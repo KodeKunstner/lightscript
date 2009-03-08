@@ -8,12 +8,3 @@ while {< $x 1000} {
 }
 
 puts [+ $x $y]
-#set x 0
-#while {< $x 1000} {
-#    incr $x
-#    set y 0
-#    while {< $y 10000} {
-#        incr $y
-#    }
-#}
-#puts [+ $x $y]

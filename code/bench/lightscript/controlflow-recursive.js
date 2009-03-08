@@ -2,7 +2,7 @@
 // http://shootout.alioth.debian.org/
 // contributed by Isaac Gouy
 //
-// modified for LigheScript
+// modified for LightScript
 
 function ack(m,n){
    if (m===0) { return n+1; }

@@ -18,7 +18,7 @@ excerpt.pdf: excerpt.tex */*.tex
 all: $(MAINFILE).pdf  
 #excerpt.pdf  synopsis.pdf
 
-$(MAINFILE).pdf: $(MAINFILE).tex *.tex bibliography.bib */*.tex
+$(MAINFILE).pdf: $(MAINFILE).tex *.tex bibliography.bib */*.tex ../code/bench/*.tex
 
 synopsis.pdf: synopsis.tex bibliography.bib
 
@@ -29,7 +29,7 @@ synopsis.pdf: synopsis.tex bibliography.bib
 
 .tex.pdf:
 	# ./src2tex.sh
-	pdflatex $*.tex && echo bibtex $* && makeindex $*.idx && pdflatex $*.tex \
+	pdflatex $*.tex && bibtex $* && makeindex $*.idx && pdflatex $*.tex \
 	pdflatex $*.tex && pdflatex $*.tex
 
 .tex.dvi:

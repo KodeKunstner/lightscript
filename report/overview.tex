@@ -1,0 +1,180 @@
+\chapter{Overview}
+\section{Mobile platforms}
+
+\section{Java Mobile Edition}
+\section{Scripting languages, virtual machines, and their implementations}
+\section{Programming languages}
+\section{JavaScript/EcmaScript}
+\subsection{Implementations}
+\subsubsection{Rhino}
+\subsubsection{SpiderMonkey}
+\label{spidermonkey}
+\subsubsection{QScript}
+\subsubsection{JavaScriptCore - old edition}
+\subsubsection{SquirrelFish (new JavaScriptCore)}
+\subsubsection{TraceMonkey}
+\subsubsection{V8}
+\section{Interpreter implementation}
+This section looks into a couple of aspects of interpreter implementation.
+First is a discussion on different types of virtual machines, namely register and stack machines, and their different benefits and tradeoffs.
+Then there is a discussion on the implementation of the dispatch, which is one of the bottlenecks of intepreters.
+Third there is a discussion of garbage collection techniques.
+And finally there is a discussion on different approaches to run time stack.
+
+\subsection{Register and stack machines}
+Virtual machines are usually either register based or stack based.
+
+Stack based virtual machines operates similar to the language Forth, where the operations work on the top of the stack. 
+Operands are implicit coded, such that for example the add instruction just pops the two top elements of the stack, and pushes the sum. 
+Stack machines are easy to compile to, 
+and can simply be done by emitting the opcodes of a post-order walk through of the abstract syntax tree. 
+There are no issues of register allocation, spilling, etc.
+Stack machines are commonly used, the most known example is the Java Virtual Machine, and there many others when looking under the hood.
+
+Register based virtual machines are recently becoming more common. 
+Usually they have a high number of registers, leading to longer opcodes than stack based virtual machines. But on the other hand, fewer opcodes are needed leading to faster execution\cite{register-vs-stack}. 
+Examples of register based virtual machines are the Dalvik\cite{dalvik} virtual machine, LLVM\cite{llvm}, and the virtual machine of Lua\cite{luavm}.
+
+A third approach to virtual machines is just to use the abstract syntax tree for evaluation. This was for example used in earlier versions of WebKits JavaScript implementation, but has now been superseeded by a stack virtual machine, and is currently being replaced by JIT compilation.
+
+\subsection{Optimising the dispatch}
+This sections focuses on optimising the dispatch. Most of the methods below is comes from \cite{dispatch1, dispatch2}. The only exception is the last section which seems to be a newer development, described in \cite{dalvik-talk}.
+The dispatch is an important bottleneck when implementing interpreters. 
+An interpreter usually has a loop that fetches the next instruction, and executes it. The dispatch is roughly how to fetch and execute the next instruction.
+Most opcodes does not require significant computation, for example adding two numbers is just loading a couple of values, adding them and storing the result, possibly decrementing a stack pointer, and as the dispatch is executed for each opcode, it is quite an important overhead to optimise. 
+
+The usual way is just to have a switch statement, which usually compiles to a jump table, such that:
+\begin{verbatim}
+for(;;) {
+    // pc is the program counter into an array
+    // of virtual instructions.
+    switch(*(++pc)) { 
+        case OP_FOO:
+            ... implementation of FOO ...
+            break; 
+        case OP_BAR:
+            ... implementation of BAR ...
+            break; 
+        case OP_BAZ:
+            ... implementation of BAZ ...
+            break; 
+    }
+}
+\end{verbatim}
+compiles optimised into something like:
+\begin{verbatim}
+.data:
+jumptable = {
+address of FOO,
+address of BAR,
+address of BAZ}
+
+.code:
+...
+label looptop:
+   inc register1  ; register1 contains the variable pc
+   load register1 -> register2
+   load jumptable[register2] -> register2
+   jump_to register2
+FOO:
+    ... implementation of FOO ...
+    jump looptop
+BAR:
+    ... implementation of BAR ...
+    jump looptop
+BAZ:
+    ... implementation of BAZ ...
+    jump looptop
+...
+\end{verbatim}
+which does work, but is kind of suboptimal.
+Sometimes it is the best option - namely if the compiler or virtual machine we are making the interpter on top of, does not support the more optimised options below.
+This approach is used in SpiderMonkey, KVM\footnote{The reference implementation of JVM for mobile devices}, and most places which has a portable dispatch implementation.
+
+If the compiler supports direct addressing of labels, we can instead do something like:
+\begin{verbatim}
+ops = { &OP_FOO, &OP_BAR, &OP_BAZ };
+   
+goto ops[++pc];
+
+OP_FOO:
+    ... implementation of FOO ...
+    goto ops[++pc];
+OP_BAR:
+    ... implementation of BAR ...
+    goto ops[++pc];
+OP_BAZ:
+    ... implementation of BAZ ...
+    goto ops[++pc];
+\end{verbatim}
+This has two benefits: it removes the jump to the loop top, as it jumps directly to the next instruction after the table lookup, and it also improves branch prediction, as all the instructions are not dispatched from a single point, but rather dispatched directly from the previous instruction. The cost is a bit more code, as the code for the table lookup needs to be at each instruction, rather than a single place. This is for example used in \cite{stack-vm-thingy}.
+
+A further optimisation of the dispatch is to remove the table lookup. This is often done by replacing virtual machine instructions with the addresse of the implementation of the instruction. At the same time this is space costly as an address usually uses 32bit, where an virtual machin instruction often uses 8bit. This is also better suited for stack machines, where the operands are coded implicit, rather that register machines, where the operands needs to becoded beside the address of the implementation. This optimisation is used in many Forth implementations, for example\cite{forth-asm} and also optionally in QScript\cite{qscript} and SquirrelFish\cite{webkit-source} and probabaly lots of others.
+
+Another way to remover the table lookup of the dispatch is to have a fixed size of each instruction implementation, and then calculate the position of the implementation from the opcode. When some instruction implemenations are significantly longer than others, the longer instruction implementations can contain a jump to the code that is beyond the fixed instruction implementation size.
+For example:
+\begin{verbatim}
+INSTRUCTION_IMPLEMENTATIONS:
+   ... implementation of FOO ...
+   goto INSTRUCTION_IMPLEMENTATIONS + IMPLEMENTATION_SIZE * (++pc)
+   ... padding ...
+// address INSTRUCTION_IMPLEMENTATINS + 1 * IMPLEMENTATION_SIZE
+   ... implementation of BAR ...
+   goto INSTRUCTION_IMPLEMENTATIONS + IMPLEMENTATION_SIZE * (++pc)
+   ... padding ...
+// address INSTRUCTION_IMPLEMENTATINS + 2 * IMPLEMENTATION_SIZE
+   ... first part of implementation of BAZ  which is a long instruction...
+   goto REMAINING_IMPLEMENTATION_OF_BAZ
+// address INSTRUCTION_IMPLEMENTATINS + 3 * IMPLEMENTATION_SIZE
+   ... implementation of other instructions...
+
+REMAINING_IMPLEMENTATION_OF_BAZ:
+   ... more implemenation of BAZ...
+   goto INSTRUCTION_IMPLEMENTATIONS + IMPLEMENTATION_SIZE * (++pc)
+\end{verbatim}
+This has the benefit of being even faster, as the table lookup is eliminated,
+but it is also more difficult to implement, as implementation is so 
+machine near, that it is not possible to do in a high level language.
+Notice that \verb|IMPLEMENTATION_SIZE| would be a power of two such that the multiplication is just a shift.
+This optimisation is for example used in the Dalvik Virtual Machine\cite{dalvik-vm}
+
+
+\subsection{JIT-compilation}
+\subsection{Garbage collection}
+Garbage collection is an important issue in the design of virtual machines. 
+A good survey on this topic is\cite{gc-survey}, though it is a bit dated.
+Another interesting source is to look at what approaches pratical virtual machine implementations used.
+
+A common approach is to combine reference counting with some kind of cycle cleanup. 
+An example of this is the python implemenation. 
+This has the benefit of being reasonbly interactive. 
+
+The KVM -- reference implementation of mobile java virtual machine -- now uses a compacting mark and sweep.
+
+
+The V8 JavaScript has a very interesting garbage collection implementation: it is a generational garbage collector with two generations.
+By dividing the heap into generations, it is possible to free young short lived objects, while not having to look at the long-lived ones. 
+In the V8 case, the garbage collector for the young generation is a copying-compacting collector, which is called often, combined with a mark-and-sweep for the full heap, when that is needed.
+The complexity of a copying collector is linear of the live objects, which means that there are essentially no overhead of heap allocating the run time stack with this garbage collection strategy, which solves some of the problems of the run time stack, which is described later on.
+
+\subsection{Implementation of the run time stack}
+
+\section{Parsing}
+A part of a language implementation is to parse the source text into the abstract syntax tree to work on. 
+
+An issue here is that parsers often take quite a large amount of code, especially if they are generated by compiler-compilers.
+Generated lexers and LALR(1) parsers, generated by for example \cite{yacc, yacc2}, usually have quite large state tables.
+Recursive descent parsers seems to use a bit less code size the bottom up approach, but still requires functions for the all the grammar productions, which may still be expensive.
+
+Grammar based parser generation and implemenation is extensively studied and described\cite{basics-of-compiler-design, grammar}, and is assumed well known and needs further description in this surveying.
+A couple of other approaches which are also very elegant, 
+but have recieved less focus are
+monadic parser generators, and top down operator precedencs parsers,
+which will be discribed in the following sections.
+
+\subsection{Monadic parser}
+
+\subsection{Top down operator precedence parsers}
+
+
+\section{Summary}

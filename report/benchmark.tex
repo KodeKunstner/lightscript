@@ -9,6 +9,11 @@ which would count against them, if we just looked at the jar file.
 In addition, compilation of some of the languages is obscurified/optimised by default,
 which would give those an advantage. So this should give a more fair comparison.
 As a rule of thumb with classfiles, the compressed files are approximately half the size of original.
+\subsection{Languages}
+\label{codefootprint-languages}
+
+
+
 \begin{figure} \begin{center}
 \begin{tabular}{|c|r|} \hline 
 Yolan & 7K \\ \hline 
@@ -29,6 +34,24 @@ Rhino & 397K \\ \hline
 
 
 \section{Execution speed}
+
+\subsection{Languages}
+The benchmarks are run on languages with an approximated jar size less than 64K, and on two JavaScript interpreters: Rhino 1.6r7 and SpiderMonkey 1.7.0, which are the default versions when installed on Ubuntu Linux.
+Most of the languages have been described in more details in section~\ref{codefootprint-languages}.
+except SpiderMonkey, which is described in section~\ref{spidermonkey}.
+
+\subsection{The benchmarks}
+The source code for the benchmarks can be seen in appendix \ref{benchmarksource}.
+The benchmarks are the following:
+
+\paragraph{Fibonacci:} Recursive calculation of the 30'th Fibonacci number
+\paragraph{Loops:} Nested loops with counters, 10.000.000 iterations
+\paragraph{Recursion:} Highly recursive benchmark, similar to recursive control-flow benchmark from \cite{sunspider, shootout}. Uses lots of stack space. On some of the languages where it is obviously failing, only the first part of it was implemented.
+\paragraph{Sieve:} Simple implementation of Erasthones sieve - not implemented in languages which have already shown to be very slow in earlier benchmarks
+\paragraph{For-in:} Nested loops across keys of a dictionary, 1.000.000 iterations - not implemented in languages which have already shown to be very slow in earlier benchmarks
+\paragraph{Primes:} Simple primality test by looking at the remainders of division - not implemented in languages which have already shown to be very slow in earlier benchmarks
+\paragraph{Exception:} Throw/catch 500.000 exceptions - only implemented for LightScript/JavaScript
+\paragraph{Fannkuch:} Access-fannkuch benchmark from \cite{sunspider, shootout} - only implementd for LightScript/JavaScript
 
 \begin{figure} \begin{center} \begin{tabular}{|r|r|r|r|r|r|r|r|rr|} \hline 
 & \multicolumn{2}{|l|}{Fibonacci} & \multicolumn{2}{|l|}{Recursion} & \multicolumn{2}{|l|}{For-in} & \multicolumn{2}{|l}{Exceptions} & \\
@@ -59,3 +82,5 @@ Parser+Tokeniser & 3825 & 7093 & \\ \hline
 \end{tabular} \end{center}
 \caption{ Measurement of size of LightScript.class. Reduction is the reduction of the full class file when the mentioned part is left out. Alone is the size of the class file with everything else than the mentioned part left out. These numbers are different as some things are shared and some things cannot be left out when compiling the class file.}
 \end{figure}
+
+\section{Summary}

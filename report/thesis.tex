@@ -56,7 +56,8 @@ for mobile devices}
 \begin{comment}
 - introduction
   - motivation
-- survey
+  - project description
+- overview
   - mobile platforms
     - java mobile edition
   - mobile scripting languages
@@ -74,7 +75,7 @@ for mobile devices}
     - fast variable access
     - scope: lightscript tdop, yolan trivial
     - prototypes for evaluation
-    - parser robudt, but not validating
+    - parser robust, but not validating
     - online execution, a statement at a time
   - evaluation criteria
     - code footprint
@@ -83,6 +84,7 @@ for mobile devices}
   - implementation details
     - imperative top down operator precedence parser 
     - stack vs. array
+    - resolution of variables
   - language specification
   - implementors/developers guide
 - yolan
@@ -90,41 +92,44 @@ for mobile devices}
     - AST-rewriting
   - language specification
   - implementors/developers guide
+- ideas for low-level implementation
+  - compact memory implementation
+  - few-register based virtual machine for easy JIT
+  - ecmaScript like language with more meat and classes
 - benchmarks
 - discussion
   - surprisingly good performance
+  - perspective, discussion of the results
+  - further studies
 - conclusion
 \end{comment}
 
 
-% introduction
 \input{introduction}
-% survey
-\input{survey}
-\input{implementation}
-% method
-% results
-\input{yolan/yolan}
-\input{lightscript/lightscript}
-\input{benchmark/benchmark}
-% discussion
-% conclusion 
+\input{overview}
+\input{approach}
+\input{lightscript}
+\input{yolan}
+\input{benchmark}
+\input{discussion}
+\input{conclusion}
 
 
 %\chapter{Introduction to scripting \\ -- a user guide}
 %\input{language/userguide}
 %
 
-%\newpage
-%\addcontentsline{toc}{chapter}{Bibliography}
-%\bibliography{bibliography}
-%\bibliographystyle{alpha}
+\newpage
+\addcontentsline{toc}{chapter}{Bibliography}
+\bibliography{bibliography}
+\bibliographystyle{alpha}
 
-%\appendix
+\appendix
 
-%\newpage
-%\addcontentsline{toc}{chapter}{Index}
-%\printindex
+\input{../code/bench/marks.tex}
+\newpage
+\addcontentsline{toc}{chapter}{Index}
+\printindex
 
 \end{document}
 
