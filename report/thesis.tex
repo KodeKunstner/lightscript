@@ -16,7 +16,7 @@
 \usepackage{fancyhdr}
 \usepackage{listings} 
 %\usepackage[colorlinks,pagebackref]{hyperref}
-\usepackage{hyperref}
+\usepackage[colorlinks, linkcolor=black]{hyperref}
 %\usepackage{backref}
 \usepackage{url}
 \frenchspacing
@@ -28,9 +28,9 @@
 
 \title{
 \emph{Document currently under development} \\ ~ \\
-Design and implementation of a \\
-compact scripting language \\ 
-for mobile devices}
+Design and implementation of \\
+compact scripting languages \\ 
+for low-end mobile devices}
 
 \author{
   Rasmus Erik Voel Jensen\footnote{
@@ -45,12 +45,12 @@ for mobile devices}
 
 \begin{document}
 
-\maketitle
-\begin{abstract}
-... TODO: abstract ...
-\end{abstract}
+%\maketitle
+%\begin{abstract}
+%... TODO: abstract ...
+%\end{abstract}
 
-\setcounter{tocdepth}{2}
+\setcounter{tocdepth}{1}
 \tableofcontents
 \listoffigures
 
@@ -78,10 +78,10 @@ for mobile devices}
 
 \input{../code/bench/marks.tex}
 
-\chapter{TODO:Source code of the Yolan class}
+\chapter{Source code of the Yolan class}
 \lstinputlisting{../code/Yolan/src/Yolan.java}
 
-\chapter{TODO:Source code of the LightScript class}
+\chapter{TODO: Source code of the LightScript class}
 \lstinputlisting{../code/LightScript/LightScript.javapp}
 
 

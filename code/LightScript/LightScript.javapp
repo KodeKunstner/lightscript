@@ -256,8 +256,8 @@ public final class LightScript {
         "SAVE_PC", "CALL_FN", "BUILD_FN", "SET_BOXED",
         "SET_LOCAL", "SET_CLOSURE", "GET_BOXED", "GET_LOCAL",
         "GET_CLOSURE", "GET_BOXED_CLOSURE", "BOX_IT",
-        "LENGTH", "DROP", "PUSH_NIL","PUT", "PUSH", "POP",  "JUMP", "JUMP_IF_TRUE", "DUP",
-        "NEW_LIST", "NEW_DICT", "BLOCK", "SEP", "IN", "JUMP_IF_FALSE",
+        "LENGTH", "DROP", "PUSH_NIL","PUT", "PUSH", "POP",  "JUMP", "JUMP_IF_TRUE", 
+        "DUP", "NEW_LIST", "NEW_DICT", "BLOCK", "SEP", "IN", "JUMP_IF_FALSE",
         "SET_THIS", "THIS", "SWAP", "FOR", "END", "THROW", "TRY", "CATCH", "UNTRY",
         "DO", "NEXT", "INC", "DEC", "SHIFT_RIGHT"
         
@@ -366,7 +366,8 @@ public final class LightScript {
      * updated during the parsing.
      */
     private static class Code implements LightScriptFunction {
-        public Object apply(Object thisPtr, Object[] args, int argpos, int argcount) throws LightScriptException {
+        public Object apply(Object thisPtr, Object[] args, 
+                            int argpos, int argcount) throws LightScriptException {
 #ifdef __DEBUG__
             if(argcount == argc) {
 #endif
@@ -431,11 +432,13 @@ public final class LightScript {
     }
 
     private boolean isAlphaNum() {
-        return isNum() || c == '_' || ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z');
+        return isNum() || c == '_' || ('a' <= c && c <= 'z') 
+                                   || ('A' <= c && c <= 'Z');
     }
 
     private boolean isSymb() {
-        return c == '=' || c == '!' || c == '<' || c == '&' || c == '|' || c == '+' || c == '-' || c == '>';
+        return c == '=' || c == '!' || c == '<' || c == '&' 
+            || c == '|' || c == '+' || c == '-' || c == '>';
     }
 
     private void nextToken() {
@@ -602,7 +605,8 @@ public final class LightScript {
                         Object[] os = (Object[]) args[i];
 #ifdef __DEBUG__
                         if (((Integer) os[0]).intValue() != ID_IDENT) {
-                            throw new Error("parameter not variable name" + stringify(args));
+                            throw new Error("parameter not variable name" 
+                                            + stringify(args));
                         }
 #endif
                         varsLocals.push(os[1]);
@@ -610,7 +614,8 @@ public final class LightScript {
                 } else {
 #ifdef __DEBUG__
                     if (((Integer) args[0]).intValue() != ID_CALL_FUNCTION) {
-                        throw new Error("parameter not variable name" + stringify(args));
+                        throw new Error("parameter not variable name" 
+                                        + stringify(args));
                     }
 #endif
                     varsArgc--;
@@ -670,7 +675,8 @@ public final class LightScript {
                 } else {
                     Object[] expr2 = (Object[]) expr[1];
 #ifdef __DEBUG__
-                    if (type == ID_SET && ((Integer) expr2[0]).intValue() == ID_IDENT) {
+                    if (type == ID_SET 
+                    && ((Integer) expr2[0]).intValue() == ID_IDENT) {
 #endif
                         stackAdd(varsLocals, expr2[1]);
 #ifdef __DEBUG__
@@ -717,7 +723,8 @@ public final class LightScript {
                 varsUsed = t;
 #ifdef __DEBUG__
                 if(((Integer)right[0]).intValue() != ID_IDENT) {
-                    throw new Error("right side of dot not a string: " + stringify(right));
+                    throw new Error("right side of dot not a string: " 
+                                    + stringify(right));
                 }
 #endif
 
@@ -1338,7 +1345,8 @@ public final class LightScript {
                 } 
 #ifdef __DEBUG__
                 else {
-                    throw new Error("Uncompilable assignment operator: " + stringify(expr));
+                    throw new Error("Uncompilable assignment operator: " 
+                                    + stringify(expr));
                 }
 #endif
                 break;
@@ -1346,7 +1354,8 @@ public final class LightScript {
             case ID_PAREN: {
 #ifdef __DEBUG__
                 if (expr.length != 2) {
-                    throw new Error("Unexpected content of parenthesis: " + stringify(expr));
+                    throw new Error("Unexpected content of parenthesis: " 
+                                    + stringify(expr));
                 }
 #endif
                 compile(expr[1], yieldResult);
@@ -1500,7 +1509,8 @@ public final class LightScript {
                     pos += (cond == SEP_TOKEN) ? 1 : 2;
                     step = (pos < args.length) ? args[pos] : SEP_TOKEN;
                     curlyToBlock(expr[2]);
-                    compile(v(ID_BLOCK, init, v(ID_WHILE, cond, v(ID_BLOCK, expr[2], step))), yieldResult);
+                    compile(v(ID_BLOCK, init, v(ID_WHILE, cond, 
+                                v(ID_BLOCK, expr[2], step))), yieldResult);
                     hasResult = yieldResult;
                     break;
                 } else {
@@ -1761,11 +1771,13 @@ public final class LightScript {
                 break;
             }
             case ID_DEC: {
-                compile(v(ID_SET, expr[1], v(ID_SUB, expr[1], v(ID_LITERAL, new Integer(1)))), yieldResult);
+                compile(v(ID_SET, expr[1], v(ID_SUB, expr[1], 
+                            v(ID_LITERAL, new Integer(1)))), yieldResult);
                 return;
             }
             case ID_INC: {
-                compile(v(ID_SET, expr[1], v(ID_ADD, expr[1], v(ID_LITERAL, new Integer(1)))), yieldResult);
+                compile(v(ID_SET, expr[1], v(ID_ADD, expr[1], 
+                            v(ID_LITERAL, new Integer(1)))), yieldResult);
                 return;
             }
             default:
@@ -1792,7 +1804,9 @@ public final class LightScript {
     private static Object execute(Code cl) throws LightScriptException {
         return null;
     }
-    private static Object execute(Code cl, Object[] stack, int sp, Object thisPtr, int argcount) throws LightScriptException {
+    private static Object execute(Code cl, Object[] stack, int sp, 
+                                  Object thisPtr, int argcount) 
+                            throws LightScriptException {
         return null;
     }
 #else
@@ -1806,7 +1820,9 @@ public final class LightScript {
         Object thisPtr = null;
         return execute(cl, stack, sp, thisPtr, 0);
     }
-    private static Object execute(Code cl, Object[] stack, int sp, Object thisPtr, int argcount) throws LightScriptException {
+    private static Object execute(Code cl, Object[] stack, int sp, 
+                                  Object thisPtr, int argcount) 
+                            throws LightScriptException {
         //System.out.println(stringify(cl));
         int pc = -1;
         byte[] code = cl.code;
@@ -1816,7 +1832,11 @@ public final class LightScript {
         int startStackPos = sp + 1 - argcount;
         for (;;) {
             ++pc;
-            //System.out.println("pc:" + pc + " op:"  + idName(code[pc]) + " sp:" + sp + " stack.length:" + stack.length + " int:" + readShort(pc, code));
+            /*
+            System.out.println("pc:" + pc + " op:"  + idName(code[pc]) 
+                             + " sp:" + sp + " stack.length:" + stack.length 
+                             + " int:" + readShort(pc, code));
+            */
             switch (code[pc]) {
                 case ID_ENSURE_STACKSPACE: {
                     int arg = readShort(pc, code);
@@ -1843,7 +1863,8 @@ public final class LightScript {
                     if (sp <= startStackPos) {
 #ifdef __DEBUG__
                         if(sp < startStackPos) {
-                            throw new Error("Wrong stack discipline" + sp + " " +startStackPos);
+                            throw new Error("Wrong stack discipline" 
+                                + sp + " " +startStackPos);
                         }
 #endif
                         return result;
@@ -1873,7 +1894,8 @@ public final class LightScript {
                         closure = fn.closure;
                     } else if (o instanceof LightScriptFunction) {
                         try {
-                            Object result = ((LightScriptFunction)o).apply(thisPtr, stack, sp - argc + 1, argc);
+                            Object result = ((LightScriptFunction)o
+                                ).apply(thisPtr, stack, sp - argc + 1, argc);
                             sp -= argc + RET_FRAME_SIZE;
                             stack[sp] = result;
                         } catch(LightScriptException e) {
@@ -2080,9 +2102,11 @@ public final class LightScript {
                     Object container = stack[--sp];
                     if (container instanceof Stack) {
                         if(key instanceof Integer) {
-                            stack[sp] = ((Stack) container).elementAt(((Integer) key).intValue());
+                            stack[sp] = ((Stack) container).elementAt(
+                                ((Integer) key).intValue());
                         } else {
-                            stack[sp] = ((Hashtable) ((Object[])((Object[])closure[0])[0])[0]).get(key);
+                            stack[sp] = ((Hashtable) ((Object[])
+                                ((Object[])closure[0])[0])[0]).get(key);
                         }
                     } else if (container instanceof Hashtable) {
                         Object result;
@@ -2092,14 +2116,16 @@ public final class LightScript {
                             result = ((Hashtable) container).get(key);
                         }
                         if(result == null) {
-                            stack[sp] = ((Hashtable) ((Object[])((Object[])closure[0])[0])[1]).get(key);
+                            stack[sp] = ((Hashtable) ((Object[])
+                                ((Object[])closure[0])[0])[1]).get(key);
                         }
                     } else if (container instanceof String) {
                         if(key instanceof Integer) {
                             int pos = ((Integer) key).intValue();
                             stack[sp] = ((String) container).substring(pos, pos+1);
                         } else {
-                            stack[sp] = ((Hashtable) ((Object[])((Object[])closure[0])[0])[2]).get(key);
+                            stack[sp] = ((Hashtable) ((Object[])
+                                ((Object[])closure[0])[0])[2]).get(key);
                         }
                     } else {
                         stack[sp] = null;
@@ -2119,9 +2145,11 @@ public final class LightScript {
                     Object o2 = stack[sp];
                     Object o1 = stack[--sp];
                     if (o1 instanceof Integer && o2 instanceof Integer) {
-                        stack[sp] = ((Integer) o1).intValue() < ((Integer) o2).intValue() ? TRUE : null;
+                        stack[sp] = ((Integer) o1).intValue() 
+                            < ((Integer) o2).intValue() ? TRUE : null;
                     } else {
-                        stack[sp] = o1.toString().compareTo(o2.toString()) < 0 ? TRUE : null;
+                        stack[sp] = o1.toString().compareTo(o2.toString()) 
+                            < 0 ? TRUE : null;
                     }
                     break;
                 }
@@ -2129,9 +2157,11 @@ public final class LightScript {
                     Object o2 = stack[sp];
                     Object o1 = stack[--sp];
                     if (o1 instanceof Integer && o2 instanceof Integer) {
-                        stack[sp] = ((Integer) o1).intValue() <= ((Integer) o2).intValue() ? TRUE : null;
+                        stack[sp] = ((Integer) o1).intValue() 
+                            <= ((Integer) o2).intValue() ? TRUE : null;
                     } else {
-                        stack[sp] = o1.toString().compareTo(o2.toString()) <= 0 ? TRUE : null;
+                        stack[sp] = o1.toString().compareTo(o2.toString()) 
+                            <= 0 ? TRUE : null;
                     }
                     break;
                 }

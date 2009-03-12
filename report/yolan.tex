@@ -2,7 +2,7 @@
 \index{Yolan}
 \section{TODO: Design choices}
 
-... every expression yields a value, possibly false. Can be bound.
+... every expression yields a value, possibly false. Yes, you can bind a variable to the result of a false condition.
 
 ... lazy ffi.
 
@@ -170,7 +170,7 @@ Logs the message from $string$, possibly ignored if debugging is disabled.
 Halt the execution with error message $string$ if $val$ is nil, possibly ignored if debugging is disabled.
 
 
-\section{TODO: Developers guide}
+\section{Developers guide}
 Yolan is a minimal scripting language implemented on Java.
 It allows scripting to be added to application, with a minimal overhead on the size of the JAR file -- which is the most limiting factor on low end mobile devices. The features and limitations of Yolan are:
 \begin{itemize}
@@ -274,8 +274,7 @@ The function is then applied with the \verb|apply| method, which takes the argum
 \end{lstlisting}
 The apply method is defined from zero, up to three arguments. If there is a need for an apply method with more arguments, they are simple to add, see page~\pageref{source-yolan-apply} for the implementation details. There is also a general apply method, that takes an array of arguments as argument.
 
---- HERE ---
-\subsubsection{TODO: Modifying the runtime}
+\subsubsection{Modifying the runtime}
 
 In order for the scripting language to be practical, it should be able to work and share data with the host application. 
 Of course this can be done with functions, and evaluation, as described above, but an additional connection with the language can be added by accessing the variables defined, and used, by the running scripts.
@@ -326,7 +325,7 @@ When the runtime has been wiped, Yolan expressions can no longer be evaluated, a
 Resetting is necessesary before scripts are executed after a \verb|Yolan.wipe()|.
 It can also be practical when multiple scripts are run, one after each other, and they must not mess up the runtime for each other.
 
-\subsection{TODO: More on adding functions to the runtime}
+\subsection{More on adding functions to the runtime}
 The naive approach for adding functions to the runtime would be to create a new class implementing the \verb|Function| interface for each function. This adds significantly to the JAR-file
 .
 If the code size is critical, this can often be reduced by combining the multiple functions into a single class, for example via a switch dispatch as shown below:
@@ -376,24 +375,5 @@ class YolanIf implements Function {
     }
 }
 \end{lstlisting}
-
-\subsection{TODO: Hacking the source}
-\label{j2mesource}
-While the implementation only consist of one java-class-file, 
-this is actually several distinct classes, joined to save space.
-
-The core of the implementation is the the delayed computation objects that can also matches the parser tree. Each object just contains an index to some executable code\footnote{dispatched via a switch, as java does not support pointers to code}, and some data - its a kind of closure. 
-
-The interpreter is just walking and executing the parsed tree. Well, mostly - during the execution it does som simple optimisations and caching: an example is that if a node for a variable name is encountered, the execution of that node replaces the node itself with a node that references the cell that contains the variable, and then evaluate that new node.
-
-The runtime object is implemented as a set of static functions and variables.
-This limits the implementation to a single excution environment, but but also reduces the memory usage, as there are no need for passing pointers to the runtime object around.
-
-The parser is implemented a static function, that builds a parse tree from an input stream.
-
-When changing the builtin objects, there need to be changes three different places: There are the defines for the id matching a certain piece of code, then there is the interpreter dispatch, and finally there is the initialisation of the object into the runtime.
-
-
-Most of the use of the scripting language can be done without going into the details of the implementation. Even support floating point numbers and so on, can be added via the \verb|Function| interface.
 
 \section{TODO: Summary}

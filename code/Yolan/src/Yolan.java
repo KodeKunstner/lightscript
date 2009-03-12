@@ -1,4 +1,3 @@
-
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.Enumeration;
@@ -17,29 +16,11 @@ import java.util.Stack;
  * and the static methods typically manipulates that one,
  * - not reentrant nor threadsafe as a tradeof for less 
  * memory and code footprint. 
- * @author Rasmus Jensen
  */
 public final class Yolan {
-    //////////////////////////////////////
-    // The object itself represents a closure/a delayed computation.
-    ////
 
-    /** The closure */
-    private Object c;
-    /** The function id */
-    private int fn;
+/*` \section{Constants} '*/
 
-    /**
-     * Constructor for a new delayed computation
-     * @param fn the function id
-     * @param c the closure
-     */
-    private Yolan(int fn, Object c) {
-        this.fn = fn;
-        this.c = c;
-    }
-    /** Function ID constants */
-    //<editor-fold>
     //////////////////////
     // Internal functions
     ////
@@ -117,8 +98,183 @@ public final class Yolan {
     private static final int FN_GET_NEXT = 40;
     // Debugging
     private static final int FN_DEBUG_STRING = 41;
-    //</editor-fold>
+    
+    
+/*`\section{The static execution context}'*/
+
+    /** Random source */
     private static Random random = new Random();
+
+    /** Returnable true value */
+    private static final Boolean TRUE = new Boolean(true);
+
+    /** The variables. The array contains alternating variable names and values */
+    private static Object vars[];
+
+    /** The number of variables in vars */
+    private static int varsize;
+    
+    /** Stack used for function calls */
+    private static Stack stack;
+
+/*`\subsection{Make variables and native functions available}'*/
+
+    /**
+     * Lookup the id of a variable. If the variable does not have an id,
+     * allocate a new one for it. This lookup might be slow, so avoid 
+     * calling it in inner loops, but make lookups a priori and cache
+     * the ids.
+     * @param key the name of the variable
+     * @return the id which maps into the vars-array
+     */
+    public static int resolveVar(String key) {
+        int i = 0;
+        while (i < varsize && !vars[i].equals(key)) {
+            i += 2;
+        }
+
+        if (i == varsize) {
+            if (varsize == vars.length) {
+                // grow the var array exponential, and make sure
+                // that the size is divisible by 2
+                Object objs[] = new Object[(varsize * 5 / 4 + 4) & ~1];
+                System.arraycopy(vars, 0, objs, 0, varsize);
+                vars = objs;
+            }
+            vars[i] = key;
+            varsize += 2;
+        }
+        return i + 1;
+    }
+
+    /**
+     * Set the value of a variable
+     * @param id the id of the variable, found with resolveVar
+     * @param val the new value
+     */
+    public static void setVar(int id, Object val) {
+        vars[id] = val;
+    }
+
+    /**
+     * Set the value of a variable
+     * @param id the id of the variable, found with resolveVar
+     * @return the new value
+     */
+    public static Object getVar(int id) {
+        return vars[id];
+    }
+
+    /**
+     * Register a native function
+     * @param name the name of the function
+     * @param f the function itself
+     */
+    public static void addFunction(String name, Function f) {
+        int id = resolveVar(name);
+        vars[id] = new Yolan(FN_NATIVE_DUMMY, f);
+    }
+
+/*`\subsection{Initialisation}'*/
+
+    /**
+     * Register a builtin function
+     * @param val the function id
+     * @param name the name in the runtime
+     */
+    private static void addBuiltin(int val, String name) {
+        int id = resolveVar(name);
+        vars[id] = new Yolan(FN_BUILTIN_DUMMY, new Integer(val));
+
+    }
+
+    /** Initialisation */
+    static {
+        reset();
+    }
+
+    /**
+     * resets every static element,
+     * allowing them to be garbage collected
+     * - futher evaluation of Yolan objects
+     * will fail.
+     */
+    public static void wipe() {
+        vars = null;
+        stack = null;
+    }
+    
+    /**
+     * Resets the virtual machine.
+     * After the virtual machine has been reset,
+     * only new Yolan instances should be evaluated,
+     * and the result of evaluating existing objects are undefined.
+     */
+    public static void reset() {
+        vars = new Object[0];
+        stack = new Stack();
+        varsize = 0;
+
+        /* Initialisation of builtin names
+         * Commented out and replaced with optimised version below.
+        
+        // Variables
+        addBuiltin(FN_RESOLVE_SET, "set");
+        addBuiltin(FN_RESOLVE_LOCALS, "locals");
+        
+        // Conditionals and truth values
+        addBuiltin(FN_IF, "if");
+        addBuiltin(FN_NOT, "not");
+        addBuiltin(FN_AND, "and");
+        addBuiltin(FN_OR, "or");
+        ...
+         */
+
+        // space optimised initialisation of builtin names
+        // - having all the name in a single string
+        // and then manually extracting them, is spacewise
+        // significantly cheaper due to the design of the
+        // class file format.
+
+        String builtins = "set locals if not and or repeat foreach " +
+                "while lambda defun apply do + - * / % < <= is-integer " +
+                "is-string is-list is-dict equals is-empty put get " +
+                "random size stringjoin substring stringorder list " +
+                "resize push pop dict keys values get-next to-string ";
+
+        int prevpos = 0;
+        int pos = 0;
+        int id = 0;
+        while (pos < builtins.length()) {
+            while (!builtins.substring(pos, pos + 1).equals(" ")) {
+                pos++;
+            }
+            addBuiltin(id, builtins.substring(prevpos, pos));
+            pos++;
+            prevpos = pos;
+            id++;
+        }
+    }
+
+/*`\section{The delayed computation}'*/
+
+    /** The closure */
+    private Object c;
+
+    /** The function id */
+    private int fn;
+
+    /**
+     * Constructor for a new delayed computation
+     * @param fn the function id
+     * @param c the closure
+     */
+    private Yolan(int fn, Object c) {
+        this.fn = fn;
+        this.c = c;
+    }
+
+/*`\subsection{Function application}'*/
 
     /**
      * The number of arguments the function takes, 
@@ -132,38 +288,6 @@ public final class Yolan {
             return -1;
         }
         return ((Object[]) c).length - 1;
-    }
-
-    /*
-     * if the computation is a variable or literal,
-     * return its string representation
-     */
-    public String string() {
-        if (fn == FN_RESOLVE_GET_VAR) {
-            return (String) c;
-        } else if (fn == FN_GET_VAR) {
-            return (String) vars[((Integer) c).intValue() - 1];
-        } else if (fn == FN_LITERAL) {
-            if (c instanceof Integer) {
-                return c.toString();
-            } else if (c instanceof String) {
-                return "\"" + c + "\"";
-            }
-        }
-        return null;
-    }
-
-    /**
-     * utility function for function application
-     */
-    private Object doApply(int n) {
-        if (n != nargs()) {
-            for (int i = 0; i < n; i++) {
-                stack.pop();
-            }
-            return null;
-        }
-        return value();
     }
 
     /**
@@ -210,15 +334,35 @@ public final class Yolan {
         return doApply(args.length);
     }
 
-    private Object doEm(int first) {
-        Object result = null;
-        int stmts = ((Object[]) c).length;
-        while (first < stmts) {
-            result = val(first);
-            first++;
+/*`\subsection{Conversion to string}'*/
+
+    /*
+     * if the computation is a variable or literal,
+     * return its string representation
+     */
+    public String string() {
+        if (fn == FN_RESOLVE_GET_VAR) {
+            return (String) c;
+        } else if (fn == FN_GET_VAR) {
+            return (String) vars[((Integer) c).intValue() - 1];
+        } else if (fn == FN_LITERAL) {
+            if (c instanceof Integer) {
+                return c.toString();
+            } else if (c instanceof String) {
+                return "\"" + c + "\"";
+            }
         }
-        return result;
+        return null;
     }
+
+    /**
+     * Override the toString function
+     */
+    public String toString() {
+        return to_string(new StringBuffer(), this).toString();
+    }
+
+/*`\subsection{Evaluation of delayed computation}'*/
 
     /**
      * Evaluate the delayed computation
@@ -275,7 +419,8 @@ public final class Yolan {
                         return value();
                     }
                 }
-                throw new Error("Unknown function: " + ((Yolan) ((Object[]) c)[0]).string());
+                throw new Error("Unknown function: " 
+                               + ((Yolan) ((Object[]) c)[0]).string());
             }
 
             case FN_CALL_USER_FUNCTION: {
@@ -422,7 +567,8 @@ public final class Yolan {
                 Object[] function = new Object[arguments.length + 1];
                 function[0] = lambda_expr[1];
                 for (int i = 0; i < arguments.length; i++) {
-                    function[i + 1] = num(resolveVar((String) ((Yolan) arguments[i]).c));
+                    function[i + 1] = num(resolveVar((String) 
+                                        ((Yolan) arguments[i]).c));
                 }
 
                 return new Yolan(FN_USER_DEFINED_FUNCTION, function);
@@ -435,7 +581,8 @@ public final class Yolan {
                 Object[] function = new Object[arguments.length];
                 function[0] = lambda_expr[1];
                 for (int i = 1; i < arguments.length; i++) {
-                    function[i] = num(resolveVar((String) ((Yolan) arguments[i]).c));
+                    function[i] = num(resolveVar((String) 
+                                        ((Yolan) arguments[i]).c));
                 }
 
                 Yolan fnc = new Yolan(FN_USER_DEFINED_FUNCTION, function);
@@ -509,9 +656,12 @@ public final class Yolan {
 
             case FN_IS_EMPTY: {
                 Object o = val0();
-                return (o instanceof Stack ? (((Stack) o).empty())
-                        : o instanceof Hashtable ? (((Hashtable) o).isEmpty())
-                        : o instanceof Enumeration ? (!((Enumeration) o).hasMoreElements())
+                return (o instanceof Stack 
+                            ? (((Stack) o).empty())
+                        : o instanceof Hashtable 
+                            ? (((Hashtable) o).isEmpty())
+                        : o instanceof Enumeration 
+                            ? (!((Enumeration) o).hasMoreElements())
                         : false)
                         ? TRUE : null;
             }
@@ -647,6 +797,14 @@ public final class Yolan {
         }
     }
 
+/*`\subsection{Utility functions for evaluation}'*/
+
+    /**
+     * Recursive implementation of the stringjoin builtin function.
+     * @param sb string accumulator
+     * @param o if o is a Stack, join its elements, 
+     *          else just append o as a string.
+     */
     private static void stringjoin(StringBuffer sb, Object o) {
         if (o instanceof Stack) {
             for (int i = 0; i < ((Stack) o).size(); i++) {
@@ -656,81 +814,37 @@ public final class Yolan {
             sb.append(o.toString());
         }
     }
-    /**
-     * Override the toString function
-     * @return
-     */
-    /*
-    public String toString() {
-    return to_string(new StringBuffer(), this).toString();
-    }*/
-    ////////////////////////////////////
-    // Utility functions for evaluation
-    // <editor-fold>
-    ////
-    /**
-     * Returnable true value
-     */
-    private static final Boolean TRUE = new Boolean(true);
-    // Support for dynamic scoped variables
-    // <editor-fold>
-    /**
-     * An array containing alternating 
-     * variable names and values
-     */
-    private static Object vars[];
-    /** Stack used for function calls */
-    private static Stack stack;
-    private static int varsize;
 
     /**
-     * Lookup the id of a variable. If the variable does not have an id,
-     * allocate a new one for it. This lookup might be slow, so avoid 
-     * calling it in inner loops, but make lookups a priori and cache
-     * the ids.
-     * @param key the name of the variable
-     * @return the id which maps into the vars-array
+     * utility function for function application
      */
-    public static int resolveVar(String key) {
-        int i = 0;
-        while (i < varsize && !vars[i].equals(key)) {
-            i += 2;
-        }
-
-        if (i == varsize) {
-            if (varsize == vars.length) {
-                // grow the var array exponential, and make sure
-                // that the size is divisible by 2
-                Object objs[] = new Object[(varsize * 5 / 4 + 4) & ~1];
-                System.arraycopy(vars, 0, objs, 0, varsize);
-                vars = objs;
+    private Object doApply(int n) {
+        if (n != nargs()) {
+            for (int i = 0; i < n; i++) {
+                stack.pop();
             }
-            vars[i] = key;
-            varsize += 2;
+            return null;
         }
-        return i + 1;
+        return value();
     }
 
     /**
-     * Set the value of a variable
-     * @param id the id of the variable, found with resolveVar
-     * @param val the new value
+     * Assume the closure is a list, and evaluate
+     * the last elements of it. This is used
+     * for the implementation of body of 
+     * do, while, etc.
+     * @param first the first element in the closure list to evaluate
      */
-    public static void setVar(int id, Object val) {
-        vars[id] = val;
+    private Object doEm(int first) {
+        Object result = null;
+        int stmts = ((Object[]) c).length;
+        while (first < stmts) {
+            result = val(first);
+            first++;
+        }
+        return result;
     }
 
-    /**
-     * Set the value of a variable
-     * @param id the id of the variable, found with resolveVar
-     * @return the new value
-     */
-    public static Object getVar(int id) {
-        return vars[id];
-    }
-    // </editor-fold>
-
-    // Shorthands
     /**
      * Evaluate yolan list closure into an integer
      * @param i the index into the list
@@ -766,7 +880,6 @@ public final class Yolan {
         return new Integer(i);
     }
 
-    // Conversion to string
     /**
      * Convert an object to a string
      * @param sb the accumulator variable - the string i added to this buffer
@@ -793,105 +906,8 @@ public final class Yolan {
         return sb;
     }
 
+/*`\section{The parser}'*/
 
-    // </editor-fold>
-    ////////////////////////////////////
-    // Adding native+builtin functions to the runtime
-    //<editor-fold>
-    /**
-     * Register a builtin function
-     * @param val the function id
-     * @param name the name in the runtime
-     */
-    private static void addBuiltin(int val, String name) {
-        int id = resolveVar(name);
-        vars[id] = new Yolan(FN_BUILTIN_DUMMY, new Integer(val));
-
-    }
-
-    /**
-     * Register a native function
-     * @param name the name of the function
-     * @param f the function itself
-     */
-    public static void addFunction(String name, Function f) {
-        int id = resolveVar(name);
-        vars[id] = new Yolan(FN_NATIVE_DUMMY, f);
-    }
-
-    /**
-     * resets every static element,
-     * allowing them to be garbage collected
-     * - futher evaluation of Yolan objects
-     * will fail.
-     */
-    public static void wipe() {
-        vars = null;
-        stack = null;
-    }
-    
-
-    static {
-        reset();
-    }
-
-    /**
-     * Resets the virtual machine.
-     * After the virtual machine has been reset,
-     * only new Yolan instances should be evaluated,
-     * and the result of evaluating existing objects are undefined.
-     */
-    public static void reset() {
-        vars = new Object[0];
-        stack = new Stack();
-        varsize = 0;
-
-        /* Initialisation of builtin names
-         * Commented out and replaced with optimised version below.
-        
-        // Variables
-        addBuiltin(FN_RESOLVE_SET, "set");
-        addBuiltin(FN_RESOLVE_LOCALS, "locals");
-        
-        // Conditionals and truth values
-        addBuiltin(FN_IF, "if");
-        addBuiltin(FN_NOT, "not");
-        addBuiltin(FN_AND, "and");
-        addBuiltin(FN_OR, "or");
-        ...
-         */
-
-        // space optimised initialisation of builtin names
-        // - having all the name in a single string
-        // and then manually extracting them, is spacewise
-        // significantly cheaper due to the design of the
-        // class file format.
-
-        String builtins = "set locals if not and or repeat foreach " +
-                "while lambda defun apply do + - * / % < <= is-integer " +
-                "is-string is-list is-dict equals is-empty put get " +
-                "random size stringjoin substring stringorder list " +
-                "resize push pop dict keys values get-next to-string ";
-
-        int prevpos = 0;
-        int pos = 0;
-        int id = 0;
-        while (pos < builtins.length()) {
-            while (!builtins.substring(pos, pos + 1).equals(" ")) {
-                pos++;
-            }
-            addBuiltin(id, builtins.substring(prevpos, pos));
-            pos++;
-            prevpos = pos;
-            id++;
-        }
-    }
-
-    // </editor-fold>
-
-    /////////////////////////////////////
-    // The parser
-    ////
     /**
      * Parse the next Yolan expression from an input stream.
      * @param is the input stream to read from
