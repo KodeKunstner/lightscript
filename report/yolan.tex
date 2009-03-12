@@ -193,7 +193,7 @@ The \verb|Function| interface consist of a function that takes an array of Yolan
 \subsection{Getting Started}
 The core method of a Yolan object is the \verb|value()| method which evaluates the code the Yolan object represents, and returns the result. This method may throw \verb|Exeception|s as well as \verb|Error|s if the code it represents has faults, so if we are executing user code, or want to be robust against errors in scripts, the Yolan evaluation should be surrounded by a \verb|catch(Throwable)|.
 
-Yolan objects are created with the static \verb|readExpression| method that parses the next Yolan expression from an input stream. So if we want to create a simple interactive interpreter, we can write: {\scriptsize \begin{verbatim}
+Yolan objects are created with the static \verb|readExpression| method that parses the next Yolan expression from an input stream. So if we want to create a simple interactive interpreter, we can write: \begin{lstlisting}
 class Main {
     public static void main(String [] args) throws java.io.IOException {
         Yolan yl = Yolan.readExpression(System.in);
@@ -206,23 +206,20 @@ class Main {
             yl = Yolan.readExpression(System.in);
         }
     }
-}\end{verbatim} 
-}
+}\end{lstlisting} 
 
 This code could be saved in a file called Main.java, placed in a directory with Yolan.class and Function.class, and then compiled and executed by executing \verb|javac Main.java| and \verb|java Main|.
 
 Notice that the input stream \verb|System.in| can be replaced with any input stream, so the same basic idea for can be used for evaluating files, programs as strings within the application, or even as streams across the network, where Yolan could work as a shell for remote scripting/controlling an application.
 
 If we want to execute an entire stream, there is a short hand builtin method for doing that: \verb|eval|. For example:
-{\scriptsize 
-\begin{verbatim}
+\begin{lstlisting}
 class Main {
     public static void main(String [] args) throws java.io.IOException {
         Yolan.eval(new FileInputStream(new File("script.yl")));
     }
 }
-\end{verbatim}
-}
+\end{lstlisting}
 This code opens the file "script.yl", and evaluate all the expressions within it. 
 \verb|eval| throws away the results of the individual expressions and does not print them,
 so the above code is only useful if we have added some user defined functions to Yolan that allows it to do something practical.
@@ -237,7 +234,7 @@ The \verb|Function| interface is the way to do that. To implement the interface 
 Notice that the parameters are passed lazily, e.g. they are only evaluated when the called function chooses to evaluate them, so we need to call the \verb|value()|-function of the Yolan objects when we want the actual value.
 Execution of the Yolan object may also have side effects, so whether, and the number of times, the \verb|value()| is called matters.
 In order to add a new Java function to be callable from the runtime, the method \verb|Yolan.addFunction| takes a name as a string and a \verb|Function| as parameters, and binds the name to the function. As an example the following code makes a new function, println, available to the runtime. This function takes one argument, which it prints out to the standard output:
-{\scriptsize \begin{verbatim}
+\begin{lstlisting}
 class PrintingFunction implements Function {
     Object apply(Yolan args[]) {
         System.out.println(args[0].value());
@@ -249,8 +246,7 @@ class Main {
         Yolan.eval(new FileInputStream(new File("script.yl")));
     }
 }
-\end{verbatim} 
-}
+\end{lstlisting} 
 The above program reads and evaluates the file script.yl, with an augmented runtime which also has the println function.
 
 \subsubsection{Values and types}
@@ -265,8 +261,7 @@ When a user defines a function within Yolan, they are instances of the Yolan cla
 Before calling such a function, the number of arguments can be found using the \verb|nargs| method.
 If the Yolan object is not a callable user defined function, the result of \verb|nargs()| is -1, which thus can be used to check if a Yolan object is a callable function.
 The function is then applied with the \verb|apply| method, which takes the arguments to the function as arguments, for example:
-{\scriptsize 
-\begin{verbatim}
+\begin{lstlisting}
 ...
     // evaluation some yolan object that yields a function
     Yolan function = yl.value();
@@ -276,11 +271,10 @@ The function is then applied with the \verb|apply| method, which takes the argum
         result = function.apply(arg1, arg2);
     } else ...
 ....
-\end{verbatim}
-}
-
+\end{lstlisting}
 The apply method is defined from zero, up to three arguments. If there is a need for an apply method with more arguments, they are simple to add, see page~\pageref{source-yolan-apply} for the implementation details. There is also a general apply method, that takes an array of arguments as argument.
 
+--- HERE ---
 \subsubsection{TODO: Modifying the runtime}
 
 In order for the scripting language to be practical, it should be able to work and share data with the host application. 
@@ -290,17 +284,16 @@ For this there are three functions: \verb|Yolan.resolveVar|, \verb|Yolan.getVar|
 When a value is accessed, this is done through a handle, which is found with \verb|resolveVar|. This handle can then be used for reading and writing the variable. The motivation for the handle is that it takes time to lookup what a variable name, so this computation can be done once for each variable that needs to be accessed, and then additional accesses to the resolved variable are significant faster. The \verb|resolveVar| function takes the variable name as a string parameter, and return the handle, which is an integer. If the variable does not exist in the runtime, space is allocated for it.
 
 With a handle, it is then possible to set the value of a variable with \verb|setVar|. For example setting the variable foo to 42 can be done with:
-{\scriptsize \begin{verbatim}
+\begin{lstlisting}
     Yolan.setVar(Yolan.resolveVar("foo"), new Integer(42));
-\end{verbatim} }
+\end{lstlisting} 
 and similarly the variable can be read with \verb|getVar|:
-{\scriptsize \begin{verbatim}
+\begin{lstlisting}
     Object result = Yolan.getVar(Yolan.resolveVar("foo"));
-\end{verbatim} }
+\end{lstlisting}
 
 If it the variable is commonly accessed, it saves time to cache the handle across calls, as follows:
-{\scriptsize 
-\begin{verbatim}
+\begin{lstlisting}
 class Class {
     int fooHandle;
     Class() {
@@ -319,25 +312,25 @@ class Class {
         ...
     }
 }
-\end{verbatim}
-}
+\end{lstlisting}
+When defining functions, as described earlier, it is actually the same that is happening: the function is encapsulated in a Yolan object and added to the runtime as with \verb|setVar|.
 
-When defining functions, as described earlier, it is actually the same that is happening, where the function is encapsulated in a Yolan object and added to the runtime as with \verb|setVar|.
-\subsubsection{TODO:Calling back functions}
-apply nargs
-\subsubsection{TODO: Resetting the runtime and saving space}
-When the scripting language is only used in some part of the application, it can be pratical to be able to unload the runtime data in order to save memory. This can be done with \verb|Yolan.wipe()|, after which, the references in the runtime are set to zero, allowing data to be garbage collected.
-When the runtime is wiped, existing Yolan expressions can no longer be evaluated, and trying to evaluate them will yield errors. Also notice that it is necessary to reset the runtime before any of it can be used.
+\subsubsection{Resetting the runtime and saving space}
+When the scripting language is only used in some part of the application, it can be pratical to be able to unload its runtime data in order to save memory. 
+For this there are two utility functions \verb|Yolan.wipe()| and \verb|Yolan.reset()|.
 
-Resetting the runtime can be done with \verb|Yolan.reset()|. When the runtime is reset, all variable handles are invalidated, all variables are removed from the runtime, and only the builtin functions are added. Existing Yolan expressions are also invalidate, and evaluation of those may lead to unexpected behavior. User defined functions and variables needs to be re-added.
-Resetting is practical when scripts are run, after each other, and must mess the runtime up for each other.
+\verb|Yolan.wipe()| sets all references in the runtime are set to zero, allowing data to be garbage collected.
+When the runtime has been wiped, Yolan expressions can no longer be evaluated, and trying to evaluate them will yield errors. 
+
+\verb|Yolan.reset()| resets the runtime: all variable handles are invalidated, all variables are removed from the runtime, and only the builtin functions are added. Existing Yolan expressions are invalid, and evaluation of them may lead to unexpected behavior. User defined functions and variables need to be re-added.
+Resetting is necessesary before scripts are executed after a \verb|Yolan.wipe()|.
+It can also be practical when multiple scripts are run, one after each other, and they must not mess up the runtime for each other.
 
 \subsection{TODO: More on adding functions to the runtime}
-
-The simple approach to adding functions to the runtime would require a new class for each function, which will add significantly to the size of the Jar-file.
-If the code size is critical, then this can often be reduced by combining the functions in a single class, for example via a switch dispatch, e.g.:
-{\scriptsize 
-\begin{verbatim}
+The naive approach for adding functions to the runtime would be to create a new class implementing the \verb|Function| interface for each function. This adds significantly to the JAR-file
+.
+If the code size is critical, this can often be reduced by combining the multiple functions into a single class, for example via a switch dispatch as shown below:
+\begin{lstlisting}
 class ManyFunction implements Function {
     int id;
     ManyFunction(int id) {
@@ -365,12 +358,10 @@ class ManyFunction implements Function {
         ....
     }
 }
-\end{verbatim}
-}
+\end{lstlisting}
 
-When implementing functions, it is also possible to create control structures, due to the lazyness of yolan objects. This is easily done by not calling all of the parameters \verb|value| functions once. The example below, shows how the usual if-statement could be implemented:
-{\scriptsize 
-\begin{verbatim}
+When implementing functions, it is also possible to create control structures, due to the laziness of Yolan objects. This is done by not necessarily calling the parameters \verb|value|-functions exactly one time each. The example below shows how the usual if-statement could be implemented:
+\begin{lstlisting}
 class YolanIf implements Function {
     Object apply(Yolan args[]) {
         // first evaluate the condition
@@ -384,8 +375,7 @@ class YolanIf implements Function {
         }
     }
 }
-\end{verbatim}
-}
+\end{lstlisting}
 
 \subsection{TODO: Hacking the source}
 \label{j2mesource}
