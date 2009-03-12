@@ -15,13 +15,7 @@ import java.util.Stack;
 // - Virtual machine
 
 
-    ////////////////////////
-    ////// Constants //////
-    //////////////////////
-    /////////////////////
-    ////////////////////
-    ///////////////////
-    //////////////////
+/*`\section{Constants}'*/
 //#define __DEBUG__
 #define __COMPILE_TOKENISER__
 #define __COMPILE_API__
@@ -251,13 +245,7 @@ public final class LightScript {
     }
 #endif /* __COMPILE_API__ */
 
-    ////////////////////////
-    ////// Debugging //////
-    //////////////////////
-    /////////////////////
-    ////////////////////
-    ///////////////////
-    //////////////////
+/*`\section{Debugging}'*/
 
 #ifdef __DEBUG__
     private static final String[] idNames = {"", "PAREN", "LIST_LITERAL",
@@ -328,13 +316,7 @@ public final class LightScript {
     }
 #endif
 
-    ////////////////////////
-    // Utility functions //
-    //////////////////////
-    /////////////////////
-    ////////////////////
-    ///////////////////
-    //////////////////
+    /*`\section{Utility functions}'*/
 
     private static Object[] v(int id, Object o) {
         Object[] result = {new Integer(id), o};
@@ -363,14 +345,22 @@ public final class LightScript {
         return os;
     }
 
+#ifdef __COMPILE_PARSER__
+    private static void stackAdd(Stack s, Object val) {
+        if(s == null) {
+            return;
+        }
+        int pos = s.indexOf(val);
+        if (pos == -1) {
+            pos = s.size();
+            s.push(val);
+        }
+    }
+#endif /* __COMPILE_PARSER__ */
 
-    //////////////////////
-    // Utility classes //
-    ////////////////////
-    ///////////////////
-    //////////////////
-    /////////////////
-    ////////////////
+
+
+/*`\section{Utility classes}'*/
     /**
      * Analysis of variables in a function being compiled,
      * updated during the parsing.
@@ -407,13 +397,7 @@ public final class LightScript {
         }
     }
 
-    //////////////////////
-    /// Constructor   ///
-    ////////////////////
-    ///////////////////
-    //////////////////
-    /////////////////
-    ////////////////
+/*`\section{Constructor}'*/
 
 #ifdef __COMPILE_API__
     public LightScript() {
@@ -423,13 +407,8 @@ public final class LightScript {
 #endif /* __COMPILE_API__ */
 
 
-    //////////////////////
-    //// Tokeniser //////
-    ////////////////////
-    ///////////////////
-    //////////////////
-    /////////////////
-    ////////////////
+/*`\section{Tokeniser}'*/
+
 #ifndef __COMPILE_TOKENISER__
     private void nextToken() {
     }
@@ -532,13 +511,8 @@ public final class LightScript {
     }
 #endif /* __COMPILE_TOKENISER__ */
 
-    //////////////////////
-    ////// Parser ///////
-    ////////////////////
-    ///////////////////
-    //////////////////
-    /////////////////
-    ////////////////
+/*`\section{Parser}'*/
+
 #ifndef __COMPILE_PARSER__
     private Object[] parse(int rbp) {
         return null;
@@ -546,17 +520,6 @@ public final class LightScript {
     private void resolveToken(Object o) {
     }
 #else
-    private static void stackAdd(Stack s, Object val) {
-        if(s == null) {
-            return;
-        }
-        int pos = s.indexOf(val);
-        if (pos == -1) {
-            pos = s.size();
-            s.push(val);
-        }
-    }
-
     private Object[] parse(int rbp) {
         Object[] left = nud(token);
         while (rbp < (token & MASK_BP)) {
@@ -1107,23 +1070,18 @@ public final class LightScript {
     }
 
     private void resolveToken(Object val) {
+        tokenVal = val;
+
         Object o = idMapping.get(val);
         if(o == null) {
             token = TOKEN_IDENT;
-            tokenVal = val;
         } else {
             token = ((Integer)o).intValue() + MASK_BP;
         }
     }
 #endif /* __COMPILE_PARSER__ */
 
-    //////////////////////
-    ///// Compiler //////
-    ////////////////////
-    ///////////////////
-    //////////////////
-    /////////////////
-    ////////////////
+/*`\section{Compiler}'*/
 
 #ifndef __COMPILE_COMPILER__
     private Code compile(Object[] body) {
@@ -1828,13 +1786,8 @@ public final class LightScript {
     }
 #endif /*__COMPILE_COMPILER__*/
 
-    //////////////////////
-    // Virtual Machine //
-    ////////////////////
-    ///////////////////
-    //////////////////
-    /////////////////
-    ////////////////
+/*`\section{Virtual Machine}'*/
+
 #ifndef __COMPILE_VM__
     private static Object execute(Code cl) throws LightScriptException {
         return null;

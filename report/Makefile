@@ -18,7 +18,7 @@ excerpt.pdf: excerpt.tex */*.tex
 all: $(MAINFILE).pdf  
 #excerpt.pdf  synopsis.pdf
 
-$(MAINFILE).pdf: $(MAINFILE).tex *.tex bibliography.bib */*.tex ../code/bench/*.tex
+$(MAINFILE).pdf: $(MAINFILE).tex *.tex bibliography.bib */*.tex ../code/bench/*.tex ../code/LightScript/LightScript.javapp ../code/Yolan/src/Yolan.java
 
 synopsis.pdf: synopsis.tex bibliography.bib
 

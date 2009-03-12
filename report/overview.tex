@@ -1,20 +1,145 @@
-\chapter{Overview}
-\section{Mobile platforms}
+\chapter{TODO: Survey}
+This chapter...
+... introduction...
 
-\section{Java Mobile Edition}
-\section{Scripting languages, virtual machines, and their implementations}
-\section{Programming languages}
-\section{JavaScript/EcmaScript}
-\subsection{Implementations}
+\section{TODO: Mobile platforms}
+
+Development for mobile devices are very diverse.
+Surveys focussing on mobile devices often focus on smart phones, which are diverse high end mobile devices, - notice that market shares in surveys, such as \cite{smartphonesurvey} does not include the more low end devices.
+On the contrary, this project focuses on development also targeting low end devices.
+
+Looking at lowest end mobiled devices: if user applications are loadable at all, it is in the shape of Java Midlets.
+...
+
+Higher end devices often supports native code.
+This has different APIs and there are lots of different platforms.
+Some of the main platforms for smart phones, and similar are:
+Symbian, Qt-embedded (a linux), RIM-BlackBerry, iPhone, Android (a linux with a Java-like vm on top), Windows CE, etc.
+... description of different operating systems...
+
+Many of these platforms requires some fees/licenses and code signing for developing and/or distributing applications. 
+This makes them less attractive for further studies as well as further development.
+
+Additionally, the BREW mobile platform seems to play an important role in North America, but it is closed and needs code signing, and at the same time it is not common in Europe, so I will not look further into that platform.
+
+Besides Java and native code, JavaScript are becoming an potential language for applications for high end phone. 
+This is both due to that its integration with the web, which means that it will be available on the phones with advanced browsers,
+and due to recent major advances within the JavaScript implementations, which are propagating towards mobile devices.
+
+\subsection{The J2ME / Java Micro Edition}
+J2ME (Java Micro Edition\footnote{Java Micro Edition is a recent rebranding of J2ME}) is the most common plargorm for mobile application, being installed in more than a billion devices. 
+The virtual machine of J2ME is often the only option, as low end mobile devices usually do not allow loading of applications targeting the native machine.
+J2ME is a trimmed down Java Virtual Machine (JVM) so many of the things applicable to Java is also applicable to J2ME. It is also a fragmented platform, with different APIs/extensions from different vendors, and different device profiles for different hardware capabilities.
+
+Applications for J2ME, are called Midlets and are distributed via JAR-files (Java ARchive). A JAR file is essentially a zip file containing the compiled java classes, data files, and some meta information.
+
+J2ME has two device configurations CLDC 1.0 (Compact Limited Device Configuration 1.0)\cite{cldc10}  and CLDC 1.1 \cite{cldc11}. The major difference between the two is that CLDC 1.0 is integer only, whereas CLDC 1.1 supports floating point numbers.
+A limitation of both CLDCs is that they lack of support for reflection and dynamic code loading.
+The lack of a reflection API impacts a scripting language in that it cannot discover native functions, but such functions have to be added to the system.
+The lack of dynamic code loading rules out the possibility of JIT compiling the scripting language to Java class files.
+
+The CLDCs are based upon the Java JVM\cite{jvmref}, with some instructions removed, and some metadata added to ensure stack discipline (the preverifiction process).
+The reference implementation of CLDC 1.0, kvm, is a switch-based interpreter with a compacting mark-and-sweep garbage collector\cite{kvm,kvm-src}.
+
+In section~\ref{interpreter-implementation}, optimisation of interpreter implementation is discussed.
+With regard to this, it should be noticed that JVM does not support label references as values, nor does it support functions as values, but it does have a builtin switch opcode as well as support for method-dispatch based on the type of an object, so an interpreter would either be switch-based, or have a class for every opcode.
+
+The resources available for J2ME on mobile phones starts at 64KB for the jar-file and 200KB for the run time memory on the lowest end devices, and goes upwards from that\cite{nokiaoptim}.
+As the project is to make an embeddable language, so these memory figures are both for the main application and the language implementation, so the language must use significantly fewer resources than those available.
+
+
+\subsubsection{Memory optimisations}
+A major optimisation of the available run time memory is to be able to avoid having memory intensive parts of the program run at the same time. E.g. it is desirable to be able to garbage collect the executed parts of the programs when they are done, and the memory needs to be available for other computations.
+
+The usual size optimisations, such as finding compact representations, trimming dynamic data structures, avoiding sparse data, etc., is also applicable.
+Notice that there might also be a tradeoff between the code footprint and run time memory, as compact representations and other optimisations may require more code to be implemented.
+
+The code footprint limit may be tighter that the run time memory, and it may be possible to partition the execution such that different parts of the applications do not need to use run time memory at the same time.
+Thus code footprint will be prioritised slightly higher than the run time memory usage, though both are important.
+
+
+\subsubsection{Footprint optimisations}
+Some optimisations to reduce the code or JAR-file footprint:
+\begin{itemize}
+\item Reduce the number of class-files.
+\item Be wary of how variables are initialised.
+\item Use a JAR-optimiser/obscurifier.
+\item Put the classes in the unnamed package.
+\end{itemize}
+
+Reducing the number of classes may reduce the size of the JAR file significantly,
+even though the amount of code is the same:
+Each class file has it own symbol table, which means that if classes are merged, then common symbols only needs to be represented once, rather than once for each class.
+Another reason is the compression, - JAR files are essentially zip-archives, and each file in a zip archive is compressed individually\cite{zipspec}, which means that small files typically gets compressed less than longer files, due to the small compression context.
+The downside of reducing the number of classes is that it could go against the object oriented design, and the implementation may more difficult to read and edit.
+
+Initial values are not supported directly by the Java class file format, but instead
+JVM-code is generated, which does the initialisation. 
+This often inefficient, -- an example is the initialisation:
+\begin{verbatim}
+byte[] bytes = { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ;
+\end{verbatim}
+generates the code corresponding to
+\begin{verbatim}
+byte[] bytes = new byte[9];
+bytes[0] = 1; bytes[1] = 2; bytes[2] = 3;
+bytes[3] = 4; bytes[4] = 5; bytes[5] = 6;
+bytes[6] = 7; bytes[7] = 8; bytes[8] = 9;
+\end{verbatim}
+which for larger initialisation is significantly more expensive than manually written initialisers,
+which for the above example could be:
+\begin{verbatim}
+byte[] bytes = "\001\u002\u003\u004\u005\u006\u007\u010\u011".getBytes();
+\end{verbatim}
+When writing initialising code, it is also nice to know that when strings in the Java class file is encoded, only characters with unicode values between 1 and 127 (inclusive) uses one byte per character, so for large binary data, it may make sense to load it from external sources and not include it in the class file.
+
+JAR file optimisation/obfuscation can beneficial for code footprint due to that it may:
+remove unused code;
+item rename methods and classes, so that they use less space in the symbol table;
+make \verb|static const|s work as \verb|#define|s;
+optimise code, shortening some of code.
+This also allows one to make more readable code with concern of code footprint, knowing that some of the more verbose parts will be optimised away.
+
+Using the unnamed package saves space in the symbol table.
+
+
+\section{TODO: Scripting languages and virtual machines for mobile devices, and their implementations}
+\section{TODO: Programming language ideas}
+\section{TODO: JavaScript/EcmaScript}
+\subsection{TODO: Implementations}
 \subsubsection{Rhino}
 \subsubsection{SpiderMonkey}
 \label{spidermonkey}
 \subsubsection{QScript}
 \subsubsection{JavaScriptCore - old edition}
 \subsubsection{SquirrelFish (new JavaScriptCore)}
+SquirrelFish is the new implementation of JavaScript in Webkit,
+which is an optimised register based virtual machine,
+where JIT compilation is also being added.
+
 \subsubsection{TraceMonkey}
+TraceMonkey is the next JavaScript engine from Mozilla.
+I has a JIT compiler based on trace tree, 
+which rather than JIT compiling the entire program,
+traces and then compiles the most executed paths through,
+meaning that it both gets optimised to the actual execution,
+and also reduces the amount of code needed to be compiled.
+
+
 \subsubsection{V8}
-\section{Interpreter implementation}
+V8 is an implementation done by Google, and released in 2008 in conjunction with the release of their browser ``Chrome''. 
+While it is not directly connected with the Android platform, a JIT compiler is already in place targeting tha ARM cpu, so it seems likely that it will also target mobile devices in the long term.
+
+A main factor of v8 is execution speed. It is designed towards JIT from the beginning, and it also does some class inference to optimise methods and property access.
+This builts upon experiences from self/smalltalk implementations\cite{articles-before-v8}.
+The idea here is that by guessin a class when JIT'ing the code, a property access can be reduced to a comparison(type check) and then just a pointer lookup, rather than a full slow JavaScript scope lookup.
+
+The garbage collector is also quite elegant, - it is a generational garbage collector with two generations. The young generation is collected with a copy-collector which is linear in the time of live data, and thus heap allocation of activation records is almost free. 
+This is combined with mark and sweep when a full collect is needded.
+
+
+\section{TODO: Interpreter implementation}
+\label{interpreter-implementation}
 This section looks into a couple of aspects of interpreter implementation.
 First is a discussion on different types of virtual machines, namely register and stack machines, and their different benefits and tradeoffs.
 Then there is a discussion on the implementation of the dispatch, which is one of the bottlenecks of intepreters.
@@ -118,14 +243,14 @@ INSTRUCTION_IMPLEMENTATIONS:
    ... implementation of FOO ...
    goto INSTRUCTION_IMPLEMENTATIONS + IMPLEMENTATION_SIZE * (++pc)
    ... padding ...
-// address INSTRUCTION_IMPLEMENTATINS + 1 * IMPLEMENTATION_SIZE
+// address INSTRUCTION_IMPLEMENTATIONS + 1 * IMPLEMENTATION_SIZE
    ... implementation of BAR ...
    goto INSTRUCTION_IMPLEMENTATIONS + IMPLEMENTATION_SIZE * (++pc)
    ... padding ...
-// address INSTRUCTION_IMPLEMENTATINS + 2 * IMPLEMENTATION_SIZE
+// address INSTRUCTION_IMPLEMENTATIONS + 2 * IMPLEMENTATION_SIZE
    ... first part of implementation of BAZ  which is a long instruction...
    goto REMAINING_IMPLEMENTATION_OF_BAZ
-// address INSTRUCTION_IMPLEMENTATINS + 3 * IMPLEMENTATION_SIZE
+// address INSTRUCTION_IMPLEMENTATIONS + 3 * IMPLEMENTATION_SIZE
    ... implementation of other instructions...
 
 REMAINING_IMPLEMENTATION_OF_BAZ:
@@ -139,8 +264,9 @@ Notice that \verb|IMPLEMENTATION_SIZE| would be a power of two such that the mul
 This optimisation is for example used in the Dalvik Virtual Machine\cite{dalvik-vm}
 
 
-\subsection{JIT-compilation}
-\subsection{Garbage collection}
+\subsection{TODO: JIT-compilation}
+
+\subsection{TODO: Garbage collection}
 Garbage collection is an important issue in the design of virtual machines. 
 A good survey on this topic is\cite{gc-survey}, though it is a bit dated.
 Another interesting source is to look at what approaches pratical virtual machine implementations used.
@@ -149,32 +275,102 @@ A common approach is to combine reference counting with some kind of cycle clean
 An example of this is the python implemenation. 
 This has the benefit of being reasonbly interactive. 
 
-The KVM -- reference implementation of mobile java virtual machine -- now uses a compacting mark and sweep.
-
+The KVM -- reference implementation of mobile Java virtual machine -- now uses a compacting mark and sweep.
 
 The V8 JavaScript has a very interesting garbage collection implementation: it is a generational garbage collector with two generations.
 By dividing the heap into generations, it is possible to free young short lived objects, while not having to look at the long-lived ones. 
 In the V8 case, the garbage collector for the young generation is a copying-compacting collector, which is called often, combined with a mark-and-sweep for the full heap, when that is needed.
 The complexity of a copying collector is linear of the live objects, which means that there are essentially no overhead of heap allocating the run time stack with this garbage collection strategy, which solves some of the problems of the run time stack, which is described later on.
 
-\subsection{Implementation of the run time stack}
-
-\section{Parsing}
+\section{TODO: Parsing}
 A part of a language implementation is to parse the source text into the abstract syntax tree to work on. 
 
 An issue here is that parsers often take quite a large amount of code, especially if they are generated by compiler-compilers.
 Generated lexers and LALR(1) parsers, generated by for example \cite{yacc, yacc2}, usually have quite large state tables.
 Recursive descent parsers seems to use a bit less code size the bottom up approach, but still requires functions for the all the grammar productions, which may still be expensive.
 
-Grammar based parser generation and implemenation is extensively studied and described\cite{basics-of-compiler-design, grammar}, and is assumed well known and needs further description in this surveying.
+Grammar based parser generation and implementation is extensively studied and described for example in \cite{basics-of-compiler-design, grammar}, and is assumed well known.
 A couple of other approaches which are also very elegant, 
 but have recieved less focus are
 monadic parser generators, and top down operator precedencs parsers,
-which will be discribed in the following sections.
+which will be discussed in the following sections.
 
-\subsection{Monadic parser}
+\subsection{TODO: Monadic parser}
 
 \subsection{Top down operator precedence parsers}
+\label{tdop}
+Top down operator precedence parsing was described thirty years ago in \cite{top-down-operator-precedence}, but has not had much attention until lately with \cite{beautiful-code}.
+
+In some way it combines recursive descent parsing with operator precedence, which simplifies the implementation significantly.
+
+A token can have a null denominator function, a left denominator function and a precedence.
+The null denominator function is used to build the abstract syntax tree node, if the token stands first (is leftmost) in an expression.
+The left denominator function is used to build the abstract syntax tree node, if we already have something to the left of the token within the expression.
+The precedence of the next token is used to determine whether we are done parsing an expression or need to use the that token to build another abstract syntax tree node, by calling left denominator function of the token.
+
+To be able to build the abstract syntax tree node, the left denominator function gets the parsed node to the left of the token as a parameter. Additionally it is possible for the denominator functions to parse expressions to the right of the token by calling the parsing function recursively. Here it is necessary that the parsing function also takes a priority as a parameter. This priority parameter makes sure that you do not call left denominator functions for tokens with lower priority.
+
+The parsing itself is then simply done, by first calling null denominator function of the first token, and then calling the left denominator functions of the next tokens, as long as the next token has higher priority than the priority passed to the parsing function.
+The denominator functions attached to each token are then responsible for building the syntax tree.
+So the core loop of the parser is implemented like:
+\begin{verbatim}
+define parse(int priority):
+    syntax_tree = next_token.null_denominator()
+    while next_token.priority > priority:
+        syntax_tree = next_token.left_denominator(syntax_tree)
+    return syntax_tree
+\end{verbatim}
+
+Now we need to assign meaningfull precedence and denominator functions to the tokens:
+Atoms, variable names, literals etc., just need to have a null denominator functions that return their node. Unary operations such as minus, not, ..., needs to have null denominator that calls parse once, and create a node that applies the operator to the parsed node.
+Binary (infix) operators are made by assigning the left denominator function to something that create a node with its parameter as the left hand side and calling parse to make the right hand side. Binary operators can be made right associative by reducing the priority passed to parse.
+Lists just calls parse until the end of the list is reached. And other constructions can be made similarly. 
+
+The limitation of this parser as described here is that only one left hand side expression is passed to the left denominator function, making reverse polish notation languages difficult to implement. A non-recursive version with an explicit stack instead could solve that, though it may not be an issue with most syntaxes. 
+
+\section{TODO:Scope}
+The scope is important when designing programming languages.
+There are two major kind of scopes: static scoping and dynamic scoping.
+Static scope is also called lexical scope, and corresponds to the (lexical) structure of the source code.
+This is in contrast to dynamic scope, where the variables are accessible other places than in the blocks where they are defined. This is exemplified by the following:
+\begin{verbatim}
+function f() {
+    x := 17
+}
+function g(x) {
+    f()
+    print(x)
+}
+g(42)
+\end{verbatim}
+which would print 42 if it were written in a statically scoped language, and would print 17 if it were written in a dynamically scoped language.
+
+Static scope is more natural as the scope matches the structure of the code. Dynamic scope requires more discipline, as it allows the programmer to tamper with local variables of other parts of the code, and counters good habits of information hiding. A very importeant feature is also that static scope can be used to create closures for functions, which gives extra flexibility to the language.
+On the other hand, dynamic scope very trivial to implement, and can thus use slightly less space in the code footprint, if it is a very simple interpreter. Dynamic scope does also not have the issue with the funarg problem discussed in section~\ref{funarg}.
+For more advanced language implementations static scope has the benefit over dynamic scope, that it is easier to analyse and optimise due to locality, in the sense that its use is limited to the local lexical scope, and thus the optimisations on this part of the code need be concerned with other parts of the code.
 
 
-\section{Summary}
+\subsection{TODO:Implementation of variables}
+... run time stack, cells for each variable, lookup-stack, lookup-table, activation record, JavaScript-objects, ...
+
+\subsection{TODO: Higher order functions, and the funarg problem}
+When we have higher order functions and static scoping, we cannot just place the activation records on the stack. The reason for this is that inner functions may live on, and acces local variables of the outer function, after the outer function has returned. Consider the following code:
+\begin{verbatim}
+function f(x) {
+    function g(y) {
+        return x + y
+    }
+    return g
+}
+\end{verbatim}
+
+The issue in this code is that the new function $g$ lives on after $f$ has returned, and at the same time $g$ uses a value that lies on the activation record of $f$. Therefor, if the activation record is just allocated on the call stack, and nothing further is done about it, the value of $x$ will no longer be available at the time $g$ is called.
+
+
+\label{funarg}
+
+
+
+
+
+\section{TODO: Summary}

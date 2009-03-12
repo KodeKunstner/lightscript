@@ -16,11 +16,14 @@
 \usepackage{fancyhdr}
 \usepackage{listings} 
 %\usepackage[colorlinks,pagebackref]{hyperref}
-\usepackage{backref}
+\usepackage{hyperref}
+%\usepackage{backref}
 \usepackage{url}
 \frenchspacing
 \makeindex
 \pagestyle{plain}
+\lstset{language=java}
+\lstset{escapeinside=`'}
 
 \title{
 \emph{Document currently under development} \\ ~ \\
@@ -41,75 +44,21 @@ for mobile devices}
 
 \begin{document}
 
-% some parts commented out, for draft printing. size reduced an smaller top/bottom.
+\maketitle
+\begin{abstract}
+... TODO: abstract ...
+\end{abstract}
 
-%\maketitle
-%\begin{abstract}
-%\end{abstract}
-
-\setcounter{tocdepth}{1}
+\setcounter{tocdepth}{2}
 \tableofcontents
-%\listoffigures
-%
-%\part{Aspects of creating the language}
-
-\begin{comment}
-- introduction
-  - motivation
-  - project description
-- overview
-  - mobile platforms
-    - java mobile edition
-  - mobile scripting languages
-  - programming languages
-  - interpreter implementation
-- approach
-  - prototypes
-    - waterfall vs. stepwise refinement
-    - approx 30 partial prototypes
-  - overall design choices
-    - null is false
-    - scope: lightscript static, yolan dynamic
-    - dynamic type system
-    - building on top of jvm/cldc-1.0
-    - fast variable access
-    - scope: lightscript tdop, yolan trivial
-    - prototypes for evaluation
-    - parser robust, but not validating
-    - online execution, a statement at a time
-  - evaluation criteria
-    - code footprint
-    - execution speed
-- lightscript
-  - implementation details
-    - imperative top down operator precedence parser 
-    - stack vs. array
-    - resolution of variables
-  - language specification
-  - implementors/developers guide
-- yolan
-  - implementation details
-    - AST-rewriting
-  - language specification
-  - implementors/developers guide
-- ideas for low-level implementation
-  - compact memory implementation
-  - few-register based virtual machine for easy JIT
-  - ecmaScript like language with more meat and classes
-- benchmarks
-- discussion
-  - surprisingly good performance
-  - perspective, discussion of the results
-  - further studies
-- conclusion
-\end{comment}
-
+\listoffigures
 
 \input{introduction}
 \input{overview}
 \input{approach}
 \input{lightscript}
 \input{yolan}
+\input{further}
 \input{benchmark}
 \input{discussion}
 \input{conclusion}
@@ -127,6 +76,14 @@ for mobile devices}
 \appendix
 
 \input{../code/bench/marks.tex}
+
+\chapter{TODO:Source code of the Yolan class}
+\lstinputlisting{../code/Yolan/src/Yolan.java}
+
+\chapter{TODO:Source code of the LightScript class}
+\lstinputlisting{../code/LightScript/LightScript.javapp}
+
+
 \newpage
 \addcontentsline{toc}{chapter}{Index}
 \printindex

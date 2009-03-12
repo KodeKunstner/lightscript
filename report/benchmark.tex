@@ -1,6 +1,6 @@
-\chapter{Benchmarks}
-\section{Compared systems}
-\section{Code footprint}
+\chapter{TODO: Benchmarks}
+\section{TODO: Compared systems}
+\section{TODO: Code footprint}
 To compare the code footprint size, I have added an estimate of the jar file size. 
 The estimate is done by making a zip archive of the non-obscurified class files,
 trying to exclude class files that are part of extra libraries.
@@ -9,7 +9,7 @@ which would count against them, if we just looked at the jar file.
 In addition, compilation of some of the languages is obscurified/optimised by default,
 which would give those an advantage. So this should give a more fair comparison.
 As a rule of thumb with classfiles, the compressed files are approximately half the size of original.
-\subsection{Languages}
+\subsection{TODO: Languages}
 \label{codefootprint-languages}
 
 
@@ -33,20 +33,20 @@ Rhino & 397K \\ \hline
 \end{figure}
 
 
-\section{Execution speed}
+\section{TODO: Execution speed}
 
-\subsection{Languages}
+\subsection{TODO: Languages}
 The benchmarks are run on languages with an approximated jar size less than 64K, and on two JavaScript interpreters: Rhino 1.6r7 and SpiderMonkey 1.7.0, which are the default versions when installed on Ubuntu Linux.
 Most of the languages have been described in more details in section~\ref{codefootprint-languages}.
 except SpiderMonkey, which is described in section~\ref{spidermonkey}.
 
-\subsection{The benchmarks}
+\subsection{TODO: The benchmarks}
 The source code for the benchmarks can be seen in appendix \ref{benchmarksource}.
 The benchmarks are the following:
 
 \paragraph{Fibonacci:} Recursive calculation of the 30'th Fibonacci number
 \paragraph{Loops:} Nested loops with counters, 10.000.000 iterations
-\paragraph{Recursion:} Highly recursive benchmark, similar to recursive control-flow benchmark from \cite{sunspider, shootout}. Uses lots of stack space. On some of the languages where it is obviously failing, only the first part of it was implemented.
+\paragraph{Recursion:} Highly recursive benchmark, similar to recursive control-flow benchmark from \cite{sunspider, shootout}. Uses lots of stack space. On some of the languages where it fails, only the first part of it was implemented.
 \paragraph{Sieve:} Simple implementation of Erasthones sieve - not implemented in languages which have already shown to be very slow in earlier benchmarks
 \paragraph{For-in:} Nested loops across keys of a dictionary, 1.000.000 iterations - not implemented in languages which have already shown to be very slow in earlier benchmarks
 \paragraph{Primes:} Simple primality test by looking at the remainders of division - not implemented in languages which have already shown to be very slow in earlier benchmarks
@@ -68,7 +68,7 @@ The benchmarks are the following:
 \caption{Performance of different scripting languages. The timings are seconds per benchmark. $\bot$ indicates that the benchmark does not complete due to running out of stack space}
 \end{center} \end{figure}
 
-\section{Details on the footprint of LightScript}
+\section{TODO: Details on the footprint of LightScript}
 \begin{figure}
 \begin{center} \begin{tabular}{|r|r|rl|} \hline
 \multicolumn{2}{|r|}{Reduction} & \multicolumn{2}{|l|}{Alone}\\ \hline
@@ -83,4 +83,4 @@ Parser+Tokeniser & 3825 & 7093 & \\ \hline
 \caption{ Measurement of size of LightScript.class. Reduction is the reduction of the full class file when the mentioned part is left out. Alone is the size of the class file with everything else than the mentioned part left out. These numbers are different as some things are shared and some things cannot be left out when compiling the class file.}
 \end{figure}
 
-\section{Summary}
+\section{TODO: Summary}

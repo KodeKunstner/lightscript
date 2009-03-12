@@ -1,19 +1,19 @@
-\chapter{Yolan}
+\chapter{TODO: Yolan}
 \index{Yolan}
-\section{Design choices}
+\section{TODO: Design choices}
 
 ... every expression yields a value, possibly false. Can be bound.
 
 ... lazy ffi.
 
-\subsection{Syntax}
+\subsection{TODO: Syntax}
 A lisp-like syntax is choosen in order to simplify the parser and thereby reduce the code footprint.
 Square brackets are used instead of parenthesis in order to indicate that the lists are not lisp-like cons-lists, but arrays. 
 
-\section{Implementation details}
-\subsection{AST rewriting}
+\section{TODO: Implementation details}
+\subsection{TODO: AST rewriting}
 
-\section{Language specification}
+\section{TODO: Language specification}
 
 \subsection{Syntax}
 The syntax is similar to lisp, in the sense that function applications are written as lists, where the first element in the list is the function to be applied.
@@ -170,5 +170,240 @@ Logs the message from $string$, possibly ignored if debugging is disabled.
 Halt the execution with error message $string$ if $val$ is nil, possibly ignored if debugging is disabled.
 
 
-\section{Developers guide}
-\section{Summary}
+\section{TODO: Developers guide}
+Yolan is a minimal scripting language implemented on Java.
+It allows scripting to be added to application, with a minimal overhead on the size of the JAR file -- which is the most limiting factor on low end mobile devices. The features and limitations of Yolan are:
+\begin{itemize}
+\item A scripting language, with support for higher order functions
+\item Support for loading of code at run time
+\item Operates directly on standard Java classes, such as \verb|java.lang.Integer|, \verb|java.util.Hashtable| and \verb|java.util.Stack|
+\item Runs on Java Micro Edition/J2ME, and requires only CLDC 1.0/MIDP 1.0
+\item Adds less then 5KB to the size of the optimised JAR file. Only single-threaded/non-reentrant, to achive the small size
+\item Parses and executes one expression at a time, allowing interactive programming, and implying that the entire program need not to be in memory at once
+\item Interpreted - code can be entered directly on the device, not needing an extra step of compilation, and thus it is also suitable for scriptable configuration files, user scripts etc.
+\end{itemize}
+
+The implementation of Yolan consists of a single class \verb|Yolan| with the actual implementation, and an interface \verb|Function| which is what a class need to implement in order to be callable from Yolan.
+While Yolan only has a single classfile for the implementation, in order to reduce the JAR file size, it consists several logical classes: a parser, a single static runtime, and Yolan instantiated objects are Yolan code that can be evaluated, i.e. delayed computations.
+
+Having a single runtime reduces memory usage, but also limits applications to only execute a single script, and only having a single execution context, at a time. The reduction of memory usage comes from that refererences to the execution context can be hard coded, and thus the delayed computations does not have to carry a reference to the context. There are also a memory reduction due to that less code is needed and the class for the context can be joined into the main class file, as static properties.
+
+The \verb|Function| interface consist of a function that takes an array of Yolan objects -- delayed computations -- as parameter, and the return a value. In this sense Java objects callable from Yolan are essentially lazy functions, and themselves responsible for evaluating their arguments.
+
+\subsection{Getting Started}
+The core method of a Yolan object is the \verb|value()| method which evaluates the code the Yolan object represents, and returns the result. This method may throw \verb|Exeception|s as well as \verb|Error|s if the code it represents has faults, so if we are executing user code, or want to be robust against errors in scripts, the Yolan evaluation should be surrounded by a \verb|catch(Throwable)|.
+
+Yolan objects are created with the static \verb|readExpression| method that parses the next Yolan expression from an input stream. So if we want to create a simple interactive interpreter, we can write: {\scriptsize \begin{verbatim}
+class Main {
+    public static void main(String [] args) throws java.io.IOException {
+        Yolan yl = Yolan.readExpression(System.in);
+        while(yl != null) {
+            try {
+                System.out.println("Result: " + yl.value().toString());
+            } catch(Throwable yolanError) {
+                System.out.println("Error: " + yolanError.toString());
+            }
+            yl = Yolan.readExpression(System.in);
+        }
+    }
+}\end{verbatim} 
+}
+
+This code could be saved in a file called Main.java, placed in a directory with Yolan.class and Function.class, and then compiled and executed by executing \verb|javac Main.java| and \verb|java Main|.
+
+Notice that the input stream \verb|System.in| can be replaced with any input stream, so the same basic idea for can be used for evaluating files, programs as strings within the application, or even as streams across the network, where Yolan could work as a shell for remote scripting/controlling an application.
+
+If we want to execute an entire stream, there is a short hand builtin method for doing that: \verb|eval|. For example:
+{\scriptsize 
+\begin{verbatim}
+class Main {
+    public static void main(String [] args) throws java.io.IOException {
+        Yolan.eval(new FileInputStream(new File("script.yl")));
+    }
+}
+\end{verbatim}
+}
+This code opens the file "script.yl", and evaluate all the expressions within it. 
+\verb|eval| throws away the results of the individual expressions and does not print them,
+so the above code is only useful if we have added some user defined functions to Yolan that allows it to do something practical.
+
+\subsubsection{Adding functions to the runtime}
+This section describes how to make Java code callable from Yolan.
+While the builtin Yolan functions supports basic data structures etc., there is no built in way to do input/output from yolan that is platform dependent: Java Standard Edition supports files, where Java Micro Edition has a record store, and user interfaces ranges between Midlets, Applets, graphical applications, and text standard-in/out.
+So when the language needs communicate with the user, or work on the state of the host application, 
+some functionality needs to be added, which is most easily done by adding functions to the runtime.
+
+The \verb|Function| interface is the way to do that. To implement the interface a single function \verb|apply|, that takes an array of Yolan objects as parameter, and returns an object is required.
+Notice that the parameters are passed lazily, e.g. they are only evaluated when the called function chooses to evaluate them, so we need to call the \verb|value()|-function of the Yolan objects when we want the actual value.
+Execution of the Yolan object may also have side effects, so whether, and the number of times, the \verb|value()| is called matters.
+In order to add a new Java function to be callable from the runtime, the method \verb|Yolan.addFunction| takes a name as a string and a \verb|Function| as parameters, and binds the name to the function. As an example the following code makes a new function, println, available to the runtime. This function takes one argument, which it prints out to the standard output:
+{\scriptsize \begin{verbatim}
+class PrintingFunction implements Function {
+    Object apply(Yolan args[]) {
+        System.out.println(args[0].value());
+    }
+}
+class Main {
+    public static void main(String [] args) throws java.io.IOException {
+        Yolan.addFunction("println", new PrintingFunction);
+        Yolan.eval(new FileInputStream(new File("script.yl")));
+    }
+}
+\end{verbatim} 
+}
+The above program reads and evaluates the file script.yl, with an augmented runtime which also has the println function.
+
+\subsubsection{Values and types}
+The builtin types in Yolan are mapped to Java classes for easier interoperability,
+so lists are implemented as java.util.Stack, dictionaries are implemented as java.util.Hashtable, strings are implemented as java.lang.String, nil/false are implemented as the value null, integers are implemented as java.lang.Integer, and iterators are implemented as java.util.Enumeration. 
+Operations on those data types are just as the native builtin types. 
+
+Any Java object can be passed around within Yolan, so adding support for new data types is just a question of adding functions that work on those data types.
+
+\subsubsection{Functions defined withinin Yolan}
+When a user defines a function within Yolan, they are instances of the Yolan class. 
+Before calling such a function, the number of arguments can be found using the \verb|nargs| method.
+If the Yolan object is not a callable user defined function, the result of \verb|nargs()| is -1, which thus can be used to check if a Yolan object is a callable function.
+The function is then applied with the \verb|apply| method, which takes the arguments to the function as arguments, for example:
+{\scriptsize 
+\begin{verbatim}
+...
+    // evaluation some yolan object that yields a function
+    Yolan function = yl.value();
+    // ensure that it is a function and it takes two arguments
+    if(function.nargs() == 2) {
+        // apply the function 
+        result = function.apply(arg1, arg2);
+    } else ...
+....
+\end{verbatim}
+}
+
+The apply method is defined from zero, up to three arguments. If there is a need for an apply method with more arguments, they are simple to add, see page~\pageref{source-yolan-apply} for the implementation details. There is also a general apply method, that takes an array of arguments as argument.
+
+\subsubsection{TODO: Modifying the runtime}
+
+In order for the scripting language to be practical, it should be able to work and share data with the host application. 
+Of course this can be done with functions, and evaluation, as described above, but an additional connection with the language can be added by accessing the variables defined, and used, by the running scripts.
+For this there are three functions: \verb|Yolan.resolveVar|, \verb|Yolan.getVar|, and \verb|Yolan.setVar|.
+
+When a value is accessed, this is done through a handle, which is found with \verb|resolveVar|. This handle can then be used for reading and writing the variable. The motivation for the handle is that it takes time to lookup what a variable name, so this computation can be done once for each variable that needs to be accessed, and then additional accesses to the resolved variable are significant faster. The \verb|resolveVar| function takes the variable name as a string parameter, and return the handle, which is an integer. If the variable does not exist in the runtime, space is allocated for it.
+
+With a handle, it is then possible to set the value of a variable with \verb|setVar|. For example setting the variable foo to 42 can be done with:
+{\scriptsize \begin{verbatim}
+    Yolan.setVar(Yolan.resolveVar("foo"), new Integer(42));
+\end{verbatim} }
+and similarly the variable can be read with \verb|getVar|:
+{\scriptsize \begin{verbatim}
+    Object result = Yolan.getVar(Yolan.resolveVar("foo"));
+\end{verbatim} }
+
+If it the variable is commonly accessed, it saves time to cache the handle across calls, as follows:
+{\scriptsize 
+\begin{verbatim}
+class Class {
+    int fooHandle;
+    Class() {
+        fooHandle = Yolan.resolveVar("foo");
+    }
+
+    int someMethod() {
+        ... perhaps some scripts modifying foo is executed ...
+        Object foo = Yolan.getVar(fooHandle);
+        ...
+    }
+
+    void otherMethod() {
+        ... 
+        Yolan.setVar(fooHandle, "A literal value or some variable");
+        ...
+    }
+}
+\end{verbatim}
+}
+
+When defining functions, as described earlier, it is actually the same that is happening, where the function is encapsulated in a Yolan object and added to the runtime as with \verb|setVar|.
+\subsubsection{TODO:Calling back functions}
+apply nargs
+\subsubsection{TODO: Resetting the runtime and saving space}
+When the scripting language is only used in some part of the application, it can be pratical to be able to unload the runtime data in order to save memory. This can be done with \verb|Yolan.wipe()|, after which, the references in the runtime are set to zero, allowing data to be garbage collected.
+When the runtime is wiped, existing Yolan expressions can no longer be evaluated, and trying to evaluate them will yield errors. Also notice that it is necessary to reset the runtime before any of it can be used.
+
+Resetting the runtime can be done with \verb|Yolan.reset()|. When the runtime is reset, all variable handles are invalidated, all variables are removed from the runtime, and only the builtin functions are added. Existing Yolan expressions are also invalidate, and evaluation of those may lead to unexpected behavior. User defined functions and variables needs to be re-added.
+Resetting is practical when scripts are run, after each other, and must mess the runtime up for each other.
+
+\subsection{TODO: More on adding functions to the runtime}
+
+The simple approach to adding functions to the runtime would require a new class for each function, which will add significantly to the size of the Jar-file.
+If the code size is critical, then this can often be reduced by combining the functions in a single class, for example via a switch dispatch, e.g.:
+{\scriptsize 
+\begin{verbatim}
+class ManyFunction implements Function {
+    int id;
+    ManyFunction(int id) {
+        this.id = id;
+    }
+    Object apply(Yolan args[]) {
+        switch(id) {
+            case 0: // first function
+                    ....
+                break;
+            case 1: // second function
+                    ....
+                break;
+            case 2: // third function
+                    ....
+                break;
+            ....
+            default:
+                throw SomeKindOfError();
+    }
+    static void register() {
+        Yolan.addFunction(new ManyFunction(0), "firstFunction");
+        Yolan.addFunction(new ManyFunction(1), "secondFunction");
+        Yolan.addFunction(new ManyFunction(2), "thirdFunction");
+        ....
+    }
+}
+\end{verbatim}
+}
+
+When implementing functions, it is also possible to create control structures, due to the lazyness of yolan objects. This is easily done by not calling all of the parameters \verb|value| functions once. The example below, shows how the usual if-statement could be implemented:
+{\scriptsize 
+\begin{verbatim}
+class YolanIf implements Function {
+    Object apply(Yolan args[]) {
+        // first evaluate the condition
+        // and find out if it i true (not null)
+        if(arg[0].value() != null) {
+            // only evaluate the if the condition yields true
+            return arg[1].value();
+        } else {
+            // only evaluate the if the condition yield false
+            return arg[2].value();
+        }
+    }
+}
+\end{verbatim}
+}
+
+\subsection{TODO: Hacking the source}
+\label{j2mesource}
+While the implementation only consist of one java-class-file, 
+this is actually several distinct classes, joined to save space.
+
+The core of the implementation is the the delayed computation objects that can also matches the parser tree. Each object just contains an index to some executable code\footnote{dispatched via a switch, as java does not support pointers to code}, and some data - its a kind of closure. 
+
+The interpreter is just walking and executing the parsed tree. Well, mostly - during the execution it does som simple optimisations and caching: an example is that if a node for a variable name is encountered, the execution of that node replaces the node itself with a node that references the cell that contains the variable, and then evaluate that new node.
+
+The runtime object is implemented as a set of static functions and variables.
+This limits the implementation to a single excution environment, but but also reduces the memory usage, as there are no need for passing pointers to the runtime object around.
+
+The parser is implemented a static function, that builds a parse tree from an input stream.
+
+When changing the builtin objects, there need to be changes three different places: There are the defines for the id matching a certain piece of code, then there is the interpreter dispatch, and finally there is the initialisation of the object into the runtime.
+
+
+Most of the use of the scripting language can be done without going into the details of the implementation. Even support floating point numbers and so on, can be added via the \verb|Function| interface.
+
+\section{TODO: Summary}

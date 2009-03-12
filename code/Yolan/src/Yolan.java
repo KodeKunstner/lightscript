@@ -167,7 +167,7 @@ public final class Yolan {
     }
 
     /**
-     * apply as a function without arguments
+     * apply as a function without arguments `\label{source-yolan-apply}'
      */
     public Object apply() {
         return doApply(0);
