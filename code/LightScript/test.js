@@ -1,24 +1,13 @@
-function erasthones(n) {
-    sieve = [];
-    for(i = 2; i <= n; ++i) {
-        sieve[i] = 1;
+function fib(x) {
+    if(x < 2) {
+        return 1;
+    } else {
+        return fib(x-1) + fib(x-2);
     }
-    for(i = 2; i <= n;) {
-        for(j = i * 2; j <= n; j += i) {
-            sieve[j] = 0;
-        }
-        ++i;
-        while(i <= n && !sieve[i]) {
-            ++i;
-        }
-    }
-    count = 0;
-    for(i = 2; i <= n; ++i) {
-        if(sieve[i] === 1) {
-            ++count;
-        }
-    }
-    print(count);
 }
 
-erasthones(300000);
+print("Hello world");
+
+for(i=0;i<100;i++) {
+    print("fib("+i+") = "  + fib(i));
+}

@@ -1,19 +1,20 @@
-\chapter{TODO: Yolan}
+\chapter{* Yolan}
+\label{yolan}
 \index{Yolan}
-\section{TODO: Design choices}
+\section{* Design choices}
 
 ... every expression yields a value, possibly false. Yes, you can bind a variable to the result of a false condition.
 
 ... lazy ffi.
 
-\subsection{TODO: Syntax}
+\subsection{* Syntax}
 A lisp-like syntax is choosen in order to simplify the parser and thereby reduce the code footprint.
 Square brackets are used instead of parenthesis in order to indicate that the lists are not lisp-like cons-lists, but arrays. 
 
-\section{TODO: Implementation details}
-\subsection{TODO: AST rewriting}
+\section{* Implementation details}
+\subsection{* AST rewriting}
 
-\section{TODO: Language specification}
+\section{* Language specification}
 
 \subsection{Syntax}
 The syntax is similar to lisp, in the sense that function applications are written as lists, where the first element in the list is the function to be applied.
@@ -178,7 +179,7 @@ It allows scripting to be added to application, with a minimal overhead on the s
 \item Support for loading of code at run time
 \item Operates directly on standard Java classes, such as \verb|java.lang.Integer|, \verb|java.util.Hashtable| and \verb|java.util.Stack|
 \item Runs on Java Micro Edition/J2ME, and requires only CLDC 1.0/MIDP 1.0
-\item Adds less then 5KB to the size of the optimised JAR file. Only single-threaded/non-reentrant, to achive the small size
+\item Adds approximately 5KB to the size of the optimised JAR file. Only single-threaded/non-reentrant, to achive the small size
 \item Parses and executes one expression at a time, allowing interactive programming, and implying that the entire program need not to be in memory at once
 \item Interpreted - code can be entered directly on the device, not needing an extra step of compilation, and thus it is also suitable for scriptable configuration files, user scripts etc.
 \end{itemize}
@@ -376,4 +377,4 @@ class YolanIf implements Function {
 }
 \end{lstlisting}
 
-\section{TODO: Summary}
+\section{* Summary}

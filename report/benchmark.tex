@@ -1,6 +1,7 @@
-\chapter{TODO: Benchmarks}
-\section{TODO: Compared systems}
-\section{TODO: Code footprint}
+\chapter{* Benchmarks}
+\label{benchmark}
+
+\section{* Code footprint}
 To compare the code footprint size, I have added an estimate of the jar file size. 
 The estimate is done by making a zip archive of the non-obscurified class files,
 trying to exclude class files that are part of extra libraries.
@@ -9,7 +10,7 @@ which would count against them, if we just looked at the jar file.
 In addition, compilation of some of the languages is obscurified/optimised by default,
 which would give those an advantage. So this should give a more fair comparison.
 As a rule of thumb with classfiles, the compressed files are approximately half the size of original.
-\subsection{TODO: Languages}
+\subsection{* Languages}
 \label{codefootprint-languages}
 
 
@@ -33,25 +34,16 @@ Rhino & 397K \\ \hline
 \end{figure}
 
 
-\section{TODO: Execution speed}
+\section{Execution speed}
+This section benchmarks the execution speed of the languages. 
+In the following subsections, the languages that are benchmarked, and the actual benchmark programs are described.
+The source code for the benchmarks can be seen in appendix~\ref{benchmarksource}.
+The results of the benchmarks can be seen in figure~\ref{figure-execution-speed}.
 
-\subsection{TODO: Languages}
-The benchmarks are run on languages with an approximated jar size less than 64K, and on two JavaScript interpreters: Rhino 1.6r7 and SpiderMonkey 1.7.0, which are the default versions when installed on Ubuntu Linux.
+\subsection{Languages}
+The benchmarks are run on those of the languages from section~\ref{codefootprint-languages}, that have an approximated jar size of less than 64K. They also run on two JavaScript interpreters: Rhino 1.6r7 and SpiderMonkey 1.7.0, which are the default versions when installed on Ubuntu Linux.
 Most of the languages have been described in more details in section~\ref{codefootprint-languages}.
 except SpiderMonkey, which is described in section~\ref{spidermonkey}.
-
-\subsection{TODO: The benchmarks}
-The source code for the benchmarks can be seen in appendix \ref{benchmarksource}.
-The benchmarks are the following:
-
-\paragraph{Fibonacci:} Recursive calculation of the 30'th Fibonacci number
-\paragraph{Loops:} Nested loops with counters, 10.000.000 iterations
-\paragraph{Recursion:} Highly recursive benchmark, similar to recursive control-flow benchmark from \cite{sunspider, shootout}. Uses lots of stack space. On some of the languages where it fails, only the first part of it was implemented.
-\paragraph{Sieve:} Simple implementation of Erasthones sieve - not implemented in languages which have already shown to be very slow in earlier benchmarks
-\paragraph{For-in:} Nested loops across keys of a dictionary, 1.000.000 iterations - not implemented in languages which have already shown to be very slow in earlier benchmarks
-\paragraph{Primes:} Simple primality test by looking at the remainders of division - not implemented in languages which have already shown to be very slow in earlier benchmarks
-\paragraph{Exception:} Throw/catch 500.000 exceptions - only implemented for LightScript/JavaScript
-\paragraph{Fannkuch:} Access-fannkuch benchmark from \cite{sunspider, shootout} - only implementd for LightScript/JavaScript
 
 \begin{figure} \begin{center} \begin{tabular}{|r|r|r|r|r|r|r|r|rr|} \hline 
 & \multicolumn{2}{|l|}{Fibonacci} & \multicolumn{2}{|l|}{Recursion} & \multicolumn{2}{|l|}{For-in} & \multicolumn{2}{|l}{Exceptions} & \\
@@ -66,9 +58,22 @@ The benchmarks are the following:
 \hline Hecl      & 207.96 & 47.21 & $\bot$ & & & & & & \\ 
 \hline \end{tabular}
 \caption{Performance of different scripting languages. The timings are seconds per benchmark. $\bot$ indicates that the benchmark does not complete due to running out of stack space}
+\label{figure-execution-speed}
 \end{center} \end{figure}
 
-\section{TODO: Details on the footprint of LightScript}
+\subsection{The benchmarks}
+The benchmarks are the following:
+
+\paragraph{Fibonacci:} Recursive calculation of the 30'th Fibonacci number
+\paragraph{Loops:} Nested loops with counters, 10.000.000 iterations
+\paragraph{Recursion:} Highly recursive benchmark, similar to recursive control-flow benchmark from \cite{sunspider, shootout}. Uses lots of stack space. On some of the languages where it fails, only the first part of it was implemented.
+\paragraph{Sieve:} Simple implementation of Erasthones sieve - not implemented in languages which have already shown to be very slow in earlier benchmarks
+\paragraph{For-in:} Nested loops across keys of a dictionary, 1.000.000 iterations - not implemented in languages which have already shown to be very slow in earlier benchmarks
+\paragraph{Primes:} Simple primality test by looking at the remainders of division - not implemented in languages which have already shown to be very slow in earlier benchmarks
+\paragraph{Exception:} Throw/catch 500.000 exceptions - only implemented for LightScript/JavaScript
+\paragraph{Fannkuch:} Access-fannkuch benchmark from \cite{sunspider, shootout} - only implementd for LightScript/JavaScript
+
+\section{* Details on the footprint of LightScript}
 \begin{figure}
 \begin{center} \begin{tabular}{|r|r|rl|} \hline
 \multicolumn{2}{|r|}{Reduction} & \multicolumn{2}{|l|}{Alone}\\ \hline
@@ -83,4 +88,10 @@ Parser+Tokeniser & 3825 & 7093 & \\ \hline
 \caption{ Measurement of size of LightScript.class. Reduction is the reduction of the full class file when the mentioned part is left out. Alone is the size of the class file with everything else than the mentioned part left out. These numbers are different as some things are shared and some things cannot be left out when compiling the class file.}
 \end{figure}
 
-\section{TODO: Summary}
+\section{Optimised JAR-file footprint}
+Previous sections have looked at comparable footprints for implementations by approximated JAR file size, and also at what parts contributes to the size of the LightScript class.
+From a practical view it is also interesting to see the actual size of the optimised obscurified JAR-file of embedding the languages in a trivial host application.
+The host application is a simple Midlet that adds a print function to the language, and includes a hello-world program.
+The size of the entire application, including the embedded scripting language implementation is 5290 bytes for Yolan and 11279 bytes for LightScript. 
+
+\section{* Summary}

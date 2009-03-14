@@ -1,6 +1,49 @@
-\chapter{TODO: Introduction}
-\section{TODO: Project description}
-\section{TODO: The purpose of the project}
-\section{TODO: Background}
-\section{TODO: Motivation}
+\chapter{* Introduction}
+\section{Project description NB:SYNOPSIS-NEEDS-SYNC}
+    The topic of the project is to design and implement a scripting language
+that runs on low-end mobile devices. This is both to create a practical tool, and
+also a focus for exploration of programming language theory. 
 
+\begin{comment}
+The motivation is that a scripting language makes it is easier to make applications for mobile 
+devices, and that existing freely available scripting languages
+are very limited, slow, or simply does not run on the low-end mobile devices.
+\end{comment}
+
+    The educational goals are to learn about programming language design and
+implementation, and to learn about programming on mobile devices. Through the
+project, I should be able to evaluate and choose programming language features
+and implementation techniques, and design and implement a scripting language.
+
+    The focus of the language is that it should be portable, embeddable and have
+a low memory footprint. Portable implies that it should run on a varity of devices,
+from very low-end mobile phones to high-end computers, possibly also within a web browser. 
+Embeddable implies that it should be easy to include within, and interface with
+other applications. Low memory footprint implies that it should be suitable for
+running on platforms where the available memory is measured in kilobytes rather
+than megabytes. 
+
+    The approach will be pragmatic and favor simplicity.
+
+\section{Motivation}
+
+The motivation is that a scripting language could make it is easier to make applications for mobile devices.
+Scripting languages for low end mobile devices is a niche, 
+where a new language may actually be of practical use:
+existing freely available scripting languages either does not run on low-end mobile devices, or they are very slow or limited.
+
+The restrictions of low end mobile devices also imposes some challenges, that may lead to interesting solutions.
+
+
+From a personal point of view, 
+I would like to get started on development for mobile devices, 
+and would also like to brush up on programming language implementation.
+Design and implementation of a scripting language for mobile devices is spot on this topic.
+
+
+\section{*The structure and content of the report}
+
+The report starts out with some background information: this introduction, and a survey on topics related to the project in chapter~\ref{survey}.
+Then the methodology and design for the project is elaborated in chapter~\ref{approach}, including some of the principal design choices for the language implementations.
+The next couple of chapters are then the actual results: the LightScript language in chapter~\ref{lightscript}, the Yolan language in chapter~\ref{yolan}, and some benchmarking of the two new languages compared to existing scripting languages in chapter~\ref{benchmark}.
+Finally ther is a discussion of the results in chapter~\ref{discussion}, rounding off with a conclusion in chapter~\ref{conclusion}
