@@ -45,10 +45,23 @@ for low-end mobile devices}
 
 \begin{document}
 
-%\maketitle
-%\begin{abstract}
-%... * abstract ...
-%\end{abstract}
+\maketitle
+\begin{abstract}
+This thesis create two new languages: LightScript and Yolan, which runs on top of Java Mobile Edition and enables scripting on very low-end mobile devices.
+
+The code footprint is the major limitation on low end mobile devices, and both languages have significantly smaller code footprint than existing scripting languages. 
+The languages are comparable in speed to larger scripting language implementations,
+and an order of magnitude faster than most of the benchmarked scripting languages for mobile devices.
+
+Both scripting languages have first class functions, dynamic typing, builtin support for hashtables, stacks, etc., and support interactive programming. They are also able to load and execute scripts presented in source form at run-time. 
+The Java Mobile Edition does not support dynamic loading of code, so both languages are interpreted.
+
+LightScript is a subset of JavaScript, it is static scoped, and also includes support for objects and exceptions. It is compiled to, and executed on a stack-based virtual machine. One of things that makes the compact implementation possible is that the LightScript parser is an imperative optimised version of the top-down operator precedence parser.
+
+Yolan is highly optimised for reducing the size of the implementation code footprint. It has dynamic scope, lisp-inspired syntax, and interpreted by evaluating each node of the syntax tree.
+
+Yolan is less than half the size of LightScript, and they are similar in speed, even though they have very different evaluation strategies.
+\end{abstract}
 
 \setcounter{tocdepth}{1}
 \tableofcontents
