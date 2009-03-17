@@ -12,6 +12,15 @@ which would give those an advantage. So this should give a more fair comparison.
 As a rule of thumb with classfiles, the compressed files are approximately half the size of original.
 \subsection{* Languages}
 \label{codefootprint-languages}
+The code size benchmark looks at the languages implemented in this project, Yolan and LightScript, it looks at scripting languages for mobile devices, FScriptMe, Kahlua, Hecl, Simkin, and CellularBasic, and it looks at some general scripting language implementations,  JScheme, and Rhino.
+
+FScriptME, 
+
+Kahlua\cite{kahlua} is an implementation of the Lua Virtual Machine for Java Mobile Edition. 
+The implementation requires CLDC-1.1 due to the use of floating point arithmetics, and does therefor not run on the lowest end mobile devices, which only supports CLDC-1.0.
+Unlike the other languages, kahlua is not a full language, but only a virtual machine, so the the script cannot executed directly on the device, but needs to be compiled on another computer before being executed.
+
+Hecl seems to be the major scripting language for mobile devices, or at least the one keep popping up in the top in most queries when searching for scripting languages for mobile devices.
 
 
 

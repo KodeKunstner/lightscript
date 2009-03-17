@@ -8,6 +8,6 @@ function fib(x) {
 
 print("Hello world");
 
-for(i=0;i<100;i++) {
+for(i=0;i<100;++i) {
     print("fib("+i+") = "  + fib(i));
 }

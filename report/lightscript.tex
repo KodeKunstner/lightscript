@@ -2,8 +2,48 @@
 \label{lightscript}
 \index{LightScript}
 \section{* Design choices}
+
+The paragraphs below, elaborates on the following design choices:
 null-is-false
 javascript-like scope
+
+\begin{itemize}
+\item LightScript should be based on EcmaScript, and run within EcmaScript interpreters.
+\item 
+\end{itemize}
+
+LightScript should be based on EcmaScript, such that LightScript scripts runs without modification within an EcmaScript interpreter. 
+This will make it possible to use LightScript to write applications that both run on low end mobile devices and also in web browsers, binding those two platforms together.
+It also makes it easier for EcmaScript/JavaScript programmers to learn LightScript.
+It is not possible to make LightScript EcmaScript compliant, as EcmaScript has requirements that are not possible to fullfill on low end mobile devices.
+
+\subsection{*Design choices from the platform}
+
+As CLDC/1.0 is target, there are no support for floating point numbers in the vm,
+and thus all numbers in LightScript will be integers, which opposite to EcmaScript
+where the numbers are floating point.
+For addition, subtraction, multiplication, and remainder of division, the results are equivalent of floats and integers, if we start out with integers and do not have overflows. The division operator has the issue that it yields different results on integers and floats, so the \verb|/| operator is not implemented. Instead it is possible to make an integer division function \verb|div(a, b)|, both on top EcmaScript and as a Java function exported to LightScript.
+Casting to integers in the EcmaScript can be done like:
+\verb~function div(a, b) { return (a/b)|0; }~
+
+The limits of the low end mobile devices also encourages choosing the simple and fast solutions.
+
+A design question is also the implementation of truth values. 
+One question here is whether to have a distinct Boolean type and undefined type or just let 
+\verb|null|, \verb|false| and \verb|undefined| be the same.
+The distinction \verb|false| and \verb|undefined| can be practical\cite{luahopl}, as it for example allows on to see if a value in a table has been set to \verb|false|, or just not been set yet.
+On the other hand, a unified null value is simpler and faster as truth tests are then just comparision with null, so LightScript only has the value \verb|null| as a false value, and true is just "true". 
+This is different from EcmaScript where \verb|false|, \verb|null|, \verb|undefined|, \verb|0|, and \verb|""| are all false, so for compatibility, a requirement should be added, that numbers and strings should not be used directly as boolean values, which is also good coding style. 
+
+
+\subsection{*Design choices and differences from EcmaScript/JavaScript}
+
+
+
+\subsection{*Scoping and stack}
+
+LightScript should have static scope, in a way similar to EcmaScript. 
+
 \section{* Implementation details}
 \subsection{* Imperative top down operator precedence parser}
 \subsection{* Stacks versus array for runtime stack}
