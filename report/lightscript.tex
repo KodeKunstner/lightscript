@@ -25,7 +25,6 @@ where the numbers are floating point.
 For addition, subtraction, multiplication, and remainder of division, the results are equivalent of floats and integers, if we start out with integers and do not have overflows. The division operator has the issue that it yields different results on integers and floats, so the \verb|/| operator is not implemented. Instead it is possible to make an integer division function \verb|div(a, b)|, both on top EcmaScript and as a Java function exported to LightScript.
 Casting to integers in the EcmaScript can be done like:
 \verb~function div(a, b) { return (a/b)|0; }~
-
 The limits of the low end mobile devices also encourages choosing the simple and fast solutions.
 
 A design question is also the implementation of truth values. 
@@ -34,6 +33,7 @@ One question here is whether to have a distinct Boolean type and undefined type 
 The distinction \verb|false| and \verb|undefined| can be practical\cite{luahopl}, as it for example allows on to see if a value in a table has been set to \verb|false|, or just not been set yet.
 On the other hand, a unified null value is simpler and faster as truth tests are then just comparision with null, so LightScript only has the value \verb|null| as a false value, and true is just "true". 
 This is different from EcmaScript where \verb|false|, \verb|null|, \verb|undefined|, \verb|0|, and \verb|""| are all false, so for compatibility, a requirement should be added, that numbers and strings should not be used directly as boolean values, which is also good coding style. 
+
 
 
 \subsection{*Design choices and differences from EcmaScript/JavaScript}
@@ -45,7 +45,28 @@ This is different from EcmaScript where \verb|false|, \verb|null|, \verb|undefin
 LightScript should have static scope, in a way similar to EcmaScript. 
 
 \section{* Implementation details}
-\subsection{* Imperative top down operator precedence parser}
+\subsection{** Imperative top down operator precedence parser}
+The top down operator precedence parser described in section~\ref{tdop} is targeted functional languages.
+This section looks at how it can be implemented efficiently in more imperative languages, where first class functions may nor be available or be expensive.
+
+The purpose of the parser is to transform a stream of tokens into a parser tree.
+Tokens comes in as strings, and each node in the resulting parse tree is a list with the kind of node as the first elements, followed by child nodes or literal values.
+Such that an expression such as \verb~f = function(x) { return x * 41 + x; }~, would come to the parser as the sequence of: 
+"function", "f", "(", "x", ")", "{", "return", "x", "*", "41", "+", "x", ";", "}",
+which could
+then be transformed into a parse tree a la: (set (id "f") (function (parameters (id "x")) (block (return (add (multiply (id "x") (literal 42)) (id "x")))))).
+
+
+To reduce the code size of the parser, we assume that the source code is well formed, and do not require that the parser reports syntax errors. This for example removes the need for keeping track of where we are in the code and also allows some tokens to be joined, for example list termination does need not distinguish between different kinds of list.
+
+In the descriptions of the top down operator precedence parser \cite{tdop,beautifulcode}, each token has some functions that are called during parsing. 
+The first observation is that there are two kinds of functions connected to the tokens: null denominator functions, and left denominator functions. 
+Instead of having an object/class for each of the many functions that can be connected to the token, significantly space can be saved by just create a function with a dispatch for each of the two kinds of functions.
+So instead of the token has a two function objects for the null denominator function and left denomintator function, it just has two indices which are used in the corresponding function dispatch.
+
+...
+
+
 \subsection{* Stacks versus array for runtime stack}
 \subsection{* Resolution of variables}
 \section{* Language specification}
