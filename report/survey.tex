@@ -24,8 +24,30 @@ This makes them less attractive for further studies as well as further developme
 Additionally, the BREW mobile platform seems to play an important role in North America, but it is closed and needs code signing, and at the same time it is not common in Europe, so I will not look further into that platform.
 
 Besides Java and native code, JavaScript are becoming an potential language for applications for high end phone. 
-This is both due to that its integration with the web, which means that it will be available on the phones with advanced browsers,
-and due to recent major advances within the JavaScript implementations, which are propagating towards mobile devices.
+This is both due to that its integration with the web, which means that it will be available on the phones with advanced browsers, due to the increased amount of memory on high end phones
+and due to recent major performance advances within the JavaScript implementations, which are propagating towards mobile devices.
+
+\subsection{*Embedded systems}
+The personal computers, PCs, as we know them, are only a very small fraction of the computers in use.
+Billions of electronic devices nowadays have small computers embeddes. They are in mobile phones, kitchen equipment, washing machines, music instruments, car, even advanced greeting cards. 
+These embedded computer systems, vary tremendously, from low end micro controllers with memory measured in bytes, up to powerful cpus with vector processing units and many megabytes of memory.
+
+\subsubsection{Machine architecture}
+There are two significantly different classes of computers: The Harvard architecture, and the von Neumann architecture. The difference is whether the program code is in the same memory as the data or if they are seperated.
+
+Larger computers usually use the von Neumann architecture where program and data is in the same memory, and this is the most commonly known model.
+On small micro controllers on the other hand, the data memory is usually separated from the program memory, which is what is called the Harvard architecture. 
+These two approaches to architecture dates back to some of the early computers: the Harvard Mark I\cite{harvard-mark1} and the EDVAC\cite{edvac} by John von Neumann.
+
+On small micro controllers, programs are usually stored in flashable ROM, and on the Harvard architecture the separation of data and code makes it easier and cheaper to implement, for example size of the code words can be independent of the size of the data words.
+On the other hand, on larger computers, it is sometime practical to be able to work with the code as data, and thus von Neumann architecture makes more sense there.
+
+
+\subsubsection{*Micro controllers}
+The low end micro controllers, typically have less that 512 bytes of RAM, and some kilobytes of possibly flashable ROM for the executable code. 
+
+
+
 
 \subsection{The J2ME / Java Micro Edition}
 J2ME (Java Micro Edition\footnote{Java Micro Edition is a recent rebranding of J2ME}) is the most common plargorm for mobile application, being installed in more than a billion devices. 
@@ -103,10 +125,61 @@ This also allows one to make more readable code with concern of code footprint, 
 
 Using the unnamed package saves space in the symbol table.
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{* Scripting languages and virtual machines for mobile devices, and their implementations}
-\section{* Programming language ideas}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{* Programming languages, and their ideas}
+\subsection{Forth and other stack languages}
+Forth is a stack based language.
+It is very interesting for this project, as it is an example of an interpreted minimalistic language running on even very low-end devices.
+
+The syntax is differnent from most modern languages, due to the reverse polish notation.
+The functions work on a stack, which the programmer is explicit aware of. 
+Functions or `words', replaces the parameters on the top of the stack with the result. 
+New words/functions can be defined, and are concatenative in the sense that functions written after each other, has the same semantics as content of the functions written after eachother.
+Beside the stack for parameters, there is also a stack for return addresses.
+
+Forth looks very strange when starting looking at the programs, but it seems like it is the question of getting habit of being aware of the stack.
+The programming style has focus towards decompositions. It also supports meta programming.
+Forth systems has explicit compilation, the system has two modes: compile mode and interpret mode. 
+It is possible to create words that are executed at compile time, using the immediate keyword.
+Words -- ``functions'' in Forth -- are first class data types.
+
+A couple of very interesting pointers related to Forth are: 
+``Thinking Forth'' is a very good book, not only on Forth programming, but also touches a lot programming and problem solving in general.
+There is also a tutorial Forth implementation\cite{jonesforth}, which is a good place to get started on how Forth can be implemented - it is the implementation of a full Forth system, written in assembler, but very readable and well documented.
+
+Forth is also interesting from the virtual machine point of view, as this is a programming language which is similar to stack based virtual machines. So forth implementation techniques is shared with a lot of virtual machines. And research within this topic overlaps, an example is a dissertation on implementation of stack languages on register based machine\cite{ertl-dissertation}, as the representitive stack-based language.
+
+Other more recent stack languages are Joy\cite{joy-language}, Cat\cite{cat-language} and Factor\cite{factor-language}.
+Interesting development here are more typing, and also the use of anonymous code blocks, 
+to create the control structure.
+
+\subsection{JavaScript/EcmaScript}
+JavaScript plays a major role in this project and is described in more details in section~\ref{javascript}
+\subsection{*Lisp and Scheme}
+\subsection{*Tcl}
+\subsection{*Lua}
+
 \section{* JavaScript/EcmaScript}
+\label{javascript}
+JavaScript is interesting, both as a platform, a scripting language, and due to the implementations.
+
+\subsection{* About JavaScript}
+\subsection{* Platform}
+\subsection{* Scripting Language}
 \subsection{* Implementations}
 \subsubsection{Rhino}
 \subsubsection{SpiderMonkey}

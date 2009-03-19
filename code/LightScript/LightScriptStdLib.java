@@ -8,16 +8,17 @@ class LightScriptStdLib implements LightScriptFunction {
     private static final int PRINT = 0;
     private static final int TYPEOF = 1;
     private static final int PARSEINT = 2;
+    private static final int CLONE = 3;
 
-    private static final String[] names = {"print", "gettype", "parseint"};
+    private static final String[] names = {"print", "gettype", "parseint", "clone"};
     // methods and other stuff added manually to lightscript
-    private static final int NOT_NAMED = 3;
+    private static final int NOT_NAMED = 4;
     private static final int HAS_OWN_PROPERTY = NOT_NAMED + 0;
     private static final int ARRAY_PUSH = NOT_NAMED + 1;
     private static final int ARRAY_POP = NOT_NAMED + 2;
     private static final int ARRAY_JOIN = NOT_NAMED + 3;
 
-    private static final int[] argcs = {1, 1, 2
+    private static final int[] argcs = {1, 1, 2, 1
         // not named
         , 0, 1, 0, 1
     };
@@ -53,6 +54,9 @@ class LightScriptStdLib implements LightScriptFunction {
             }
             case PARSEINT: {
                 return Integer.valueOf((String)args[argpos], ((Integer)args[argpos +1]).intValue());
+            }
+            case CLONE: {
+                return new LightScriptObject((Hashtable)args[argpos]);
             }
             case HAS_OWN_PROPERTY: {
                 return ((Hashtable)thisPtr).contains(args[argpos])?LightScript.TRUE:null;

@@ -16,13 +16,32 @@ import java.util.Stack;
 
 
 /*`\section{Constants}'*/
+
+/* If debugging is enabled, more tests are run during run-time,
+ * and errors may be caught in a more readable way.
+ * It also adds support for more readable printing of
+ * id, etc.
+ */
 #define __DEBUG__
+
+/* These defines are used for benchmarking size,
+ * by making compilation of different parts of the code
+ * optional. Notice that undefining these,
+ * will yield a defunct program.
+ */
 #define __COMPILE_TOKENISER__
 #define __COMPILE_API__
 #define __COMPILE_PARSER__
 #define __COMPILE_COMPILER__
 #define __COMPILE_VM__
 
+/* Identifiers, used both as node type,
+ * and also used as opcode. TODO: A slight space optimisation
+ * would be to order these, such that IDs which are opcodes
+ * lies consecutively, and the IDs that are node types
+ * also lies consecutively, as that would reduce the size of 
+ * the branch table of the two switches.
+ */
 #define ID_NONE 127
 #define ID_PAREN 1
 #define ID_LIST_LITERAL 2
@@ -61,10 +80,8 @@ import java.util.Stack;
 #define ID_GET_BOXED 35
 #define ID_GET_LOCAL 36
 #define ID_GET_CLOSURE 37
-    // get a value from the closure without unboxing it
-#define ID_GET_BOXED_CLOSURE 38
-    // box a value
-#define ID_BOX_IT 39
+#define ID_GET_BOXED_CLOSURE 38 // get a value from the closure without unboxing it
+#define ID_BOX_IT 39 // box a value
 #define ID_LENGTH 40
 #define ID_DROP 41
 #define ID_PUSH_NIL 42
@@ -95,6 +112,7 @@ import java.util.Stack;
 #define ID_DEC 67
 #define ID_SHIFT_RIGHT 68
 
+/* The function id for the null denominator functions */
 #define NUD_NONE 12
 #define NUD_IDENT 1
 #define NUD_LITERAL 2
@@ -108,6 +126,7 @@ import java.util.Stack;
 #define NUD_ATOM 10
 #define NUD_CATCH 11
 
+/* The function id for the null denominator functions */
 #define LED_NONE 8
 #define LED_DOT 1
 #define LED_INFIX 2
@@ -117,13 +136,22 @@ import java.util.Stack;
 #define LED_OPASSIGN 6
 #define LED_INFIX_SWAP 7
 
+/* Tokens objects are encoded as integers */
 
+/** The number of bits per denominator function */
 #define SIZE_FN 4
+
+/** The number of bits per id */
 #define SIZE_ID 7
+
+/* Masks for function/id */
 #define MASK_ID ((1<<SIZE_ID) - 1)
 #define MASK_FN ((1<<SIZE_FN) - 1)
+
+/* Mask for the binding power / priority */
 #define MASK_BP (-1 << (2*SIZE_ID + 2 *SIZE_FN))
 
+/** The end token, encoded as an integer */
 #define TOKEN_END ((((((((\
                       0 << SIZE_FN)\
                     | NUD_END) << SIZE_ID)\
@@ -131,6 +159,7 @@ import java.util.Stack;
                     | LED_NONE) << SIZE_ID)\
                     | ID_NONE)
 
+/** The token used for literals, encoded as an integer */
 #define TOKEN_LITERAL ((((((((\
                       0 << SIZE_FN)\
                     | NUD_LITERAL) << SIZE_ID)\
@@ -138,55 +167,103 @@ import java.util.Stack;
                     | LED_NONE) << SIZE_ID)\
                     | ID_NONE)
 
+/** The token used for identifiers, encoded as an integer */
 #define TOKEN_IDENT ((((((((\
                       0 << SIZE_FN)\
                     | NUD_IDENT) << SIZE_ID)\
                     | ID_NONE) << SIZE_FN)\
                     | LED_NONE) << SIZE_ID)\
                     | ID_NONE)
+
+/** Sizes of different kinds of stack frames */
 #define RET_FRAME_SIZE 3
 #define TRY_FRAME_SIZE 5
 
 
 public final class LightScript {
+
+    /** Token used for separators (;,:), which are just discarded */
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
+
+    /** The true truth value of results of tests/comparisons within LightScript */
     public static final String TRUE = "true";
+
+    /** Token string when reaching end of file, it can only occur
+      * at end of file, as it would otherwise be parsed as three
+      * tokens: "(", "EOF", and ")". */
     private static final String EOF = "(EOF)";
 
+    /** This stack is used during compilation to build the constant pool of the
+      * compiled function. The constant pool contains the constants that are used
+      * during execution of the function */
     private Stack constPool;
+
+    /* Used to keep track of stack depth during compilation, to be able to
+     * resolve variables */
     private int maxDepth;
     private int depth;
+
+    /** This stringbuffer is used as a dynamically sized bytevector
+      * where opcodes are added, during the compilation */
     private StringBuffer code;
 
 #ifdef __COMPILE_TOKENISER__
+
+    /** The stream which we are parsing */
     private InputStream is;
+
+    /** the just read character */
     private int c;
+
+    /** the buffer for building the tokens */
     private StringBuffer sb;
+
 #endif /* __COMPILE_TOKENISER__ */
+
+    /* Per function statistics
+     * Sets of variable names for keeping track of which variables
+     * are used where and how, in order to know whether they should
+     * be boxed, and be placed on the stack or in closures. */
+
+    /** The variables used within a function */
     private Stack varsUsed;
+
+    /** The variables that needs to be boxed */
     private Stack varsBoxed;
+
+    /** The local variables (arguments, and var-defined) */
     private Stack varsLocals;
+
+    /** The variables in the closure */
     private Stack varsClosure;
+
+    /** The number of arguments to the function, corresponds to the first
+      * names in varsLocals */
     private int varsArgc;
+
+    /** The value of the just read token.
+      * used if the token is an identifier or literal.
+      * possible types are String and Integer */
     private Object tokenVal;
+
+    /** The integer encoded token object, including priority, IDs
+      * and Function ids for null/left denominator functions */
     private int token;
 
-#ifndef __COMPILE_API__
-    public void eval(String s) throws LightScriptException {
-    }
-    public void eval( InputStream is) throws LightScriptException {
-    }
-    public void set(Object key, Object value) {
-    }
-    public Object get(Object key) {
-        return null;
-    }
-#else
+#ifdef __COMPILE_API__
+
+    /** The globals variables in this execution context.
+      * they are boxed, in such that they can be passed
+      * to the closure of af function, which will then
+      * be able to modify it without looking it up here */
     private Hashtable boxedGlobals;
 
+    /** Shorthand for evaluating a string that contains LightScript code */
     public void eval(String s) throws LightScriptException {
         eval(new ByteArrayInputStream(s.getBytes()));
     }
+
+    /** Parse and execute LightScript code read from an input stream */
     public void eval( InputStream is) throws LightScriptException {
 #ifndef __DEBUG__
         try {
@@ -226,6 +303,7 @@ public final class LightScript {
 #endif /*__DEBUG__*/
     }
 
+    /** Set a global value for this execution context */
     public void set(Object key, Object value) {
         Object[] box = (Object[])boxedGlobals.get(key);
         if(box == null) {
@@ -234,6 +312,8 @@ public final class LightScript {
         }
         box[0] = value;
     }
+
+    /** Retrieve a global value from this execution context */
     public Object get(Object key) {
         Object[] box = (Object[])boxedGlobals.get(key);
         if(box == null) {
@@ -243,11 +323,23 @@ public final class LightScript {
         }
     
     }
+#else
+    public void eval(String s) throws LightScriptException {
+    }
+    public void eval( InputStream is) throws LightScriptException {
+    }
+    public void set(Object key, Object value) {
+    }
+    public Object get(Object key) {
+        return null;
+    }
 #endif /* __COMPILE_API__ */
 
 /*`\section{Debugging}'*/
 
 #ifdef __DEBUG__
+
+    /** Mapping from ID to name of ID */
     private static final String[] idNames = {"", "PAREN", "LIST_LITERAL",
         "CURLY", "VAR", "RETURN", "NOT", "FUNCTION", "IF", "WHILE",
         "LITERAL", "CALL_FUNCTION", "SUBSCRIPT", "MUL", "REM", "ADD",
@@ -260,13 +352,15 @@ public final class LightScript {
         "DUP", "NEW_LIST", "NEW_DICT", "BLOCK", "SEP", "IN", "JUMP_IF_FALSE",
         "SET_THIS", "THIS", "SWAP", "FOR", "END", "THROW", "TRY", "CATCH", "UNTRY",
         "DO", "NEXT", "INC", "DEC", "SHIFT_RIGHT"
-        
     };
-
+    
+    /** Function that maps from ID to a string representation of the ID,
+      * robust for integers which is not IDs */
     private static String idName(int id) {
         return "" + id + ((id > 0 && id < idNames.length) ? idNames[id] : "");
     }
 
+    /** A toString, that also works nicely on arrays, and LightScript code */
     private static String stringify(Object o) {
         if (o == null) {
             return "null";
@@ -318,21 +412,28 @@ public final class LightScript {
 
     /*`\section{Utility functions}'*/
 
+    /* Constructors for nodes of the Abstract Syntax Tree.
+     * Each node is an array containing an ID, followed by 
+     * its children or literal values */
+    /** (id, o) -> (Object []) {new Integer(id), o} */
     private static Object[] v(int id, Object o) {
         Object[] result = {new Integer(id), o};
         return result;
     }
 
+    /** (id, o1, o2) -> (Object []) {new Integer(id), o1, o2} */
     private static Object[] v(int id, Object o1, Object o2) {
         Object[] result = {new Integer(id), o1, o2};
         return result;
     }
 
+    /** (id, o1, o2, o3) -> (Object []) {new Integer(id), o1, o2, o3} */
     private static Object[] v(int id, Object o1, Object o2, Object o3) {
         Object[] result = {new Integer(id), o1, o2, o3};
         return result;
     }
 
+    /** Returns a new object array, with the seperator tokens removed */
     private Object[] stripSep(Object[] os) {
         Stack s = new Stack();
         for(int i = 0; i < os.length; i++) {
@@ -346,6 +447,8 @@ public final class LightScript {
     }
 
 #ifdef __COMPILE_PARSER__
+
+    /** Push a value into a stack if it is not already there */
     private static void stackAdd(Stack s, Object val) {
         if(s == null) {
             return;
@@ -356,11 +459,11 @@ public final class LightScript {
             s.push(val);
         }
     }
+
 #endif /* __COMPILE_PARSER__ */
 
-
-
 /*`\section{Utility classes}'*/
+
     /**
      * Analysis of variables in a function being compiled,
      * updated during the parsing.
@@ -401,6 +504,7 @@ public final class LightScript {
 /*`\section{Constructor}'*/
 
 #ifdef __COMPILE_API__
+    /** Constructor, loading standard library */
     public LightScript() {
         boxedGlobals = new Hashtable();
         LightScriptStdLib.register(this);
@@ -410,10 +514,8 @@ public final class LightScript {
 
 /*`\section{Tokeniser}'*/
 
-#ifndef __COMPILE_TOKENISER__
-    private void nextToken() {
-    }
-#else
+#ifdef __COMPILE_TOKENISER__
+    /** Read the next character from the input stream */
     private void nextc() {
         try {
             c = is.read();
@@ -422,25 +524,32 @@ public final class LightScript {
         }
     }
 
+    /** Append a character to the token buffer */
     private void pushc() {
         sb.append((char) c);
         nextc();
     }
 
+    /** Test if the current character is a number */
     private boolean isNum() {
         return '0' <= c && c <= '9';
     }
 
+    /** Test if the current character is alphanumeric */
     private boolean isAlphaNum() {
         return isNum() || c == '_' || ('a' <= c && c <= 'z') 
                                    || ('A' <= c && c <= 'Z');
     }
 
+    /** Test if the current character could be a part of a multi character 
+      * symbol, such as &&, ||, += and the like. */
     private boolean isSymb() {
         return c == '=' || c == '!' || c == '<' || c == '&' 
             || c == '|' || c == '+' || c == '-' || c == '>';
     }
 
+    /** Read the next toke from the input stream. 
+      * The token is stored in the token and tokenVal property. */
     private void nextToken() {
         sb.setLength(0);
 
@@ -512,17 +621,14 @@ public final class LightScript {
         resolveToken(sb.toString());
         return;
     }
+#else
+    private void nextToken() {
+    }
 #endif /* __COMPILE_TOKENISER__ */
 
 /*`\section{Parser}'*/
 
-#ifndef __COMPILE_PARSER__
-    private Object[] parse(int rbp) {
-        return null;
-    }
-    private void resolveToken(Object o) {
-    }
-#else
+#ifdef __COMPILE_PARSER__
     private Object[] parse(int rbp) {
         Object[] left = nud(token);
         while (rbp < (token & MASK_BP)) {
@@ -1085,6 +1191,12 @@ public final class LightScript {
         } else {
             token = ((Integer)o).intValue() + MASK_BP;
         }
+    }
+#else
+    private Object[] parse(int rbp) {
+        return null;
+    }
+    private void resolveToken(Object o) {
     }
 #endif /* __COMPILE_PARSER__ */
 
@@ -2115,10 +2227,15 @@ public final class LightScript {
                         } else {
                             result = ((Hashtable) container).get(key);
                         }
+
+                        // Get object from default object prototype, 
+                        // if key not found
                         if(result == null) {
-                            stack[sp] = ((Hashtable) ((Object[])
+                            result = ((Hashtable) ((Object[])
                                 ((Object[])closure[0])[0])[1]).get(key);
-                        }
+                        } 
+
+                        stack[sp] = result;
                     } else if (container instanceof String) {
                         if(key instanceof Integer) {
                             int pos = ((Integer) key).intValue();

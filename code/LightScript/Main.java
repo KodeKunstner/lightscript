@@ -28,7 +28,7 @@ public class Main implements LightScriptFunction {
     public static void main(String[] args) throws Exception {
 	InputStream is = new FileInputStream(new File(args[0]));
         LightScript ls = new LightScript();
-        ls.set("Main", new Main());
+//        ls.set("Main", new Main());
         ls.eval(is);
     }
 }

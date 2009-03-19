@@ -35,8 +35,17 @@ On the other hand, a unified null value is simpler and faster as truth tests are
 This is different from EcmaScript where \verb|false|, \verb|null|, \verb|undefined|, \verb|0|, and \verb|""| are all false, so for compatibility, a requirement should be added, that numbers and strings should not be used directly as boolean values, which is also good coding style. 
 
 
+\subsection{Implemented parts of EcmaScript, and strictness}
+This first implementation of LightScript will not try to implement as much of EcmaScript as possible, but rather implement enough such that it is useful, and avoid parts of the language that is considered bad style.
+
+EcmaScript it has objects with prototypical inheritance, but instead of a self like clone operator\cite{See section~\ref{survey-self}}, it adds some apparantly Java inspired syntax with a \verb|new| operator, coupled with a special prototype property.
+Instead of the Java inspired \verb|new| syntax for instantiation, LightScript just supports objects inheritance the clone operator, which can easily be implemented in pure EcmaScript as well.
+
+
+
 
 \subsection{*Design choices and differences from EcmaScript/JavaScript}
+
 
 
 
@@ -67,8 +76,18 @@ So instead of the token has a two function objects for the null denominator func
 ...
 
 
-\subsection{* Stacks versus array for runtime stack}
-\subsection{* Resolution of variables}
+\subsection{* Implementation of variables and scope}
+In the EcmaScript standard, identifier resolution is done by searching through the scope chain, which is a list of objects. Objects in the EcmaScript context is a mapping from property names to values. This approach to implementation would be very performance expensive.
+
+Instead we want to resolve the variables at compile time, while preserving as much of the semantics as is practical. The main issue here is that we when we resolve the variable at compile time, we do not keep information to be able to resolve dynamically at run time, not supporting access to local variable with \verb|eval| statements, but as mentioned in section~\ref{designstyle}, eval is not availble in the first version of the language (though it could easily be added as an external java function that just calls LightScript).
+The implementation of scope has already been discussed in section~\ref{survey-scope}, and for this implementation the choice is to store the variables in the activation record, which is placed linearly on a stack -- as this approach is known to work efficiently. 
+If a value are going to be in the closure of a sub-function in the inner scope, it gets boxed on the stack, and needs to be garbage collected.
+
+For the practical implementation of the stack on top of the jvm, there are two obvious possibilities: A \verb|java.util.Stack| could be used, or a stack could be implemented manually with an array and an index pointer. 
+In order to select implementation strategy, a microbenchmark was done on the kvm, which indicated that the array approach is significantly faster than the \verb|java.util.Stack|. The array grows dynamically when entering a function which uses more stack spaces than is available. 
+The code footprint size is similar for both approachs, though probably a bit smaller for the Stack, as that one automatically grows, unlike then the array approach, which need a manual implementation.
+The actual access to a \verb|Stack| requires a method calls, which are 3 bytes plus 1-3 bytes for self and parameter loading, where reading from an array is a single byte opcode plus 2-4 bytes for self, index and parameter loading, and at the same time the array approach sometimes need to adjust the index, costing 3 bytes.
+
 \section{* Language specification}
 \section{* Developers guide}
 \section{* Summary}

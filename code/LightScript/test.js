@@ -1,13 +1,12 @@
-function fib(x) {
-    if(x < 2) {
-        return 1;
-    } else {
-        return fib(x-1) + fib(x-2);
-    }
-}
+o = {
+    "t": "BAR", 
+    "x": function() {print(this.t);}
+};
 
-print("Hello world");
+p = clone(o);
+p.t = "FOO";
 
-for(i=0;i<100;++i) {
-    print("fib("+i+") = "  + fib(i));
-}
+q = clone(p);
+q.t = "BAZ";
+
+p.x(); o.x(); q.x();

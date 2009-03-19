@@ -14,15 +14,26 @@ As a rule of thumb with classfiles, the compressed files are approximately half 
 \label{codefootprint-languages}
 The code size benchmark looks at the languages implemented in this project, Yolan and LightScript, it looks at scripting languages for mobile devices, FScriptMe, Kahlua, Hecl, Simkin, and CellularBasic, and it looks at some general scripting language implementations,  JScheme, and Rhino.
 
-FScriptME, 
+FScriptME\cite{fscriptme} is the mobile edition of femto-script, which ``is an extremely simple scripting language''\cite{fscript}. 
+Out of the box, it only supports strings and integers as datatypes -- no compound types -- which limits use somewhat, and it is still in beta, since 2002. 
+
+JScheme\cite{jscheme} is a small Scheme implementation. It depends on some reflection, and does therefor not run on Java Mobile Edition, but is included as the implementation is compact, and may be possible to target mobile devices.
 
 Kahlua\cite{kahlua} is an implementation of the Lua Virtual Machine for Java Mobile Edition. 
 The implementation requires CLDC-1.1 due to the use of floating point arithmetics, and does therefor not run on the lowest end mobile devices, which only supports CLDC-1.0.
-Unlike the other languages, kahlua is not a full language, but only a virtual machine, so the the script cannot executed directly on the device, but needs to be compiled on another computer before being executed.
+Unlike the other languages, kahlua is not a full language interpreter, but only a virtual machine, so the the script cannot executed directly on the device, but needs to be compiled on another computer before being executed.
 
-Hecl seems to be the major scripting language for mobile devices, or at least the one keep popping up in the top in most queries when searching for scripting languages for mobile devices.
+Hecl\cite{hecl} seems to be \emph{the} major scripting language for mobile devices, or at least the one keep popping up in the top of most queries when searching for scripting languages for mobile devices.
+It is very portable, with different editions running on CLDC-1.0, CLDC-1.1, Android, as applets and as usual applications.
+It has lots of libraries targeting mobile devices, which in this comparison were removed from the zip file of class files, not to give languages with fewer libraries an advantage in the size comparison.
+The language is a dialect of Tcl, and is simplified such that arithmetic operators, and the like, are prefix operators so expressions ends up a bit lisp-like.
 
+Simkin\cite{simkin} is a scripting language for being embedded in XML. The depends on kxml xml library, which is not included in the measured size. 
 
+CellularBasic\cite{cellularbasic} is a dialect of Qbasic, implemented for mobile devices. 
+It includes a floating point support library which is not included in the measured size. 
+
+Rhino\cite{rhino} is a JavaScript implementation. This language is not designed for, nor does it run on, mobile devices. It is included as an example of an implementation of a usual non-mobile scripting language.
 
 \begin{figure} \begin{center}
 \begin{tabular}{|c|r|} \hline 
@@ -41,7 +52,6 @@ Rhino & 397K \\ \hline
 \end{center}
 \caption{Approximation of jar size of scripting languages for the jvm}
 \end{figure}
-
 
 \section{Execution speed}
 This section benchmarks the execution speed of the languages. 
