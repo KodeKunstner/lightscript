@@ -54,34 +54,46 @@ Instead of the Java inspired \verb|new| syntax for instantiation, LightScript ju
 LightScript should have static scope, in a way similar to EcmaScript. 
 
 \section{* Implementation details}
-\subsection{** Imperative top down operator precedence parser}
+\subsection{Optimised imperative top down operator precedence parser}
 The top down operator precedence parser described in section~\ref{tdop} is targeted functional languages.
-This section looks at how it can be implemented efficiently in more imperative languages, where first class functions may nor be available or be expensive.
-
-The purpose of the parser is to transform a stream of tokens into a parser tree.
-Tokens comes in as strings, and each node in the resulting parse tree is a list with the kind of node as the first elements, followed by child nodes or literal values.
-Such that an expression such as \verb~f = function(x) { return x * 41 + x; }~, would come to the parser as the sequence of: 
-"function", "f", "(", "x", ")", "{", "return", "x", "*", "41", "+", "x", ";", "}",
-which could
-then be transformed into a parse tree a la: (set (id "f") (function (parameters (id "x")) (block (return (add (multiply (id "x") (literal 42)) (id "x")))))).
-
+This section looks at how it can be implemented efficiently in an imperative language.
 
 To reduce the code size of the parser, we assume that the source code is well formed, and do not require that the parser reports syntax errors. This for example removes the need for keeping track of where we are in the code and also allows some tokens to be joined, for example list termination does need not distinguish between different kinds of list.
 
-In the descriptions of the top down operator precedence parser \cite{tdop,beautifulcode}, each token has some functions that are called during parsing. 
-The first observation is that there are two kinds of functions connected to the tokens: null denominator functions, and left denominator functions. 
-Instead of having an object/class for each of the many functions that can be connected to the token, significantly space can be saved by just create a function with a dispatch for each of the two kinds of functions.
-So instead of the token has a two function objects for the null denominator function and left denomintator function, it just has two indices which are used in the corresponding function dispatch.
+First class functions use a lot of space in the Java platform, as they require a class each.
+The solution is to use a dispatch function instead, and replace the function properties of the token, with integers.
+Actually it is simpler with two dispatch functions, one for the null denominator functions and one for the left denominator functions.
 
-...
+The token object contains information about the denominator functions, and corresponding abstract syntax tree node IDs, and also a priority/binding power.
+This is just five small integers, which, due to their limited range, easily can be represented in a single 32bit integer. 
+Some tokens represents literal values or identifier, where the value or identifier also has to be passed to the parser.
+So a token can be represented compactly by adding two properties to the parser: an integer and possible an object for the value, rather than a new class/object.
+
+The token types can be encoded by the token string followed by the five integers.
+So the tokens can be written as {\tt "tokenname" + (char) binding\_power + 
+(char) null\_denominator\_function + (char) AST\_ID\_for\_null\_denominator
+(char) left\_denominator\_function + (char) AST\_ID\_for\_left\_denominator
+}. 
+So the task of writing the parser is to make a list of tokens, connected with their binding power, denominator function ids and abstract syntax tree ids, -- a simple parse loop, plus definition of sensible denominator function bodies in the dispatch.
 
 
-\subsection{* Implementation of variables and scope}
+\subsubsection{Performance properties of the implementation}
+
+For each token, there is a instruction cost of 1-2 function calls, 1 switch-dispatch, 0-1 comparison, reading of 2-3 properties of the token object, and storing a copy of the token val, plus the cost of building the actual AST node, and the cost of parsing the token.
+
+The size of the implementation can be kept very small, as the denominator functions can be reused across different token-types. For example: the binary operators share a single case in the left denominator dispatch, and adding a new binary operator only takes the length in characters of the operator plus 5 bytes. 
+
+\subsection{Implementation of variables and scope}
 In the EcmaScript standard, identifier resolution is done by searching through the scope chain, which is a list of objects. Objects in the EcmaScript context is a mapping from property names to values. This approach to implementation would be very performance expensive.
 
 Instead we want to resolve the variables at compile time, while preserving as much of the semantics as is practical. The main issue here is that we when we resolve the variable at compile time, we do not keep information to be able to resolve dynamically at run time, not supporting access to local variable with \verb|eval| statements, but as mentioned in section~\ref{designstyle}, eval is not availble in the first version of the language (though it could easily be added as an external java function that just calls LightScript).
-The implementation of scope has already been discussed in section~\ref{survey-scope}, and for this implementation the choice is to store the variables in the activation record, which is placed linearly on a stack -- as this approach is known to work efficiently. 
-If a value are going to be in the closure of a sub-function in the inner scope, it gets boxed on the stack, and needs to be garbage collected.
+
+Of the different implementation methods discussed in section~\ref{survey-scope}, the only real possibilities for a partly imperative scripting language which also want good support for higher order functions are either to allocate the activation records on the heap, or keep track of variables that could live on after exiting a function, and box those variable on the heap.
+The other options are ruled out, as we want to have closures, and we want the outer scope variables to be mutable.
+Allocating the activation records on the heap has the issue, that we are not in control of the garbage collector, and it may not be designed for that kind of usage, leading to expensive performance, so the approach will be only to box variables onto the heap, that could be alive after function exit.
+
+To simplify this, it is done such that every variable that is added to a closure of an inner function is boxed on the heap, and other local variables are just stack allocated in the usual way. 
+I have not seen this exact approach to implement closures other places, but it seems so obvious, that it is probably done somewhere before, although it clearly is different from the Lua approach with upvals\cite{luasrc}, and also from the approach following the EcmaScript standard\cite{ecmascript} directly.
 
 For the practical implementation of the stack on top of the jvm, there are two obvious possibilities: A \verb|java.util.Stack| could be used, or a stack could be implemented manually with an array and an index pointer. 
 In order to select implementation strategy, a microbenchmark was done on the kvm, which indicated that the array approach is significantly faster than the \verb|java.util.Stack|. The array grows dynamically when entering a function which uses more stack spaces than is available. 

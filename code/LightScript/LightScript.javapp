@@ -15,7 +15,7 @@ import java.util.Stack;
 // - Virtual machine
 
 
-/*`\section{Constants}'*/
+/*`\subsection{Constants}'*/
 
 /* If debugging is enabled, more tests are run during run-time,
  * and errors may be caught in a more readable way.
@@ -335,7 +335,7 @@ public final class LightScript {
     }
 #endif /* __COMPILE_API__ */
 
-/*`\section{Debugging}'*/
+/*`\subsection{Debugging}'*/
 
 #ifdef __DEBUG__
 
@@ -410,7 +410,7 @@ public final class LightScript {
     }
 #endif
 
-    /*`\section{Utility functions}'*/
+    /*`\subsection{Utility functions}'*/
 
     /* Constructors for nodes of the Abstract Syntax Tree.
      * Each node is an array containing an ID, followed by 
@@ -462,7 +462,7 @@ public final class LightScript {
 
 #endif /* __COMPILE_PARSER__ */
 
-/*`\section{Utility classes}'*/
+/*`\subsection{Utility classes}'*/
 
     /**
      * Analysis of variables in a function being compiled,
@@ -501,7 +501,7 @@ public final class LightScript {
         }
     }
 
-/*`\section{Constructor}'*/
+/*`\subsection{Constructor}'*/
 
 #ifdef __COMPILE_API__
     /** Constructor, loading standard library */
@@ -512,7 +512,7 @@ public final class LightScript {
 #endif /* __COMPILE_API__ */
 
 
-/*`\section{Tokeniser}'*/
+/*`\subsection{Tokeniser}'*/
 
 #ifdef __COMPILE_TOKENISER__
     /** Read the next character from the input stream */
@@ -626,17 +626,27 @@ public final class LightScript {
     }
 #endif /* __COMPILE_TOKENISER__ */
 
-/*`\section{Parser}'*/
+/*`\subsection{Parser}'*/
 
 #ifdef __COMPILE_PARSER__
+    /** Parse the next expression from the input stream
+      * @param rbp right binding power
+      */
     private Object[] parse(int rbp) {
         Object[] left = nud(token);
+
+        // token & MASK_BP extract the binding power/priority of the token
         while (rbp < (token & MASK_BP)) {
             left = led(token, left);
         }
+
         return left;
     }
 
+    /** Read expressions until an end-token is reached.
+      * @param s an accumulator stack where the expressions are appended
+      * @returns an array of parsed expressions, with s prepended 
+      */
     private Object[] readList(Stack s) {
         while (token != TOKEN_END) {
             Object[] p = parse(0);
@@ -649,6 +659,8 @@ public final class LightScript {
         return result;
     }
 
+    /** Call the null denominator function for a given token
+      * and also read the next token. */
     private Object[] nud(int tok) {
         Object val = tokenVal;
         nextToken();
@@ -802,6 +814,8 @@ public final class LightScript {
         }
     }
 
+    /** Call the left denominator function for a given token
+      * and also read the next token. */
     private Object[] led(int tok, Object left) {
         nextToken();
         int bp = tok & MASK_BP;
@@ -863,6 +877,15 @@ public final class LightScript {
 
     // initialise idMappings
     static {
+        /** This string is used for initialising the idMapping.
+          * Each token type has five properties:
+          * First there is the string of the token,
+          *   then ther is the bindingpower,
+          *   followed by the null denominator function, 
+          *     and its corresponding id
+          *   and finally the left denominator function, 
+          *     and its corresponding id
+          */
         String identifiers = ""
         + "(EOF)"
             + (char) 1
@@ -1200,7 +1223,7 @@ public final class LightScript {
     }
 #endif /* __COMPILE_PARSER__ */
 
-/*`\section{Compiler}'*/
+/*`\subsection{Compiler}'*/
 
 #ifndef __COMPILE_COMPILER__
     private Code compile(Object[] body) {
@@ -1910,7 +1933,7 @@ public final class LightScript {
     }
 #endif /*__COMPILE_COMPILER__*/
 
-/*`\section{Virtual Machine}'*/
+/*`\subsection{Virtual Machine}'*/
 
 #ifndef __COMPILE_VM__
     private static Object execute(Code cl) throws LightScriptException {

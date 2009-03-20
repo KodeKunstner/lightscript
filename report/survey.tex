@@ -141,6 +141,13 @@ Using the unnamed package saves space in the symbol table.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{* Programming languages, and their ideas}
+\subsection{Self}
+\label{survey-self}
+Self\cite{self} is especially interesting due to the prototypical inheritance.
+In traditional object oriented programming, we have classes and objects, where classes can inherit from other classes, and objects are instantiation of classes.
+Instead of classes and subclasses for inheritance, Self has a clone operator, which creates a new object using an existing object as blueprint.
+An object in self contains a pointer to the parent (cloned) object, and a mapping from propertynames to values or methods. When a property is read, mapping is first searched, and if the name is not found there, the parent object is searched.
+
 \subsection{Forth and other stack languages}
 Forth is a stack based language.
 It is very interesting for this project, as it is an example of an interpreted minimalistic language running on even very low-end devices.
@@ -167,7 +174,7 @@ Other more recent stack languages are Joy\cite{joy-language}, Cat\cite{cat-langu
 Interesting development here are more typing, and also the use of anonymous code blocks, 
 to create the control structure.
 
-\subsection{JavaScript/EcmaScript}
+\subsection{*JavaScript/EcmaScript}
 JavaScript plays a major role in this project and is described in more details in section~\ref{javascript}
 \subsection{*Lisp and Scheme}
 \subsection{*Tcl}
@@ -423,11 +430,17 @@ Static scope is more natural as the scope matches the structure of the code. Dyn
 On the other hand, dynamic scope very trivial to implement, and can thus use slightly less space in the code footprint, if it is a very simple interpreter. Dynamic scope does also not have the issue with the funarg problem discussed in section~\ref{funarg}.
 For more advanced language implementations static scope has the benefit over dynamic scope, that it is easier to analyse and optimise due to locality, in the sense that its use is limited to the local lexical scope, and thus the optimisations on this part of the code need be concerned with other parts of the code.
 
+\subsection{Stacks and activation records}
+A typical way to implement local variables is with the use of a stack.
+The following text pretends we are on a full stack machine, 
+in practical implementations on CPUs, the top of the stack is usually a number of registers instead.
 
-\subsection{*Implementation of variables}
-... run time stack, cells for each variable, lookup-stack, lookup-table, activation record, JavaScript-objects, ...
+Whenever a function is called, the parameters is pushed onto the stack. Then when the function is entered, a return pointer is often pushed to the same stack, and there is allocated space for the local variables, the computations are done, and we return, jumping back and restoring the stack size to the original.
+The allocation on the stack allows for local variables, and functions can also be recursive without a problem. The space the stack with the local variables, etc., is called the activation record for the function.
 
 \subsection{* Higher order functions, and the funarg problem}
+\label{funarg}
+
 When we have higher order functions and static scoping, we cannot just place the activation records on the stack. The reason for this is that inner functions may live on, and acces local variables of the outer function, after the outer function has returned. Consider the following code:
 \begin{verbatim}
 function f(x) {
@@ -440,9 +453,17 @@ function f(x) {
 
 The issue in this code is that the new function $g$ lives on after $f$ has returned, and at the same time $g$ uses a value that lies on the activation record of $f$. Therefor, if the activation record is just allocated on the call stack, and nothing further is done about it, the value of $x$ will no longer be available at the time $g$ is called.
 
+There are several solutions to this problem:
+\begin{itemize}
+\item Disallowing/not supporting functions as first order and nested scope within them, - this is actually quite common.
+\item Outer scope variables cannot be changed from inner scope, but is instead passed as immutable values at function/scope creation. This makes good sense in functional languages where values usually are not mutated.
+\item Keep track of which may live on after the function exits, and move those to the heap.
+\item Allocate the activation records on the heap, instead of the stack, and let them be garbage collected. Not as expensive as it may seem, due to the high effiency of modern garbage collectors.
+\item Not having static scope.
+\end{itemize}
 
-\label{funarg}
-
+\subsection{*Implementation of variables}
+... run time stack, cells for each variable, lookup-stack, lookup-table, activation record, JavaScript-objects, ...
 
 
 

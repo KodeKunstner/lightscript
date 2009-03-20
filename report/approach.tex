@@ -19,7 +19,7 @@ The design and implementation of the languages is not just a single design, but 
 This leads up to LightScript and Yolan, which will be described in the next chapters.
 Discarded prototypes include a Forth-like language, several parser/compiler implementations on top of JavaScript, a couple of virtual machins on the jvm, some experiments towards an implementation in C, experiments with mobile applications and their GUI, and drafts of parts of what becomes LightScript and Yolan.
 
-\section{Some design choices}
+\section{*Some design choices}
 
 The major target platform should be Java Mobile Edition CLDC/1.0, as this is the most limited platform that I have access to. 
 If the language runs on top of CLDC/1.0, it will also be able run on other device configurations, with minor change, which is most mobile devices.
@@ -37,7 +37,7 @@ Execution should be online, in the sense that whenever a full statement is read 
 
 The language implementations are experimental proof-of-concepts. They may be worth building further on, but they are not fully mature languages from the begining.
 
-The design should be inspired by EcmaScript/JavaScript, as this is the most distributed:FIXME:other-word scripting language, and is also a possible translation target for the scripting language implemented here.
+The design should be inspired by EcmaScript/JavaScript, as this is the most widely deployed scripting language, and would thus be a good translation target for the scripting language implemented here.
 
 Access to variables should be optimised to be reasonably fast, as the target platform is already very slow. 
 This rules out implementation techniques of looking up variables at run time by traversing a stack, or looking up the name in a table.
