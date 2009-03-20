@@ -21,6 +21,26 @@ public class Main implements LightScriptFunction {
         throw new LightScriptException("Blah");
         */
     }
+static class FunctionLibrary implements LightScriptFunction { 
+    int id; // This tells which function the object represents
+    public Object apply(Object thisPtr, Object[] args, int argpos, 
+                        int argcount) throws LightScriptException {
+        switch(id) {   
+            case 0: // integer division
+                return new Integer(((Integer)args[argpos]).intValue()
+                                  /((Integer)args[argpos+1]).intValue());
+            case 1: // increment property i, not of superclass
+                int i = ((Integer)((Hashtable)thisPtr).get("i")).intValue();
+                ((Hashtable)thisPtr).put("i", new Integer(i + 1));
+        }
+        return null;
+    }
+    private FunctionLibrary(int id) { this.id = id; }
+    public static void register(LightScript lsContext) {
+        lsContext.set("div", new FunctionLibrary(0));
+        lsContext.set("propinc", new FunctionLibrary(1));
+    }
+}   
 
     /**
      * @param args the command line arguments
@@ -28,7 +48,16 @@ public class Main implements LightScriptFunction {
     public static void main(String[] args) throws Exception {
 	InputStream is = new FileInputStream(new File(args[0]));
         LightScript ls = new LightScript();
-//        ls.set("Main", new Main());
+    FunctionLibrary.register(ls);
+    ls.eval("obj = {}; obj.i = 1; obj.inc = propinc;"
+                  +"while(obj.i < 10) { "
+                  +"    print(div(42, obj.i)); "
+                  +"    obj.inc();"
+                  +"}");
+
+
+        System.out.println(ls.get("bar"));
+
         ls.eval(is);
     }
 }

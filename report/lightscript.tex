@@ -102,4 +102,90 @@ The actual access to a \verb|Stack| requires a method calls, which are 3 bytes p
 
 \section{* Language specification}
 \section{* Developers guide}
+To evaluate code with LightScript, you first have to instantiate a LightScript object, which keeps track of global values, loaded libraries, and other stuff. The constructor takes no parameters, so creating it is just:
+\begin{lstlisting}
+    LightScript lsContext = new LightScript();
+\end{lstlisting}
+This context can then be used to evaluate LightScript code, using the \verb|eval| method. This method either takes a string or an \verb|java.io.InputStream| as parameter, which is then read and executed:
+\begin{lstlisting}
+    lsContext.eval("print(\"Hello world \" + 17 * 42)");
+    lsContext.eval(new FileInputStream(new File("myscript.js")));
+\end{lstlisting}
+Global variables of the context can be read and written with the \verb|get| and \verb|set| method, so for example:
+\begin{lstlisting}
+    lsContext.set("foo", new Integer(17));
+    lsContext.eval("bar = foo + 25;");
+    System.out.println(lsContext.get("bar");
+\end{lstlisting}
+would print \verb|42|.
+
+\subsection{Adding native functions to the runtime}
+
+A method on a Java object can be called from LightScript if it implements the \verb|LightScriptFunction| interface, which defines an \verb|apply| method.
+The interface is:
+\lstinputlisting{../code/LightScript/LightScriptFunction.java}
+So for example a function that returns the current number of milliseconds could be implemented as:
+\begin{lstlisting}
+class MillisecondsFunction implements LightScriptFunction {
+    public Object apply(Object thisPtr, Object[] args, int argpos, 
+                        int argcount) throws LightScriptException {
+        return new Integer((int)System.currentTimeMillis());
+    }
+}
+\end{lstlisting}
+
+Adding a function to the runtime, is just like adding any other variable,
+via using the \verb|put| method of the LightScript object.
+So using the function above measuring some timings in LightScript can be done like:
+\begin{lstlisting}
+    lsContext.set("timer",new MillisecondsFunction());
+    lsContext.eval("begin = timer();"
+                  +"for(i=0;i<1000000;++i);"
+                  +"print(\"Time used: \" + (timer() - begin));");
+\end{lstlisting}
+
+When registrering several functions, it is more compact to join them via a dispatch, 
+so a class implementing a couple of functions could be implemented like:
+\begin{lstlisting}
+class FunctionLibrary implements LightScriptFunction {
+    int id; // This tells which function the object represents
+    public Object apply(Object thisPtr, Object[] args, int argpos, 
+                        int argcount) throws LightScriptException {
+        switch(id) {
+            case 0: // integer division
+                return new Integer(((Integer)args[argpos]).intValue()
+                                  /((Integer)args[argpos+1]).intValue());
+            case 1: // increment property i, not of superclass
+                int i = ((Integer)((Hashtable)thisPtr).get("i")).intValue();
+                ((Hashtable)thisPtr).put("i", new Integer(i + 1));
+        }
+        return null;
+    }
+    private FunctionLibrary(int id) { this.id = id; }
+    public static void register(LightScript lsContext) {
+        lsContext.set("div", new FunctionLibrary(0));
+        lsContext.set("propinc", new FunctionLibrary(1));
+    }
+}
+\end{lstlisting}
+which could be used like:
+\begin{lstlisting}
+    FunctionLibrary.register(lsContext);
+    lsContext.eval("obj = {}; obj.i = 1; obj.inc = propinc;"
+                  +"while(obj.i < 10) {"
+                  +"  print(div(42, obj.i));"
+                  +"  obj.inc();"
+                  +"}");
+\end{lstlisting}
+
+\subsection{Datatypes}
+LightScript uses ordinary Java objects for most data.
+Strings, stacks, tables, are as usual Java.
+Boolean values are the constants \verb|LightScript.TRUE| and \verb|LightScript.FALSE|, which are not Java Booleans, but the string "true" and null.
+
+LightScript objects with inheritance are instances of the \verb|LightScriptObject| class, which is subclass of \verb|java.lang.Hashtable|. LightScript objects have a constructor that corresponds to clone in Self, se section~\ref{survey-self}, and the parameter to the constructor is a hashtable or a LightScript object. The LightScript objects also overloads the hashtable get operator to access the cloned object, if the key was not found in this one.
+
+Exceptions that can be thrown to/from LightScript are of the class \verb|LightScriptException|. This exception has a property \verb|value| that is the object that is thrown/caught within LightScript. The constructor just take the value as parameter.
+
+
 \section{* Summary}

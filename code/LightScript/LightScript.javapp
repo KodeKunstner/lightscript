@@ -4,17 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.util.Hashtable;
 import java.util.Stack;
 
-// class LightScript
-// - Constants
-// - Utility functions
-// - Utility classes and structs
-// - Properties and constructor
-// - Tokeniser
-// - Parser
-// - Compiler
-// - Virtual machine
-
-
 /*`\subsection{Constants}'*/
 
 /* If debugging is enabled, more tests are run during run-time,
@@ -180,13 +169,19 @@ import java.util.Stack;
 #define TRY_FRAME_SIZE 5
 
 
+/*`\subsection{Variables}'*/
+/** Instances of the LightScript object, is an execution context,
+  * where code can be parsed, compiled, and executed. */
 public final class LightScript {
 
     /** Token used for separators (;,:), which are just discarded */
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
 
     /** The true truth value of results of tests/comparisons within LightScript */
-    public static final String TRUE = "true";
+    public static final Object TRUE = "true";
+
+    /** The false truth value of results of tests/comparisons within LightScript */
+    public static final Object FALSE = null;
 
     /** Token string when reaching end of file, it can only occur
       * at end of file, as it would otherwise be parsed as three
@@ -257,6 +252,15 @@ public final class LightScript {
       * to the closure of af function, which will then
       * be able to modify it without looking it up here */
     private Hashtable boxedGlobals;
+
+
+/*`\subsection{Public functions}'*/
+
+    /** Constructor, loading standard library */
+    public LightScript() {
+        boxedGlobals = new Hashtable();
+        LightScriptStdLib.register(this);
+    }
 
     /** Shorthand for evaluating a string that contains LightScript code */
     public void eval(String s) throws LightScriptException {
@@ -500,17 +504,6 @@ public final class LightScript {
             this.constPool = cl.constPool;
         }
     }
-
-/*`\subsection{Constructor}'*/
-
-#ifdef __COMPILE_API__
-    /** Constructor, loading standard library */
-    public LightScript() {
-        boxedGlobals = new Hashtable();
-        LightScriptStdLib.register(this);
-    }
-#endif /* __COMPILE_API__ */
-
 
 /*`\subsection{Tokeniser}'*/
 

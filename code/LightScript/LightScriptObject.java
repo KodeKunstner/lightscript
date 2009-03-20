@@ -1,7 +1,7 @@
 import java.util.Hashtable; 
 
-class LightScriptObject extends Hashtable {
-    public Hashtable parent;
+public final class LightScriptObject extends Hashtable {
+    private Hashtable parent;
 
     public LightScriptObject(Hashtable parent) {
         this.parent = parent;
