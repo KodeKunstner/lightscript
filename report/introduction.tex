@@ -1,5 +1,5 @@
 \chapter{Introduction}
-This chapter introduces the projects, starting with description and then motivation for the project, and a bit about the structure of this report.
+This chapter introduces the project, starting with description and then motivation for the project, and a bit about the structure of this report.
 
 
 \section{Project description NB:SYNOPSIS-NEEDS-SYNC}
@@ -19,9 +19,9 @@ project, I should be able to evaluate and choose programming language features
 and implementation techniques, and design and implement a scripting language.
 
     The focus of the language is that it should be portable, embeddable and have
-a low memory footprint. Portable implies that it should run on a varity of devices,
+a low memory footprint. Portable implies that it should run on different devices,
 from very low-end mobile phones to high-end computers, possibly also within a web browser. 
-Embeddable implies that it should be easy to include within, and interface with
+Embeddable implies that it should be easy to include within and interface with
 other applications. Low memory footprint implies that it should be suitable for
 running on platforms where the available memory is measured in kilobytes rather
 than megabytes. 
@@ -30,36 +30,38 @@ than megabytes.
 
 \section{Motivation}
 
-The motivation is that a scripting language could make it is easier to make applications for mobile devices.
-Scripting languages for low end mobile devices is a niche, 
-where a new language may actually be of practical use:
-existing freely available scripting languages either does not run on low-end mobile devices, or they are very slow or limited.
+Scripting languages make it easier to write applications\cite{ousterhout}. Beside higher productivity, they are also for more customisation, possibly user based.
+On more power full devices, ranging from high-end smartphones to personal computers, there are very good scripting languages available.
+Scripting language implementations usually take a lot of resources, which is a problem on low-end mobile devices, where they may not be available, are very slow, or have limitations, such as they cannot be executed directly, but need to be compiled to another devices, or they do not have basic datatypes.
+The focus on better implementation of a scripting languages for mobile devices is thus a niche, where the result may actually be of practical use.
 
-The focus on low-end devices has several motivations.
-It broadens the number of devices on which the language may run.
-While very low-end devices is no longer on the market and becoming uncommon in Denmark,
+The focus on low-end devices also has another benefit:
+it broadens the number of devices on which the language may run.
+While very low-end devices are becoming uncommon in Denmark,
 they still live on in countries with less information technology penetration.
 Thus by targeting the very low-end devices, 
 this may make scripting, and thus easier content creation,
 available where it has not been available before,
-and thus could be the beginning of stepping stone that could be used
+and thus could be the beginning of stepping stone 
 towards more information and computing literacy.
 The restrictions of low end mobile devices also imposes challenges, that may lead to interesting solutions.
 
+\begin{comment}
 From a personal point of view, 
 I would like to get started on development for mobile devices, 
 and would also like to brush up on programming language implementation.
 Design and implementation of a scripting language for mobile devices is spot on this topic.
+\end{comment}
 
 
 \section{The structure and content of the report}
 
-The report starts out with some background information: this introduction, and a survey on topics related to the project in chapter~\ref{survey}.
-Then the methodology and design for the project is elaborated in chapter~\ref{method}, including some of the principal design choices for the language implementations.
-The next couple of chapters are then the actual results: the LightScript language in chapter~\ref{lightscript}, the Yolan language in chapter~\ref{yolan}, and some benchmarking of the two new languages compared to existing scripting languages in chapter~\ref{benchmark}.
-Finally ther is a discussion of the results in chapter~\ref{discussion}, rounding off with a conclusion in chapter~\ref{conclusion}
+The report starts out with some background information: this introduction, and a survey on topics related to the project in Chapter~\ref{survey}.
+Then the methodology and design for the project are elaborated in Chapter~\ref{method}, including some of the principal design choices for the language implementations.
+The next couple of chapters are then the actual results: the LightScript language in Chapter~\ref{lightscript}, the Yolan language in Chapter~\ref{yolan}, and some benchmarking of the two new languages compared to existing scripting languages in Chapter~\ref{benchmark}.
+Finally there is a discussion of the results in Chapter~\ref{discussion}, rounding off with a conclusion in Chapter~\ref{conclusion}
 
-Some parts of the developed source code has been attached, such that the implementation details described in chapter~\ref{lightscript},~\ref{yolan} and~\ref{benchmark}, can also be seen in practice.
+Some parts of the developed source code has been attached, such that the implementation details described in Chapter~\ref{lightscript},~\ref{yolan} and~\ref{benchmark}, can also be seen in practice.
 There is also an index to make it easier to find specific parts of the report.
 
 Each chapter contains a short introduction and summary, which makes it easier to skim, and get an overview of the report.

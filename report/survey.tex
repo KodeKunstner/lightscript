@@ -5,8 +5,8 @@ This chapter...
 
 \section{* Mobile platforms}
 
-Development for mobile devices are very diverse.
-Surveys focussing on mobile devices often focus on smart phones, which are diverse high end mobile devices, - notice that market shares in surveys, such as \cite{smartphonesurvey} does not include the more low end devices.
+Development for mobile devices is very diverse.
+Surveys focusing on mobile devices often focus on smart phones, which are diverse high end mobile devices, - notice that market shares in surveys, such as  \cite{smartphonesurvey} does not include the more low end devices.
 On the contrary, this project focuses on development also targeting low end devices.
 
 Looking at lowest end mobiled devices: if user applications are loadable at all, it is in the shape of Java Midlets.
@@ -23,8 +23,8 @@ This makes them less attractive for further studies as well as further developme
 
 Additionally, the BREW mobile platform seems to play an important role in North America, but it is closed and needs code signing, and at the same time it is not common in Europe, so I will not look further into that platform.
 
-Besides Java and native code, JavaScript are becoming an potential language for applications for high end phone. 
-This is both due to that its integration with the web, which means that it will be available on the phones with advanced browsers, due to the increased amount of memory on high end phones
+Besides Java and native code, JavaScript is becoming a potential language for applications for high end phone. 
+This is both due to its integration with the web, which means that it will be available on the phones with advanced browsers, due to the increased amount of memory on high end phones
 and due to recent major performance advances within the JavaScript implementations, which are propagating towards mobile devices.
 
 \subsection{*Embedded systems}
@@ -37,7 +37,7 @@ There are two significantly different classes of computers: The Harvard architec
 
 Larger computers usually use the von Neumann architecture where program and data is in the same memory, and this is the most commonly known model.
 On small micro controllers on the other hand, the data memory is usually separated from the program memory, which is what is called the Harvard architecture. 
-These two approaches to architecture dates back to some of the early computers: the Harvard Mark I\cite{harvard-mark1} and the EDVAC\cite{edvac} by John von Neumann.
+These two approaches to architecture dates back to some of the early computers: the Harvard Mark I \cite{harvard-mark1} and the EDVAC \cite{edvac} by John von Neumann.
 
 On small micro controllers, programs are usually stored in flashable ROM, and on the Harvard architecture the separation of data and code makes it easier and cheaper to implement, for example size of the code words can be independent of the size of the data words.
 On the other hand, on larger computers, it is sometime practical to be able to work with the code as data, and thus von Neumann architecture makes more sense there.
@@ -50,80 +50,87 @@ The low end micro controllers, typically have less that 512 bytes of RAM, and so
 
 
 \subsection{The J2ME / Java Micro Edition}
-J2ME (Java Micro Edition\footnote{Java Micro Edition is a recent rebranding of J2ME}) is the most common plargorm for mobile application, being installed in more than a billion devices. 
-The virtual machine of J2ME is often the only option, as low end mobile devices usually do not allow loading of applications targeting the native machine.
-J2ME is a trimmed down Java Virtual Machine (JVM) so many of the things applicable to Java is also applicable to J2ME. It is also a fragmented platform, with different APIs/extensions from different vendors, and different device profiles for different hardware capabilities.
+J2ME (Java Micro Edition\footnote{Java Micro Edition is a recent rebranding of J2ME}) is the most common platform for mobile application, supported by more than a billion devices \cite{sun-j2me}. 
+Most mobile devices either require strict code signing, or do not allow native applications to be loaded at all, which leads to that J2ME is often the only for mobile application development.
+J2ME is a trimmed down Java Virtual Machine (JVM) so it has most of the features and limitations of a standard Java JVM, with some notable exceptions, such as the lack of dynamic class loading and reflection. It is fragmented platform which makes it more difficult to make applications that works across devices: there are different APIs/extensions from different vendors, and different device profiles for different hardware capabilities.
 
-Applications for J2ME, are called Midlets and are distributed via JAR-files (Java ARchive). A JAR file is essentially a zip file containing the compiled java classes, data files, and some meta information.
+Applications for J2ME, are called Midlets and are distributed via JAR-files (Java ARchive). A JAR file is essentially a zip file containing the compiled Java classes, data files, and some meta information.
 
-J2ME has two device configurations CLDC 1.0 (Compact Limited Device Configuration 1.0)\cite{cldc10}  and CLDC 1.1 \cite{cldc11}. The major difference between the two is that CLDC 1.0 is integer only, whereas CLDC 1.1 supports floating point numbers.
+J2ME has two device configurations CLDC 1.0 (Compact Limited Device Configuration 1.0) \cite{cldc10}  and CLDC 1.1  \cite{cldc11}. The major difference between the two is that CLDC 1.0 is integer only, whereas CLDC 1.1 supports floating point numbers.
 A limitation of both CLDCs is that they lack of support for reflection and dynamic code loading.
-The lack of a reflection API impacts a scripting language in that it cannot discover native functions, but such functions have to be added to the system.
-The lack of dynamic code loading rules out the possibility of JIT compiling the scripting language to Java class files.
+The lack of a reflection API impacts a scripting language in that it cannot discover native functionsn Instead such functions have to be added explicitly to the system.
+The lack of run-time class loading, means that the only way to execute run-time loaded scripts is through intepretation. JIT compiling to JVM or native code is not possible.
 
-The CLDCs are based upon the Java JVM\cite{jvmref}, with some instructions removed, and some metadata added to ensure stack discipline (the preverifiction process).
-The reference implementation of CLDC 1.0, kvm, is a switch-based interpreter with a compacting mark-and-sweep garbage collector\cite{kvm,kvm-src}.
-
-In section~\ref{interpreter-implementation}, optimisation of interpreter implementation is discussed.
-With regard to this, it should be noticed that JVM does not support label references as values, nor does it support functions as values, but it does have a builtin switch opcode as well as support for method-dispatch based on the type of an object, so an interpreter would either be switch-based, or have a class for every opcode.
-
-The resources available for J2ME on mobile phones starts at 64KB for the jar-file and 200KB for the run time memory on the lowest end devices, and goes upwards from that\cite{nokiaoptim}.
-As the project is to make an embeddable language, so these memory figures are both for the main application and the language implementation, so the language must use significantly fewer resources than those available.
+The CLDCs are based upon the Java JVM \cite{jvmref}, with some instructions removed, and some metadata added to ensure stack discipline. 
+In order to simplify the J2ME JVM implementation, Java class files has to be preverified, before they can be loaded.
+The preverification add meta data about stack use, and removes certain instructions, such as local jump-and-save-register, to make it easier to implement a JVM, that is safe against malicious code trying to overflow the stack.
+The reference implementation of CLDC 1.0, kvm, is a switch-based interpreter with a compacting mark-and-sweep garbage collector \cite{kvm,kvm-src}.
 
 
-\subsubsection{Memory optimisations}
-A major optimisation of the available run time memory is to be able to avoid having memory intensive parts of the program run at the same time. E.g. it is desirable to be able to garbage collect the executed parts of the programs when they are done, and the memory needs to be available for other computations.
+The JVM limits interpreter implementation: it does not support label references as values, nor does it support functions as values. This makes some of the optimisations discussed in 
+Section~\ref{interpreter-implementation} impossible.
+Instead it does have a builtin switch opcode as well as support for method-dispatch based on the type of an object, so an interpreter would either be switch-based, or have a class for every opcode.
 
-The usual size optimisations, such as finding compact representations, trimming dynamic data structures, avoiding sparse data, etc., is also applicable.
-Notice that there might also be a tradeoff between the code footprint and run time memory, as compact representations and other optimisations may require more code to be implemented.
-
-The code footprint limit may be tighter that the run time memory, and it may be possible to partition the execution such that different parts of the applications do not need to use run time memory at the same time.
-Thus code footprint will be prioritised slightly higher than the run time memory usage, though both are important.
+The resources available for J2ME applications on mobile phones start at 64KB for the size of the JAR-file and 200KB for the run time memory on the lowest end devices, and goes upwards from there \cite{nokiaoptim}.
+These numbers are for the full application, so the resources available for an embeddable scripting language, could be significantly less than this, depending on the resource usage of the host application.
 
 
-\subsubsection{Footprint optimisations}
+\subsubsection{Reducing the memory usage of J2ME applications}
+
+Some devices only have little memory available,
+and an optimisation here is to be able to avoid having memory intensive parts of the program run at the same time. For example, with a scripting language, it is desirable to be able to garbage collect the executed parts of long script when they are done, so the memory becomes available for other computations.
+The usual size optimisations, such as finding compact representations, trimming dynamic data structures, avoiding sparse data, etc., are also applicable.
+Here may be a tradeoff between the code footprint and run time memory, as compact representations and other optimisations may require more code to be implemented.
+
+\subsubsection{Reducing the footprint of J2ME applications}
 Some optimisations to reduce the code or JAR-file footprint:
 \begin{itemize}
 \item Reduce the number of class-files.
-\item Be wary of how variables are initialised.
+\item Write initialisation manually, where the automatic generated initialisation is inefficient.
 \item Use a JAR-optimiser/obscurifier.
 \item Put the classes in the unnamed package.
 \end{itemize}
 
-Reducing the number of classes may reduce the size of the JAR file significantly,
-even though the amount of code is the same:
-Each class file has it own symbol table, which means that if classes are merged, then common symbols only needs to be represented once, rather than once for each class.
-Another reason is the compression, - JAR files are essentially zip-archives, and each file in a zip archive is compressed individually\cite{zipspec}, which means that small files typically gets compressed less than longer files, due to the small compression context.
+Another optimisation is to reduce the number of classes \cite{nokia-optim, kahlua-thesis}.
+This may reduce the size of the JAR file significantly,
+even though it does not change the amount of code:
+Each class file has its own symbol table, which means that if classes are merged, then common symbols only needs to be represented once, rather than once for each class.
+Furthermore JAR files are essentially zip-archives, and each file in a zip archive is compressed individually \cite{zipspec}, which means that small files typically get compressed less than larger files, due to the small compression context.
 The downside of reducing the number of classes is that it could go against the object oriented design, and the implementation may more difficult to read and edit.
 
 Initial values are not supported directly by the Java class file format, but instead
 JVM-code is generated, which does the initialisation. 
-This often inefficient, -- an example is the initialisation:
+This often inefficient. For example the initialisation:
 \begin{verbatim}
-byte[] bytes = { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ;
+byte[] bytes = { 1, 4, 3, 4, 5, 6, 2, 3, 1 } ;
 \end{verbatim}
 generates the code corresponding to
 \begin{verbatim}
 byte[] bytes = new byte[9];
-bytes[0] = 1; bytes[1] = 2; bytes[2] = 3;
+bytes[0] = 1; bytes[1] = 4; bytes[2] = 3;
 bytes[3] = 4; bytes[4] = 5; bytes[5] = 6;
-bytes[6] = 7; bytes[7] = 8; bytes[8] = 9;
+bytes[6] = 2; bytes[7] = 3; bytes[8] = 1;
 \end{verbatim}
 which for larger initialisation is significantly more expensive than manually written initialisers,
 which for the above example could be:
 \begin{verbatim}
-byte[] bytes = "\001\u002\u003\u004\u005\u006\u007\u010\u011".getBytes();
+byte[] bytes = "\001\u004\u003\u004\u005\u006\u002\u003\u001".getBytes();
 \end{verbatim}
-When writing initialising code, it is also nice to know that when strings in the Java class file is encoded, only characters with unicode values between 1 and 127 (inclusive) uses one byte per character, so for large binary data, it may make sense to load it from external sources and not include it in the class file.
 
-JAR file optimisation/obfuscation can beneficial for code footprint due to that it may:
-remove unused code;
-item rename methods and classes, so that they use less space in the symbol table;
-make \verb|static const|s work as \verb|#define|s;
-optimise code, shortening some of code.
-This also allows one to make more readable code with concern of code footprint, knowing that some of the more verbose parts will be optimised away.
+Another thing to be aware of is, that strings in Java class files are encoded, such that only characters with unicode values between 1 and 127 (inclusive) uses one byte per character, so for large binary data, it may make sense to load it from external sources and not include it in the class file.
 
-Using the unnamed package saves space in the symbol table.
+JAR file optimisation/obfuscation can beneficial for code footprint because it may:
+remove unused code,
+rename methods and classes, such that they use less space in the symbol table,
+make \verb|static const|s work as \verb|#define|s,
+ and optimise the code, thus shortening it.
+This also allows one to make more readable code with less concern of code footprint, knowing that some of the more verbose parts will be optimised away.
+
+Using the unnamed package also saves space in the symbol table, as class references becomes shorter.
+
+The code footprint limit may be tighter that the run time memory limit, and it may be possible to partition the execution such that different parts of the applications do not need to use run time memory at the same time.
+Thus, in this project with the design of an embedded scripting language, code footprint will be prioritised slightly higher than the run time memory usage, although both are important.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -143,7 +150,7 @@ Using the unnamed package saves space in the symbol table.
 \section{* Programming languages, and their ideas}
 \subsection{Self}
 \label{survey-self}
-Self\cite{self} is especially interesting due to the prototypical inheritance.
+Self \cite{self} is especially interesting due to the prototypical inheritance.
 In traditional object oriented programming, we have classes and objects, where classes can inherit from other classes, and objects are instantiation of classes.
 Instead of classes and subclasses for inheritance, Self has a clone operator, which creates a new object using an existing object as blueprint.
 An object in self contains a pointer to the parent (cloned) object, and a mapping from propertynames to values or methods. When a property is read, mapping is first searched, and if the name is not found there, the parent object is searched.
@@ -166,22 +173,22 @@ Words -- ``functions'' in Forth -- are first class data types.
 
 A couple of very interesting pointers related to Forth are: 
 ``Thinking Forth'' is a very good book, not only on Forth programming, but also touches a lot programming and problem solving in general.
-There is also a tutorial Forth implementation\cite{jonesforth}, which is a good place to get started on how Forth can be implemented - it is the implementation of a full Forth system, written in assembler, but very readable and well documented.
+There is also a tutorial Forth implementation \cite{jonesforth}, which is a good place to get started on how Forth can be implemented - it is the implementation of a full Forth system, written in assembler, but very readable and well documented.
 
-Forth is also interesting from the virtual machine point of view, as this is a programming language which is similar to stack based virtual machines. So forth implementation techniques is shared with a lot of virtual machines. And research within this topic overlaps, an example is a dissertation on implementation of stack languages on register based machine\cite{ertl-dissertation}, as the representitive stack-based language.
+Forth is also interesting from the virtual machine point of view, as this is a programming language which is similar to stack based virtual machines. So forth implementation techniques is shared with a lot of virtual machines. And research within this topic overlaps, an example is a dissertation on implementation of stack languages on register based machine \cite{ertl-dissertation}, as the representitive stack-based language.
 
-Other more recent stack languages are Joy\cite{joy-language}, Cat\cite{cat-language} and Factor\cite{factor-language}.
+Other more recent stack languages are Joy \cite{joy-language}, Cat \cite{cat-language} and Factor \cite{factor-language}.
 Interesting development here are more typing, and also the use of anonymous code blocks, 
 to create the control structure.
 
 \subsection{*JavaScript/EcmaScript}
-JavaScript plays a major role in this project and is described in more details in section~\ref{javascript}
+JavaScript plays a major role in this project and is described in more details in Section~\ref{JavaScript}
 \subsection{*Lisp and Scheme}
 \subsection{*Tcl}
 \subsection{*Lua}
 
 \section{* JavaScript/EcmaScript}
-\label{javascript}
+\label{JavaScript}
 JavaScript is interesting, both as a platform, a scripting language, and due to the implementations.
 
 \subsection{* About JavaScript}
@@ -195,37 +202,38 @@ JavaScript is interesting, both as a platform, a scripting language, and due to 
 \subsubsection{JavaScriptCore - old edition}
 \subsubsection{SquirrelFish (new JavaScriptCore)}
 SquirrelFish is the new implementation of JavaScript in Webkit,
-which is an optimised register based virtual machine,
+which is an optimised register-based virtual machine,
 where JIT compilation is also being added.
 
 \subsubsection{TraceMonkey}
 TraceMonkey is the next JavaScript engine from Mozilla.
-I has a JIT compiler based on trace tree, 
+It has a JIT compiler based on trace tree, 
 which rather than JIT compiling the entire program,
-traces and then compiles the most executed paths through,
-meaning that it both gets optimised to the actual execution,
-and also reduces the amount of code needed to be compiled.
+traces and then compiles the most executed paths through the program.
+This means that the JIT compiled code gets optimised to the actual execution,
+and the approach also reduces the amount of code needed to be compiled.
 
 
 \subsubsection{V8}
-V8 is an implementation done by Google, and released in 2008 in conjunction with the release of their browser ``Chrome''. 
-While it is not directly connected with the Android platform, a JIT compiler is already in place targeting tha ARM cpu, so it seems likely that it will also target mobile devices in the long term.
+V8\cite{v8} is a JavaScript implementation made by Google, and released in 2008 in conjunction with the release of their browser ``Chrome''. 
+While it is not directly connected with the Android platform, a JIT compiler is already in place targeting the ARM CPU, so it seems likely that it will also target mobile devices in the long term.
 
-A main factor of v8 is execution speed. It is designed towards JIT from the beginning, and it also does some class inference to optimise methods and property access.
-This builts upon experiences from self/smalltalk implementations\cite{articles-before-v8}.
-The idea here is that by guessin a class when JIT'ing the code, a property access can be reduced to a comparison(type check) and then just a pointer lookup, rather than a full slow JavaScript scope lookup.
+A main focus and benefit of V8 is high execution speed.
+The design builds upon experience from Self/Smalltalk implementations \cite{articles-before-v8}.
+It is designed for JIT compilation from the beginning, and it also does some class inference to optimise methods and property accesses.
+The idea here is that whenever a property is added to a JavaScript object this create an implicit class. When code is JIT'ed, a property access is compiled to a type check followed by fast code for accessesing the property, similar to that of more static, class based languages. This is possible due to the type check and implicit class, and it is much faster than a traditional JavaScript object property lookup.
 
-The garbage collector is also quite elegant, - it is a generational garbage collector with two generations. The young generation is collected with a copy-collector which is linear in the time of live data, and thus heap allocation of activation records is almost free. 
-This is combined with mark and sweep when a full collect is needded.
+The garbage collector is fast, - it is a generational garbage collector with two generations. The young generation is collected with a copy-collector which is linear in the time of live data, and thus heap allocation of activation records is almost free. 
+This is combined with a mark and sweep collector when a full collect is needed.
 
 
 \section{* Interpreter implementation}
 \label{interpreter-implementation}
 This section looks into a couple of aspects of interpreter implementation.
 First is a discussion on different types of virtual machines, namely register and stack machines, and their different benefits and tradeoffs.
-Then there is a discussion on the implementation of the dispatch, which is one of the bottlenecks of intepreters.
+Then there is a discussion on the implementation of dispatch, which is one of the bottlenecks of intepreters.
 Third there is a discussion of garbage collection techniques.
-And finally there is a discussion on different approaches to run time stack.
+And finally there is a discussion on different approaches managing to run time stack.
 
 \subsection{Register and stack machines}
 Virtual machines are usually either register based or stack based.
@@ -233,21 +241,20 @@ Virtual machines are usually either register based or stack based.
 Stack based virtual machines operates similar to the language Forth, where the operations work on the top of the stack. 
 Operands are implicit coded, such that for example the add instruction just pops the two top elements of the stack, and pushes the sum. 
 Stack machines are easy to compile to, 
-and can simply be done by emitting the opcodes of a post-order walk through of the abstract syntax tree. 
+which can simply be done by emitting the opcodes of a post-order walk through of the abstract syntax tree. 
 There are no issues of register allocation, spilling, etc.
-Stack machines are commonly used, the most known example is the Java Virtual Machine, and there many others when looking under the hood.
+Stack machines are commonly used, the most known example is the Java Virtual Machine, and there many others when looking under the hood, for example: Python, the SpiderMonkey JavaScript implementation, and the .NET Common Intermediate Language.
 
-Register based virtual machines are recently becoming more common. 
-Usually they have a high number of registers, leading to longer opcodes than stack based virtual machines. But on the other hand, fewer opcodes are needed leading to faster execution\cite{register-vs-stack}. 
-Examples of register based virtual machines are the Dalvik\cite{dalvik} virtual machine, LLVM\cite{llvm}, and the virtual machine of Lua\cite{luavm}.
+Register based virtual machines are becoming more common. 
+Usually they have a high number of registers, leading to longer opcodes than stack based virtual machines. But on the other hand, fewer opcodes are needed leading to faster execution \cite{register-vs-stack}. 
+Examples of register based virtual machines are the Dalvik \cite{dalvik} virtual machine, LLVM \cite{llvm}, Parrot \cite{parrot}, and the virtual machine of Lua \cite{luavm}.
 
-A third approach to virtual machines is just to use the abstract syntax tree for evaluation. This was for example used in earlier versions of WebKits JavaScript implementation, but has now been superseeded by a stack virtual machine, and is currently being replaced by JIT compilation.
+A third approach to virtual machines is just to use the abstract syntax tree for evaluation. This was for example used in earlier versions of WebKits JavaScript implementation, but has now been superseded by a stack virtual machine, and is currently being replaced by JIT compilation.
 
 \subsection{Optimising the dispatch}
-This sections focuses on optimising the dispatch. Most of the methods below is comes from \cite{dispatch1, dispatch2}. The only exception is the last section which seems to be a newer development, described in \cite{dalvik-talk}.
-The dispatch is an important bottleneck when implementing interpreters. 
-An interpreter usually has a loop that fetches the next instruction, and executes it. The dispatch is roughly how to fetch and execute the next instruction.
-Most opcodes does not require significant computation, for example adding two numbers is just loading a couple of values, adding them and storing the result, possibly decrementing a stack pointer, and as the dispatch is executed for each opcode, it is quite an important overhead to optimise. 
+The dispatch is an important bottleneck when implementing interpreters.
+An interpreter usually has a loop that fetches the next instruction, and executes it. The process of dispatching is to fetch opcode and goto the code for the next virtual instruction.
+The reason this is a bottleneck it has to be executed for every opcode, and while dispatching may be done in few instructions, so may the code for the virtual instruction, and the dispatch is still a relatively large part of the execution time. 
 
 The usual way is just to have a switch statement, which usually compiles to a jump table, such that:
 \begin{verbatim}
@@ -293,9 +300,8 @@ BAZ:
     jump looptop
 ...
 \end{verbatim}
-which does work, but is kind of suboptimal.
-Sometimes it is the best option - namely if the compiler or virtual machine we are making the interpter on top of, does not support the more optimised options below.
-This approach is used in SpiderMonkey, KVM\footnote{The reference implementation of JVM for mobile devices}, and most places which has a portable dispatch implementation.
+which is a simple and working approach, but is a bit inefficient. It is portable across compiler, and is the only option on some virtual machines,
+This approach is used in SpiderMonkey, KVM\footnote{The reference implementation of JVM for mobile devices}, and in many other implementation.
 
 If the compiler supports direct addressing of labels, we can instead do something like:
 \begin{verbatim}
@@ -313,11 +319,17 @@ OP_BAZ:
     ... implementation of BAZ ...
     goto ops[++pc];
 \end{verbatim}
-This has two benefits: it removes the jump to the loop top, as it jumps directly to the next instruction after the table lookup, and it also improves branch prediction, as all the instructions are not dispatched from a single point, but rather dispatched directly from the previous instruction. The cost is a bit more code, as the code for the table lookup needs to be at each instruction, rather than a single place. This is for example used in \cite{stack-vm-thingy}.
+This has two benefits: it removes the jump to the loop top, as it jumps directly to the next instruction after the table lookup, and the jumps themselves may be faster due to better branch prediction.
+The reason the branch prediction may improve, is that branch prediction is often based on where previous branch at the specific code position were taken taken to. 
+When the branch is at the end of the code for the virtual instruction,
+the branch predictor has the current instruction as context for predicting the next instruction.
+When the implementation is a switch based interpreter, the branch predictor has no context for predicting the next instruction.
+This approach is called threaded code, and are up to twice as fast as switch based implementations \cite{ertl-efficient-2003}.
+The cost is a bit more code, as the code for the table lookup needs to be at each instruction, rather than a single place. 
 
-A further optimisation of the dispatch is to remove the table lookup. This is often done by replacing virtual machine instructions with the addresse of the implementation of the instruction. At the same time this is space costly as an address usually uses 32bit, where an virtual machin instruction often uses 8bit. This is also better suited for stack machines, where the operands are coded implicit, rather that register machines, where the operands needs to becoded beside the address of the implementation. This optimisation is used in many Forth implementations, for example\cite{forth-asm} and also optionally in QScript\cite{qscript} and SquirrelFish\cite{webkit-source} and probabaly lots of others.
+A further optimisation of the dispatch is to remove the table lookup. This is often done by replacing virtual machine instructions with the addresse of the implementation of the instruction. At the same time this is space costly as an address usually uses 32bit, where an virtual machin instruction often uses 8bit. This is also better suited for stack machines, where the operands are coded implicit, rather that register machines, where the operands needs to becoded beside the address of the implementation. This optimisation is used in many Forth implementations, for example \cite{forth-asm} and also optionally in QScript \cite{qscript} and SquirrelFish \cite{webkit-source} and probabaly lots of others.
 
-Another way to remover the table lookup of the dispatch is to have a fixed size of each instruction implementation, and then calculate the position of the implementation from the opcode. When some instruction implemenations are significantly longer than others, the longer instruction implementations can contain a jump to the code that is beyond the fixed instruction implementation size.
+Another way to remover the table lookup of the dispatch is to have a fixed size of each instruction implementation, and then calculate the position of the implementation from the opcode \cite{dalvik-talk}. When some instruction implemenations are significantly longer than others, the longer instruction implementations can contain a jump to the code that is beyond the fixed instruction implementation size.
 For example:
 \begin{verbatim}
 INSTRUCTION_IMPLEMENTATIONS:
@@ -342,14 +354,14 @@ This has the benefit of being even faster, as the table lookup is eliminated,
 but it is also more difficult to implement, as implementation is so 
 machine near, that it is not possible to do in a high level language.
 Notice that \verb|IMPLEMENTATION_SIZE| would be a power of two such that the multiplication is just a shift.
-This optimisation is for example used in the Dalvik Virtual Machine\cite{dalvik-vm}
+This optimisation is for example used in the Dalvik Virtual Machine \cite{dalvik-vm}
 
 
 \subsection{* JIT-compilation}
 
 \subsection{* Garbage collection}
 Garbage collection is an important issue in the design of virtual machines. 
-A good survey on this topic is\cite{gc-survey}, though it is a bit dated.
+A good survey on this topic is \cite{gc-survey}, though it is a bit dated.
 Another interesting source is to look at what approaches pratical virtual machine implementations used.
 
 A common approach is to combine reference counting with some kind of cycle cleanup. 
@@ -367,10 +379,10 @@ The complexity of a copying collector is linear of the live objects, which means
 A part of a language implementation is to parse the source text into the abstract syntax tree to work on. 
 
 An issue here is that parsers often take quite a large amount of code, especially if they are generated by compiler-compilers.
-Generated lexers and LALR(1) parsers, generated by for example \cite{yacc, yacc2}, usually have quite large state tables.
+Generated lexers and LALR(1) parsers, generated by for example  \cite{yacc, yacc2}, usually have quite large state tables.
 Recursive descent parsers seems to use a bit less code size the bottom up approach, but still requires functions for the all the grammar productions, which may still be expensive.
 
-Grammar based parser generation and implementation is extensively studied and described for example in \cite{basics-of-compiler-design, grammar}, and is assumed well known.
+Grammar based parser generation and implementation is extensively studied and described for example in  \cite{basics-of-compiler-design, grammar}, and is assumed well known.
 A couple of other approaches which are also very elegant, 
 but have recieved less focus are
 monadic parser generators, and top down operator precedencs parsers,
@@ -380,7 +392,7 @@ which will be discussed in the following sections.
 
 \subsection{Top down operator precedence parsers}
 \label{tdop}
-Top down operator precedence parsing was described thirty years ago in \cite{top-down-operator-precedence}, but has not had much attention until lately with \cite{beautiful-code}.
+Top down operator precedence parsing was described thirty years ago in  \cite{top-down-operator-precedence}, but has not had much attention until lately with  \cite{beautiful-code}.
 
 In some way it combines recursive descent parsing with operator precedence, which simplifies the implementation significantly.
 
@@ -427,7 +439,7 @@ g(42)
 which would print 42 if it were written in a statically scoped language, and would print 17 if it were written in a dynamically scoped language.
 
 Static scope is more natural as the scope matches the structure of the code. Dynamic scope requires more discipline, as it allows the programmer to tamper with local variables of other parts of the code, and counters good habits of information hiding. A very importeant feature is also that static scope can be used to create closures for functions, which gives extra flexibility to the language.
-On the other hand, dynamic scope very trivial to implement, and can thus use slightly less space in the code footprint, if it is a very simple interpreter. Dynamic scope does also not have the issue with the funarg problem discussed in section~\ref{funarg}.
+On the other hand, dynamic scope very trivial to implement, and can thus use slightly less space in the code footprint, if it is a very simple interpreter. Dynamic scope does also not have the issue with the funarg problem discussed in Section~\ref{funarg}.
 For more advanced language implementations static scope has the benefit over dynamic scope, that it is easier to analyse and optimise due to locality, in the sense that its use is limited to the local lexical scope, and thus the optimisations on this part of the code need be concerned with other parts of the code.
 
 \subsection{Stacks and activation records}
