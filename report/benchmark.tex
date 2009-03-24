@@ -1,16 +1,19 @@
-\chapter{* Benchmarks}
+\chapter{Benchmarks}
 \label{benchmark}
 
-\section{* Code footprint}
-To compare the code footprint size, I have added an estimate of the jar file size. 
+\section{Code footprint}
+This section looks at the code footprint: first footprint estimates are compared for different scripting languages, then details on the footprint of LightScript is investigated, and finally the actual size of the library embedded in a minimal application is found.
+
+\subsection{Comparison with other languages}
+To compare the code footprint size across languages, I have added an estimate of the jar file size. 
 The estimate is done by making a zip archive of the non-obscurified class files,
 trying to exclude class files that are part of extra libraries.
-The motivation for this approach is that some of the languages have large GUI libraries,
+The motivation for this approach is to make the comparison more fair, as some of the languages have large GUI libraries,
 which would count against them, if we just looked at the jar file. 
 In addition, compilation of some of the languages is obscurified/optimised by default,
 which would give those an advantage. So this should give a more fair comparison.
-As a rule of thumb with classfiles, the compressed files are approximately half the size of original.
-\subsection{* Languages}
+
+\subsubsection{Languages}
 \label{codefootprint-languages}
 The code size benchmark looks at the languages implemented in this project, Yolan and LightScript, it looks at scripting languages for mobile devices, FScriptMe, Kahlua, Hecl, Simkin, and CellularBasic, and it looks at some general scripting language implementations,  JScheme, and Rhino.
 
@@ -35,7 +38,9 @@ It includes a floating point support library which is not included in the measur
 
 Rhino\cite{rhino} is a JavaScript implementation. This language is not designed for, nor does it run on, mobile devices. It is included as an example of an implementation of a usual non-mobile scripting language.
 
-\begin{figure} \begin{center}
+\subsubsection{Results}
+The approximated JAR sizes of the scripting languages are:
+\begin{center}
 \begin{tabular}{|c|r|} \hline 
 Yolan & 7K \\ \hline 
 LightScript & 14K \\ \hline 
@@ -50,8 +55,30 @@ CellularBasic & 83K \\ \hline
 Rhino & 397K \\ \hline 
 \end{tabular}
 \end{center}
-\caption{Approximation of jar size of scripting languages for the JVM}
-\end{figure}
+
+The languages developed in this project smaller than other scripting languages for the platform. 
+Yolan is approximately half the size of LightScript. 
+
+\subsection{Details on the footprint of LightScript}
+The sizes of the different part of the LightScript class is listed below.
+Reduction is the reduction of the full class file when the mentioned part is left out. Alone is the size of the class file with everything else than the mentioned part left out. These numbers are different as some things are shared and some things cannot be left out when compiling the class file.
+
+\begin{center} \begin{tabular}{|r|r|rl|} \hline
+\multicolumn{2}{|r|}{Reduction} & \multicolumn{2}{|l|}{Alone}\\ \hline
+Everything & 15030 & 17706 & \\ \hline
+API & 645  & 3597  & \\ \hline
+Tokeniser & 1261 & 4048 & \\ \hline
+Parser & 2542 & 5850 & \\ \hline
+Compiler & 5324 & 8413 & \\ \hline
+Vm & 4589 & 7650 & \\ \hline
+Parser+Tokeniser & 3825 & 7093 & \\ \hline
+\end{tabular} \end{center}
+
+\subsection{Optimised JAR-file footprint}
+Previous sections have looked at comparable footprints for implementations by approximated JAR file size, and also at what parts contributes to the size of the LightScript class.
+From a practical view it is also interesting to see the actual size of the optimised obscurified JAR-file of embedding the languages in a trivial host application.
+The host application is a simple Midlet that adds a print function to the language, and includes a hello-world program.
+The size of the entire application, including the embedded scripting language implementation is 5290 bytes for Yolan and 11279 bytes for LightScript. 
 
 \section{Execution speed}
 This section benchmarks the execution speed of the languages. 
@@ -60,25 +87,7 @@ The source code for the benchmarks can be seen in appendix~\ref{benchmarksource}
 The results of the benchmarks can be seen in figure~\ref{figure-execution-speed}.
 
 \subsection{Languages}
-The benchmarks are run on those of the languages from section~\ref{codefootprint-languages}, that have an approximated jar size of less than 64K. They also run on two JavaScript interpreters: Rhino 1.6r7 and SpiderMonkey 1.7.0, which are the default versions when installed on Ubuntu Linux.
-Most of the languages have been described in more details in section~\ref{codefootprint-languages}.
-except SpiderMonkey, which is described in section~\ref{spidermonkey}.
-
-\begin{figure} \begin{center} \begin{tabular}{|r|r|r|r|r|r|r|r|rr|} \hline 
-& \multicolumn{2}{|l|}{Fibonacci} & \multicolumn{2}{|l|}{Recursion} & \multicolumn{2}{|l|}{For-in} & \multicolumn{2}{|l}{Exceptions} & \\
-& & \multicolumn{2}{|l|}{Loops} & \multicolumn{2}{|l|}{Sieve} & \multicolumn{2}{|l|}{Primes} & \multicolumn{2}{|l|}{Fannkuch} \\
-\hline Rhino       & 1.20 & 1.74 & 1.75   & 2.97 & 1.18 & 12.35 & 45.99 & 6.35 & \\ 
-\hline SpiderMonkey& 1.28 & 1.71 & $\bot$ & 2.08 & 1.14 & 11.03 & 0.45  & 5.10 & \\ 
-\hline LightScript & 1.37 & 3.45 & 2.35   & 1.19 & 0.57 & 11.70 & 0.65  & 11.15 & \\
-\hline Yolan       & 1.47 & 2.23 & $\bot$ & 1.95 & 0.32 &  9.20 &  &  & \\
-\hline Kahlua      & 2.13 & 1.18 & $\bot$ &  5.73 & 2.26 & 5.49 &  &  & \\ 
-\hline JScheme    & 29.77 & 93.22 & $\bot$ & & & & & & \\ 
-\hline FscriptME & 176.27 & 112.68& $\bot$ & & & & & & \\ 
-\hline Hecl      & 207.96 & 47.21 & $\bot$ & & & & & & \\ 
-\hline \end{tabular}
-\caption{Performance of different scripting languages. The timings are seconds per benchmark. $\bot$ indicates that the benchmark does not complete due to running out of stack space}
-\label{figure-execution-speed}
-\end{center} \end{figure}
+The benchmarks are run on those of the languages from section~\ref{codefootprint-languages}, that have an approximated jar size of less than 64K. They also run on two JavaScript interpreters: Rhino 1.6r7 and SpiderMonkey 1.7.0, which are described in section~\ref{spidermonkey}, and are the default versions when installed on Ubuntu Linux.
 
 \subsection{The benchmarks}
 The benchmarks are the following:
@@ -92,25 +101,21 @@ The benchmarks are the following:
 \paragraph{Exception:} Throw/catch 500.000 exceptions - only implemented for LightScript/JavaScript
 \paragraph{Fannkuch:} Access-fannkuch benchmark from \cite{sunspider, shootout} - only implementd for LightScript/JavaScript
 
-\section{* Details on the footprint of LightScript}
-\begin{figure}
-\begin{center} \begin{tabular}{|r|r|rl|} \hline
-\multicolumn{2}{|r|}{Reduction} & \multicolumn{2}{|l|}{Alone}\\ \hline
-Everything & 15030 & 17706 & \\ \hline
-API & 645  & 3597  & \\ \hline
-Tokeniser & 1261 & 4048 & \\ \hline
-Parser & 2542 & 5850 & \\ \hline
-Compiler & 5324 & 8413 & \\ \hline
-Vm & 4589 & 7650 & \\ \hline
-Parser+Tokeniser & 3825 & 7093 & \\ \hline
-\end{tabular} \end{center}
-\caption{ Measurement of size of LightScript.class. Reduction is the reduction of the full class file when the mentioned part is left out. Alone is the size of the class file with everything else than the mentioned part left out. These numbers are different as some things are shared and some things cannot be left out when compiling the class file.}
-\end{figure}
+\subsection{Results}
+The measurement of the performance of the different scripting languages are shown below. The timings are seconds per benchmark. $\bot$ indicates that the benchmark does not complete due to running out of stack space.
 
-\section{Optimised JAR-file footprint}
-Previous sections have looked at comparable footprints for implementations by approximated JAR file size, and also at what parts contributes to the size of the LightScript class.
-From a practical view it is also interesting to see the actual size of the optimised obscurified JAR-file of embedding the languages in a trivial host application.
-The host application is a simple Midlet that adds a print function to the language, and includes a hello-world program.
-The size of the entire application, including the embedded scripting language implementation is 5290 bytes for Yolan and 11279 bytes for LightScript. 
+\begin{center} \begin{tabular}{|r|r|r|r|r|r|r|r|rr|} \hline 
+& \multicolumn{2}{|l|}{Fibonacci} & \multicolumn{2}{|l|}{Recursion} & \multicolumn{2}{|l|}{For-in} & \multicolumn{2}{|l}{Exceptions} & \\
+& & \multicolumn{2}{|l|}{Loops} & \multicolumn{2}{|l|}{Sieve} & \multicolumn{2}{|l|}{Primes} & \multicolumn{2}{|l|}{Fannkuch} \\
+\hline Rhino       & 1.20 & 1.74 & 1.75   & 2.97 & 1.18 & 12.35 & 45.99 & 6.35 & \\ 
+\hline SpiderMonkey& 1.28 & 1.71 & $\bot$ & 2.08 & 1.14 & 11.03 & 0.45  & 5.10 & \\ 
+\hline LightScript & 1.37 & 3.45 & 2.35   & 1.19 & 0.57 & 11.70 & 0.65  & 11.15 & \\
+\hline Yolan       & 1.47 & 2.23 & $\bot$ & 1.95 & 0.32 &  9.20 &  &  & \\
+\hline Kahlua      & 2.13 & 1.18 & $\bot$ &  5.73 & 2.26 & 5.49 &  &  & \\ 
+\hline JScheme    & 29.77 & 93.22 & $\bot$ & & & & & & \\ 
+\hline FscriptME & 176.27 & 112.68& $\bot$ & & & & & & \\ 
+\hline Hecl      & 207.96 & 47.21 & $\bot$ & & & & & & \\ 
+\hline \end{tabular}
+\end{center} 
 
-\section{* Summary}
+\section{Summary}

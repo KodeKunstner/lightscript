@@ -1,4 +1,4 @@
-\chapter{* Approach}
+\chapter{Approach}
 \label{method}
 \section{Overall methodology}
 
@@ -19,7 +19,9 @@ The design and implementation of the languages is not just a single design, but 
 This leads up to LightScript and Yolan, which will be described in the next chapters.
 Discarded prototypes include a Forth-like language, several parser/compiler implementations on top of JavaScript, a couple of virtual machins on the jvm, some experiments towards an implementation in C, experiments with mobile applications and their GUI, and drafts of parts of what becomes LightScript and Yolan.
 
-\section{*Some design choices}
+\section{Some design choices}
+
+This section looks defines some of common the overall design choices and goals for the languages of the project.
 
 The major target platform should be Java Mobile Edition CLDC/1.0, as this is the most limited platform that I have access to. 
 If the language runs on top of CLDC/1.0, it will also be able run on other device configurations, with minor change, which is most mobile devices.
@@ -42,7 +44,8 @@ The design should be inspired by EcmaScript/JavaScript, as this is the most wide
 Access to variables should be optimised to be reasonably fast, as the target platform is already very slow. 
 This rules out implementation techniques of looking up variables at run time by traversing a stack, or looking up the name in a table.
 
-\section{* Evaluation}
-    - code footprint
-    - execution speed
-\section{* Summary}
+\section{Evaluation}
+The evaluation should compare the code footprint and execution speed of the the developed languages, with existing scripting language.
+In addition to this, it could also be interesting to look at how different parts of a language implementation adds to the code footprint.
+
+\section{Summary}
