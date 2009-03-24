@@ -139,7 +139,7 @@ than megabytes.
 
 \section{Motivation}
 
-Scripting languages make it easier to write applications\cite{ousterhout}. Beside higher productivity, they are also for more customisation, possibly user based.
+Scripting languages make it easier to write applications\cite{scripting-ousterhout}. Beside higher productivity, they are also for more customisation, possibly user based.
 On more power full devices, ranging from high-end smartphones to personal computers, there are very good scripting languages available.
 Scripting language implementations usually take a lot of resources, which is a problem on low-end mobile devices, where they may not be available, are very slow, or have limitations, such as they cannot be executed directly, but need to be compiled to another devices, or they do not have basic datatypes.
 The focus on better implementation of a scripting languages for mobile devices is thus a niche, where the result may actually be of practical use.
@@ -251,14 +251,14 @@ The lack of run-time class loading, means that the only way to execute run-time 
 The CLDCs are based upon the Java JVM \cite{jvmref}, with some instructions removed, and some metadata added to ensure stack discipline. 
 In order to simplify the J2ME JVM implementation, Java class files has to be preverified, before they can be loaded.
 The preverification add meta data about stack use, and removes certain instructions, such as local jump-and-save-register, to make it easier to implement a JVM, that is safe against malicious code trying to overflow the stack.
-The reference implementation of CLDC 1.0, kvm, is a switch-based interpreter with a compacting mark-and-sweep garbage collector \cite{kvm,kvm-src}.
+The reference implementation of CLDC 1.0, kvm, is a switch-based interpreter with a compacting mark-and-sweep garbage collector \cite{kvm}.
 
 
 The JVM limits interpreter implementation: it does not support label references as values, nor does it support functions as values. This makes some of the optimisations discussed in 
 Section~\ref{interpreter-implementation} impossible.
 Instead it does have a builtin switch opcode as well as support for method-dispatch based on the type of an object, so an interpreter would either be switch-based, or have a class for every opcode.
 
-The resources available for J2ME applications on mobile phones start at 64KB for the size of the JAR-file and 200KB for the run time memory on the lowest end devices, and goes upwards from there \cite{nokiaoptim}.
+The resources available for J2ME applications on mobile phones start at 64KB for the size of the JAR-file and 200KB for the run time memory on the lowest end devices, and goes upwards from there \cite{nokia-optim}.
 These numbers are for the full application, so the resources available for an embeddable scripting language, could be significantly less than this, depending on the resource usage of the host application.
 
 \subsubsection{Reducing the memory usage of J2ME applications}
@@ -438,8 +438,8 @@ There are no issues of register allocation, spilling, etc.
 Stack machines are commonly used, the most known example is the Java Virtual Machine, and there many others when looking under the hood, for example: Python, the SpiderMonkey JavaScript implementation, and the .NET Common Intermediate Language.
 
 Register based virtual machines are becoming more common. 
-Usually they have a high number of registers, leading to longer opcodes than stack based virtual machines. But on the other hand, fewer opcodes are needed leading to faster execution \cite{register-vs-stack}. 
-Examples of register based virtual machines are the Dalvik \cite{dalvik} virtual machine, LLVM \cite{llvm}, Parrot \cite{parrot}, and the virtual machine of Lua 5.0 \cite{luavm}.
+Usually they have a high number of registers, leading to longer opcodes than stack based virtual machines. But on the other hand, fewer opcodes are needed leading to faster execution \cite{register-vs-stack1, register-vs-stack2}. 
+Examples of register based virtual machines are the Dalvik \cite{dalvik-vm} virtual machine, LLVM \cite{llvm}, Parrot \cite{parrot}, and the virtual machine of Lua 5.0 \cite{luavm}.
 
 A third approach to virtual machines is just to use the abstract syntax tree for evaluation. This was for example used in earlier versions of WebKits JavaScript implementation, but has now been superseded by a stack virtual machine, and is currently being replaced by JIT compilation.
 
@@ -1331,7 +1331,7 @@ The code size benchmark looks at the languages implemented in this project, Yola
 FScriptME\cite{fscriptme} is the mobile edition of femto-script, which ``is an extremely simple scripting language''\cite{fscript}. 
 Out of the box, it only supports strings and integers as datatypes -- no compound types -- which limits use somewhat, and it is still in beta, since 2002. 
 
-JScheme\cite{jscheme} is a small Scheme implementation. It depends on some reflection, and does therefor not run on Java Mobile Edition, but is included as the implementation is compact, and may be possible to target mobile devices.
+JScheme\cite{jscheme} is a small Scheme implementation. An early version is benchmarked, as later versions have vastly larger code footprint, and would thus perform badly on that point. It depends on some reflection, and does therefor not run on Java Mobile Edition, but is included as the implementation is compact, and may be changed to target mobile devices.
 
 Kahlua\cite{kahlua} is an implementation of the Lua Virtual Machine for Java Mobile Edition. 
 The implementation requires CLDC-1.1 due to the use of floating point arithmetics, and does therefor not run on the lowest end mobile devices, which only supports CLDC-1.0.
