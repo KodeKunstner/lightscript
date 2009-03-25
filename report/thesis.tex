@@ -72,17 +72,16 @@ add chapter introductions and summaries
 drafted. perhaps note on mojax, switch of direction, and back
 \begin{verbatim}
 SURVEY:
-- NEXT2: scoping - read through, identify missing, write
-- JavaScript
-- write about mobile scripting
 - organise and write mobile-platform section
    - finish embedded systems
    - add smartphones and pda's - symbian, linux, android, iphone, rim, palm, wince, openmoko
    - add web-platform
+- JavaScript
+- write about mobile scripting
 - add programming languages/ideas: haskell, scheme/lisp, tcl, lua, python, smalltalk, ...
-- garbage collection
 - JIT compilation
 - monadic parsers
+- region based GC
 \end{verbatim}
 \paragraph{Approach}
 rewrite intro
@@ -185,9 +184,20 @@ The report is structured with: introduction, survey, approach, language implemen
 
 \section{Mobile platforms}
 
+Mobile devices ranges from low end phones, which, if they are programmable at all, only support limited Java Mobile Edition midlets, up to advanced smart phones with performance resource similar to older desktop computers.
+
+When looking mobile devices, it should be noticed some survey \cite{smartphonesurvey} only focus smart phones, and thus the market shares does not include the more low end devices.
+
+Most low end devices support some kind of mobile Java.
+Here there are different APIs and device profiles, but the basic execution and deployment model is the same for those.
+
+Low end devices rarely support loading of native code, and higher end devices may require different kind of code signing to allow native programs to be distributed.
+
+
+
 \begin{comment}
 Development for mobile devices is very diverse.
-Surveys focusing on mobile devices often focus on smart phones, which are diverse high end mobile devices, - notice that market shares in surveys, such as  \cite{smartphonesurvey} does not include the more low end devices.
+Surveys about mobile devices often focus on smart phones (high end mobile devices) and thus market shares in surveys, such as \cite{smartphonesurvey} does not include the more low end devices.
 On the contrary, this project focuses on development also targeting low end devices.
 
 Looking at lowest end mobiled devices: if user applications are loadable at all, it is in the shape of Java Midlets.
@@ -213,7 +223,7 @@ and due to recent major performance advances within the JavaScript implementatio
 \subsection{Embedded systems}
 The personal computers, PCs, as we know them, are only a very small fraction of the computers in use.
 Billions of electronic devices nowadays have small computers embeddes. They are in mobile phones, kitchen equipment, washing machines, music instruments, car, even advanced greeting cards. 
-These embedded computer systems, vary tremendously, from low end micro controllers with memory measured in bytes, up to powerful cpus with vector processing units and many megabytes of memory.
+These embedded computer systems, vary tremendously, from low end micro controllers with memory measured in bytes, up to powerful CPUs with vector processing units and many megabytes of memory.
 
 \subsubsection{Machine architecture}
 There are two significantly different classes of computers: The Harvard architecture, and the von Neumann architecture. The difference is whether the program code is in the same memory as the data or if they are seperated.
@@ -227,14 +237,12 @@ On the other hand, on larger computers, it is sometime practical to be able to w
 
 
 \subsubsection{Examples of systems}
-\begin{comment}
-The low end micro controllers, typically have less that 512 bytes of RAM, and some kilobytes of possibly flashable ROM for the executable code. 
-... pic
+The small microcontrollers may have less than a kilobyte of RAM, and some kilobytes of possibly flashable ROM for the executable code. Examples of this is the PIC??? \cite{picspec}, or the ATmega 8-bit microcontrollers \cite{atmegaspec}.
+Larger systems include the z80 \cite{z80}. 
+An interesting operating system for low end devices is the Contiki \cite{contiki}, which also has some details on very lightweight implementation of threads.
 
-z80
-
-arm
-\end{comment}
+When we get to the 32-bit systems, ARM \cite{arm-architecture} is the most common architechture.
+An potential prototyping platform to play with is the Lego Mindstorm \cite{lego}, which contains a reflashable system with an ARM7TDMI\cite{arm7tdmi} CPU, which is common in the low end mobile phones.
 
 \subsection{The J2ME / Java Micro Edition}
 J2ME (Java Micro Edition\footnote{Java Micro Edition is a recent rebranding of J2ME}) is the most common platform for mobile application, supported by more than a billion devices \cite{sun-j2me}. 
@@ -553,28 +561,67 @@ This optimisation is for example used in the Dalvik Virtual Machine \cite{dalvik
 \subsection{JIT-compilation}
 
 \subsection{Garbage collection}
-\begin{comment}
-Garbage collection is an important issue in the design of virtual machines. 
-A good survey on this topic is \cite{gc-survey}, though it does not contain recent developments
-Another interesting source is to look at what approaches pratical virtual machine implementations have used.
+Garbage collection is an important issue in the design of virtual machines.
+There is a good introduction/survey on the topic \cite{gc-survey}, though it does not include more recent developments such as region based allocation \cite{region-gc}. 
+An additional way to get into the subject is to see what approach recent scripting language implementations have taken.
 
+The next section looks into aspects of garbage collections.
+The following sections describes different approaches to garbage collection,
+with a final section looking at garbage collection implementation in actual language implementations.
+
+\subsubsection{Issues of dynamic memory management}
+Some of the following issues are relevant for dynamic memory management in general, and other are more focussed towards garbage collection.
+
+Locality covers that memory that is used at similar times also lies together in memory.  This has impact on the performance, due to levels of caching, and poor locality may also lead to more swapping to secondary storage when memory is scarce, and secondary storage is available.
+
+Fragmentation is when there is unused space between allocated blocks of memory. 
+Compacting garbage collection algorithms addresses this problem, by moving the blocks of memory to remove the fragmentation.
+
+Performance of the garbage collection is also an issue. This covers both CPU usage, and delays during execution.
+The garbage collection takes time, -- this comes both from the time from running the actual garbage collection algorithm, and also from lost caching, as garbage collection methods usually messes up the cache.
+Another issue with garbage collection is whether it is interactive or that there may be longer interruptions or delay of execution, in which the garbage collection cycle runs. This leads to development concurrent garbage collection, that may take more time overall as a tradeof of shorter interruptions of the execution.
+
+Garbage collection algorithms can be conservative or exact, where conservative garbage collection is not directed by strong typing and assumes that data are pointers, whereas exact garbage collection knows which of the data that are actually pointers that need to be tracked.
+
+\subsubsection{Reference counting}
+
+Each allocated block of memory also keeps track of the number of pointers to it, and when this is decreased to zero, the block is deallocated.
+This has the benefit of being reasonable interactive.
+The additional bookkeeping for each pointer assignment, gives it a bit slow performance, which i proportional to the program execution rather than the memory allocation. 
+Another issue is that cyclic references does not get caught by it, so it needs to be combined with another garbage collector or some kind of cycle detection.
+
+\subsubsection{Copying collector}
+A typical copying garbage collector, splits the heap in two, and when one part of it is filled up, it copies the root nodes and all of their descendents into the other part, and updates the pointers.  This also has the benefit that it removes fragmentation. 
+The execution time only depends on the amount of live data, and is executed whenever a part of the heap is filled up.
+The issue here is that the heap is split in two, leading to less available memory, and also that this process is often a stop-the-world approach, leading to a moderately long delay when the collection occur.
+
+\subsubsection{Mark and sweep}
+Mark and sweep essentially works in two phases: first walk through the live objects and mark them as alive, and then walk through the heap and make unmarked objects available as free.
+There are several variations over this topic. Rather than stop-the-world, it can be made more interactive by running in parallel with the execution, for example by coloring/marking ``alive and children marked'', ``alive but children not marked yet'' and ``not marked yet''.
+Instead of a mark and sweep, a mark and compact approach is also possible, where fragmentation is removed at the cost of a bit more execution time.
+
+\subsubsection{Generational Garbage Collection}
+\label{generational-gc}
+Generational garbage collection, can improve the performance of the collection. This is based on the hypothesis that recent allocated memory are more likely to be freed than older memory.
+This is exploited by dividing the memory into generations, where the youngest generations are garbage collected more often than the older ones. 
+Thus by only looking at a single generation/a smaller part of the memory, the garbage collection cycle is significant faster.
+An issue here is to keep track of pointers from older generations to younger ones, such that the younger generations can be collected independently.
+Another question is when to promote memory from younger to older generations.
+
+\subsubsection{Generational Garbage Collection}
+
+\subsubsection{Examples of garbage collection implementation}
 A common approach is to combine reference counting with some kind of cycle cleanup. 
 An example of this is the python implementation. 
 One of the benefits of this approach is most of the garbage collection only yields small pauses which will not be felt by the user in an interactive environment, unlike the stop-the-world approach.
 
 The KVM, which is the reference implementation for mobile Java Virtual Machines, is now using a compacting mark and sweep. It originally started out with a copying collector, which had a larger memory requirement, and also had a period with non-compacting mark and sweep.
 
-Generational garbage collection is an efficient but slightly more complex approach to garbage collection. 
 
-... about generational gc ...
-By dividing the heap into generations, it is possible to free young short lived objects, while not having to look at the long-lived ones. 
-...
-
-An practical example of a generational garbage collector is the one which is a part of the V8 JavaScript implementation.
+A practical example of a generational garbage collector is the one which is a part of the V8 JavaScript implementation.
 It has two generations, where the young generation is a copying-compacting collector, which is called often, combined with a mark-and-sweep for the full heap, when that is needed.
 The complexity of a copying collector is linear in the size of live objects, which means that there are essentially no overhead for heap allocating the run time stack with this garbage collection strategy, which solves some of the problems of the run time stack, as described later on.
 
-\end{comment}
 \section{Parsing}
 A language implementation must parse the source text into the abstract syntax tree to work on. 
 
@@ -666,23 +713,35 @@ The issue in this code is that the new function $g$ lives on after $f$ has retur
 
 There are several solutions to this problem:
 \begin{itemize}
-\item Disallowing/not supporting functions as first order and nested scope within them.
-\item Outer scope variables cannot be changed from inner scope, but is instead passed as immutable values at function/scope creation. This makes good sense in functional languages where values usually are not mutated.
+\item Disallowing/not supporting first order nested functions or access to outer scope within nested functions. Or not having static scope.
+\item Outer scope variables cannot be changed from inner scope, but is instead passed as immutable values at function/scope creation. 
+\item Allocate the activation records on the heap, instead of the stack, and let them be garbage collected. 
 \item Keep track of which may live on after the function exits, and move those to the heap.
-\item Allocate the activation records on the heap, instead of the stack, and let them be garbage collected. Not as expensive as it may seem, due to the high effiency of modern garbage collectors.
-\item Not having static scope.
 \end{itemize}
-There are implementations where each of these approaches are the case.
+
+Not having nested functions, only having a single-function-local and a global scope, or not having static scope, simplifies the implementation and is a solution in mostly imperative languages.
+The effect of this is that the funarg-problem is disallowed from the language rather than solved, and has the cost of not supporting closures either.
+
+Copying outer scope variables to inner scope makes good sense in functional languages, where they are will not be mutated. The issue with this approach is that if the variable is mutated in an inner function, it is only the copy that is mutated, and the mutation is local to the function.
+A workaround for mutations in languages that copies variables from outer to inner scope is to us a reference to the mutated variable rather than the variable itself, such that when the reference is copied to the inner scope it is still possible to mutate the value, as we need not mutat the reference itself.
+
+Another approach is to let the outer scope stay alive until the inner closure dies, and then just reference variables as usual.
+This can be done by allocating the activation records on a garbage collected heap,
+which is not as expensive as it may seem, due to the high effiency of modern garbage collectors.
+Another way to do this is to keep track on which variables may stay alive at the exit of a function, and move them to the heap at that time.
+Or just identify variables that are used by in inner functions, and put those on the heap.
 
 \subsection{Implementation of variables}
-When we are implementing the scope, an issue is how to implement the variables. Here are several options: 
+When we are implementing the scope, an issue is how to implement the variables. 
+Here are several options: 
 
-The  classical good-performing approach is to implement them on a stack. On each function call, an activation record is added on a linear stack, and each of the variables can be spilled into its place on the activation record. This is very fast as allocation and deallocation is just a question of increasing/decreasing the stack pointer. The issue with this approach is that it does not work directly with the funarg problem.
+The  classical good-performing approach is to implement them on a stack. On each function call, an activation record is added on a linear stack, and each of the variables can be spilled into its place on the activation record. This is very fast as allocation and deallocation is just a question of increasing/decreasing the stack pointer. The issue with this approach is that extra code is needed to handle the funarg problem.
 
 Another approach is to allocate the stack frame on the heap, and let it be cleaned up with the garbage collector. The quality of this approach depends a lot on the garbage collector, as it has nearly no overhead with a good generational garbage collector \cite{generational-heap}, see section~\ref{generational-gc}.
+This also solves the funarg problem as the closure has a reference to the activation record, which will then not be garbage collected.
 
-
-%... run time stack, cells for each variable, lookup-stack, lookup-table, activation record, JavaScript-objects, ...
+Usually the variable is resolved at compilation time, or the first time it is encountered, but 
+some interpreters have a less efficient approach, where they lookup up variables at run time, either through a stack, or a table of variables.
 
 \section{Summary}
 \chapter{Approach}
