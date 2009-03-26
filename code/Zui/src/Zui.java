@@ -4,11 +4,12 @@
  */
 
 import javax.microedition.lcdui.*;
+import com.nokia.mid.ui.FullCanvas;
 
 /**
  * @author voel
  */
-public class Zui extends Canvas implements CommandListener, Order {
+public class Zui extends FullCanvas implements CommandListener, Order {
     
 String names[] = {"a2ps", "AbiSuite-2.4", "aclocal", "acpi-support", "adduser", "aiksaurus",
 "alsa", "alsa-base", "ant", "apache2", "apmd", "app-install", "application-registry",

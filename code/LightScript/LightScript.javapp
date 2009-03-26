@@ -619,7 +619,7 @@ public final class LightScript {
     }
 #endif /* __COMPILE_TOKENISER__ */
 
-/*`\subsection{Parser}'*/
+/*`\subsection{Parser}\label{code-lightscript-parser}'*/
 
 #ifdef __COMPILE_PARSER__
     /** Parse the next expression from the input stream
