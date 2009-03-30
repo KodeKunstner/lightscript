@@ -6,7 +6,7 @@
 /**
  *
  * @author voel
- */
+ *//*
 public interface Order {
     boolean leq(Object o1, Object o2);
-}
+}*/

@@ -29,12 +29,9 @@ synopsis.pdf: synopsis.tex bibliography.bib
 
 .tex.pdf:
 	# ./src2tex.sh
-	pdflatex $*.tex && bibtex $* && makeindex $*.idx && pdflatex $*.tex \
+	./version.sh > version.tex && \
+	pdflatex $*.tex && bibtex $* && makeindex $*.idx && \
 	pdflatex $*.tex && pdflatex $*.tex
-
-.tex.dvi:
-	latex $*.tex && bibtex $* && makeindex $*.idx && latex $*.tex \
-	latex $*.tex && latex $*.tex
 
 .dvi.ps:
 	dvips -o $*.ps $*.dvi
@@ -49,4 +46,4 @@ synopsis.pdf: synopsis.tex bibliography.bib
 	dot -Tps < $*.dot > $*.eps
 
 clean:
-	rm -f *.bbl *.aux *.blg *.log *.dvi *.idx *.ind *.ilg *.toc *.pdf *.ps *.lof *.png *.eps interviews/[0-9]*.tex *.out *.brf ekstraeval/interview.tex code/*/*.tex */*.aux
+	rm -f *.bbl *.aux *.blg *.log *.dvi *.idx *.ind *.ilg *.toc *.pdf *.ps *.lof *.png *.eps interviews/[0-9]*.tex *.out *.brf ekstraeval/interview.tex code/*/*.tex */*.aux version.tex

@@ -1,4 +1,5 @@
-import java.util.Random;
+/*
+ import java.util.Random;
 
 public class Util {
     public static Random random_generator = new Random();
@@ -92,3 +93,4 @@ public class Util {
         return dst;
     }
 }
+*/

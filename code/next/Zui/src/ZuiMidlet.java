@@ -11,8 +11,7 @@ import javax.microedition.lcdui.*;
  */
 public class ZuiMidlet extends MIDlet {
     public void startApp() {
-        Zui zui = new Zui();
-        Display.getDisplay(this).setCurrent(zui);
+        Zui zui = new Zui(Display.getDisplay(this));
     }
 
     public void pauseApp() {

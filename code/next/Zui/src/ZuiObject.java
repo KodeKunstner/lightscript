@@ -1,4 +1,3 @@
-
 import javax.microedition.lcdui.Font;
 import javax.microedition.lcdui.Graphics;
 import javax.microedition.lcdui.Image;
@@ -12,6 +11,7 @@ import javax.microedition.lcdui.Image;
  *
  * @author voel
  */
+/*
 public class ZuiObject {
     public Image img;
     public short x;
@@ -37,3 +37,4 @@ public class ZuiObject {
     }
 
 }
+*/

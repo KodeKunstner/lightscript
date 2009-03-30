@@ -923,7 +923,7 @@ public final class LightScript {
             + (char) LED_INFIX_LIST
             + (char) ID_SUBSCRIPT
         + ">>"
-            + (char) 6  // FIXME: priority?
+            + (char) 6 
             + (char) NUD_NONE
             + (char) ID_NONE
             + (char) LED_INFIX
@@ -1970,9 +1970,10 @@ public final class LightScript {
                     int arg = readShort(pc, code);
                     pc += 2;
                     if (stack.length <= arg + sp + 1) {
-                        // keep the allocate stack tight to max, 
+                        // Currently keep the allocate stack tight to max, 
                         // to catch errors;
-                        // FIXME: grow exponential when tested
+                        // Possibly change this to grow exponential 
+                        // for better performance later on.
                         Object[] newstack = new Object[(arg + sp + 1)];
                         System.arraycopy(stack, 0, newstack, 0, sp + 1);
                         stack = newstack;
