@@ -1,1 +1,1 @@
-svn info |grep Revision |sed -e s/"Revision: /1.0./"
+svn update |grep "At revision" |sed -e s/"At revision /1.0./" | sed -e s/".$"//

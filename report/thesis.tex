@@ -66,6 +66,7 @@ Yolan has a code footprint less than half the size of LightScript, and they are 
 \setcounter{tocdepth}{1}
 \tableofcontents
 
+\begin{comment}
 \chapter*{TODO-list for the report}
 {\scriptsize
 add chapter introductions and summaries
@@ -107,11 +108,12 @@ Needs more comments. Maybe add other classes
 \paragraph{Index}
 MISSING. Walk through when other parts are less drafty
 }
+\end{comment}
 \chapter{Introduction}
 This chapter introduces the project, starting with description and then motivation for the project, and a bit about the structure of this report.
 
 
-\section{Project description NB:SYNOPSIS-NEEDS-SYNC}
+\section{Project description}
     The topic of the project is to design and implement a scripting language
 that runs on very low-end mobile devices. This is both to create a practical tool, and
 also a focus for exploration of programming language theory. 
@@ -352,7 +354,6 @@ It is both a software stack for smartphones, and it is also a small development 
 The two phones released so far have lots of rough edges both software and hardware wise, but from a developer point of view, these very interesting as they are not just phones but full Linux computers with X11 and most things as known from larger scale Linux environments -- and the source code is available for everything, so it is even possible to write new operating systems for them, and customise them in every way.
 
 
-
 \subsubsection{Android}
 
 Android is a software stack for smartphones. It is open source, and driven forward by google.
@@ -369,6 +370,12 @@ Android is of course being ported to the devices from the OpenMoko project, and 
 Symbian is the classical operating system for smartphones. Applications are usually written in C/C++, with some restrictions to allow it to run better on with a moderately small amount memory. 
 In order to distribute native applications on Symbian, it has to be cryptographically signed \cite{symbiansigned}.
 Symbian is a currently closed source, but is on its way to be released as open source \cite{symbianopensource}.
+
+\subsubsection{Properitary systems}
+
+\subsubsection{JavaScript}
+On thing to notice about newer smartphones is that they include browser, scriptable with JavaScript/EcmaScript. This opens up for using that scripting language as a portable platform across the heterogenous devices.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1385,7 +1392,7 @@ Identifiers start with a letter or an underscore, and continues with any combina
 LightScript does not support escaped unicode sequences, but do accept utf-8 encoded. Non-letter unicode symbols with value larger than 127 are not supported. This allows a parsers to be implemented easier as they can just treat any 8-bit character with a value larger than 127 as a part of a unicode letter.
 
 The punctuators in the current version of LightScript are: {\tt \verb|{| \verb|}| ( ) [ ] . ; , < > <= >= === !== + - * \% >> ! \&\& || ? : = += -=}. 
-This will expand in the next version of LightScript where the remaining operators will be added, except for division as discussed on page~\ref{division}.
+This will expand in the next version of LightScript where the remaining operators will be added, except for division as discussed in section~\ref{division} on page~\pageref{division}.
 
 String literals are always enclosed in double qoutation \verb|"|, and single quotation is not supported. It is possible to use backslash \verb|\| to escape quotation marks, backslashes and newline (\verb|"\n"| is the string containing a newline).
 
@@ -1394,6 +1401,15 @@ Integer literals are written as a sequence of digits, not starting with a zero, 
 Other literals are \verb|true| which translates to a value that has a true truth value, and \verb|false|, \verb|null| and \verb|undefined| which translates to a value that has a false truth value.
 
 \subsection{Types}
+LightScript has 5 builtin types: nil, string, number, array, and objects.
+
+The nil type only has one value, which is referenced to as \verb|undefined|, \verb|null| or \verb|false|. 
+Strings are immutable sequences of characters.
+Numbers are 32 bit integers.
+An array is a growable and mutable sequence of values, where the values can have any type.
+Objects are mappings between names and values, where the name should be of the string type, and the value can be of any type. Objects can have another object prototype, where, if the lookup in the first object does not find a mapping, the name is then looked up in the prototype object.
+
+
 \subsection{Expressions}
 ... division... \label{division}
 ... ==, !=...
@@ -1645,6 +1661,25 @@ The measurement of the performance of the different scripting languages are show
 \section{Summary}
 \chapter{Discussion}
 \label{discussion}
+\section{Benchmarks}
+
+\subsection{Speed}
+
+Both Yolan and LightScript languages performed suprisingly well.
+
+There is a large gap between the languages, that may be due to inefficient implementation of variable access in JScheme, FScriptME and Hecl. Looking at the source code, JScheme and FScriptME variables are looked up in a linked list or hashtable at each access. Hecl has a more complex lookup mechanism with a stack of hashtables, but also employes some kind of caching.
+But still, especially Hecls performance is suprising, taking in consideration that this seems to be the major scripting language for mobile devices, and is design to run on mobile devices that may be slow.
+
+It is also suprising how similar in performance Yolan and LightScript are, as Yolan is interpreted by traversing a syntax tree data structure, whereas LightScript runs on a stack based virtual machine. 
+
+It is also interesting to see that Rhino, SpiderMonkey, LightScript, Yolan, and Kahlua is all within the same magnitude of speed, indicating that this is the speed you get with a simple interpreter for these kinds of scripting languages. Here it is also suprising that Rhino and SpiderMonkey is not much faster, as Rhino seems to be doing something with generating and loading Java classes at run time, and SpiderMonkey is written in C rather than Java.
+
+Other observation are that Rhino is slow with exceptions, and that Kahlua seems to be fast with loops and slow with arrays. The last is probably due to that Kahlua implement arrays as hashtables, and loops in Lua has the integer sequence in the \verb|for|-construct, allowing \verb|for|-loops to be simpler to evaluate that in JavaScript, LightScript and Yolan, where the counter variable is explicit updated within the scripting language.
+
+\section{Yolan}
+
+\section{LightScript}
+
 \begin{comment}
   - surprisingly good performance
     - perspective, discussion of the results
