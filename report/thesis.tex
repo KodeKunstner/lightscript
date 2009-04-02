@@ -15,7 +15,7 @@
 \usepackage{fancyhdr}
 \usepackage{listings} 
 %\usepackage[colorlinks,pagebackref]{hyperref}
-\usepackage[colorlinks, linkcolor=black]{hyperref}
+\usepackage[colorlinks, linkcolor=black, anchorcolor=black, citecolor=black, menucolor=black, pagecolor=black, urlcolor=black]{hyperref}
 %\usepackage{backref}
 \usepackage{url}
 \frenchspacing
@@ -185,9 +185,9 @@ The report is structured with: introduction, survey, approach, language implemen
 
 \section{Mobile platforms}
 
-Mobile devices ranges from low end phones, which, if they are programmable at all, only support limited Java Mobile Edition midlets, up to advanced smart phones with performance resource similar to older desktop computers.
+Mobile devices ranges from low end phones, which, if they are programmable at all, only support limited Java Mobile Edition midlets, up to advanced smartphones with performance resource similar to older desktop computers.
 
-When looking mobile devices, it should be noticed some survey \cite{smartphonesurvey} only focus smart phones, and thus the market shares does not include the more low end devices.
+When looking mobile devices, it should be noticed some survey \cite{smartphonesurvey} only focus smartphones, and thus the market shares does not include the more low end devices.
 
 Most low end devices support some kind of mobile Java.
 Here there are different APIs and device profiles, but the basic execution and deployment model is the same for those.
@@ -198,7 +198,7 @@ Low end devices rarely support loading of native code, and higher end devices ma
 
 \begin{comment}
 Development for mobile devices is very diverse.
-Surveys about mobile devices often focus on smart phones (high end mobile devices) and thus market shares in surveys, such as \cite{smartphonesurvey} does not include the more low end devices.
+Surveys about mobile devices often focus on smartphones (high end mobile devices) and thus market shares in surveys, such as \cite{smartphonesurvey} does not include the more low end devices.
 On the contrary, this project focuses on development also targeting low end devices.
 
 Looking at lowest end mobiled devices: if user applications are loadable at all, it is in the shape of Java Midlets.
@@ -206,7 +206,7 @@ Looking at lowest end mobiled devices: if user applications are loadable at all,
 
 Higher end devices often supports native code.
 This has different APIs and there are lots of different platforms.
-Some of the main platforms for smart phones, and similar are:
+Some of the main platforms for smartphones, and similar are:
 Symbian, Qt-embedded (a linux), RIM-BlackBerry, iPhone, Android (a linux with a Java-like vm on top), Windows CE, etc.
 ... description of different operating systems...
 
@@ -227,23 +227,34 @@ Billions of electronic devices nowadays have small computers embeddes. They are 
 These embedded computer systems, vary tremendously, from low end micro controllers with memory measured in bytes, up to powerful CPUs with vector processing units and many megabytes of memory.
 
 \subsubsection{Machine architecture}
-There are two significantly different classes of computers: The Harvard architecture, and the von Neumann architecture. The difference is whether the program code is in the same memory as the data or if they are seperated.
+There are two significantly different classes of computers: The Harvard architecture, and the von Neumann architecture. The difference is whether the program code is in the same memory as the data or if they are separated.
 
 Larger computers usually use the von Neumann architecture where program and data is in the same memory, and this is the most commonly known model.
 On small micro controllers on the other hand, the data memory is usually separated from the program memory, which is what is called the Harvard architecture. 
 These two approaches to architecture dates back to some of the early computers: the Harvard Mark I \cite{harvard-mark1} and the EDVAC \cite{edvac} by John von Neumann.
 
 On small micro controllers, programs are usually stored in flashable ROM, and on the Harvard architecture the separation of data and code makes it easier and cheaper to implement, for example size of the code words can be independent of the size of the data words.
-On the other hand, on larger computers, it is sometime practical to be able to work with the code as data, and thus von Neumann architecture makes more sense there.
-
-
-\subsubsection{Examples of systems}
-The small microcontrollers may have less than a kilobyte of RAM, and some kilobytes of possibly flashable ROM for the executable code. Examples of this is the PIC??? \cite{picspec}, or the ATmega 8-bit microcontrollers \cite{atmegaspec}.
-Larger systems include the z80 \cite{z80}. 
+These may have less than a kilobyte of RAM, and some kilobytes of possibly flashable ROM for the executable code. Examples of this are the PIC-processors \cite{picspec}, or the ATmega 8-bit microcontrollers \cite{atmegaspec}.
 An interesting operating system for low end devices is the Contiki \cite{contiki}, which also has some details on very lightweight implementation of threads.
 
-When we get to the 32-bit systems, ARM \cite{arm-architecture} is the most common architechture.
-An potential prototyping platform to play with is the Lego Mindstorm \cite{lego}, which contains a reflashable system with an ARM7TDMI\cite{arm7tdmi} CPU, which is common in the low end mobile phones.
+On more powerfull embedded devices, for example mobile phones, and larger computers,
+it may sometimes be practical to be able to work with the code as data, and thus von Neumann architecture makes more sense there.
+For mobile and larger embedded devices a typical CPU architecture is the ARM \cite{arm-architecture}, which is a 32 bit RISC architecture.
+
+\subsubsection{Development platform}
+
+While embedded systems are very very common, the software is a shipped, or possibly flashable updateable on larger system, but there are generally no support for software development.
+So usually access to debug boards and expensive hardware is needed to get experiment with embedded devices.
+Another approach is that some devices is hackable in the sense that somebody has found out how to upload and customise the firmware, usually without documentation and support from the manufacturer -- examples here ranges from digital cameras, mobile phones and handheld gaming devices.
+An exceptional case on small embedded devices, where the manufacturer has actually opened up for development is the Lego brick that is a part of the Lego Mindstorm NXT, which will be elaborated in the next section.
+On larger devices it happens more often, though it is still rare: two smartphones \cite{openmoko, htc-android}, an E-book-reader, and some wireless routers and network attached storage \cite{wrtg, nslu, buffalo} have also opened, or partly opened, up for development.
+
+The Lego Mindstorm NXT is interesting because it is an easy to get started with embedded development platform. 
+The main cpu is an ARM7TDMI \cite{arm7tdmi}, which is commonly used in mobile phones, and also in many other embedded devices. 
+It is clocked at 48MHz, and is attached to 256 KB of flashable ROM and 64 KB of RAM, which means that it is low end, compared to mobile phones, while powerful viewed as an embedded device.
+There is also an ATmega48 \cite{atmega48} 8-bit coprocessor, which has 4KB of flashable ROM and 512 bytes of RAM, which is a typical microcontroller. 
+The coprocessor usually reads sensors, controls motors, and can power the main cpu down, to reduce power usage.
+The system also have a 100x64 black/white lcd display, and a couple of buttons, so it has a lot of potential as a development substitute platform for low-end mobile device, which does not allow 3rd party firmware.
 
 \subsection{The J2ME / Java Micro Edition}
 J2ME (Java Micro Edition\footnote{Java Micro Edition is a recent rebranding of J2ME}) is the most common platform for mobile application, supported by more than a billion devices \cite{sun-j2me}. 
@@ -326,8 +337,38 @@ Using the unnamed package also saves space in the symbol table, as class referen
 The code footprint limit may be tighter that the run time memory limit, and it may be possible to partition the execution such that different parts of the applications do not need to use run time memory at the same time.
 Thus, in this project with the design of an embedded scripting language, code footprint will be prioritised slightly higher than the run time memory usage, although both are important.
 
-\subsection{Smartphones and PDAs}
-\subsubsection{Mobile web applications}
+\subsection{Smartphones}
+
+TODO:rewrite
+Many high end phones -- Smartphones --  allows loading of native code, but with different restrictions.
+Most require some kind of cryptographical signing of the code, before it can be distributed in any way, and sometimes there are also very tight control of the distribution channels.
+Another issue is the very different execution platforms.
+The main operating systems for smartphones are:
+
+\subsubsection{OpenMoko}
+
+OpenMoko is a project towards having open source phones.
+It is both a software stack for smartphones, and it is also a small development division of the hardware company FIC, where they are making the first open source phones.
+The two phones released so far have lots of rough edges both software and hardware wise, but from a developer point of view, these very interesting as they are not just phones but full Linux computers with X11 and most things as known from larger scale Linux environments -- and the source code is available for everything, so it is even possible to write new operating systems for them, and customise them in every way.
+
+
+
+\subsubsection{Android}
+
+Android is a software stack for smartphones. It is open source, and driven forward by google.
+It is build upon a linux kernel, but user applications are not distributed natively, but executed on the Dalvik vm. Applications are written in Java, which is then compiled to Dalvik vm, rather than the usual JVM. The motivation for this is both to overcome some of the shortcomings of the JVM on mobile devices, and possibly also some cooperate issues with ownership of JVM technology.
+Beside supporting Dalvik applications, there is also a modern webbrowser -- a WebKit derivative -- meaning that JavaScript can also be executed on the device.
+
+While the software stack itself is open source, it also allows the manufactorer to make and keep proparitary changes for themselves. 
+Meaning that actual phones designed with the stack -- at least those currently on the market -- are not truely open, in the sense that thay contain properitery drivers and special developer-versions of the phones are needed if you want to be able to load customised operating system images/native code.
+
+Android is of course being ported to the devices from the OpenMoko project, and in that case it is of course truely open.
+
+\subsubsection{Symbian}
+
+Symbian is the classical operating system for smartphones. Applications are usually written in C/C++, with some restrictions to allow it to run better on with a moderately small amount memory. 
+In order to distribute native applications on Symbian, it has to be cryptographically signed \cite{symbiansigned}.
+Symbian is a currently closed source, but is on its way to be released as open source \cite{symbianopensource}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -366,9 +407,9 @@ Other more recent stack languages are Joy \cite{joy-language}, Cat \cite{cat-lan
 Interesting development here are more typing, and also the use of anonymous code blocks, 
 to create the control structure.
 
-\subsection{FScript}
 
 \subsection{Haskell}
+There are two very interesting aspects of Haskell: it is pure functional, and it has lazy evaluation.
 
 \subsection{Hecl and Tcl}
 
@@ -385,18 +426,13 @@ The latest version has is called SquirrelFish and is an optimised register-based
 with emerging support for JIT compilation.
 TODO:JavaScriptCore - old edition
 
-\paragraph{Logo}
-
-\paragraph{Python}
-
 \paragraph{QScript}
 
 \paragraph{Rhino}
 
-\paragraph{Smalltalk}
-
 \paragraph{SpiderMonkey}
 \label{spidermonkey}
+SpiderMonkey \cite{spidermonkey} is the JavaScript engine 
 
 \paragraph{TraceMonkey} is the next JavaScript engine from Mozilla.
 It has a JIT compiler based on trace tree\cite{trace-tree}, 
@@ -405,9 +441,7 @@ traces and then compiles the most executed paths through the program.
 This means that the JIT compiled code gets optimised to the actual execution,
 and the approach also reduces the amount of code needed to be compiled.
 
-
-
-\paragraph{V8}\cite{v8} is a JavaScript implementation made by Google, and released in 2008 in conjunction with the release of their browser ``Chrome''. 
+\paragraph{V8} V8 \cite{v8} is a JavaScript implementation made by Google, and released in 2008 in conjunction with the release of their browser ``Chrome''. 
 While it is not directly connected with the Android platform, a JIT compiler is already in place targeting the ARM CPU, so it seems likely that it will also target mobile devices in the long term.
 
 A main focus and benefit of V8 is high execution speed.
@@ -420,8 +454,18 @@ This is combined with a mark and sweep collector when a full collect is needed.
 
 \subsubsection{Mobile offsprings}
 ... mojax, and the other guy
+
 \subsection{Lua}
 ... and kahlua
+
+\subsection{Python}
+As phones are becoming more powerful, Python is beginning to play a role as a mobile scripting language on high end devices. This is carrying over from being a popular and major scripting language on computer platforms.
+
+Python have some nice features, that may be inspiring when implementing other languages. Comments/documentation is integrated in the language via the concept of docstrings, which is a special kind of comment that will also be available for inspection during runtime. Unit testing is also integrated within the documentation framework, where a special syntax indicates that code in the documentation can also be executed when running tests.
+Required indentation leads to easier readable programs.
+
+The issue with python on mobile devices is, that it is relatively resource intensive, and thus use more energy, and is only available on high end phones.
+
 \subsection{Scheme and Lisp}
 \subsection{Self}
 \label{survey-self}
@@ -430,7 +474,7 @@ In traditional object oriented programming, we have classes and objects, where c
 Instead of classes and subclasses for inheritance, Self has a clone operator, which creates a new object using an existing object as blueprint.
 An object in self contains a pointer to the parent (cloned) object, and a mapping from propertynames to values or methods. When a property is read, mapping is first searched, and if the name is not found there, the parent object is searched.
 \subsection{Simkin}
-
+\subsection{Smalltalk}
 
 \section{Interpreter implementation}
 \label{interpreter-implementation}
@@ -1100,7 +1144,7 @@ Programs consist of lists, where each element is either a list, a variable name,
 
 \subsubsection{Function application / lists}
 Function applications are written in lisp-style as lists. The first element in the list is the function to be applied.
-Lists are enclosed within square brackest \verb|[|$\cdots$\verb|]|, and may be nested. The elements within the lists are seperated by whitespaces. 
+Lists are enclosed within square brackest \verb|[|$\cdots$\verb|]|, and may be nested. The elements within the lists are separated by whitespaces. 
 As lists are the notation for function applications, every list must have at least one element, which is the function to be applied.
 
 \subsubsection{Variable names}
@@ -1111,7 +1155,7 @@ A variable name is a sequence of characters. The possible characters are letters
 Integers are written as a sequence of digits (\verb|0123456789|). Only base 10 input is possible and only non-negative numbers can be written as literals. Negative integers must be generated by subtraction.
 
 \subsubsection{Comments and whitespaces}
-Characters with a unicode value of 32 or less are regarded as whitespaces. This includes the usual space, tab, newline, and line-feed. Whitespaces are used to seperate list elements, and are discarded during parsing. A comment must be preceded by a whitespace, starts with a semicolon \verb|;| and continues until the end of the line. Comments are discarded during parsing.
+Characters with a unicode value of 32 or less are regarded as whitespaces. This includes the usual space, tab, newline, and line-feed. Whitespaces are used to separate list elements, and are discarded during parsing. A comment must be preceded by a whitespace, starts with a semicolon \verb|;| and continues until the end of the line. Comments are discarded during parsing.
 
 \subsection{Builtin functions}
 The builtin functions are listed in the following sections. As the language is designed for embedding in other applications, there are no standard input/output function, file access, network, etc. as these might not be present or differ significantly between target devices/platforms.
