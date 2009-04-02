@@ -329,30 +329,16 @@ Thus, in this project with the design of an embedded scripting language, code fo
 \subsection{Smartphones and PDAs}
 \subsubsection{Mobile web applications}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Programming languages}
+... introduction, mobile scripting...
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Scripting languages and virtual machines for mobile devices, and their implementations}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Programming languages, and their ideas}
-\subsection{Self}
-\label{survey-self}
-Self \cite{self} is especially interesting due to the prototypical inheritance.
-In traditional object oriented programming, we have classes and objects, where classes can inherit from other classes, and objects are instantiation of classes.
-Instead of classes and subclasses for inheritance, Self has a clone operator, which creates a new object using an existing object as blueprint.
-An object in self contains a pointer to the parent (cloned) object, and a mapping from propertynames to values or methods. When a property is read, mapping is first searched, and if the name is not found there, the parent object is searched.
+\subsection{C and C++}
 
 \subsection{Forth and other stack languages}
 Forth is a stack based language.
@@ -380,33 +366,39 @@ Other more recent stack languages are Joy \cite{joy-language}, Cat \cite{cat-lan
 Interesting development here are more typing, and also the use of anonymous code blocks, 
 to create the control structure.
 
+\subsection{FScript}
+
+\subsection{Haskell}
+
+\subsection{Hecl and Tcl}
+
+\subsection{Java}
+
 \subsection{JavaScript/EcmaScript}
-JavaScript plays a major role in this project and is described in more details in Section~\ref{JavaScript}
-\subsection{Lisp and Scheme}
-\subsection{Tcl}
-\subsection{Lua}
-
-\section{JavaScript/EcmaScript}
 \label{JavaScript}
-\begin{comment}
-JavaScript is interesting, both as a platform, a scripting language, and due to the implementations.
+\subsubsection{Language description}
+\subsubsection{Implementations}
+... only open implementatoins
 
-\subsection{About JavaScript}
-\subsection{Platform}
-\subsection{Scripting Language}
-\subsection{Implementations}
-\subsubsection{Rhino}
-\subsubsection{SpiderMonkey}
+\paragraph{JavaScriptCore} is the new implementation of JavaScript in Webkit.
+The latest version has is called SquirrelFish and is an optimised register-based virtual machine,
+with emerging support for JIT compilation.
+TODO:JavaScriptCore - old edition
+
+\paragraph{Logo}
+
+\paragraph{Python}
+
+\paragraph{QScript}
+
+\paragraph{Rhino}
+
+\paragraph{Smalltalk}
+
+\paragraph{SpiderMonkey}
 \label{spidermonkey}
-\subsubsection{QScript}
-\subsubsection{JavaScriptCore - old edition}
-\subsubsection{SquirrelFish (new JavaScriptCore)}
-SquirrelFish is the new implementation of JavaScript in Webkit,
-which is an optimised register-based virtual machine,
-where JIT compilation is also being added.
 
-\subsubsection{TraceMonkey}
-TraceMonkey is the next JavaScript engine from Mozilla.
+\paragraph{TraceMonkey} is the next JavaScript engine from Mozilla.
 It has a JIT compiler based on trace tree\cite{trace-tree}, 
 which rather than JIT compiling the entire program,
 traces and then compiles the most executed paths through the program.
@@ -415,8 +407,7 @@ and the approach also reduces the amount of code needed to be compiled.
 
 
 
-\subsubsection{V8}
-V8\cite{v8} is a JavaScript implementation made by Google, and released in 2008 in conjunction with the release of their browser ``Chrome''. 
+\paragraph{V8}\cite{v8} is a JavaScript implementation made by Google, and released in 2008 in conjunction with the release of their browser ``Chrome''. 
 While it is not directly connected with the Android platform, a JIT compiler is already in place targeting the ARM CPU, so it seems likely that it will also target mobile devices in the long term.
 
 A main focus and benefit of V8 is high execution speed.
@@ -427,7 +418,19 @@ The idea here is that whenever a property is added to a JavaScript object this c
 The garbage collector is fast, - it is a generational garbage collector with two generations. The young generation is collected with a copy-collector which is linear in the time of live data, and thus heap allocation of activation records is almost free. 
 This is combined with a mark and sweep collector when a full collect is needed.
 
-\end{comment}
+\subsubsection{Mobile offsprings}
+... mojax, and the other guy
+\subsection{Lua}
+... and kahlua
+\subsection{Scheme and Lisp}
+\subsection{Self}
+\label{survey-self}
+Self \cite{self} is especially interesting due to the prototypical inheritance.
+In traditional object oriented programming, we have classes and objects, where classes can inherit from other classes, and objects are instantiation of classes.
+Instead of classes and subclasses for inheritance, Self has a clone operator, which creates a new object using an existing object as blueprint.
+An object in self contains a pointer to the parent (cloned) object, and a mapping from propertynames to values or methods. When a property is read, mapping is first searched, and if the name is not found there, the parent object is searched.
+\subsection{Simkin}
+
 
 \section{Interpreter implementation}
 \label{interpreter-implementation}
@@ -917,6 +920,67 @@ When iterating through the keys in an object, the order of visiting the keys is 
 Inheritance is implemented via prototypes.
 
 \end{comment}
+
+\section{Language specification}
+The language is mostly a subset of EcmaScript, and the description of the different parts of the languages is written in the same sequence as the EcmaScript standard, to make it easier to compare the two. The focus will on where LightScript differs from EcmaScript.
+
+The specification is stricter than the actual implementation, for example: the implementation does not distinguish between statements and expressions, and allows a statement everywhere an expression could be written, whereas the specification follows EcmaScript, and distinguishes the two.
+
+Only a subset relatively small subset of EcmaScript is implemented: operators has been added as needed, meaning that rare operators has not yet been added. 
+On the other hand, more interesting language aspects, such as exceptions and prototypical inheritance, have been implemented and tested, though they may not have been needed for the example programs or benchmarks.
+
+While the specification of LightScript is mostly the implemented EcmaScript subset, there are also som choices taken to make it more practical to also implement it on embedded systems.
+
+This specification describes LightScript version 1.0.417.
+The version number consist of a major version number, a minor version number and a revision number.
+The revision number correspond to the svn version, and is incremented on each commit.
+The minor version number is incremented with larger milestones and expansions of language/added functionality. 
+The major version number is incremented on major rewrites or new implementations of the language, and may break backwards compatibility.
+Version 1.0 is the one used for the benchmarks and throughout this report. 
+Version 1.1 will add more functions and operators, but will not make major changes to the semantics.
+
+
+\subsection{Lexical conventions}
+The lexical conventions are slightly different from EcmaScript. 
+Whitespaces are space, tab, carriage return and line feed. 
+LightScript does not distinguish between whitespace and line terminators, and do not have automatic semicolon insertion.
+
+\subsection{Types}
+\subsection{Expressions}
+\subsection{Statements}
+\subsection{Function definitions}
+\subsection{Native objects and functions}
+
+\begin{comment}
+\subsection{Control flow}
+For control flow LightScript supports \verb|while(..) ..|, \verb|do .. while(..)|, \verb|if(..) ..|, \verb|if(..) .. else ..| and \verb|.. ? .. : ..|, similarly to EcmaScript.
+% []subscript []array . {}hashtable {}block >> * %  ()function-call ()paren + - === !==  <= < >= > && || else in ?: = += -= var return ! ++ -- throw try catch function do-while while for if this undefined/null/false true "string" 123number
+\subsection{Exceptions}
+LightScript objects can be thrown and caught as an exception.
+Exceptions a thrown/raised using the \verb|throw| keyword, followed by the object that should be thrown.
+
+This will break the control flow till it reaches an enclosing \verb|try {| $\cdots$ \verb| } catch(| $obj$ \verb|) {| $\cdots$ \verb|}|, possibly across function calls.
+
+\subsection{Functions}
+
+\subsection{Objects}
+Objects can be initialised using the EcmaScript object notation, for example:
+\begin{lstlisting}
+obj = {"name": "Hello world", "answer": 42};
+\end{lstlisting}
+The elemen
+\subsection{Arrays}
+\subsection{Strings}
+\subsection{Numbers}
+\subsection{Truth values}
+
+% []subscript []array . {}hashtable {}block >> * %  ()function-call ()paren + - === !==  <= < >= > && || else in ?: = += -= var return ! ++ -- throw try catch function do-while while for if this undefined/null/false true "string" 123number
+% print gettype parseint clone Array.push Array.pop Array.join Object.hasOwnProperty 
+
+\subsection{Methods and functions}
+
+\end{comment}
+
 
 
 
