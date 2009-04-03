@@ -1357,18 +1357,6 @@ Inheritance is implemented via prototypes.
 
 \end{comment}
 
-\section{Version numbering, and future  direction}
-This specification describes LightScript version 1.0.417.
-The version number consist of a major version number, a minor version number and a revision number.
-The revision number correspond to the svn version, and is incremented on each commit.
-
-The minor version number is incremented with larger milestones and expansions of language/added functionality. 
-The major version number is incremented on major rewrites or new implementations of the language, and may break backwards compatibility.
-Version 1.0 is the one used for the benchmarks and throughout this report. 
-Version 1.2 will add more functions and operators, but will not make major changes to the semantics.
-
-TODO: further direction, and move this section down.
-
 \section{Language specification}
 The language is mostly a subset of EcmaScript, and the description of the different parts of the languages is written in the same sequence as the EcmaScript standard, to make it easier to compare the two. The focus will on where LightScript differs from EcmaScript.
 
@@ -1537,6 +1525,30 @@ Boolean values are the constants \verb|LightScript.TRUE| and \verb|LightScript.F
 LightScript objects with inheritance are instances of the \verb|LightScriptObject| class, which is subclass of \verb|java.lang.Hashtable|. LightScript objects have a constructor that corresponds to clone in Self, se section~\ref{survey-self}, and the parameter to the constructor is a hashtable or a LightScript object. The LightScript objects also overloads the hashtable get operator to access the cloned object, if the key was not found in this one.
 
 Exceptions that can be thrown to/from LightScript are of the class \verb|LightScriptException|. This exception has a property \verb|value| that is the object that is thrown/caught within LightScript. The constructor just take the value as parameter.
+
+\section{Version numbering, and future  direction}
+The LightScript version described above is version 1.0.426
+
+The version number consist of a major version number, a minor version number and a revision number.
+The major version number is incremented when a major rewrites or new implementation of the language is done, and may break backwards compatibility.
+The minor version number is incremented with larger milestones and expansions of language/added functionality,.
+The revision number correspond to the svn version, and is incremented on each commit.
+
+\begin{itemize}
+\item[1.0]
+Prototype for thesis and proof of concept.
+Version 1.0 is the one used for the benchmarks and described throughout this report, unless otherwise mentioned. 
+\item[1.1]
+Expansion of language and standard library, more operators from EcmaScript are added,
+and an additional fixed point number representation will be added. 
+This is the next task when this report has been written, and is scheduled to be finished early in May.
+\item[1.2]
+Addition of optional zooming user interface library. Some of the earlier prototypes has looked into this, and some research has also been done in this direction, a working library prototype should hopefully be up and running in June.
+\item[1.3]
+Mainly bug fixes and improvements based on experiences from writing practical applications with LightScript.
+\item[1.4]
+An additional implementation of the LightScript, this time targeting embedded C devices with up to 64K RAM. 
+\end{itemize}
 
 \section{Summary}
 \chapter{Benchmarks}
