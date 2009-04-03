@@ -1399,9 +1399,35 @@ An array is a growable and mutable sequence of values, where the values can have
 Objects are mappings between names and values, where the name should be of the string type, and the value can be of any type. Objects can have another object prototype, where, if the lookup in the first object does not find a mapping, the name is then looked up in the prototype object.
 
 
+\subsection{Execution contexts}
+
+With each function call a new execution context / activation record is created. 
+Variabled defined with the \verb|var| keyword are allocated on the current activation record. 
+If a variable is not in the current functions activation record,
+it is looked up in the lexical outer function, or if there is no outer function, the global scope.
+This is the usual static scoping, where functions are the only way to make a scope closure.
+
 \subsection{Expressions}
-... division... \label{division}
-... ==, !=...
+
+When a function is called as a property on an object, evaluation of \verb|this| within the function yields the object.  Identifiers are evaluated in the scope to yield a value. Literal values are just their value.
+
+Array are initialised with square brackets \verb|[| $elem_1,\cdots,elem_n$ \verb|]|. Elements can be any expression, and are seperated with commas (\verb|,|). 
+Objects can similarly be initialised with curly brackets: \verb|{| 
+$key_1: value_1, \cdots key_n: value_n$ \verb|}|, where the keys must be string literals, and values can be any expression.
+
+Parenthesis can be used to group expressions together, for example: $2 * (3 + 4) \neq 2 * 3 + 4$
+
+Objects and arrays can be subscripted with the bracket notation: $object$\verb|[|$key$\verb|]|, where $key$ can be be any expression that yields something that can be used as a subscript. The dot notation can be used as a shorthand for the case where $key$ is a string literal, such that $object$\verb|.|$name$ is equivalent to $object$\verb|["|$name$\verb|"]|.
+
+The \verb|new| operator from JavaScript is not supported in LightScript, but instead objects can be initialised with \verb|{}|, or in case of inheritance, the \verb|clone| library function can be used.
+
+Function calls are written as an expression followed by, a possibly empty, parenthesised argument list, e.g. $func$\verb|(|$arg_1,\cdots,arg_n$\verb|)|, where the arguments are separated by commas. 
+
+The postfix versions of increment/decrement are not supported, and the prefix versions should be used instead. The postfix operators has the effect of altering the variable, but returning the unaltered result, which can lead to difficult-to-read programs, and thus in the current version of LightScript, this is disencouraged by not having the postfix operators at all.
+
+The implemented prefix operators are \verb|++|, \verb|--|, \verb|-|, and \verb|!|, which works as usual. \verb|delete|, \verb|typeof|, \verb|void| and \verb|~|, is not implemented in the current version, but may be added later on.
+
+
 \subsection{Statements}
 \subsection{Function definitions}
 \subsection{Native objects and functions}
