@@ -865,6 +865,8 @@ Square brackets are used instead of parenthesis in order to indicate that the li
 \subsection{* AST rewriting}
 
 \end{comment}
+
+
 \section{Language specification}
 
 \subsection{Syntax}
@@ -1283,8 +1285,7 @@ Instead of the Java inspired \verb|new| syntax for instantiation, LightScript ju
 LightScript should have static scope, in a way similar to EcmaScript. 
 
 \end{comment}
-\section{Implementation details}
-\subsection{Optimised imperative top down operator precedence parser}
+\subsection{Imperative implementation of top down operator precedence parsers}
 The top down operator precedence parser described in section~\ref{tdop} is targeted functional languages.
 This section looks at how it can be implemented efficiently in an imperative language.
 
@@ -1307,13 +1308,13 @@ So the task of writing the parser is to make a list of tokens, connected with th
 The actual implementation can be seen on page~\pageref{code-lightscript-parser}.
 
 
-\subsubsection{Performance properties of the parser implementation}
+\subsection{Performance properties of the parser implementation}
 
 For each token, there is a instruction cost of 1-2 function calls, 1 switch-dispatch, 0-1 comparison, reading of 2-3 properties of the token object, and storing a copy of the token val, plus the cost of building the actual AST node, and the cost of parsing the token.
 
 The size of the implementation can be kept very small, as the denominator functions can be reused across different token-types. For example: the binary operators share a single case in the left denominator dispatch, and adding a new binary operator only takes the length in characters of the operator plus 5 bytes. 
 
-\subsection{Implementation of variables and scope}
+\section{Implementation of variables and scope}
 In the EcmaScript standard, identifier resolution is done by searching through the scope chain, which is a list of objects. Objects in the EcmaScript context is a mapping from property names to values. This approach to implementation would be very performance expensive.
 
 Instead we want to resolve the variables at compile time, while preserving as much of the semantics as is practical. The main issue here is that we when we resolve the variable at compile time, we do not keep information to be able to resolve dynamically at run time, not supporting access to local variable with \verb|eval| statements, but as mentioned in section~\ref{designstyle}, eval is not availble in the first version of the language (though it could easily be added as an external java function that just calls LightScript).
@@ -1618,7 +1619,7 @@ Parser+Tokeniser & 3825 & 7093 & \\ \hline
 Previous sections have looked at comparable footprints for implementations by approximated JAR file size, and also at what parts contributes to the size of the LightScript class.
 From a practical view it is also interesting to see the actual size of the optimised obscurified JAR-file of embedding the languages in a trivial host application.
 The host application is a simple Midlet that adds a print function to the language, and includes a hello-world program.
-The size of the entire application, including the embedded scripting language implementation is 5290 bytes for Yolan and 11279 bytes for LightScript. 
+The size of the entire application, including the embedded scripting language implementation is 5290 bytes for Yolan and 11342 bytes for LightScript. 
 
 \section{Execution speed}
 This section benchmarks the execution speed of the languages. 
