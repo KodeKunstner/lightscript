@@ -386,8 +386,6 @@ On thing to notice about newer smartphones is that they include browser, scripta
 \section{Programming languages}
 ... introduction, mobile scripting...
 
-\subsection{C and C++}
-
 \subsection{Forth and other stack languages}
 Forth is a stack based language.
 It is very interesting for this project, as it is an example of an interpreted minimalistic language running on even very low-end devices.
@@ -415,34 +413,65 @@ Interesting development here are more typing, and also the use of anonymous code
 to create the control structure.
 
 
-\subsection{Haskell}
-There are two very interesting aspects of Haskell: it is pure functional, and it has lazy evaluation.
-
 \subsection{Hecl and Tcl}
+Hecl appears to be the major mobile scripting language, and is a dialect of Tcl. 
+Tcl (Tool Command Language) is an embeddable scripting language \cite{tclbook} with a prefix notation, e.g. the syntax is similar to Logo, -- and also similar to Lisp if we see each unquoted line break as an end+begin parenthesis \verb|)(|. Unquoted here means not within quotations or brackets which is also a kind of quoting in Tcl.
+In order to avoid prefix mathematical expressions, Tcl has the notion of expressions, which can be evaluated with the \verb|expr| command or as the condition in \verb|if|-statments etc, for example:
+\begin{verbatim}
+expr (1 + 2) * 3 + 4 * 5
+\end{verbatim}
+yields 29. Hecl does not have this notions of expressions, meaning that the above calculation would have to be written as:
+\begin{verbatim}
++ [* [+ 1 2] 3] [* 4 5]
+\end{verbatim}
 
-\subsection{Java}
+A very interesting feature of Tcl and Hecl is the \verb|upeval| which allows introduction of new syntax by evaluating an expression one level earlier on the stack. 
+This is possible as conditions and code blocks are usually quoted, for example the tcl code:
+\begin{verbatim}
+if { 1 < 2 } {
+    puts Foo
+} else {
+    puts Bar
+}
+\end{verbatim}
+would be similar to lisp-notation \verb|(if '(1 < 2) '(puts 'Foo) 'else '(puts 'Bar))|, where it is the responsibility of \verb|if| to evaluate the condition as an expression and then evaluate the correct block. 
+
+Another aspect of Tcl is that everything are string, meaning that for example variable names are just strings, and if we want to read the value of a variable, we have to explicit tell that it should be looked up, by prepending it with \verb|$|.
 
 \subsection{JavaScript/EcmaScript}
 \label{JavaScript}
-\subsubsection{Language description}
-\subsubsection{Implementations}
-... only open implementatoins
+JavaScript was created as scripting language for web browsers, and was later standardised under the name of EcmaScript.
+The reason it has become interesting is that it is included within most webbrowsers, and there by one of the most widely available platforms.
+The following sections will describe the language, some of the implementations and finally some issues and approache to getting JavaScript to run on mobile and embedded devices.
 
-\paragraph{JavaScriptCore} is the new implementation of JavaScript in Webkit.
+\subsubsection{Language description}
+It is a dynamically typed scripting language with first class functions, a prototypical object system, and a C-like syntax.
+A good introduction to JavaScript is given in the book ``JavaScript the good parts''\cite{goodparts} and some of its material is also available online \cite{crockford-javascript-web} which serves well as an overview of the language. The EcmaScript standard \cite{ecma-262} can be used for getting to know the details of the languages.
+
+
+\subsubsection{Implementations}
+The following section described the main open source implementations of JavaScript/EcmaScript.
+
+\paragraph{JavaScriptCore} 
+JavaScriptCore is the implementation of JavaScript in Webkit.
 The latest version has is called SquirrelFish and is an optimised register-based virtual machine,
 with emerging support for JIT compilation.
-TODO:JavaScriptCore - old edition
+
+The engine has been optimised a lot recently: the earlier versions was evaluating by walking through the abstract syntax tree, and was at that that time similar in performance to SpiderMonkey.
+The new version -- SquirrelFish -- is much faster, which means that it is similar in performance to TraceMonkey and V8.
 
 \paragraph{QScript}
+QScript is the EcmaScript implementation which is a part of QT. This implementation is targeting application scripting rather that web scripting. An interesting part of QScript is its support for automatic binding generation. As WebKit is being integrated with QT, QScript is likely to be replaced with or merged a WebKit scripting engine in the long run.
 
 \paragraph{Rhino}
+Rhino is an implementation of JavaScript on top of Java. This is mainly as an embedded language for java applications. The implementation transforms the JavaScript program to Java classes, which is then executed.
 
 \paragraph{SpiderMonkey}
 \label{spidermonkey}
-SpiderMonkey \cite{spidermonkey} is the JavaScript engine 
+SpiderMonkey \cite{spidermonkey} is the JavaScript engine in Mozillas browsers, and it is also usable as an embeddable engine in other applications. The execution is based on a switch dispatched virtual machine TODO:verify-that-I-remember-correctly-here.
 
-\paragraph{TraceMonkey} is the next JavaScript engine from Mozilla.
-It has a JIT compiler based on trace tree\cite{trace-tree}, 
+\paragraph{TraceMonkey} 
+TraceMonkey is a branch of SpideMonkey, which incoperates JIT compilation, with a JIT compiler based on trace trees\cite{trace-tree}, 
 which rather than JIT compiling the entire program,
 traces and then compiles the most executed paths through the program.
 This means that the JIT compiled code gets optimised to the actual execution,
@@ -460,9 +489,11 @@ The garbage collector is fast, - it is a generational garbage collector with two
 This is combined with a mark and sweep collector when a full collect is needed.
 
 \subsubsection{Mobile offsprings}
+
 ... mojax, and the other guy
 
 \subsection{Lua}
+Lua is a scripting language originally 
 ... and kahlua
 
 \subsection{Python}
@@ -480,8 +511,6 @@ Self \cite{self} is especially interesting due to the prototypical inheritance.
 In traditional object oriented programming, we have classes and objects, where classes can inherit from other classes, and objects are instantiation of classes.
 Instead of classes and subclasses for inheritance, Self has a clone operator, which creates a new object using an existing object as blueprint.
 An object in self contains a pointer to the parent (cloned) object, and a mapping from propertynames to values or methods. When a property is read, mapping is first searched, and if the name is not found there, the parent object is searched.
-\subsection{Simkin}
-\subsection{Smalltalk}
 
 \section{Interpreter implementation}
 \label{interpreter-implementation}
@@ -690,7 +719,7 @@ which will be discussed below.
 \subsection{Top down operator precedence parsers}
 \label{tdop}
 Top down operator precedence parsing combines recursive descent parsing with operator precedence, which simplifies the implementation significantly.
-It was described thirty years ago in  \cite{top-down-operator-precedence}, but has not had much attention until lately with  \cite{beautiful-code}.
+It was described thirty years ago in  \cite{top-down-operator-precedence}, but has not had much attention until lately with  \cite{beautiful-code, crockford-tdop}.
 
 A token can have a null denominator function, a left denominator function and a precedence.
 The null denominator function is used to build the abstract syntax tree node, if the token stands first (is leftmost) in an expression.
@@ -1220,10 +1249,10 @@ class YolanIf implements Function {
         // first evaluate the condition
         // and find out if it i true (not null)
         if(arg[0].value() != null) {
-            // only evaluate the if the condition yields true
+            // only evaluate if the condition yields true
             return arg[1].value();
         } else {
-            // only evaluate the if the condition yield false
+            // only evaluate if the condition yield false
             return arg[2].value();
         }
     }
@@ -1285,7 +1314,7 @@ Instead of the Java inspired \verb|new| syntax for instantiation, LightScript ju
 LightScript should have static scope, in a way similar to EcmaScript. 
 
 \end{comment}
-\subsection{Imperative implementation of top down operator precedence parsers}
+\section{Imperative implementation of top down operator precedence parsers}
 The top down operator precedence parser described in section~\ref{tdop} is targeted functional languages.
 This section looks at how it can be implemented efficiently in an imperative language.
 
@@ -1365,7 +1394,7 @@ The specification is stricter than the actual implementation, for example: the i
 Only a subset relatively small subset of EcmaScript is implemented: operators has been added as needed, meaning that rare operators has not yet been added. 
 On the other hand, more interesting language aspects, such as exceptions and prototypical inheritance, have been implemented and tested, though they may not have been needed for the example programs or benchmarks.
 
-While the specification of LightScript is mostly the implemented EcmaScript subset, there are also som choices taken to make it more practical to also implement it on embedded systems.
+The specification below follows the overall structure of the EcmaScript specification, to make it easier to compare the two.
 
 
 \subsection{Lexical conventions}
@@ -1397,6 +1426,7 @@ Strings are immutable sequences of characters.
 Numbers are 32 bit integers.
 An array is a growable and mutable sequence of values, where the values can have any type.
 Objects are mappings between names and values, where the name should be of the string type, and the value can be of any type. Objects can have another object prototype, where, if the lookup in the first object does not find a mapping, the name is then looked up in the prototype object.
+The order of traversal of the object names/values, may be implementation dependent such that implementations may choose to implement them via hashtables or lists, depending on what makes most sense for the platform. This is different from EcmaScript, where the traversal is in the order the properties were added to the object.
 
 
 \subsection{Execution contexts}
@@ -1434,44 +1464,30 @@ The type coerced equality operators from JavaScript \verb|!=| and \verb|==|, are
 
 The current assignment operators supported by the language are: \verb|=|, \verb|+=| and \verb|-=|.
 The remaining will be added in the next version.
-The conditional operator \verb|? :| is supported. The comma operator \verb|,| is not supported as it generally leads to more difficult to read code.
+The conditional operator \verb|? :| is supported. The comma operator \verb|,| is currently not supported.
 
 \subsection{Statements}
+Statements are separated by semicolon \verb|;|.
+Blocks consist of a sequence of statments within curly brackets \verb|{|$\cdots$\verb|}|. This may for example be needed in conjunction with \verb|if| or \verb|function| declaration. Notice that in JavaScript and thus also LightScript, a block is not a scope limit. In LightScript, blocks are only allowed, where they could actually be needed, e.g. in conjunction with different the conditional/iteration statements, function declaration and try/catch.
+
+The conditional and iteration statements supported by LightScript are: \verb|if|, \verb|do|$\cdots$\verb|while|, \verb|while|, and \verb|for|, which works similarly to JavaScript.
+
+Functions can be exited with the \verb|return| statement, where the optional parameter to the return statement is returned.
+
+LightScript does not support the \verb|with|, as this is considered bad programming style.
+
+\verb|switch| statements, \verb|break|, \verb|continue| and labelled statements are not supported. In JavaScript the semantics of the switch statement are mostly syntactic sugar for a sequence of \verb|if|-statements combined with an anonymous variable, as the expressions of the \verb|case|-clauses are evaluated sequentially and then compared to the result of the expression in the switch clause.
+These may be added in later versions of LightScript.
+
+Exceptions are thrown with the \verb|throw| statements, which works similarly to JavaScript.
+The \verb|try| statment is slightly different, as LightScript only supports the \verb|try|$\cdots$\verb|catch| version, and does not currently support \verb|finally| option.
+LightScript also has slightly different scoping rules for the catch block, where the caught variable is a usual variable, where JavaScript is creating a new object in the scope chain only containing this variable. The motivation for this change is that it is a more consistent approach to scoping, where this would otherwise be a special case, requireing more code space, where at the same time, this only an incompatibilities if the variable in the catch-statment shadows another variable, whose value is used after the catch block, - which also should be avoided as that would lead to more difficult-to-read code.
 
 \subsection{Function definitions}
+
 \subsection{Native objects and functions}
 
-\begin{comment}
-\subsection{Control flow}
-For control flow LightScript supports \verb|while(..) ..|, \verb|do .. while(..)|, \verb|if(..) ..|, \verb|if(..) .. else ..| and \verb|.. ? .. : ..|, similarly to EcmaScript.
 % []subscript []array . {}hashtable {}block >> * %  ()function-call ()paren + - === !==  <= < >= > && || else in ?: = += -= var return ! ++ -- throw try catch function do-while while for if this undefined/null/false true "string" 123number
-\subsection{Exceptions}
-LightScript objects can be thrown and caught as an exception.
-Exceptions a thrown/raised using the \verb|throw| keyword, followed by the object that should be thrown.
-
-This will break the control flow till it reaches an enclosing \verb|try {| $\cdots$ \verb| } catch(| $obj$ \verb|) {| $\cdots$ \verb|}|, possibly across function calls.
-
-\subsection{Functions}
-
-\subsection{Objects}
-Objects can be initialised using the EcmaScript object notation, for example:
-\begin{lstlisting}
-obj = {"name": "Hello world", "answer": 42};
-\end{lstlisting}
-The elemen
-\subsection{Arrays}
-\subsection{Strings}
-\subsection{Numbers}
-\subsection{Truth values}
-
-% []subscript []array . {}hashtable {}block >> * %  ()function-call ()paren + - === !==  <= < >= > && || else in ?: = += -= var return ! ++ -- throw try catch function do-while while for if this undefined/null/false true "string" 123number
-% print gettype parseint clone Array.push Array.pop Array.join Object.hasOwnProperty 
-
-\subsection{Methods and functions}
-
-\end{comment}
-
-
 
 
 
@@ -1619,7 +1635,7 @@ It is very portable, with different editions running on CLDC-1.0, CLDC-1.1, Andr
 It has lots of libraries targeting mobile devices, which in this comparison were removed from the zip file of class files, not to give languages with fewer libraries an advantage in the size comparison.
 The language is a dialect of Tcl, and is simplified such that arithmetic operators, and the like, are prefix operators so expressions ends up a bit lisp-like.
 
-Simkin\cite{simkin} is a scripting language for being embedded in XML. The depends on kxml xml library, which is not included in the measured size. 
+Simkin\cite{simkin} is a scripting language for being embedded in XML, which also runs on mobile devices. It depends on kxml xml library, which is not included in the measured size. 
 
 CellularBasic\cite{cellularbasic} is a dialect of Qbasic, implemented for mobile devices. 
 It includes a floating point support library which is not included in the measured size. 
@@ -1713,16 +1729,14 @@ The measurement of the performance of the different scripting languages are show
 
 \subsection{Speed}
 
-Both Yolan and LightScript languages performed suprisingly well.
-
-There is a large gap between the languages, that may be due to inefficient implementation of variable access in JScheme, FScriptME and Hecl. Looking at the source code, JScheme and FScriptME variables are looked up in a linked list or hashtable at each access. Hecl has a more complex lookup mechanism with a stack of hashtables, but also employes some kind of caching.
-But still, especially Hecls performance is suprising, taking in consideration that this seems to be the major scripting language for mobile devices, and is design to run on mobile devices that may be slow.
-
-It is also suprising how similar in performance Yolan and LightScript are, as Yolan is interpreted by traversing a syntax tree data structure, whereas LightScript runs on a stack based virtual machine. 
-
-It is also interesting to see that Rhino, SpiderMonkey, LightScript, Yolan, and Kahlua is all within the same magnitude of speed, indicating that this is the speed you get with a simple interpreter for these kinds of scripting languages. Here it is also suprising that Rhino and SpiderMonkey is not much faster, as Rhino seems to be doing something with generating and loading Java classes at run time, and SpiderMonkey is written in C rather than Java.
+It is interesting to see that Rhino, SpiderMonkey, LightScript, Yolan, and Kahlua is all within the same magnitude of speed, indicating that this is the speed you get with a simple interpreter for these kinds of scripting languages. Here it is also suprising that Rhino and SpiderMonkey is not much faster, as Rhino seems to be doing something with generating and loading Java classes at run time, and SpiderMonkey is written in C rather than Java.
 
 Other observation are that Rhino is slow with exceptions, and that Kahlua seems to be fast with loops and slow with arrays. The last is probably due to that Kahlua implement arrays as hashtables, and loops in Lua has the integer sequence in the \verb|for|-construct, allowing \verb|for|-loops to be simpler to evaluate that in JavaScript, LightScript and Yolan, where the counter variable is explicit updated within the scripting language.
+
+It is also interesting how similar in performance Yolan and LightScript are, as they have very different evaluation strategy: Yolan is interpreted by traversing a syntax tree data structure, whereas LightScript runs on a stack based virtual machine. 
+
+Most of the scripting languages with a small code footprint is an order of magnitude slower than LightScript, Yolan, and Kahlua and the JavaScript implementations.
+This may be due to inefficient implementation of variable access in JScheme, FScriptME and Hecl. Looking at the source code, JScheme and FScriptME variables are looked up in a linked list or hashtable at each access. Hecl has a more complex lookup mechanism with a stack of hashtables, but also employes some kind of caching.
 
 \section{Yolan}
 
