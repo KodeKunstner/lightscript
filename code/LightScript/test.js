@@ -10,3 +10,10 @@ q = clone(p);
 q.t = "BAZ";
 
 p.x(); o.x(); q.x();
+
+f = function() {
+    return;
+}
+
+print(f());
+print("Here");

@@ -1,3 +1,6 @@
+default:
+	cd report && make all
+
 all:
 	cd code && make all
 	cd report && make all
