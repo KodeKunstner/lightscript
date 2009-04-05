@@ -1,5 +1,5 @@
 default:
-	cd report && make all
+	cd report && make view
 
 all:
 	cd code && make all

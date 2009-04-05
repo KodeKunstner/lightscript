@@ -1,8 +1,8 @@
 \documentclass[11pt]{report} 
 \usepackage{a4} 
-%\usepackage[paperheight=220mm,paperwidth=170mm]{geometry}
+\usepackage[paperheight=220mm,paperwidth=170mm]{geometry}
 %\usepackage[paperheight=150mm,paperwidth=200mm]{geometry}
-\usepackage{geometry}
+%\usepackage{geometry}
 \usepackage{makeidx}
 %\usepackage[danish]{babel} 
 \usepackage[utf8]{inputenc}
@@ -260,12 +260,16 @@ The system also have a 100x64 black/white lcd display, and a couple of buttons, 
 
 \subsection{The J2ME / Java Micro Edition}
 J2ME (Java Micro Edition\footnote{Java Micro Edition is a recent rebranding of J2ME}) is the most common platform for mobile application, supported by more than a billion devices \cite{sun-j2me}. 
+It seems like two thirds of mobile phones shipped today supports Java \cite{esmertec-globenews}.
+%http://www.globenewswire.com/newsroom/news.html?d=149713
 Most mobile devices either require strict code signing, or do not allow native applications to be loaded at all, which leads to that J2ME is often the only for mobile application development.
 J2ME is a trimmed down Java Virtual Machine (JVM) so it has most of the features and limitations of a standard Java JVM, with some notable exceptions, such as the lack of dynamic class loading and reflection. It is fragmented platform which makes it more difficult to make applications that works across devices: there are different APIs/extensions from different vendors, and different device profiles for different hardware capabilities.
 
 Applications for J2ME, are called Midlets and are distributed via JAR-files (Java ARchive). A JAR file is essentially a zip file containing the compiled Java classes, data files, and some meta information.
 
 J2ME has two device configurations CLDC 1.0 (Compact Limited Device Configuration 1.0) \cite{cldc10}  and CLDC 1.1  \cite{cldc11}. The major difference between the two is that CLDC 1.0 is integer only, whereas CLDC 1.1 supports floating point numbers.
+It seems like approximately $\frac{1}{6}$ of the mobile phones that supports J2ME is limited to CLDC 1.0, whereas CLDC 1.1 is supported by the remaining $\frac{5}{6}$ of the phones \cite{mobref}.
+% http://stats.getjar.com/statistics/world/gJavaCLDCVer
 A limitation of both CLDCs is that they lack of support for reflection and dynamic code loading.
 The lack of a reflection API impacts a scripting language in that it cannot discover native functionsn Instead such functions have to be added explicitly to the system.
 The lack of run-time class loading, means that the only way to execute run-time loaded scripts is through intepretation. JIT compiling to JVM or native code is not possible.
@@ -340,21 +344,35 @@ The code footprint limit may be tighter that the run time memory limit, and it m
 Thus, in this project with the design of an embedded scripting language, code footprint will be prioritised slightly higher than the run time memory usage, although both are important.
 
 \subsection{Smartphones}
+Many high end phones -- smartphones --  allows loading of native code. 
+This covers approximately 12\% of the mobile phone market measured in number of units\footnote{In the fourth quarter of 2008 38.1 million smartphones where sold \cite{gartner}, whereas the total number of mobile phones sold in the same period were 314.7 million devices \cite{cellular-news}.}.
+% http://www.cellular-news.com/story/36315.php
+Smartphones gives more access to the devices, than J2ME, but is at the same time more difficult to devlop for, due to the large number of platforms, and limits on distribution, which usually also requires cryptographical signing of code.
 
-TODO:rewrite
-Many high end phones -- Smartphones --  allows loading of native code, but with different restrictions.
-Most require some kind of cryptographical signing of the code, before it can be distributed in any way, and sometimes there are also very tight control of the distribution channels.
-Another issue is the very different execution platforms.
-The main operating systems for smartphones are:
+The main operating systems for smartphones are: Symbian, RIM, Windows Mobile, Mac OS X and Linux, which will be discussed below.
+An important thing to notice is, development is not only possible as native applications, but many of the devices also support J2ME discussed earlier, and on those devices that include a modern web browser, JavaScript is also a possibility for application development.
 
-\subsubsection{OpenMoko}
+\subsubsection{Symbian}
 
-OpenMoko is a project towards having open source phones.
-It is both a software stack for smartphones, and it is also a small development division of the hardware company FIC, where they are making the first open source phones.
-The two phones released so far have lots of rough edges both software and hardware wise, but from a developer point of view, these very interesting as they are not just phones but full Linux computers with X11 and most things as known from larger scale Linux environments -- and the source code is available for everything, so it is even possible to write new operating systems for them, and customise them in every way.
+Symbian is the classical operating system for smartphones. Applications are usually written in C/C++, with some restrictions to allow it to run better on with a moderately small amount memory. 
+In order to distribute native applications on Symbian, it has to be cryptographically signed \cite{symbiansigned}.
+Symbian is a currently closed source, but is on its way to be released as open source \cite{symbianopensource}.
+
+It is the most popular operating system for smartphones, having 47.1\% of the market \cite{gartner-phone-survey-2008q4}. There are different incompatible user interfaces on top of Symbian, e.g. UIQ, QT, S60. 
+
+\subsubsection{RIM, Windows Mobile and Mac OS X}
+
+RIM (Research In Motion), Microsoft Windows Mobile and Mac OS X are the second to fourth most popular smart phone operating system, with 19.5\%, 12.4\% and 10.7\% market share respectively \cite{gartner-phone-survey-2008q4}.
+RIM is connected with the BlackBerry devices, Mac OS X is connected with the iPhone, and Windows Mobile covers different hardware vendors. 
+All these system are properitary closed source.
+
+\subsubsection{Linux}
+
+Linux has 8.4\% of the market share of smart phone operating systems.
+While most of these are properitary systems, two promising initiatives are opening up, wnad while they do not any significant market share yet, they are interesting from a developer point of view, and described below. These are the Android platform and the OpenMoko project.
 
 
-\subsubsection{Android}
+\paragraph{Android}
 
 Android is a software stack for smartphones. It is open source, and driven forward by google.
 It is build upon a linux kernel, but user applications are not distributed natively, but executed on the Dalvik vm. Applications are written in Java, which is then compiled to Dalvik vm, rather than the usual JVM. The motivation for this is both to overcome some of the shortcomings of the JVM on mobile devices, and possibly also some cooperate issues with ownership of JVM technology.
@@ -365,16 +383,12 @@ Meaning that actual phones designed with the stack -- at least those currently o
 
 Android is of course being ported to the devices from the OpenMoko project, and in that case it is of course truely open.
 
-\subsubsection{Symbian}
+\paragraph{OpenMoko}
+\subsubsection{OpenMoko}
 
-Symbian is the classical operating system for smartphones. Applications are usually written in C/C++, with some restrictions to allow it to run better on with a moderately small amount memory. 
-In order to distribute native applications on Symbian, it has to be cryptographically signed \cite{symbiansigned}.
-Symbian is a currently closed source, but is on its way to be released as open source \cite{symbianopensource}.
-
-\subsubsection{Properitary systems}
-
-\subsubsection{JavaScript}
-On thing to notice about newer smartphones is that they include browser, scriptable with JavaScript/EcmaScript. This opens up for using that scripting language as a portable platform across the heterogenous devices.
+OpenMoko is a project towards having open source phones.
+It is both a software stack for smartphones, and it is also a small development division of the hardware company FIC, where they are making the first open source phones.
+The two phones released so far have lots of rough edges both software and hardware wise, but from a developer point of view, these very interesting as they are not just phones but full Linux computers with X11 and most things as known from larger scale Linux environments -- and the source code is available for everything, so it is even possible to write new operating systems for them, and customise them in every way.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1495,6 +1509,7 @@ The current LightScript implementation only has a small standard library, with t
 \paragraph{Array.push(elem)} Method of arrays, pushes an element to the end of the array.
 \paragraph{Array.pop()} Pops an element from the end of the array and returns it.
 \paragraph{Array.join(sep)} Join the elements of an array as strings, with seperator between each neighbours.
+\paragraph{Object.hasOwnProperty(name)} Property of prototype for objects, return whether the name, is actually a key in the current object. Used for determining whether a property is a part of the object, or its prototype.
 \paragraph{*.length} A special property, indicating the length of an array or string, or the number of properties in an object.
 
 

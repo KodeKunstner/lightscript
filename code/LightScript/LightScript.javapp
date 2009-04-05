@@ -177,10 +177,12 @@ public final class LightScript {
     /** Token used for separators (;,:), which are just discarded */
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
 
-    /** The true truth value of results of tests/comparisons within LightScript */
+    /** The true truth value of results 
+      * of tests/comparisons within LightScript */
     public static final Object TRUE = "true";
 
-    /** The false truth value of results of tests/comparisons within LightScript */
+    /** The false truth value of results 
+      * of tests/comparisons within LightScript */
     public static final Object FALSE = null;
 
     /** Token string when reaching end of file, it can only occur
@@ -188,9 +190,9 @@ public final class LightScript {
       * tokens: "(", "EOF", and ")". */
     private static final String EOF = "(EOF)";
 
-    /** This stack is used during compilation to build the constant pool of the
-      * compiled function. The constant pool contains the constants that are used
-      * during execution of the function */
+    /** This stack is used during compilation to build the constant pool 
+      * of the compiled function. The constant pool contains the constants 
+      * that are used during execution of the function */
     private Stack constPool;
 
     /* Used to keep track of stack depth during compilation, to be able to
@@ -352,10 +354,11 @@ public final class LightScript {
         "SAVE_PC", "CALL_FN", "BUILD_FN", "SET_BOXED",
         "SET_LOCAL", "SET_CLOSURE", "GET_BOXED", "GET_LOCAL",
         "GET_CLOSURE", "GET_BOXED_CLOSURE", "BOX_IT",
-        "LENGTH", "DROP", "PUSH_NIL","PUT", "PUSH", "POP",  "JUMP", "JUMP_IF_TRUE", 
-        "DUP", "NEW_LIST", "NEW_DICT", "BLOCK", "SEP", "IN", "JUMP_IF_FALSE",
-        "SET_THIS", "THIS", "SWAP", "FOR", "END", "THROW", "TRY", "CATCH", "UNTRY",
-        "DO", "NEXT", "INC", "DEC", "SHIFT_RIGHT"
+        "LENGTH", "DROP", "PUSH_NIL","PUT", "PUSH", "POP",  "JUMP", 
+        "JUMP_IF_TRUE", "DUP", "NEW_LIST", "NEW_DICT", "BLOCK", "SEP", 
+        "IN", "JUMP_IF_FALSE", "SET_THIS", "THIS", "SWAP", "FOR", "END", 
+        "THROW", "TRY", "CATCH", "UNTRY", "DO", "NEXT", "INC", "DEC", 
+        "SHIFT_RIGHT"
     };
     
     /** Function that maps from ID to a string representation of the ID,
@@ -474,7 +477,8 @@ public final class LightScript {
      */
     private static class Code implements LightScriptFunction {
         public Object apply(Object thisPtr, Object[] args, 
-                            int argpos, int argcount) throws LightScriptException {
+                            int argpos, int argcount) 
+                                throws LightScriptException {
 #ifdef __DEBUG__
             if(argcount == argc) {
 #endif
@@ -666,7 +670,8 @@ public final class LightScript {
             case NUD_LITERAL:
                 return v(ID_LITERAL, val);
             case NUD_END: 
-                return null;// result does not matter, as this is removed during parsing
+                return null;// result does not matter, 
+                            // as this is removed during parsing
             case NUD_SEP:
                 return SEP_TOKEN;
             case NUD_LIST: {
@@ -1448,7 +1453,8 @@ public final class LightScript {
                     hasResult = yieldResult;
                 } else {
 #ifdef __DEBUG__
-                    throw new Error("Error in var statement: " + stringify(expr));
+                    throw new Error("Error in var statement: " 
+                                    + stringify(expr));
 #else
                     return;
 #endif
@@ -2256,7 +2262,8 @@ public final class LightScript {
                     } else if (container instanceof String) {
                         if(key instanceof Integer) {
                             int pos = ((Integer) key).intValue();
-                            stack[sp] = ((String) container).substring(pos, pos+1);
+                            stack[sp] = ((String) container)
+                                            .substring(pos, pos+1);
                         } else {
                             stack[sp] = ((Hashtable) ((Object[])
                                 ((Object[])closure[0])[0])[2]).get(key);
