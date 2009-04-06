@@ -1,8 +1,8 @@
 \documentclass[11pt]{report} 
 \usepackage{a4} 
-\usepackage[paperheight=220mm,paperwidth=170mm]{geometry}
+%\usepackage[paperheight=220mm,paperwidth=170mm]{geometry}
 %\usepackage[paperheight=150mm,paperwidth=200mm]{geometry}
-%\usepackage{geometry}
+\usepackage{geometry}
 \usepackage{makeidx}
 %\usepackage[danish]{babel} 
 \usepackage[utf8]{inputenc}
@@ -70,23 +70,6 @@ Yolan has a code footprint less than half the size of LightScript, and they are 
 \chapter*{TODO-list for the report}
 {\scriptsize
 add chapter introductions and summaries
-\paragraph{Introduction}
-drafted. perhaps note on mojax, switch of direction, and back
-\begin{verbatim}
-SURVEY:
-- organise and write mobile-platform section
-   - finish embedded systems
-   - add smartphones and pda's - symbian, linux, android, iphone, rim, palm, wince, openmoko
-   - add web-platform
-- JavaScript
-- write about mobile scripting
-- add programming languages/ideas: haskell, scheme/lisp, tcl, lua, python, smalltalk, ...
-- maybe JIT compilation
-- maybe monadic parsers
-- maybe region based GC
-\end{verbatim}
-\paragraph{Approach}
-rewrite intro
 \paragraph{LightScript}
 add language specification. add language design, perhaps more implemenation details
 \paragraph{Yolan}
@@ -369,7 +352,7 @@ All these system are properitary closed source.
 \subsubsection{Linux}
 
 Linux has 8.4\% of the market share of smart phone operating systems.
-While most of these are properitary systems, two promising initiatives are opening up, wnad while they do not any significant market share yet, they are interesting from a developer point of view, and described below. These are the Android platform and the OpenMoko project.
+While most of these are properitary systems, two promising initiatives are opening up, wnad while they do not any significant market share yet, they are interesting from a developer point of view, and described below. These are the Android platform and the Openmoko project.
 
 
 \paragraph{Android}
@@ -381,12 +364,10 @@ Beside supporting Dalvik applications, there is also a modern webbrowser -- a We
 While the software stack itself is open source, it also allows the manufactorer to make and keep proparitary changes for themselves. 
 Meaning that actual phones designed with the stack -- at least those currently on the market -- are not truely open, in the sense that thay contain properitery drivers and special developer-versions of the phones are needed if you want to be able to load customised operating system images/native code.
 
-Android is of course being ported to the devices from the OpenMoko project, and in that case it is of course truely open.
+Android is of course being ported to the devices from the Openmoko project, and in that case it is of course truely open.
 
-\paragraph{OpenMoko}
-\subsubsection{OpenMoko}
-
-OpenMoko is a project towards having open source phones.
+\paragraph{Openmoko}
+Openmoko is a project towards having open source phones.
 It is both a software stack for smartphones, and it is also a small development division of the hardware company FIC, where they are making the first open source phones.
 The two phones released so far have lots of rough edges both software and hardware wise, but from a developer point of view, these very interesting as they are not just phones but full Linux computers with X11 and most things as known from larger scale Linux environments -- and the source code is available for everything, so it is even possible to write new operating systems for them, and customise them in every way.
 
@@ -398,7 +379,17 @@ The two phones released so far have lots of rough edges both software and hardwa
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Programming languages}
-... introduction, mobile scripting...
+The following sections surveys different programming languages:
+\begin{itemize}
+\item Forth is surveyed as this language runs on very minimalistic systems, and is also a stack language, thus relevant for the design of virtual machines. 
+\item Hecl is the major scripting language for mobile devices, which should therefor be investigated for this project.
+\item JavaScript is the basis for LightScript implemented in this thesis
+\item Lua has a focus on embedded devices, and solutions from their implementation can inspire the languages created here. There is also an implementation of the Lua virtual machine, targeting mobile devices, why this language is also related to the benchmarks later on.
+\item Python is becoming relevant on mobile devices, as it runs on many smart phones. Some of the language features may be usable in the design of new languages.
+\item Lisp and Scheme are some of the inspirations for Yolan, especially with regard to the syntax.
+\item Self is highly relevant for the LightScript implementation, as the object system is based on this, via JavaScript.
+\end{itemize}
+
 
 \subsection{Forth and other stack languages}
 Forth is a stack based language.
@@ -502,9 +493,21 @@ The idea here is that whenever a property is added to a JavaScript object this c
 The garbage collector is fast, - it is a generational garbage collector with two generations. The young generation is collected with a copy-collector which is linear in the time of live data, and thus heap allocation of activation records is almost free. 
 This is combined with a mark and sweep collector when a full collect is needed.
 
-\subsubsection{Mobile offsprings}
+\subsubsection{Targeting mobile devices}
 
-... mojax, and the other guy
+There is the standardised EcmaScript Mobile Profile, which removes some features from the language, but is not implementable in practice on top of CLDC 1.0 as it still relies on floating point numbers
+
+During the project it has turned out that there are other projects working on JavaScript languages for mobile devices.
+
+Mojax (Mobile Ajax) \cite{mojax} is a properitary virtual machine for an EcmaScript like language. This language is also a subset of of EcmaScript, integer only, and appears not to support exception exceptions nor regular expressions.
+The Mojax implementation seems to be a virtual machine which cannot execute scripts directly, but they need to be compiled before they can be loaded.
+
+
+Mbedthis has a closed source implementation of a subset of JavaScript, this one targeting embedded devices \cite{mbedthis}. This uses integers by default, and does not have exceptions, labelled statements, switch, while, do-while, regular expressions, function literals, object literals, array literals, prototypes nor class methods.
+% http://www.embedthis.com/products/appweb/doc/guide/appweb/users/ejs/overview.html
+Recently that implementation seems to have been abandoned, in favor of new, more compliant implementation: Ejscript \cite{ejscript}.
+%http://www.ejscript.org/products/ejs/index.html
+While the C based implementation is available under GPL, there apparently is a J2ME implemention which is not published yet.
 
 \subsection{Lua}
 Lua is a scripting language originally 
@@ -1607,7 +1610,7 @@ Exceptions that can be thrown to/from LightScript are of the class \verb|LightSc
 The LightScript version described above is version 1.0.426
 
 The version number consist of a major version number, a minor version number and a revision number.
-The major version number is incremented when a major rewrites or new implementation of the language is done, and will break backwards compatibility.
+The major version number is incremented at major rewrites and redesign.
 The minor version number is incremented with milestones and expansions of language/added functionality, it uses an even/uneven strategy, such that even minor versions gets bugfixes, and the uneven minor versions are development versions where the new features are added, i.e. 
 the features intended for version 1.2 are implemented in versions 1.1.\emph{something} and when all of them is added, the minor version number increases to 1.2, where only bug fixes will be added.
 The revision number correspond to the svn version, and is incremented on each commit.
@@ -1620,26 +1623,18 @@ Prototype for thesis and proof of concept.
 Version 1.0 is the one used for the benchmarks and described throughout this report, unless otherwise mentioned. 
 \item[1.2]
 Expansion of language and standard library, more operators from EcmaScript are added,
-and an additional fixed point number representation will be added. 
-This is the next task when this report has been written, and is scheduled to be finished early in May.
+and an additional fixed point number representation will be added. Better compatibility with EcmaScript type system.
 \item[1.4]
-Addition of optional zooming user interface library. Some of the earlier prototypes has looked into this, and some research has also been done in this direction, a working library prototype should hopefully be up and running in June.
+Extra optional libraries to enable writing of practical applications, mainly creating zooming user interface, and also add support for simple cryptography and web access.
 \item[1.6]
-Improvements based on experiences from writing practical applications with LightScript.
-\end{itemize}
-Possible developments for LightScript version 2:
-\begin{itemize}
-\item
-Change of the implementation to make the it even more EcmaScript-like by relying on LightScript object class in Java, rather than standard Java classes, This costs a slightly larger code footprint, and also makes it slightly more complex to integrate with existing Java applications.
-To determine whether it is worthwhile needs an actual implementation.
-\item
+Addition of a LightScript implementation for embedded C, targeting devices limited to 64K RAM.
+\item[1.8]
 Better development tool with a LightScript lint/prettyprinter, and possibly also interpreter with more run time checking and debugging support.
-\item
-Addition of a LightScript implementation for embedded C, probably targeting devices limited to 64K RAM in its first edition. 
 \end{itemize}
 
-\subsection{Version 1.1}
+\subsection{Language update}
 Where the previous parts of this chapter describes LightScript version 1.0, this section describes the most recent changes, and updates in the development branch, done after the report was written.
+This section described what have been done in version 1.1 and what needs to be done before version 1.2
 \subsubsection{Implemented changes}
 \begin{itemize}
 \item
@@ -1651,6 +1646,8 @@ Where the previous parts of this chapter describes LightScript version 1.0, this
 \item Add postfix increment/decrement
 \item Let functions support a variable number of arguments
 \item Let catch, and function-def behave as implicit \verb|var|-decl
+\item Change of the implementation to make the it even more EcmaScript-like by relying on LightScript object class in Java, rather than standard Java classes, This costs a slightly larger code footprint, and also makes it slightly more complex to integrate with existing Java applications.
+To determine whether it is worthwhile needs an actual implementation.
 \item Walk through library specification, and add functions that does not add too large a foorprint
 \item Add prototype object to functions
 \item Optimise code footprint, by reordering opcodes
@@ -1658,6 +1655,20 @@ Where the previous parts of this chapter describes LightScript version 1.0, this
 \item Replace stack allocation instruction with automatic code to do this, based on metadata of the function object 
 \item Add clean-up code when exiting a function, to improve garbage collection
 \end{itemize}
+
+\subsection{Zooming user interface and other optional libraries}
+... TODO: zui
+
+
+\subsubsection{Other optional libraries}
+
+Much interactions happens via web, so a simple function for getting and parsing web pages will be practical for enabling LightScript as a tool for mobile mashups would be needed. This will be a simple heuristic html parser mapping the XML-tree to JsonML\footnote{JsonML is an embedding of XML in JSON, somewhat similar to SXML in the Scheme} \cite{jsonml}, which can then easily be interacted with in LightScript.
+
+When making applications that may handle the users private data, it should be secured, which is why support for simple cryptography should be added. There already exist a good open source library for mobile cryptography \cite{bouncycastle} where a couple of ciphers can be extracted and added as optional library in LightScript.
+
+\subsection{Embedded implementation}
+
+... TODO
 
 \section{Summary}
 \chapter{Benchmarks}
