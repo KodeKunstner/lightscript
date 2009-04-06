@@ -510,8 +510,13 @@ Recently that implementation seems to have been abandoned, in favor of new, more
 While the C based implementation is available under GPL, there apparently is a J2ME implemention which is not published yet.
 
 \subsection{Lua}
-Lua is a scripting language originally 
-... and kahlua
+
+Lua is interesting, both as a language design/implementation, as it have looked into issues that also comes up in this project, and also as a language for low end devices, as lua implementations are available on embedded and mobile devices.
+Lua is a dynamically typed, statically scoped embeddable scripting language, which is characterized by only have one datastructure: associative tables.
+It has both good performance, and relatively low code footprint, and is as such also interesting for this project.
+
+On mobile devices there is an implementation of the Lua virtual machine called Kahlua \cite{kahlua}.
+This is only the Lua virtual machine.
 
 \subsection{Python}
 As phones are becoming more powerful, Python is beginning to play a role as a mobile scripting language on high end devices. This is carrying over from being a popular and major scripting language on computer platforms.
@@ -522,6 +527,7 @@ Required indentation leads to easier readable programs.
 The issue with python on mobile devices is, that it is relatively resource intensive, and thus use more energy, and is only available on high end phones.
 
 \subsection{Scheme and Lisp}
+
 \subsection{Self}
 \label{survey-self}
 Self \cite{self} is especially interesting due to the prototypical inheritance.
@@ -1669,6 +1675,7 @@ When making applications that may handle the users private data, it should be se
 \subsection{Embedded implementation}
 
 ... TODO
+... unique strings ... 16bit cells for more space
 
 \section{Summary}
 \chapter{Benchmarks}
@@ -1794,40 +1801,33 @@ The measurement of the performance of the different scripting languages are show
 \section{Summary}
 \chapter{Discussion}
 \label{discussion}
-\section{Benchmarks}
 
+\section{Design}
+
+Yolan does a good job having a tiny code footprint and decent performance, while being a scripting language with first class function, hashtables, easy embeddable, etc., and does a bad job trying to do anything else.
+The dynamic scoping makes it unsuitable for developing larger applications, and the lisp-like syntax will probably scare away most developers.
+So the major use of this language is probably just to set a bar for how small a code footprint a high level scripting language can have.
+
+LightScript has tradeoffs between EcmaScript compliance and size/performance. 
+One of those is the joining of \verb|false|, \verb|null| and \verb|undefined|, and not needing the boolean type.
+As the overall size and performance of LightScript were better than expected,
+that optimisation-tradeoff is probably worth undoing to get better semantics, 
+but only an implementation and actual benchmark will show. 
+
+\section{Benchmarks}
 \subsection{Speed}
 
 It is interesting to see that Rhino, SpiderMonkey, LightScript, Yolan, and Kahlua is all within the same magnitude of speed, indicating that this is the speed you get with a simple interpreter for these kinds of scripting languages. Here it is also suprising that Rhino and SpiderMonkey is not much faster, as Rhino seems to be doing something with generating and loading Java classes at run time, and SpiderMonkey is written in C rather than Java.
 
 Other observation are that Rhino is slow with exceptions, and that Kahlua seems to be fast with loops and slow with arrays. The last is probably due to that Kahlua implement arrays as hashtables, and loops in Lua has the integer sequence in the \verb|for|-construct, allowing \verb|for|-loops to be simpler to evaluate that in JavaScript, LightScript and Yolan, where the counter variable is explicit updated within the scripting language.
 
-It is also interesting how similar in performance Yolan and LightScript are, as they have very different evaluation strategy: Yolan is interpreted by traversing a syntax tree data structure, whereas LightScript runs on a stack based virtual machine. 
+It is also interesting how similar in performance Yolan and LightScript are, even though they have very different evaluation strategy: Yolan is interpreted by traversing a syntax tree data structure, whereas LightScript runs on a stack based virtual machine. 
 
 Most of the scripting languages with a small code footprint is an order of magnitude slower than LightScript, Yolan, and Kahlua and the JavaScript implementations.
 This may be due to inefficient implementation of variable access in JScheme, FScriptME and Hecl. Looking at the source code, JScheme and FScriptME variables are looked up in a linked list or hashtable at each access. Hecl has a more complex lookup mechanism with a stack of hashtables, but also employes some kind of caching.
 
-\section{Yolan}
 
-\section{LightScript}
 
-\begin{comment}
-  - surprisingly good performance
-    - perspective, discussion of the results
-      - further studies
-
-\section{Further directions}
-\subsection{How to make LightScript more EcmaScript-like}
-\subsection{A LightScript validator and prettyprinter}
-...{* Further directions}
-\section{* Design of runtime on top of C}
-\subsection{* Unique strings}
-\subsection{* Compact memory representation}
-\subsection{* Garbage collection}
-\section{* How to make LightScript more EcmaScript-like}
-\section{* A few-register virtual machine for small code size, easy JIT, and fast execution}
-\section{* A LightScript validator and prettyprinter}
-\end{comment}
 \chapter{Conclusion}
 \label{conclusion}
 
