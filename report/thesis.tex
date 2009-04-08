@@ -126,7 +126,7 @@ than megabytes.
 
 Scripting languages make it easier to write applications\cite{scripting-ousterhout}. Beside higher productivity, they are also for more customisation, possibly user based.
 On more power full devices, ranging from high-end smartphones to personal computers, there are very good scripting languages available.
-Scripting language implementations usually take a lot of resources, which is a problem on low-end mobile devices, where they may not be available, are very slow, or have limitations, such as they cannot be executed directly, but need to be compiled to another devices, or they do not have basic datatypes.
+Scripting language implementations usually take a lot of resources, which is a problem on low-end mobile devices, where they may not be available, are very slow, or have limitations, such as they cannot be executed directly, but need to be compiled to another devices, or they do not have basic data types.
 The focus on better implementation of a scripting languages for mobile devices is thus a niche, where the result may actually be of practical use.
 
 The focus on low-end devices also has another benefit:
@@ -179,32 +179,9 @@ Here there are different APIs and device profiles, but the basic execution and d
 
 Low end devices rarely support loading of native code, and higher end devices may require different kind of code signing to allow native programs to be distributed.
 
-
-
-\begin{comment}
-Development for mobile devices is very diverse.
-Surveys about mobile devices often focus on smartphones (high end mobile devices) and thus market shares in surveys, such as \cite{smartphonesurvey} does not include the more low end devices.
-On the contrary, this project focuses on development also targeting low end devices.
-
-Looking at lowest end mobiled devices: if user applications are loadable at all, it is in the shape of Java Midlets.
-...
-
-Higher end devices often supports native code.
-This has different APIs and there are lots of different platforms.
-Some of the main platforms for smartphones, and similar are:
-Symbian, Qt-embedded (a linux), RIM-BlackBerry, iPhone, Android (a linux with a Java-like vm on top), Windows CE, etc.
-... description of different operating systems...
-
-Many of these platforms requires some fees/licenses and code signing for developing and/or distributing applications. 
-This makes them less attractive for further studies as well as further development.
-
-Additionally, the BREW mobile platform seems to play an important role in North America, but it is closed and needs code signing, and at the same time it is not common in Europe, so I will not look further into that platform.
-
 Besides Java and native code, JavaScript is becoming a potential language for applications for high end phone. 
 This is both due to its integration with the web, which means that it will be available on the phones with advanced browsers, due to the increased amount of memory on high end phones
 and due to recent major performance advances within the JavaScript implementations, which are propagating towards mobile devices.
-
-\end{comment}
 
 \subsection{Embedded systems}
 The personal computers, PCs, as we know them, are only a very small fraction of the computers in use.
@@ -239,7 +216,7 @@ The main cpu is an ARM7TDMI \cite{arm7tdmi}, which is commonly used in mobile ph
 It is clocked at 48MHz, and is attached to 256 KB of flashable ROM and 64 KB of RAM, which means that it is low end, compared to mobile phones, while powerful viewed as an embedded device.
 There is also an ATmega48 \cite{atmega48} 8-bit coprocessor, which has 4KB of flashable ROM and 512 bytes of RAM, which is a typical microcontroller. 
 The coprocessor usually reads sensors, controls motors, and can power the main cpu down, to reduce power usage.
-The system also have a 100x64 black/white lcd display, and a couple of buttons, so it has a lot of potential as a development substitute platform for low-end mobile device, which does not allow 3rd party firmware.
+The system also have a 100x64 black/white lcd display, and a couple of buttons, so it has a lot of potential as a development substitute platform for low-end mobile devices, which do not allow 3rd party firmware.
 
 \subsection{The J2ME / Java Micro Edition}
 J2ME (Java Micro Edition\footnote{Java Micro Edition is a recent rebranding of J2ME}) is the most common platform for mobile application, supported by more than a billion devices \cite{sun-j2me}. 
@@ -867,31 +844,6 @@ The design and implementation of the languages is not just a single design, but 
 This leads up to LightScript and Yolan, which will be described in the next chapters.
 Discarded prototypes include a Forth-like language, several parser/compiler implementations on top of JavaScript, a couple of virtual machins on the jvm, some experiments towards an implementation in C, experiments with mobile applications and their GUI, and drafts of parts of what becomes LightScript and Yolan.
 
-\section{Some design choices}
-
-This section looks defines some of common the overall design choices and goals for the languages of the project.
-
-The major target platform should be Java Mobile Edition CLDC/1.0, as this is the most limited platform that I have access to. 
-If the language runs on top of CLDC/1.0, it will also be able run on other device configurations, with minor change, which is most mobile devices.
-
-The language should be easy to embed, so when targeting the JVM, most of the datatypes should map directly to standard Java classes, in order to make it easier for the developers to interface with the scripting language from the host application.
-
-As with most other scripting languages, the type system should be dynamic. 
-
-The parser may assume that the programs have valid syntax. 
-Usually parsers both build a syntax tree of valid programs and also reject programs with invalid syntax. 
-By removing the rejecting-part, and only require that the can parsers build a syntax tree from valid programs, the parser may be optimised to run better on the limited devices.
-The parser should still be robust and terminate, even with invalid programs though the resulting syntax tree may be strange.
-
-Execution should be online, in the sense that whenever a full statement is read from the input, it should be executed, not needing to read the full file. This is both practical for interactive evaluation, and also has a benefit memorywise as the entire program never needs to be fully in memory, as executed code may be garbage collected.
-
-The language implementations are experimental proof-of-concepts. They may be worth building further on, but they are not fully mature languages from the begining.
-
-The design should be inspired by EcmaScript/JavaScript, as this is the most widely deployed scripting language, and would thus be a good translation target for the scripting language implemented here.
-
-Access to variables should be optimised to be reasonably fast, as the target platform is already very slow. 
-This rules out implementation techniques of looking up variables at run time by traversing a stack, or looking up the name in a table.
-
 \section{Evaluation}
 The evaluation should compare the code footprint and execution speed of the the developed languages, with existing scripting language.
 In addition to this, it could also be interesting to look at how different parts of a language implementation adds to the code footprint.
@@ -901,7 +853,45 @@ In addition to this, it could also be interesting to look at how different parts
 \label{yolan}
 \index{Yolan}
 \section{Design choices}
+The overall design direction of Yolan is to minimise the code footprint, while still having a scripting language with first class functions.
+The next paragraphs elaborate the following design choices:
+\begin{itemize}
+\item Should be able to run on CLDC 1.0/MIDP 1.0
+\item Use standard Java classes, for easier interaction with Java code
+\item Integer only, - no support for floating point number
+\item Execution of code, loaded as source text at run time
+\item Null is false
+\item Lisp like syntax
+\item Functions as first class values
+\item Dynamic scope
+\item Builtin support for arrays, hashtables, etc.
+\item Every expression yields a value
+\item Lazy Java interface
+\item Online exection
+\end{itemize}
+
+CLDC 1.0 is the most limited device configurations and API for mobile devices. If the language is able to run this configuration, it will also be able to run on the other Java configurations, and thus be able to run on most devices.
+
+Use of standard Java classes instead of custom classes for builtin data types such as arrays or tables has three benefits: the code footprint is smaller, as these data types do not have to be implemented, it may be faster, as the builtins may be implented natively, and it is easier embeddable, as as the developers already know the data types from standard Java.
+The issue of using the builtins is that it gives less flexibility to the design of the behaviour of the data types in Yolan.
+
+Integers is the only number type supported on the platform. Floating point numbers would have to be emulated, which would both give a performance penalty, and more importantly a huge increase in code footprint due to emulation code.
+
+Being able to load code at run time is important for several reasons:
+It allows larger programs, than would otherwise be possible within the devices, as the different parts of the program can be loaded and unloaded as needed.
+It allows adding updates and new features to the programs, without needing them to be reinstalled manually.
+It allows the language to be used for configuration files, and data initialisation.
+Being loaded as source code both gives more clarity, and makes it easier to distribute and edit, thus making it more suitable for for use as configuration language, and scripting by users.
+
+Null is also the false value. This simplifies the implementation slightly, and thus reduces the footprint.
+
+Yolan has a Lisp-inspired syntax. This trivialises the parser ipmlementation, and thus reduces code footprint.
+
+
+
 \begin{comment}
+\paragraph{Lisp-like syntax} A lisp-like syntax trivialises 
+
 null-is-false
 dynamic scope
 
@@ -1287,18 +1277,60 @@ class YolanIf implements Function {
 \label{lightscript}
 \index{LightScript}
 \section{Design choices}
-\subsection{Differences from EcmaScript}
+The next paragraphs elaborate the following design choices:
 \begin{itemize}
-\item No support for floating point numbers
-\item Prototypical inheritance supported with a self-like \verb|clone| function, rather than the EcmaScript syntax with \verb|new|, $object$\verb|.prototype|. The \verb|clone| function can easily be implemented within pure EcmaScript
-\item No support for regular expressions. 
-\item No \verb|switch|-statements, nor \verb|break|/\verb|continue|, nor labels. 
-\item Currently only a subset of the functions and operators are implemented
-\item The comma operator and \verb|typeof| due to their semantic issues in EcmaScript. A library function replaces \verb|typeof| and can easily also be implemented in pure EcmaScript. Instead of the comma operator, just use a sequence of statements.
-\item Undefined, null and false, is joined in a single type/value.
-\item Functions currenly only supports a fixed number of arguments.
+\item A subset of EcmaScript.
+\item Should be able to run on CLDC 1.0/MIDP 1.0
+\item Use standard Java classes, for easier interaction with Java code
+\item Not error checking parsing
+\item Integer only, - no support for floating point number.
+\item Undefined, null and false, is joined in a single type/value and is the only false value.
+\item Efficient variable access
+\item Functions as first class values
+\item Support for closures, lexical scope
+\item Objects, and prototypical inheritance with a self-like \verb|clone| function
+\item Exceptions
 \end{itemize}
+
+There are several reasons to make the language a subset of EcmaScript:
+When LightScript is a subset of EcmaScript, it automatically runs within most webbrowsers, including within smartphones where Java may not be installed.
+Being an EcmaScript subset also makes it easier to get started on for developers, that already know EcmaScript, or other languages with C-like syntax.
+The issues are that being a subset of EcmaScript will add more complexity to LightScript, and also that EcmaScript has some unfortunate design choices \cite{crockford}, e.g. global variables by default, function-scoping rather then block-scoping, non-transitive equality test, traversal of parent object in for-each, arrays and null are objects in typeof-operator, restrictions on names due to many reserved words, automatic semi colon insertion, the with-statement, 
+where some of these will also be a part of LightScript,
+although many can be omitted by being a subset and thus more strict. 
+
+Like Yolan, LightScript should run on CLDC 1.0/MIDP 1.0, use standard classes for better embedding and code footprint size.
+
+
+
 \begin{comment}
+\section{Some design choices}
+
+This section looks defines some of common the overall design choices and goals for the languages of the project.
+
+The major target platform should be Java Mobile Edition CLDC/1.0, as this is the most limited platform that I have access to. 
+If the language runs on top of CLDC/1.0, it will also be able run on other device configurations, with minor change, which is most mobile devices.
+
+The language should be easy to embed, so when targeting the JVM, most of the data types should map directly to standard Java classes, in order to make it easier for the developers to interface with the scripting language from the host application.
+
+As with most other scripting languages, the type system should be dynamic. 
+
+The parser may assume that the programs have valid syntax. 
+Usually parsers both build a syntax tree of valid programs and also reject programs with invalid syntax. 
+By removing the rejecting-part, and only require that the can parsers build a syntax tree from valid programs, the parser may be optimised to run better on the limited devices.
+The parser should still guarentee to terminate, even with invalid programs though the resulting syntax tree may be undefined.
+
+Execution should be online, in the sense that whenever a full statement is read from the input, it should be executed, not needing to read the full file. This is both practical for interactive evaluation, and also has a benefit memorywise as the entire program never needs to be fully in memory, as executed code may be garbage collected.
+
+The language implementations are experimental proof-of-concepts. They may be worth building further on, but they are not fully mature languages from the begining.
+
+The design should be inspired by EcmaScript/JavaScript, as this is the most widely deployed scripting language, and would thus be a good translation target for the scripting language implemented here.
+
+Access to variables should be optimised to be reasonably fast, as the target platform is already very slow. 
+This rules out implementation techniques of looking up variables at run time by traversing a stack, or looking up the name in a table.
+
+
+... clone... rather than the EcmaScript syntax with \verb|new|, $object$\verb|.prototype|. The \verb|clone| function can easily be implemented within pure EcmaScript
 
 The paragraphs below, elaborates on the following design choices:
 null-is-false
@@ -1469,6 +1501,7 @@ Objects and arrays can be subscripted with the bracket notation: $object$\verb|[
 The \verb|new| operator from JavaScript is not supported in LightScript, but instead objects can be initialised with \verb|{}|, or in case of inheritance, the \verb|clone| library function can be used.
 
 Function calls are written as an expression followed by, a possibly empty, parenthesised argument list, e.g. $func$\verb|(|$arg_1,\cdots,arg_n$\verb|)|, where the arguments are separated by commas. 
+A function written in LightScript, currently has a fixed number of arguments.
 
 The postfix versions of increment/decrement are not supported, and the prefix versions should be used instead. The postfix operators has the effect of altering the variable, but returning the unaltered result, which can lead to difficult-to-read programs, and thus in the current version of LightScript, this is disencouraged by not having the postfix operators at all.
 
@@ -1481,7 +1514,7 @@ The type coerced equality operators from JavaScript \verb|!=| and \verb|==|, are
 
 The current assignment operators supported by the language are: \verb|=|, \verb|+=| and \verb|-=|.
 The remaining will be added in the next version.
-The conditional operator \verb|? :| is supported. The comma operator \verb|,| is not supported.
+The conditional operator \verb|? :| is supported. The comma operator \verb|,| is not supported, as that one generally is considered bad programming style \cite{crockford-comma}.
 
 \subsection{Statements}
 Statements are separated by semicolon \verb|;|.
@@ -1504,7 +1537,7 @@ LightScript also has slightly different scoping rules for the catch block, where
 Functions are defined using the \verb|function| keyword, followed by an optional function name, a list of parameters and the function body.
 If the function name is specified, a variable with that name is assigned to the function.
 
-The current LightScript does not support a variable numbers of parameters, nor do the functions have properties, yet.
+The LightScript currently does not support a variable numbers of parameters, nor can the functions have properties.
 This is going to be added in the next version.
 Functions are first class objects, and can be passed around, and used as such. Application of functions are done with the usual $f$\verb|(|$\cdots$\verb|)|.
 
@@ -1698,7 +1731,7 @@ which would give those an advantage. So this should give a more fair comparison.
 The code size benchmark looks at the languages implemented in this project, Yolan and LightScript, it looks at scripting languages for mobile devices, FScriptMe, Kahlua, Hecl, Simkin, and CellularBasic, and it looks at some general scripting language implementations,  JScheme, and Rhino.
 
 FScriptME\cite{fscriptme} is the mobile edition of femto-script, which ``is an extremely simple scripting language''\cite{fscript}. 
-Out of the box, it only supports strings and integers as datatypes -- no compound types -- which limits use somewhat, and it is still in beta, since 2002. 
+Out of the box, it only supports strings and integers as data types -- no compound types -- which limits use somewhat, and it is still in beta, since 2002. 
 
 JScheme\cite{jscheme} is a small Scheme implementation. An early version is benchmarked, as later versions have vastly larger code footprint, and would thus perform badly on that point. It depends on some reflection, and does therefor not run on Java Mobile Edition, but is included as the implementation is compact, and may be changed to target mobile devices.
 
@@ -1802,7 +1835,6 @@ The measurement of the performance of the different scripting languages are show
 \chapter{Discussion}
 \label{discussion}
 
-\section{Design}
 
 Yolan does a good job having a tiny code footprint and decent performance, while being a scripting language with first class function, hashtables, easy embeddable, etc., and does a bad job trying to do anything else.
 The dynamic scoping makes it unsuitable for developing larger applications, and the lisp-like syntax will probably scare away most developers.
