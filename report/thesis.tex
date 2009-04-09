@@ -1301,6 +1301,7 @@ Inheritance will be slightly different: while EcmaScript has prototypical inheri
 Exceptions should also be supported, and it should also be possible to throw between, and across Java-functions and LightScript functions.
 
 \section{Imperative implementation of top down operator precedence parsers}
+\label{tdop-imp}
 The top down operator precedence parser described in section~\ref{tdop} is targeted functional languages.
 This section looks at how it can be implemented efficiently in an imperative language.
 
@@ -1347,14 +1348,27 @@ The code footprint size is similar for both approachs, though probably a bit sma
 The actual access to a \verb|Stack| requires a method calls, which are 3 bytes plus 1-3 bytes for self and parameter loading, where reading from an array is a single byte opcode plus 2-4 bytes for self, index and parameter loading, and at the same time the array approach sometimes need to adjust the index, costing 3 bytes.
 
 \section{Overview of the implementation}
+The core of the LightScript implementation consists of three parts: 1) a top down operator precedence parser that is responsible for building the syntax tree, and identify which variables needs to be boxed on the heap for closures, 2) a compiler which translate the abstract syntax tree to a sequence of opcodes while keeping track of the stack depth, and 3) a stack based virtual machine for executing the code.
+Beside these core elements, the implementation also contain an API for embedding, and a library of standard functions.
+
+The parser is a concrete implementation of the top down operator precedence parser for imperative laanguage, as described in section~\ref{tdop-imp}, with the additional detail, that during the parsing, the parser keep track of which variable is defined and used in each function, such that this information can be used for scoping later on. 
+The source code for the parser starts on page~\pageref{lightscript-parser}.
+
 \subsection{Compiler}
-TODO: elaborate 
-The core part of the compiler is a function that compiles a single node in the syntax tree. This function also takes a parameter 
+
+The core of the compiler is a function that compiles a node of the syntax tree, possibly calling itself recursively for the children.
+As it is compiling to a stack based virtual machine, the compilation itself can be quite simple/small, as functions and operators, just need to evaluate its parameters in a way that pushes the results to the stack, followed by doing the operation on the top elements of the stack.
+
+As the activation records is also allocated on the stack, the compiler needs to keep track of the current stack depth, so whenever emitting a function that changes the stack depth, the stack depth variable also needs to be kept updated.
+
+The abstract syntax tree does not distinguise between statements and expressions. Instead the compiler function takes a parameter which indicates whether the generated code is expected to push a result on the stack or not, and corresponding code will be generated. 
+
+By having the integer for the abstract syntax tree node type match the virtual machine instruction, many of the compilation cases can be joined.
+
 
 \subsection{Virtual Machine}
-TODO: elaborate 
 The virtual machine is stack-based in order to reduce the footprint of the compiler.
-It is implemented with a single larger switch statement as it is running on top of JVM, which has no support for references to labels, etc.
+It is implemented with a single larger switch statement as it is running on top of JVM, as the JVM, does not support for references to labels, etc.
 The instruction set is inspired by the JVM and calling conventions on i386, and is also product of the iterative development, such that new instructions are added, as they are needed by the compiler.
 
 
