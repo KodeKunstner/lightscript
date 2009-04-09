@@ -883,8 +883,9 @@ If the interface with Java is lazy, this allows new control flow constructs to b
 
 Execution should be online, in the sense that whenever a full statement is read from the input, it should be executed, not needing to read the full file. This is both practical for interactive evaluation, and also has a benefit memorywise as the entire program never needs to be fully in memory, as executed code may be garbage collected.
 
-\section{Implementation details}
-\subsection{AST rewriting}
+\section{Syntax tree rewriting}
+
+To make the interpreter as simple as possible, it interprets the syntax tree directly. Still this has some performance issues, as, for example variable and function lookup would be done at each execution. To avoid the cost of this some of the evaluation functions instead resolves the variables the first time they are executed and replaces the node itself with a node of the resolved variable or function.
 
 \section{Language specification}
 
