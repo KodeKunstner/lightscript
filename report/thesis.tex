@@ -66,35 +66,8 @@ Yolan has a code footprint less than half the size of LightScript, and they are 
 \setcounter{tocdepth}{2}
 \tableofcontents
 
-\begin{comment}
-\chapter*{TODO-list for the report}
-{\scriptsize
-add chapter introductions and summaries
-\paragraph{LightScript}
-add language specification. add language design, perhaps more implemenation details
-\paragraph{Yolan}
-add design and implementation details, and semantic details in specification
-\paragraph{Benchmarks}
-add summary for each result section
-\paragraph{Discussion}
-MISSING
-\paragraph{Conclusion}
-MISSING
-\paragraph{Bibliography}
-MISSING
-\paragraph{Benchmark source}
-change to lstlisting
-\paragraph{Yolan source}
-ok for now, maybe add other class
-\paragraph{LightScript source}
-Needs more comments. Maybe add other classes
-\paragraph{Index}
-MISSING. Walk through when other parts are less drafty
-}
-\end{comment}
 \chapter{Introduction}
 This chapter introduces the project, starting with description and then motivation for the project, and a bit about the structure of this report.
-
 
 \section{Project description}
     The topic of the project is to design and implement a scripting language
@@ -504,6 +477,13 @@ Required indentation leads to easier readable programs.
 The issue with python on mobile devices is, that it is relatively resource intensive, and thus use more energy, and is only available on high end phones.
 
 \subsection{Scheme and Lisp}
+Scheme and Lisp are especially interesting in this context, due to their minimalism, which inspiring in the design of a language with strong restrictions on the implementation environment.
+The syntax is mostly isomorphic with the abstract syntax tree, meaning that parsing is mostly trivial.
+
+For mobile devices, early versions of JScheme \cite{norvig-jscheme} are small enough, that they can be made to run, even with the limitations of footprint on the low end devices. It would need to be ported, as it uses parts of the language not available on the limited devices, but it can be usable as a benchmark tartget due to the sensible footprint size.
+
+Another Scheme implementation, which targets mobile devices is ULM (Un Langage pour la Mobilité) which is a part of a thesis on agent systems \cite{ulm}. Essentially the implementation is a virtual machine, which runs as a backend of a modified version of the Bigloo \cite{bigloo} Scheme compiler.
+This was considered as a potential benchmark target, but I did not have time to get it to run, due to issues with dependencies, and at the same time it has a relatively large code footprint -- 96KB.
 
 \subsection{Self}
 \label{survey-self}
