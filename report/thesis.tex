@@ -67,9 +67,7 @@ Yolan has a code footprint less than half the size of LightScript, and they are 
 \tableofcontents
 
 \chapter{Introduction}
-This chapter introduces the project, starting with description and then motivation for the project, and a bit about the structure of this report.
 
-\section{Project description}
     The topic of the project is to design and implement a scripting language
 that runs on very low-end mobile devices. This is both to create a practical tool, and
 also a focus for exploration of programming language theory. 
@@ -97,19 +95,19 @@ than megabytes.
 
 \section{Motivation}
 
-Scripting languages make it easier to write applications\cite{scripting-ousterhout}. Beside higher productivity, they are also for more customisation, possibly user based.
-On more power full devices, ranging from high-end smartphones to personal computers, there are very good scripting languages available.
-Scripting language implementations usually take a lot of resources, which is a problem on low-end mobile devices, where they may not be available, are very slow, or have limitations, such as they cannot be executed directly, but need to be compiled to another devices, or they do not have basic data types.
-The focus on better implementation of a scripting languages for mobile devices is thus a niche, where the result may actually be of practical use.
+Scripting languages make it easier to write applications\cite{scripting-ousterhout}. Beside higher productivity, they also opens up for user based scripting and scriptable configurations.
+On more powerful devices, ranging from high-end smartphones to personal computers, there are very good scripting languages available.
+Scripting language implementations usually take a lot of resources, which is a problem on low-end mobile devices. On those devices, implementations may not be available, may be very slow, or have limitations, such as they cannot be executed directly, but need to be compiled on another machine, or they do not have basic data types.
+The focus on a better implementation of scripting languages for mobile devices is thus a niche, where the result may actually be of practical use.
 
 The focus on low-end devices also has another benefit:
 it broadens the number of devices on which the language may run.
 While very low-end devices are becoming uncommon in Denmark,
 they still live on in countries with less information technology penetration.
-Thus by targeting the very low-end devices, 
-this may make scripting, and thus easier content creation,
-available where it has not been available before,
-and thus could be the beginning of stepping stone 
+Thus,  by targeting very low-end devices, 
+this project may make scripting, and thus easier content creation,
+more available,
+and thus could be the beginning of a stepping stone 
 towards more information and computing literacy.
 The restrictions of low end mobile devices also imposes challenges, that may lead to interesting solutions.
 
@@ -124,19 +122,14 @@ Design and implementation of a scripting language for mobile devices is spot on 
 \section{The structure and content of the report}
 
 The report starts out with some background information: this introduction, and a survey on topics related to the project in Chapter~\ref{survey}.
-Then the methodology and design for the project are elaborated in Chapter~\ref{method}, including some of the principal design choices for the language implementations.
-The next couple of chapters are then the actual results: the LightScript language in Chapter~\ref{lightscript}, the Yolan language in Chapter~\ref{yolan}, and some benchmarking of the two new languages compared to existing scripting languages in Chapter~\ref{benchmark}.
+Then,  the methodology and design for the project are elaborated in Chapter~\ref{method}, including some of the principal design choices for the language implementations.
+The next couple of chapters then describe the actual results: the LightScript language in Chapter~\ref{lightscript}, the Yolan language in Chapter~\ref{yolan}, and some benchmarking of the two new languages compared to existing scripting languages in Chapter~\ref{benchmark}.
 Finally there is a discussion of the results in Chapter~\ref{discussion}, rounding off with a conclusion in Chapter~\ref{conclusion}
 
-Some parts of the developed source code has been attached, such that the implementation details described in Chapter~\ref{lightscript},~\ref{yolan} and~\ref{benchmark}, can also be seen in practice.
+Some of the developed source code has been attached, such that the implementation details described in Chapter~\ref{lightscript},~\ref{yolan} and~\ref{benchmark}, can also be seen in practice.
 There is also an index to make it easier to find specific parts of the report.
 
-Each chapter contains a short introduction and summary, which makes it easier to skim, and get an overview of the report.
-
-\section{Summary}
-The purpose of this project is create and learn about scripting language implementation on low end mobile devices.
-This is motivated by that it is a niche where such development may actually be practical.
-The report is structured with: introduction, survey, approach, language implementations, benchmarks, discussion and conclusion.
+Each chapter contains a short introduction and summary, to makes the chapter easier to skim, and get an overview of the report.
 
 \chapter{Survey}
 \label{survey}
@@ -172,7 +165,7 @@ On small micro controllers, programs are usually stored in flashable ROM, and on
 These may have less than a kilobyte of RAM, and some kilobytes of possibly flashable ROM for the executable code. Examples of this are the PIC-processors \cite{picspec}, or the ATmega 8-bit microcontrollers \cite{atmegaspec}.
 An interesting operating system for low end devices is the Contiki \cite{contiki}, which also has some details on very lightweight implementation of threads.
 
-On more powerfull embedded devices, for example mobile phones, and larger computers,
+On more powerful embedded devices, for example mobile phones, and larger computers,
 it may sometimes be practical to be able to work with the code as data, and thus von Neumann architecture makes more sense there.
 For mobile and larger embedded devices a typical CPU architecture is the ARM \cite{arm-architecture}, which is a 32 bit RISC architecture.
 
