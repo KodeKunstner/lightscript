@@ -1743,7 +1743,7 @@ The measurement of the performance of the different scripting languages are show
 \end{center} 
 
 \section{Summary}
-\chapter{Discussion}
+\chapter{Discussion and future work}
 \label{discussion}
 
 \section{Performance}
@@ -1777,7 +1777,10 @@ but only an implementation and actual benchmark will show.
 
 LightScript is definitely a language I will use for developing mobile applications in the future, so the project has at least been successful by making a tool in that direction.
 
-\section{Further development of LightScript}
+\section{Future development of LightScript}
+
+The next development with LightScript is toward version 1.2, which is described in the LightScript chapter, and after that publishing it, and expanding the library as discussed below.
+On the long term, other possible milestones are optimisation of the byte code, porting LightScript to embedded C, and better development tools in shape of prettyprinting and linting.
 
 \subsection{Making it public}
 LightScript will be released as open source software. 
@@ -1785,28 +1788,45 @@ Just releasing the source, is not enought to make it really usable for others: d
 This will be done when LightScript version 1.2 is done.
 The website \url{http://www.lightscript.net/}, will serve as the main site, and a small dummy page is already put up.
 
-\subsection{Zooming user interface and other optional libraries}
-The next major 
-... TODO: zui
+\subsection{User interface and other optional libraries}
 
+Currently LightScript needs custom Java functions to be added for doing anything useful, as there are no input library for input/output.
+As the language implementation stabilises, the next step is to create a library which can optionally be included within the application.
+A lot of standard functionality, such as cryptography, http-networking, storage, etc.,  can relatively easily merged from the platform, or existing open source libraries. 
+Other libraries may require further consideration, one major task here is integration of a graphical user interface with LightScript, as on this point, there are major differences between the platform on which LightScript runs, both within APIs on platforms, and also of actual platform capabilities.
+
+\subsubsection{User interface}
+Additional libraries for LightScript is scheduled for version 1.4, and the major design task will here be the user interface. 
+Issues are very varying or limited resolutions and and input methods, ranging from screen size of 96x65 pixels, up to full desktops, and input methods from simple phone keypad, to touch-input-only, to multi touch, to regular computers.
+
+A solution that will be interesting to pursue is in the direction of zooming interfaces, as these able to scale down to small screens.
+Prototypes within this project has has also gone in the direction of zooming interfaces, though they have yet to be integrated with the scripting language, and have achived maturity to become a part of this report.
 
 \subsubsection{Other optional libraries}
 
 Much interactions happens via web, so a simple function for getting and parsing web pages will be practical for enabling LightScript as a tool for mobile mashups would be needed. This will be a simple heuristic html parser mapping the XML-tree to JsonML\footnote{JsonML is an embedding of XML in JSON, somewhat similar to SXML in the Scheme} \cite{jsonml}, which can then easily be interacted with in LightScript.
+The access to http-connections are supported within CLDC/1.0 and CLDC/1.1, as well as larger Java platforms, and just needs to be wrapped.
 
 When making applications that may handle the users private data, it should be secured, which is why support for simple cryptography should be added. There already exist a good open source library for mobile cryptography \cite{bouncycastle} where a couple of ciphers can be extracted and added as optional library in LightScript.
 
-
 \subsection{Optimising the byte code}
+
+A way to optimise the execution, and reduce the memeory usage of compiled programs, would be to optimise the byte codes, by joining common code sequences. Which byte codes to combine can be determined by using grammar based compression techniques on generated code, and create new codes from the founcd dictionary. 
+This reduce the memory usage, as the generated codebecomes shorter, and increases the performance as the joined codes only need a single dispatch for the new code. The cost is a larger larger code footprint due to the new byte codes. If this is to be implemented, it probably has to wait until there are more code written within LightScript, as a larger amount of code is needed for better generation of dictionaries.
 
 \subsection{Embedded implementation}
 
-Addition of a LightScript implementation for embedded C, targeting devices limited to 64K RAM.
-... TODO
-... unique strings ... 16bit cells for more space
+Another direction with the development of LightScript is the implementation on non-Java platforms.
+Embedded C is very different from Mobile Java: the importance of the run time memory usage and code footprint is reversed, as embedded devices often have larger built in flash ROM, than working memory.
+
+The first target platform for an embedded C implementation will be the Mindstorm NXT, which has 64K of RAM, and 256K TODO:verify of ROM.
+An optimisation here is to use 16bit tagged pointers/small integers rather than 32bit, to save memory. 
+
+An interesting implementation aspect to study is the effect to enforce unique immutable. This will cost approximately additional 3 bytes per string, and string creation will be more expensive, but at the same time, there will be no copies of identical strings, which can save significant space, and string comparison is changed to pointer comparision, which is much faster.
 
 \subsection{Lint and prettyprinter}
-Better development tool with a LightScript lint/prettyprinter, and possibly also interpreter with more run time checking and debugging support.
+Better development tool for LightScript via the lint/prettyprinter,
+is also a potential development target in the long run.
 
 
 \chapter{Conclusion}
