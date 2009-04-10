@@ -95,7 +95,7 @@ than megabytes.
 
 \section{Motivation}
 
-Scripting languages make it easier to write applications\cite{scripting-ousterhout}. Beside higher productivity, they also opens up for user based scripting and scriptable configurations.
+Scripting languages make it easier to write applications \cite{scripting-ousterhout}. Beside higher productivity, they also opens up for user based scripting and scriptable configurations.
 On more powerful devices, ranging from high-end smartphones to personal computers, there are very good scripting languages available.
 Scripting language implementations usually take a lot of resources, which is a problem on low-end mobile devices. On those devices, implementations may not be available, may be very slow, or have limitations, such as they cannot be executed directly, but need to be compiled on another machine, or they do not have basic data types.
 The focus on a better implementation of scripting languages for mobile devices is thus a niche, where the result may actually be of practical use.
@@ -138,9 +138,9 @@ Each chapter contains a short introduction and summary, to makes the chapter eas
 
 When making projects, the approach can be
 more or less bottom-up or top-down.
-A top-down approach could be like the waterfall model\cite{waterfall} of software devlopment,
+A top-down approach could be like the waterfall model \cite{waterfall} of software devlopment,
 where we start with the specification, design and then implementation and test.
-The bottom-up is could be like stepwise refinement\cite{stepwise-refinement}, more agile\cite{agile-manifesto, extreme-programming}, starting out with a quick prototype, which gets more and more refined.
+The bottom-up is could be like stepwise refinement \cite{stepwise-refinement}, more agile \cite{agile-manifesto, extreme-programming}, starting out with a quick prototype, which gets more and more refined.
 
 The purpose of this project is to learn about programming languages and mobile development, and create a scripting language. 
 The bottom-up approach is choosen, as it opens more up for experimentation, and new ideas are easier follow, than with the top-down approach.
@@ -161,37 +161,37 @@ In addition to this, it could also be interesting to look at how different parts
 
 \section{Mobile platforms}
 
-Mobile devices ranges from low end phones, which, if they are programmable at all, only support limited Java Micro Edition midlets, up to advanced smartphones with performance resource similar to older desktop computers.
+This section surveys the different development platform for mobile devices, to determine a target platform for the language.
+Mobile devices ranges from low end phones, which, if they are programmable at all, only support Java Micro Edition, up to advanced smartphones with performance resources similar to older desktop computers.
 
-When looking mobile devices, it should be noticed some survey \cite{smartphonesurvey} only focus smartphones, and thus the market shares does not include the more low end devices.
+Most low end phones support some kind of Java midlets\footnote{A midlet is a small Java application targeting mobile devices, similar to applets, which are small Java applications targeting web browsers}.
+Here there are different APIs and device profiles, but the basic execution and deployment model is the same for devices that support midlets.
 
-Most low end devices support some kind of mobile Java.
-Here there are different APIs and device profiles, but the basic execution and deployment model is the same for those.
-
-Low end devices rarely support loading of native code, and higher end devices may require different kind of code signing to allow native programs to be distributed.
+Low end devices rarely support loading of native code, and higher end devices may require various kinds of code signing to allow native programs to be distributed.
 
 Besides Java and native code, JavaScript is becoming a potential language for applications for high end phone. 
 This is both due to its integration with the web, which means that it will be available on the phones with advanced browsers, due to the increased amount of memory on high end phones
 and due to recent major performance advances within the JavaScript implementations, which are propagating towards mobile devices.
 
+%TODO: spoiler - target J2ME. embedded systems and smartphones are described as they are potential targets for future versions, JavaScript additionally because of compatibility
 \subsection{Embedded systems}
 The personal computers, PCs, as we know them, are only a very small fraction of the computers in use.
-Billions of electronic devices nowadays have small computers embeddes. They are in mobile phones, kitchen equipment, washing machines, music instruments, car, even advanced greeting cards. 
-These embedded computer systems, vary tremendously, from low end micro controllers with memory measured in bytes, up to powerful CPUs with vector processing units and many megabytes of memory.
+Billions of electronic devices nowadays have small embedded computers; they are in mobile phones, kitchen equipment, washing machines, music instruments, car, even advanced greeting cards. 
+These embedded computer systems vary tremendously, from low end micro controllers with memory measured in bytes, up to powerful CPUs with vector processing units and many megabytes of memory.
 
 \subsubsection{Machine architecture}
 There are two significantly different classes of computers: The Harvard architecture, and the von Neumann architecture. The difference is whether the program code is in the same memory as the data or if they are separated.
 
-Larger computers usually use the von Neumann architecture where program and data is in the same memory, and this is the most commonly known model.
+Larger computers usually use the von Neumann architecture where program and data are in the same memory, and this is the most commonly known model.
 On small micro controllers on the other hand, the data memory is usually separated from the program memory, which is what is called the Harvard architecture. 
-These two approaches to architecture dates back to some of the early computers: the Harvard Mark I \cite{harvard-mark1} and the EDVAC \cite{edvac} by John von Neumann.
+These two approaches to architecture date back to some of the early computers: the Harvard Mark I \cite{harvard-mark1} and the EDVAC \cite{edvac} by John von Neumann.
 
-On small micro controllers, programs are usually stored in flashable ROM, and on the Harvard architecture the separation of data and code makes it easier and cheaper to implement, for example size of the code words can be independent of the size of the data words.
+On small micro controllers, programs are usually stored in flashable ROM, and on the Harvard architecture the separation of data and code makes it easier and cheaper to build the micro controller. For example, the size of the code words can be independent of the size of the data words.
 These may have less than a kilobyte of RAM, and some kilobytes of possibly flashable ROM for the executable code. Examples of this are the PIC-processors \cite{picspec}, or the ATmega 8-bit microcontrollers \cite{atmegaspec}.
-An interesting operating system for low end devices is the Contiki \cite{contiki}, which also has some details on very lightweight implementation of threads.
+An interesting operating system for low end devices is Contiki \cite{contiki}, which also demonstrate how very lightweight threads can be implement.
 
 On more powerful embedded devices, for example mobile phones, and larger computers,
-it may sometimes be practical to be able to work with the code as data, and thus von Neumann architecture makes more sense there.
+it may sometimes be practical to be able to work with the code as data, and thus the von Neumann architecture makes more sense there.
 For mobile and larger embedded devices a typical CPU architecture is the ARM \cite{arm-architecture}, which is a 32 bit RISC architecture.
 
 \subsubsection{Development platform}
@@ -213,8 +213,9 @@ The system also have a 100x64 black/white lcd display, and a couple of buttons, 
 J2ME (Java Micro Edition\footnote{Java Micro Edition is a recent rebranding of J2ME}) is the most common platform for mobile application, supported by more than a billion devices \cite{sun-j2me}. 
 It seems like two thirds of mobile phones shipped today supports Java \cite{esmertec-globenews}.
 %http://www.globenewswire.com/newsroom/news.html?d=149713
-Most mobile devices either require strict code signing, or do not allow native applications to be loaded at all, which leads to that J2ME is often the only for mobile application development.
-J2ME is a trimmed down Java Virtual Machine (JVM) so it has most of the features and limitations of a standard Java JVM, with some notable exceptions, such as the lack of dynamic class loading and reflection. It is fragmented platform which makes it more difficult to make applications that works across devices: there are different APIs/extensions from different vendors, and different device profiles for different hardware capabilities.
+Most mobile devices either require strict code signing, or do not allow native applications to be loaded at all, implies that J2ME is often the only option for mobile application development.
+J2ME is a trimmed down Java Virtual Machine (JVM) so it has most of the features and limitations of a standard Java JVM, with some notable exceptions, such as the lack of dynamic class loading and reflection. It is a heterogenous platform:
+there are different APIs/extensions from different vendors, and different device profiles for different hardware capabilities, meaning that the applications need to be ported.
 
 Applications for J2ME, are called Midlets and are distributed via JAR-files (Java ARchive). A JAR file is essentially a zip file containing the compiled Java classes, data files, and some meta information.
 
@@ -222,77 +223,22 @@ J2ME has two device configurations CLDC 1.0 (Compact Limited Device Configuratio
 It seems like approximately $\frac{1}{6}$ of the mobile phones that supports J2ME is limited to CLDC 1.0, whereas CLDC 1.1 is supported by the remaining $\frac{5}{6}$ of the phones \cite{mobref}.
 % http://stats.getjar.com/statistics/world/gJavaCLDCVer
 A limitation of both CLDCs is that they lack of support for reflection and dynamic code loading.
-The lack of a reflection API impacts a scripting language in that it cannot discover native functionsn Instead such functions have to be added explicitly to the system.
-The lack of run-time class loading, means that the only way to execute run-time loaded scripts is through intepretation. JIT compiling to JVM or native code is not possible.
+The lack of a reflection API impacts a scripting language in that it cannot discover native functions. This means that foreign function interface between Java and a scripting language, cannot discover or work with Java dynamically, but Java functions that should be callable from the scripting language must be coded into the implementation before deployment.
+The lack of run-time class loading means that JIT compiling to JVM is not possible.
+Neither is native code available, so the only way to execute scripts loaded at run-time is through interpretation, possibly via a virtual machine.
 
 The CLDCs are based upon the Java JVM \cite{jvmref}, with some instructions removed, and some metadata added to ensure stack discipline. 
-In order to simplify the J2ME JVM implementation, Java class files has to be preverified, before they can be loaded.
-The preverification add meta data about stack use, and removes certain instructions, such as local jump-and-save-register, to make it easier to implement a JVM, that is safe against malicious code trying to overflow the stack.
-The reference implementation of CLDC 1.0, kvm, is a switch-based interpreter with a compacting mark-and-sweep garbage collector \cite{kvm}.
+In order to simplify the J2ME JVM implementation, Java class files have to be preverified, before they can be loaded.
+The preverification adds meta data about stack use, and removes certain instructions, such as local jump-and-save-register, to make it easier to implement a JVM that is safe against malicious code trying to overflow the stack.
+The reference implementation of CLDC 1.0, KVM, is a switch-based interpreter with a compacting mark-and-sweep garbage collector \cite{kvm}.
 
 
 The JVM limits interpreter implementation: it does not support label references as values, nor does it support functions as values. This makes some of the optimisations discussed in 
 Section~\ref{interpreter-implementation} impossible.
-Instead it does have a builtin switch opcode as well as support for method-dispatch based on the type of an object, so an interpreter would either be switch-based, or have a class for every opcode.
+Instead, it does have a builtin switch opcode as well as support for method-dispatch based on the type of an object, so an interpreter would either have to be switch-based, or have a class for every opcode.
 
 The resources available for J2ME applications on mobile phones start at 64KB for the size of the JAR-file and 200KB for the run time memory on the lowest end devices, and goes upwards from there \cite{nokia-optim}.
 These numbers are for the full application, so the resources available for an embeddable scripting language, could be significantly less than this, depending on the resource usage of the host application.
-
-\subsubsection{Reducing the memory usage of J2ME applications}
-
-Some devices only have little memory available,
-and an optimisation here is to be able to avoid having memory intensive parts of the program run at the same time. For example, with a scripting language, it is desirable to be able to garbage collect the executed parts of long script when they are done, so the memory becomes available for other computations.
-The usual size optimisations, such as finding compact representations, trimming dynamic data structures, avoiding sparse data, etc., are also applicable.
-Here may be a tradeoff between the code footprint and run time memory, as compact representations and other optimisations may require more code to be implemented.
-
-\subsubsection{Reducing the footprint of J2ME applications}
-Some optimisations to reduce the code or JAR-file footprint:
-\begin{itemize}
-\item Reduce the number of class-files.
-\item Write initialisation manually, where the automatic generated initialisation is inefficient.
-\item Use a JAR-optimiser/obscurifier.
-\item Put the classes in the unnamed package.
-\end{itemize}
-
-Another optimisation is to reduce the number of classes \cite{nokia-optim, kahlua-thesis}.
-This may reduce the size of the JAR file significantly,
-even though it does not change the amount of code:
-Each class file has its own symbol table, which means that if classes are merged, then common symbols only needs to be represented once, rather than once for each class.
-Furthermore JAR files are essentially zip-archives, and each file in a zip archive is compressed individually \cite{zipspec}, which means that small files typically get compressed less than larger files, due to the small compression context.
-The downside of reducing the number of classes is that it could go against the object oriented design, and the implementation may more difficult to read and edit.
-
-Initial values are not supported directly by the Java class file format, but instead
-JVM-code is generated, which does the initialisation. 
-This often inefficient. For example the initialisation:
-\begin{verbatim}
-byte[] bytes = { 1, 4, 3, 4, 5, 6, 2, 3, 1 } ;
-\end{verbatim}
-generates the code corresponding to
-\begin{verbatim}
-byte[] bytes = new byte[9];
-bytes[0] = 1; bytes[1] = 4; bytes[2] = 3;
-bytes[3] = 4; bytes[4] = 5; bytes[5] = 6;
-bytes[6] = 2; bytes[7] = 3; bytes[8] = 1;
-\end{verbatim}
-which for larger initialisation is significantly more expensive than manually written initialisers,
-which for the above example could be:
-\begin{verbatim}
-byte[] bytes = "\001\u004\u003\u004\u005\u006\u002\u003\u001".getBytes();
-\end{verbatim}
-
-Another thing to be aware of is, that strings in Java class files are encoded, such that only characters with unicode values between 1 and 127 (inclusive) uses one byte per character, so for large binary data, it may make sense to load it from external sources and not include it in the class file.
-
-JAR file optimisation/obfuscation can beneficial for code footprint because it may:
-remove unused code,
-rename methods and classes, such that they use less space in the symbol table,
-make \verb|static const|s work as \verb|#define|s,
- and optimise the code, thus shortening it.
-This also allows one to make more readable code with less concern of code footprint, knowing that some of the more verbose parts will be optimised away.
-
-Using the unnamed package also saves space in the symbol table, as class references becomes shorter.
-
-The code footprint limit may be tighter that the run time memory limit, and it may be possible to partition the execution such that different parts of the applications do not need to use run time memory at the same time.
-Thus, in this project with the design of an embedded scripting language, code footprint will be prioritised slightly higher than the run time memory usage, although both are important.
 
 \subsection{Smartphones}
 Many high end phones -- smartphones --  allows loading of native code. 
@@ -339,6 +285,65 @@ Openmoko is a project towards having open source phones.
 It is both a software stack for smartphones, and it is also a small development division of the hardware company FIC, where they are making the first open source phones.
 The two phones released so far have lots of rough edges both software and hardware wise, but from a developer point of view, these very interesting as they are not just phones but full Linux computers with X11 and most things as known from larger scale Linux environments -- and the source code is available for everything, so it is even possible to write new operating systems for them, and customise them in every way.
 
+\section{Optimising Java for low end mobile devices}
+The next to sections looks into methods of reducing the memory usage and code footprint of Java midlets.
+These are very limited resources on some mobile devices, especially the code footprint, and techniques for optimising these will be needed when implementing the language.
+
+\subsection{Reducing the memory usage of J2ME applications}
+
+Some devices only have little memory available,
+and an optimisation here is to be able to avoid having memory intensive parts of the program run at the same time. For example, with a scripting language, it is desirable to be able to garbage collect the executed parts of long script when they are done, so that the memory becomes available for other computations.
+The usual size optimisations, such as finding compact representations, trimming dynamic data structures, avoiding sparse data, etc., are also applicable.
+Here may be a tradeoff between the code footprint and run time memory, as compact representations and other optimisations may require more code to be implemented.
+
+\subsection{Reducing the footprint of J2ME applications}
+Some optimisations to reduce the code or JAR-file footprint:
+\begin{itemize}
+\item Reduce the number of class-files.
+\item Write initialisation manually, where the automatic generated initialisation is inefficient.
+\item Use a JAR-optimiser/obscurifier.
+\item Put the classes in the unnamed package.
+\end{itemize}
+
+Another optimisation is to reduce the number of classes \cite{nokia-optim, kahlua-thesis}.
+This may reduce the size of the JAR file significantly,
+even though it does not change the amount of code:
+Each class file has its own symbol table, which means that if classes are merged, then common symbols only need to be represented once, rather than once for each class.
+Furthermore JAR files are essentially zip-archives, and each file in a zip archive is compressed individually \cite{zipspec}, which means that small files typically get compressed less than larger files, due to the small compression context.
+The downside of reducing the number of classes is that it could go against the object oriented design, and the implementation scripting language may more difficult to read and edit. 
+
+Initial values are not supported directly by the Java class file format, but instead
+JVM-code is generated, that does the initialisation. 
+This code is often inefficient. For example the initialisation:
+\begin{verbatim}
+byte[] bytes = { 1, 4, 3, 4, 5, 6, 2, 3, 1 } ;
+\end{verbatim}
+generates the code corresponding to
+\begin{verbatim}
+byte[] bytes = new byte[9];
+bytes[0] = 1; bytes[1] = 4; bytes[2] = 3;
+bytes[3] = 4; bytes[4] = 5; bytes[5] = 6;
+bytes[6] = 2; bytes[7] = 3; bytes[8] = 1;
+\end{verbatim}
+which for a larger initialisation is significantly more expensive than the following manually written initialisers:
+\begin{verbatim}
+byte[] bytes = "\001\u004\u003\u004\u005\u006\u002\u003\u001".getBytes();
+\end{verbatim}
+
+Another thing to be aware of is that strings in Java class files are encoded such that only characters with unicode values between 1 and 127 (inclusive) use one byte per character. Thus it may make sens to load large binary data objects from external sources, rather than including them.
+
+JAR file optimisation/obfuscation can be beneficial for code footprint because it may
+remove unused code,
+rename methods and classes, such that they use less space in the symbol table,
+make \verb|static const|s work as \verb|#define|s,
+ and optimise the code, thus shortening it.
+This also allows one to make more readable code with less concern for the code footprint, knowing that some of the more verbose parts will be optimised away.
+
+Using the unnamed package saves space in the symbol table, as class references becomes shorter.
+
+The code footprint limit may be tighter that the run time memory limit, and it may be possible to partition the execution such that different parts of the application do not need to use run time memory at the same time.
+Thus, in this project with the design of an embedded scripting language, code footprint will be prioritised slightly higher than the run time memory usage, although both are important.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -360,30 +365,29 @@ The following sections surveys different programming languages:
 
 
 \subsection{Forth and other stack languages}
-Forth is a stack based language.
+Forth is a stack-based language.
 It is very interesting for this project, as it is an example of an interpreted minimalistic language running on even very low-end devices.
 
-The syntax is differnent from most modern languages, due to the reverse polish notation.
-The functions work on a stack, which the programmer is explicit aware of. 
-Functions or `words', replaces the parameters on the top of the stack with the result. 
-New words/functions can be defined, and are concatenative in the sense that functions written after each other, has the same semantics as content of the functions written after eachother.
+The syntax of Forth is different from that of most modern languages, due to the use of reverse polish notation.
+Functions work on a stack, which the programmer is explicitly aware of. 
+Functions or `words', replace the parameters on the top of the stack with the result. 
+New words/functions can be defined, and are concatenative in the sense that functions written after each other have the same semantics as function body themselves written after each other.
 Beside the stack for parameters, there is also a stack for return addresses.
 
-Forth looks very strange when starting looking at the programs, but it seems like it is the question of getting habit of being aware of the stack.
-The programming style has focus towards decompositions. It also supports meta programming.
-Forth systems has explicit compilation, the system has two modes: compile mode and interpret mode. 
+%Forth looks very strange when starting looking at the programs, but it seems like it is the question of getting habit of being aware of the stack.
+The programming style is focused on decompositions. Forth supports meta programming.
+Forth systems have explicit compilation, the system has two modes: compile mode and interpret mode. 
 It is possible to create words that are executed at compile time, using the immediate keyword.
 Words -- ``functions'' in Forth -- are first class data types.
 
-A couple of very interesting pointers related to Forth are: 
-``Thinking Forth'' is a very good book, not only on Forth programming, but also touches a lot programming and problem solving in general.
-There is also a tutorial Forth implementation \cite{jonesforth}, which is a good place to get started on how Forth can be implemented - it is the implementation of a full Forth system, written in assembler, but very readable and well documented.
+A couple of very pointers related to Forth are: 
+``Thinking Forth'' is a very good book, not only on Forth programming, but also touches a lot programming and problem solving in general. This include details on implementation of stack-based languages.
+There is also a tutorial Forth implementation \cite{jonesforth}, that shows how Forth, and thereby stack machines, can be implemented - it is the implementation of a full Forth system, written in assembler, but very readable and well documented.
 
-Forth is also interesting from the virtual machine point of view, as this is a programming language which is similar to stack based virtual machines. So forth implementation techniques is shared with a lot of virtual machines. And research within this topic overlaps, an example is a dissertation on implementation of stack languages on register based machine \cite{ertl-dissertation}, as the representitive stack-based language.
+Forth is also interesting from the virtual machine point of view, as it similar to the languages of a stack-based virtual machines. So Forth implementation techniques share a lot those of virtual machines. And research within this topic overlaps, an example is a dissertation on implementation of stack languages on register-based machine \cite{ertl-dissertation}, which uses Forth as the representitive stack-based language.
 
 Other more recent stack languages are Joy \cite{joy-language}, Cat \cite{cat-language} and Factor \cite{factor-language}.
-Interesting development here are more typing, and also the use of anonymous code blocks, 
-to create the control structure.
+Interesting developments here are stronger typing, and also the use of anonymous code blocks to create the control structure.
 
 
 \subsection{Hecl and Tcl}
@@ -419,7 +423,7 @@ The following sections will describe the language, some of the implementations a
 
 \subsubsection{Language description}
 It is a dynamically typed scripting language with first class functions, a prototypical object system, and a C-like syntax.
-A good introduction to JavaScript is given in the book ``JavaScript the good parts''\cite{goodparts} and some of its material is also available online \cite{crockford-javascript-web} which serves well as an overview of the language. The EcmaScript standard \cite{ecma-262} can be used for getting to know the details of the languages.
+A good introduction to JavaScript is given in the book ``JavaScript the good parts'' \cite{goodparts} and some of its material is also available online \cite{crockford-javascript-web} which serves well as an overview of the language. The EcmaScript standard \cite{ecma-262} can be used for getting to know the details of the languages.
 
 
 \subsubsection{Implementations}
@@ -444,7 +448,7 @@ Rhino is an implementation of JavaScript on top of Java. This is mainly as an em
 SpiderMonkey \cite{spidermonkey} is the JavaScript engine in Mozillas browsers, and it is also usable as an embeddable engine in other applications. The execution is based on a switch dispatched virtual machine TODO:verify-that-I-remember-correctly-here.
 
 \paragraph{TraceMonkey} 
-TraceMonkey is a branch of SpideMonkey, which incoperates JIT compilation, with a JIT compiler based on trace trees\cite{trace-tree}, 
+TraceMonkey is a branch of SpideMonkey, which incoperates JIT compilation, with a JIT compiler based on trace trees \cite{trace-tree}, 
 which rather than JIT compiling the entire program,
 traces and then compiles the most executed paths through the program.
 This means that the JIT compiled code gets optimised to the actual execution,
@@ -505,41 +509,41 @@ This was considered as a potential benchmark target, but I did not have time to 
 
 \subsection{Self}
 \label{survey-self}
-Self \cite{self} is especially interesting due to the prototypical inheritance.
-In traditional object oriented programming, we have classes and objects, where classes can inherit from other classes, and objects are instantiation of classes.
+Self \cite{self} is especially interesting due to its use of prototypical inheritance.
+In traditional object oriented programming, we have classes and objects, where classes can inherit from other classes, and objects are instantiations of classes.
 Instead of classes and subclasses for inheritance, Self has a clone operator, which creates a new object using an existing object as blueprint.
-An object in self contains a pointer to the parent (cloned) object, and a mapping from propertynames to values or methods. When a property is read, mapping is first searched, and if the name is not found there, the parent object is searched.
+An object in Self contains a pointer to the parent (cloned) object, and a mapping from property names to values or methods. When a property is read, the mapping of the current object is first searched, and if the name is not found there, then the parent objects are searched for the property.
 
 \section{Interpreter implementation}
 \label{interpreter-implementation}
-This section looks into a couple of aspects of interpreter implementation.
-First is a discussion on different types of virtual machines, namely register and stack machines, and their different benefits and tradeoffs.
-Then there is a discussion on the implementation of dispatch, which is one of the bottlenecks of intepreters.
-Third there is a discussion of garbage collection techniques.
-And finally there is a discussion on different approaches managing to run time stack.
+This section looks into different aspects of interpreter implementation.
+First, is a discussion on different types of virtual machines, namely register and stack machines, and their different benefits and tradeoffs.
+Then, there is a discussion on the implementation of dispatch, which is one of the bottlenecks of intepreters.
+Third, there is a discussion of garbage collection techniques.
+And finally there is a discussion on different approaches to managing run time stack.
 
 \subsection{Register and stack machines}
-Virtual machines are usually either register based or stack based.
+Virtual machines are usually either register-based or stack-based.
 
-Stack based virtual machines operates similar to the language Forth, where the operations work on the top of the stack. 
+Stack-based virtual machines operates similar to the language Forth, where the operations work on the top of the stack. 
 Operands are implicit coded, such that for example the add instruction just pops the two top elements of the stack, and pushes the sum. 
 Stack machines are easy to compile to, 
 which can simply be done by emitting the opcodes of a post-order walk through of the abstract syntax tree. 
 There are no issues of register allocation, spilling, etc.
-Stack machines are commonly used, the most known example is the Java Virtual Machine, and there many others when looking under the hood, for example: Python, the SpiderMonkey JavaScript implementation, and the .NET Common Intermediate Language.
+Stack machines are commonly used, the best known example being the Java Virtual Machine, and there many others that turn out to be stack machines when looking under the hood, for example: Python, the SpiderMonkey JavaScript implementation, and the .NET Common Intermediate Language.
 
-Register based virtual machines are becoming more common. 
-Usually they have a high number of registers, leading to longer opcodes than stack based virtual machines. But on the other hand, fewer opcodes are needed leading to faster execution \cite{register-vs-stack1, register-vs-stack2}. 
-Examples of register based virtual machines are the Dalvik \cite{dalvik-vm} virtual machine, LLVM \cite{llvm}, Parrot \cite{parrot}, and the virtual machine of Lua 5.0 \cite{luavm}.
+Register-based virtual machines are becoming more common. 
+Usually they have a high number of registers, leading to longer opcodes than stack-based virtual machines. But on the other hand, they have fewer opcodes, leading to faster execution \cite{register-vs-stack1, register-vs-stack2}. 
+Examples of register-based virtual machines are the Dalvik \cite{dalvik-vm} virtual machine, LLVM \cite{llvm}, Parrot \cite{parrot}, and the virtual machine of Lua 5.0 \cite{luavm}.
 
-A third approach to virtual machines is just to use the abstract syntax tree for evaluation. This was for example used in earlier versions of WebKits JavaScript implementation, but has now been superseded by a stack virtual machine, and is currently being replaced by JIT compilation.
+A third approach to virtual machines is just to use the abstract syntax tree for evaluation. This was for example used in earlier versions of WebKits JavaScript implementation, but has now been superseded by a stack-based virtual machine, and is currently being replaced by JIT compilation.
 
 \subsection{Optimising the dispatch}
-The dispatch is an important bottleneck when implementing interpreters.
-An interpreter usually has a loop that fetches the next instruction, and executes it. The process of dispatching is to fetch opcode and goto the code for the next virtual instruction.
-The reason this is a bottleneck it has to be executed for every opcode, and while dispatching may be done in few instructions, so may the code for the virtual instruction, and the dispatch is still a relatively large part of the execution time. 
+Dispatch is an important bottleneck when implementing interpreters.
+An interpreter usually has a loop that fetches the next instruction, and executes it. The process of dispatching is to fetch an opcode and goto the implementation of that virtual instruction.
+The reason this is a bottleneck it has to be executed for every opcode, and while dispatching may be done in few instructions, so may the implementation of the virtual instruction, and thus the dispatch is still a relatively large part of the execution time. 
 
-The usual way is just to have a switch statement, which usually compiles to a jump table, such that:
+The usual approach is just to have a switch statement, which usually compiles to a jump table, such that:
 \begin{verbatim}
 for(;;) {
     // pc is the program counter into an array
@@ -557,7 +561,7 @@ for(;;) {
     }
 }
 \end{verbatim}
-compiles optimised into something like:
+is compiled into something like:
 \begin{verbatim}
 .data:
 jumptable = {
@@ -583,10 +587,11 @@ BAZ:
     jump looptop
 ...
 \end{verbatim}
-which is a simple and working approach, but is a bit inefficient. It is portable across compiler, and is the only option on some virtual machines,
+
+This is a simple approach that works, but is a bit inefficient. It is portable across compilers, and is the only option on some virtual machines,
 This approach is used in SpiderMonkey, KVM\footnote{The reference implementation of JVM for mobile devices}, and in many other implementation.
 
-If the compiler supports direct addressing of labels, we can instead do something like:
+If the compiler supports direct addressing of labels, we can instead create an array of labels and jump to them as follows:
 \begin{verbatim}
 ops = { &OP_FOO, &OP_BAR, &OP_BAZ };
    
@@ -745,10 +750,11 @@ Lists just calls parse until the end of the list is reached. And other construct
 The limitation of this parser as described here is that only one left hand side expression is passed to the left denominator function, making reverse polish notation languages difficult to implement. A non-recursive version with an explicit stack instead could solve that, though it may not be an issue with most syntaxes. 
 
 \section{Scope}
-The scope is important when designing programming languages.
+Defining the scope of variable declarations  is important when designing a programming language.
 There are two major kind of scopes: static scoping and dynamic scoping.
-Static scope is also called lexical scope, and corresponds to the lexical structure of the source code.
-This is in contrast to dynamic scope, where the variables are accessible other places than in the blocks where they are defined. This is exemplified by the following:
+Static scoping is also called lexical scoping, and corresponds to the lexical structure of the source code.
+This is in contrast to dynamic scoping, where variables are accessible other places than in the blocks where they are defined. 
+The difference between dynamic and static scoping is exemplified by the following:
 \begin{verbatim}
 function f() {
     x := 17
@@ -761,17 +767,17 @@ g(42)
 \end{verbatim}
 which would print 42 if it were written in a statically scoped language, and would print 17 if it were written in a dynamically scoped language.
 
-Static scope is more natural as the scope matches the structure of the code. Dynamic scope requires more discipline, as it allows the programmer to tamper with local variables of other parts of the code, and counters good habits of information hiding. A very importeant feature is also that static scope can be used to create closures for functions, which gives extra flexibility to the language.
-On the other hand, dynamic scope very trivial to implement, and can thus use slightly less space in the code footprint. Dynamic scope does also not have the issue with the funarg problem discussed in Section~\ref{funarg}.
-For more advanced language implementations static scope has the benefit over dynamic scope, that it is easier to analyse and optimise due to locality, in the sense that its use is limited to the local lexical scope, and thus the optimisations on this part of the code need be concerned with other parts of the code.
+Static scoping is more natural as the scope matches the structure of the code. Dynamic scoping requires more discipline, as it allows the programmer to tamper with local variables of other parts of the code, and counters good habits of information hiding. A very importeant feature is also that static scoping can be used to create closures for functions, which gives extra flexibility to the language.
+On the other hand, dynamic scoping very trivial to implement, and can thus use slightly less space in the code footprint. Dynamic scoping also does not suffer from the funarg problem discussed in Section~\ref{funarg}.
+For more advanced language implementations static scoping has the benefit over dynamic scoping, that code is easier to analyse and optimise due to locality, in the sense that the use of variables is limited to the local lexical scope, and thus the optimisations on this part of the code need be concerned with other parts of the code.
 
 \subsection{Stacks and activation records}
-A typical way to implement local variables is with the use of a stack.
-The following text pretends we are on a full stack machine, 
-in practical implementations on CPUs, the top of the stack is usually a number of registers instead.
+A typical way to implement local variables is by using a stack.
+In this section, we assume we are on a full stack machine; 
+in practical implementations on CPUs, the top of the stack is usually implemented in a number of registers instead.
 
-Whenever a function is called, the parameters is pushed onto the stack. Then when the function is entered, a return pointer is often pushed to the same stack, and there is allocated space for the local variables, the computations are done, and we return, jumping back and restoring the stack size to the original.
-The allocation on the stack allows for local variables, and functions can also be recursive without a problem. The space the stack with the local variables, etc., is called the activation record for the function.
+Whenever a function is called, the arguments are pushed onto the stack. Then, when the function is entered, a return pointer is often pushed to the same stack, and space is allocated for the local variables. The computation is then done, and the function returns, jumping back to the call site and restoring the stack size to the original.
+The allocation on the stack allows for local variables, and functions can also be recursive without a problem. The space on the stack with the local variables, etc., is called the activation record for the function.
 
 \subsection{Higher order functions, and the funarg problem}
 \label{funarg}
@@ -927,7 +933,7 @@ Evaluate $expr_1$ and if it is non-$nil$ return its value, else evaluate and ret
 
 \subsubsection{Repetition and sequencing}
 \subsubsection*{\tt{[repeat }$num$ $expr_1 \cdots expr_n$\tt{]}}
-Evaluate $expr_1 \cdots expr_n$ $num$ number of times ($num$ must evaluate to a number). The result is the last execution of $expr_n$, or $nil$ if no expressions were evaluated, i.e. $num \leq 0$.
+Evaluate $expr_1 \cdots expr_n$ $num$ number of times ($num$ is evaluated once, and must evaluate to a number). The result is the last execution of $expr_n$, or $nil$ if no expressions were evaluated, i.e. $num \leq 0$.
 
 \subsubsection*{\tt{[foreach }$name$ $iterator$ $expr_1 \cdots expr_n$\tt{]}}
 For every value from the $iterator$, bind it to the local $name$ and evaluate $expr_1 \cdots expr_n$. The result of the evaluation is the last executed $expr_n$ or $nil$ if no expressions were evaluated. $name$ is a local variable, and is thus saved before the loop, and restored afterwards.
@@ -942,12 +948,13 @@ Evaluate $expr_1 \cdots expr_n$ and return the result of $expr_n$.
 
 \subsubsection{Functions}
 \subsubsection*{\tt{[lambda [}$name_1 \cdots name_n$\tt{]} $expr_1 \cdots expr_n$\tt{]}}
-Create a new anonymous function, with the parameters $name_1\cdots name_n$. Application of the function will bind its arguments to local variables $name_1\cdots name_n$, evaluate $expr_1\cdots expr_n$ and return $expr_n$.
+Create a new anonymous function, with the parameters $name_1\cdots name_n$. Application of the function will bind its arguments to local variables $name_1\cdots name_n$, evaluate $expr_1\cdots expr_n$ and return $expr_n$, saving and restoring $name_1\cdots name_n$ when entering and exiting the function.
+
 \subsubsection*{\tt{[defun [}$name_{function}$ $name_1 \cdots name_n$\tt{]} $expr_1 \cdots expr_n$\tt{]}}
-Create a new function, and bind it to the variable $name_{function}$. It is equivalent to {\tt{[set }}$name_{function}${\tt{ [lambda [}}$name_1 \cdots name_n${\tt{]}} $expr_1 \cdots expr_n${\tt{]]}}.
+Create a new function, and bind it to the variable $name_{function}$. The \verb|defun| statement above is equivalent to {\tt{[set }}$name_{function}${\tt{ [lambda [}}$name_1 \cdots name_n${\tt{]}} $expr_1 \cdots expr_n${\tt{]]}}.
 
 \subsubsection*{\tt{[apply }$function$ $param_1 \cdots param_n$\tt{]}}
-Apply the $function$ to the parameters $param_1\cdots param_n$. The difference between this and the usual function application {\tt{[}$function$ $param_1\cdots param_n$\tt{]}} is that that \verb|apply| allows $function$ to change between invocations, whereas the usual function application assumes that $function$ is static to be able to optimise it during runtime.
+Apply the $function$ to the parameters $param_1\cdots param_n$. The difference between this and the usual function application {\tt{[}$function$ $param_1\cdots param_n$\tt{]}} is that that \verb|apply| allows $function$ to change between invocations, whereas the usual function application assumes that $function$ is static, to be able to optimise it during runtime.
 
 \subsubsection{Integer operations}
 \subsubsection*{\tt{[+ }$num_1$ $num_2$\tt{]}}
@@ -977,10 +984,10 @@ Returns $true$ if $val$ is a iterator.
 \subsubsection*{\tt{[equals }$val_1$ $val_2$\tt{]}}
 Compare $val_1$ to $val_2$ and return $true$ if they are the same, or $nil$ if they are different. $val_1$ and $val_2$ must have the same type, and should either be integers or strings.
 \subsubsection*{\tt{[is-empty }$val$\tt{]}}
-Returns $true$ if a list, dictionary or iterator does not have any elements. Else it returns $nil$.
+Returns $true$ if a list, dictionary or iterator does not have any elements. Otherwise, it returns $nil$.
 \subsubsection*{\tt{[put }$container$ $position$ $value$\tt{]}}
-Store a value into a a list or a dictionary. If it is a list, the $position$ must be an integer in the range $0,1, \cdots, ${\tt{[size }}$container${\tt{]}}$-1$.
-If it is a dictionary, the position must be a string or an integer. An entry is deleted from a dictionary by storing $nil$ as the $value$.
+Store a value into a list or a dictionary. If the container is a list, the $position$ must be an integer in the range $0,1, \cdots, ${\tt{[size }}$container${\tt{]}}$-1$.
+If the container is a dictionary, the position must be a string or an integer. An entry is deleted from a dictionary by storing $nil$ as the $value$.
 \subsubsection*{\tt{[get }$container$ $position$\tt{]}}
 Retrieve a value from a list or a dictionary. It has the same constraints on $position$ as with \verb|put|. Retrieving an uninitialised entry from a dictionary yields $nil$.
 \subsubsection*{\tt{[random }$val$\tt{]}}
@@ -988,34 +995,36 @@ If $val$ is an integer, return a random number in the range $0,1, \cdots, val -1
 \subsubsection*{\tt{[size }$val$\tt{]}}
 Return the length of a string, the number of values in a list, or the number of entries in a dictionary.
 \subsubsection*{\tt{[< }$val_1$ $val_2$\tt{]}}
-Compares $val_1$ with $val_2$. If $val_1$ and $val_2$ are an integers, return $true$ if $val_1$ is strictly less than $val_2$ and otherwise $nil$.
+Compares $val_1$ with $val_2$. If $val_1$ and $val_2$ are integers, return $true$ if $val_1$ is strictly less than $val_2$ and otherwise $nil$.
 If $val_1$ and $val_2$ are strings, do a lexicographical comparison and return $true$ if $val_1$ comes strictly before $val_2$, and otherwise $nil$.
-\subsubsection*{\tt{[<= }$num_1$ $num_2$\tt{]}}
-Compares $val_1$ with $val_2$. If $val_1$ and $val_2$ are an integers, return $true$ if $val_1$ is less than or equal to $val_2$ and otherwise $nil$.
+\subsubsection*{\tt{[<= }$val_1$ $val_2$\tt{]}}
+Compares $val_1$ with $val_2$. If $val_1$ and $val_2$ are integers, return $true$ if $val_1$ is less than or equal to $val_2$ and otherwise $nil$.
 If $val_1$ and $val_2$ are strings, do a lexicographical comparison and return $true$ if they are equal or $val_1$ comes before $val_2$, and otherwise $nil$.
 
 \subsubsection{String functions}
 \subsubsection*{\tt{[stringjoin }$val_1\cdots val_n$\tt{]}}
 Create a string by concatenating $val_1\cdots val_n$.
 If $val_i$ is an integer or a list, it is converted to a string.
-A list is converted to a string by concatenating its elements, as if {\tt stringjoin} were called with the list elements as parameters.
+A list is converted to a string by concatenating its elements, as if {\tt stringjoin} were called with the list elements as arguments.
 
 \subsubsection*{\tt{[substring }$string$ $num_{begin}$ $num_{end}$\tt{]}}
 Create a substring from a string, starting inclusively at character position $num_{begin}$ and ending exclusively at character position $num_{end}$. The positions starts counting at $0$, so thus {\tt{[substring }$string$ $0$ \tt{[size }$string$\tt{]]}} is the entire string.
 
 \subsubsection{List functions}
+The following functions works on lists. Notice that lists in Yolan is similar to lists in Python, and thus the functions below are imperative in such that the alters the list parameter, which is different to what happens in functional languages, where lists are typically cons-cells. When speaking about the end of the list, it is the element at the position equal to the length of the list minus one.
+
 \subsubsection*{\tt{[list }$val_1\cdots val_n$\tt{]}}
 Create a new list, containing the elements $val_1\cdots val_n$.
 
 \subsubsection*{\tt{[resize }$list$ $num$\tt{]}}
-Change the size of the $list$ to be $num$ values. 
-If the new size is larger than the previous, new values will be added to the end of the list, and they are initialised to be nil. If it is smaller, then the list will be truncated at the end. The list is returned.
+Change the size of the $list$ to be $num$ elements. 
+If the new size is larger than the current size, new elements will be added to the end of the list, with the initial value of nil. If the new size is smaller than the current size, then the list will be truncated at the end. The list is modified by the function and then returned.
 
 \subsubsection*{\tt{[push }$list$ $val$\tt{]}}
 Push the value $val$ at the end of the $list$. The size of the list grows by one, and the last element is now $val$.
 
 \subsubsection*{\tt{[pop }$list$\tt{]}}
-Remove the element from the end list. The function returns that element, and reduces the size of the list by one.
+Remove the element at the end list. The function returns that element, and reduces the size of the list by one.
 
 \subsubsection{Dictionary functions}
 \subsubsection*{\tt{[dict }$key_1$  $val_1$ $\cdots$ $key_n$ $val_n$\tt{]}}
@@ -1028,13 +1037,6 @@ Create a new iterator across the keys of a dictionary.
 Create a new iterator across the values of either a dictionary or a list.
 \subsubsection*{\tt{[get-next }$iterator$\tt{]}}
 Get the next element from the iterator, or nil if the iterator is empty.
-
-\subsubsection{Debugging}
-\subsubsection*{\tt{[log }$string$\tt{]}}
-Logs the message from $string$, possibly ignored if debugging is disabled.
-\subsubsection*{\tt{[assert }$string$ $val$\tt{]}}
-Halt the execution with error message $string$ if $val$ is nil, possibly ignored if debugging is disabled.
-
 
 \section{Developers guide}
 Yolan is a minimal scripting language implemented on Java.
@@ -1099,7 +1101,7 @@ some functionality needs to be added, which is most easily done by adding functi
 The \verb|Function| interface is the way to do that. To implement the interface a single function \verb|apply|, that takes an array of Yolan objects as parameter, and returns an object is required.
 Notice that the parameters are passed lazily, e.g. they are only evaluated when the called function chooses to evaluate them, so we need to call the \verb|value()|-function of the Yolan objects when we want the actual value.
 Execution of the Yolan object may also have side effects, so whether, and the number of times, the \verb|value()| is called matters.
-In order to add a new Java function to be callable from the runtime, the method \verb|Yolan.addFunction| takes a name as a string and a \verb|Function| as parameters, and binds the name to the function. As an example the following code makes a new function, println, available to the runtime. This function takes one argument, which it prints out to the standard output:
+In order to add a new Java function to be callable from the runtime, the method \verb|Yolan.addFunction| takes a name as a string and a \verb|Function| as parameters, and binds the name to the function. As an example the following code makes a new function, \verb|println|, available to the runtime. This function takes one argument, which it prints out to the standard output:
 \begin{lstlisting}
 class PrintingFunction implements Function {
     Object apply(Yolan args[]) {
@@ -1113,19 +1115,19 @@ class Main {
     }
 }
 \end{lstlisting} 
-The above program reads and evaluates the file script.yl, with an augmented runtime which also has the println function.
+The above program reads and evaluates the file script.yl, with an augmented runtime that also has the \verb|println| function.
 
 \subsubsection{Values and types}
 The builtin types in Yolan are mapped to Java classes for easier interoperability,
-so lists are implemented as java.util.Stack, dictionaries are implemented as java.util.Hashtable, strings are implemented as java.lang.String, nil/false are implemented as the value null, integers are implemented as java.lang.Integer, and iterators are implemented as java.util.Enumeration. 
-Operations on those data types are just as the native builtin types. 
+so lists are implemented as java.util.Stack, dictionaries are implemented as java.util.Hashtable, strings are implemented as java.lang.String, nil/false is implemented as the value null, integers are implemented as java.lang.Integer, and iterators are implemented as java.util.Enumeration. 
+Operations on those data types are just as for the native builtin types. 
 
 Any Java object can be passed around within Yolan, so adding support for new data types is just a question of adding functions that work on those data types.
 
-\subsubsection{Functions defined withinin Yolan}
-When a user defines a function within Yolan, they are instances of the Yolan class. 
+\subsubsection{Functions defined within Yolan}
+When a user defines functions within Yolan, they are instances of the Yolan class. 
 Before calling such a function, the number of arguments can be found using the \verb|nargs| method.
-If the Yolan object is not a callable user defined function, the result of \verb|nargs()| is -1, which thus can be used to check if a Yolan object is a callable function.
+If the Yolan object is not a callable user-defined function, the result of \verb|nargs()| is -1, and this is the only API method to check if a Yolan object is a callable function.
 The function is then applied with the \verb|apply| method, which takes the arguments to the function as arguments, for example:
 \begin{lstlisting}
 ...
@@ -1138,7 +1140,7 @@ The function is then applied with the \verb|apply| method, which takes the argum
     } else ...
 ....
 \end{lstlisting}
-The apply method is defined from zero, up to three arguments. If there is a need for an apply method with more arguments, they are simple to add, see page~\pageref{source-yolan-apply} for the implementation details. There is also a general apply method, that takes an array of arguments as argument.
+The apply method is defined from zero, up to three arguments. If there is a need for an apply method with more arguments, they are simple to add; see page~\pageref{source-yolan-apply} for the implementation details. There is also a general apply method, that takes an array of arguments as argument.
 
 \subsubsection{Modifying the runtime}
 
@@ -1146,7 +1148,7 @@ In order for the scripting language to be practical, it should be able to work a
 Of course this can be done with functions, and evaluation, as described above, but an additional connection with the language can be added by accessing the variables defined, and used, by the running scripts.
 For this there are three functions: \verb|Yolan.resolveVar|, \verb|Yolan.getVar|, and \verb|Yolan.setVar|.
 
-When a value is accessed, this is done through a handle, which is found with \verb|resolveVar|. This handle can then be used for reading and writing the variable. The motivation for the handle is that it takes time to lookup what a variable name, so this computation can be done once for each variable that needs to be accessed, and then additional accesses to the resolved variable are significant faster. The \verb|resolveVar| function takes the variable name as a string parameter, and return the handle, which is an integer. If the variable does not exist in the runtime, space is allocated for it.
+When a value is accessed, this is done through a handle, which is found using \verb|resolveVar|. This handle can then be used for reading and writing the variable. The motivation for the handle is that it takes time to lookup what a variable name, so this computation can be done once for each variable that needs to be accessed, and then additional accesses to the resolved variable are significantly faster. The \verb|resolveVar| function takes the variable name as a string parameter, and return the handle, which is an integer. If the variable does not exist in the runtime, space is allocated for it.
 
 With a handle, it is then possible to set the value of a variable with \verb|setVar|. For example setting the variable foo to 42 can be done with:
 \begin{lstlisting}
@@ -1166,7 +1168,7 @@ class Class {
     }
 
     int someMethod() {
-        ... perhaps some scripts modifying foo is executed ...
+        ... perhaps some scripts modifying foo are executed ...
         Object foo = Yolan.getVar(fooHandle);
         ...
     }
@@ -1178,23 +1180,23 @@ class Class {
     }
 }
 \end{lstlisting}
-When defining functions, as described earlier, it is actually the same that is happening: the function is encapsulated in a Yolan object and added to the runtime as with \verb|setVar|.
+When defining functions, as described earlier, it is actually the same that is happening: the function is encapsulated in a Yolan object and added to the runtime as done by \verb|setVar|.
 
 \subsubsection{Resetting the runtime and saving space}
-When the scripting language is only used in some part of the application, it can be pratical to be able to unload its runtime data in order to save memory. 
+When the scripting language is only used in some parts of the application, it can be pratical to be able to unload its runtime data in order to save memory. 
 For this there are two utility functions \verb|Yolan.wipe()| and \verb|Yolan.reset()|.
 
-\verb|Yolan.wipe()| sets all references in the runtime are set to zero, allowing data to be garbage collected.
+\verb|Yolan.wipe()| sets all references in the runtime to zero, allowing data to be garbage collected.
 When the runtime has been wiped, Yolan expressions can no longer be evaluated, and trying to evaluate them will yield errors. 
 
-\verb|Yolan.reset()| resets the runtime: all variable handles are invalidated, all variables are removed from the runtime, and only the builtin functions are added. Existing Yolan expressions are invalid, and evaluation of them may lead to unexpected behavior. User defined functions and variables need to be re-added.
+\verb|Yolan.reset()| resets the runtime: all variable handles are invalidated, all variables are removed from the runtime, and only the builtin functions remain. Existing Yolan expressions are invalid, and evaluation of them may lead to unexpected behavior. User defined functions and variables need to be re-added.
 Resetting is necessesary before scripts are executed after a \verb|Yolan.wipe()|.
-It can also be practical when multiple scripts are run, one after each other, and they must not mess up the runtime for each other.
+It can also be practical when multiple scripts are run, one after another, and they must not modify the runtime for each other.
 
 \subsection{More on adding functions to the runtime}
-The naive approach for adding functions to the runtime would be to create a new class implementing the \verb|Function| interface for each function. This adds significantly to the JAR-file
+The naive approach for adding functions to the runtime would be to create a new class implementing the \verb|Function| interface for each function. This would add significantly to the JAR-file
 .
-If the code size is critical, this can often be reduced by combining the multiple functions into a single class, for example via a switch dispatch as shown below:
+If the code size is critical, it can often be reduced by combining multiple functions into a single class, for example via a switch dispatch as shown below:
 \begin{lstlisting}
 class ManyFunction implements Function {
     int id;
@@ -1225,7 +1227,7 @@ class ManyFunction implements Function {
 }
 \end{lstlisting}
 
-When implementing functions, it is also possible to create control structures, due to the laziness of Yolan objects. This is done by not necessarily calling the parameters \verb|value|-functions exactly one time each. The example below shows how the usual if-statement could be implemented:
+When implementing functions, it is also possible to create control structures, due to the laziness of Yolan objects. This is done by not evaluating the arguments' \verb|value|-functions exactly one time each, but zero or more times, depending on the purpose. The example below shows how the usual if-statement could be implemented:
 \begin{lstlisting}
 class YolanIf implements Function {
     Object apply(Yolan args[]) {
@@ -1333,15 +1335,15 @@ The other options are ruled out, as we want to have closures, and we want the ou
 Allocating the activation records on the heap has the issue, that we are not in control of the garbage collector, and it may not be designed for that kind of usage, leading to expensive performance, so the approach will be only to box variables onto the heap, that could be alive after function exit.
 
 To simplify this, it is done such that every variable that is added to a closure of an inner function is boxed on the heap, and other local variables are just stack allocated in the usual way. 
-I have not seen this exact approach to implement closures other places, but it seems so obvious, that it is probably done somewhere before, although it clearly is different from the Lua approach with upvals\cite{luasrc}, and also from the approach following the EcmaScript standard\cite{ecmascript} directly.
+I have not seen this exact approach to implement closures other places, but it seems so obvious, that it is probably done somewhere before, although it clearly is different from the Lua approach with upvals \cite{luasrc}, and also from the approach following the EcmaScript standard \cite{ecmascript} directly.
 
-For the practical implementation of the stack on top of the jvm, there are two obvious possibilities: A \verb|java.util.Stack| could be used, or a stack could be implemented manually with an array and an index pointer. 
-In order to select implementation strategy, a microbenchmark was done on the kvm, which indicated that the array approach is significantly faster than the \verb|java.util.Stack|. The array grows dynamically when entering a function which uses more stack spaces than is available. 
-The code footprint size is similar for both approachs, though probably a bit smaller for the Stack, as that one automatically grows, unlike then the array approach, which need a manual implementation.
-The actual access to a \verb|Stack| requires a method calls, which are 3 bytes plus 1-3 bytes for self and parameter loading, where reading from an array is a single byte opcode plus 2-4 bytes for self, index and parameter loading, and at the same time the array approach sometimes need to adjust the index, costing 3 bytes.
+For the practical implementation of the stack on top of the JVM, there are two obvious possibilities: A \verb|java.util.Stack| object could be used, or a stack could be implemented manually with an array and an index pointer. 
+In order to select implementation strategy, a microbenchmark was done on the KVM, which indicated that the array approach is significantly faster than the \verb|java.util.Stack|. The array grows dynamically when entering a function that uses more stack space than is available. 
+The code footprint size is similar for both approaches, though probably a bit smaller for the Stack, as that one automatically grows, unlike then the array approach, which need a manual implementation.
+The actual access to a \verb|Stack| requires a method call, which is 3 bytes plus 1-3 bytes for self and parameter loading, where reading from an array is a single byte opcode plus 2-4 bytes for self, index and parameter loading, and at the same time the array approach sometimes need to adjust the index, costing 3 bytes.
 
 \section{Overview of the implementation}
-The core of the LightScript implementation consists of three parts: 1) a top down operator precedence parser that is responsible for building the syntax tree, and identify which variables needs to be boxed on the heap for closures, 2) a compiler which translate the abstract syntax tree to a sequence of opcodes while keeping track of the stack depth, and 3) a stack based virtual machine for executing the code.
+The core of the LightScript implementation consists of three parts: 1) a top down operator precedence parser that is responsible for building the syntax tree, and identify which variables needs to be boxed on the heap for closures, 2) a compiler which translate the abstract syntax tree to a sequence of opcodes while keeping track of the stack depth, and 3) a stack-based virtual machine for executing the code.
 Beside these core elements, the implementation also contain an API for embedding, and a library of standard functions.
 
 The parser is a concrete implementation of the top down operator precedence parser for imperative laanguage, as described in section~\ref{tdop-imp}, with the additional detail, that during the parsing, the parser keep track of which variable is defined and used in each function, such that this information can be used for scoping later on. 
@@ -1350,7 +1352,7 @@ The source code for the parser starts on page~\pageref{lightscript-parser}.
 \subsection{Compiler}
 
 The core of the compiler is a function that compiles a node of the syntax tree, possibly calling itself recursively for the children.
-As it is compiling to a stack based virtual machine, the compilation itself can be quite simple/small, as functions and operators, just need to evaluate its parameters in a way that pushes the results to the stack, followed by doing the operation on the top elements of the stack.
+As it is compiling to a stack-based virtual machine, the compilation itself can be quite simple/small, as functions and operators, just need to evaluate its parameters in a way that pushes the results to the stack, followed by doing the operation on the top elements of the stack.
 
 As the activation records is also allocated on the stack, the compiler needs to keep track of the current stack depth, so whenever emitting a function that changes the stack depth, the stack depth variable also needs to be kept updated.
 
@@ -1602,7 +1604,7 @@ Where the previous parts of this chapter describes LightScript version 1.0, this
 This section described what have been done in version 1.1 and what needs to be done before version 1.2
 \subsubsection{Implemented changes}
 \begin{itemize}
-\item 
+\item Optimise code footprint, by reordering opcodes
 \end{itemize}
 \subsubsection{Remaining tasks}
 \begin{itemize}
@@ -1615,7 +1617,6 @@ This section described what have been done in version 1.1 and what needs to be d
 To determine whether it is worthwhile needs an actual implementation.
 \item Walk through library specification, and add functions that does not add too large a foorprint
 \item Add prototype object to functions
-\item Optimise code footprint, by reordering opcodes
 \item Improve virtual machine by joining common instruction pairs to single instructions (adding superinstructions)
 \item Replace stack allocation instruction with automatic code to do this, based on metadata of the function object 
 \item Add clean-up code when exiting a function, to improve garbage collection
@@ -1629,38 +1630,38 @@ To determine whether it is worthwhile needs an actual implementation.
 This section looks at the code footprint: first footprint estimates are compared for different scripting languages, then details on the footprint of LightScript is investigated, and finally the actual size of the library embedded in a minimal application is found.
 
 \subsection{Comparison with other languages}
-To compare the code footprint size across languages, I have added an estimate of the jar file size. 
+To compare the code footprint size across languages, I have added an estimate of the JAR file size. 
 The estimate is done by making a zip archive of the non-obscurified class files,
 trying to exclude class files that are part of extra libraries.
 The motivation for this approach is to make the comparison more fair, as some of the languages have large GUI libraries,
-which would count against them, if we just looked at the jar file. 
+which would count against them if we just looked at the JAR file. 
 In addition, compilation of some of the languages is obscurified/optimised by default,
-which would give those an advantage. So this should give a more fair comparison.
+which would give those an advantage. So this approach should give a more fair comparison.
 
 \subsubsection{Languages}
 \label{codefootprint-languages}
-The code size benchmark looks at the languages implemented in this project, Yolan and LightScript, it looks at scripting languages for mobile devices, FScriptMe, Kahlua, Hecl, Simkin, and CellularBasic, and it looks at some general scripting language implementations,  JScheme, and Rhino.
+The code size benchmark looks at the languages implemented in this project, Yolan and LightScript, at scripting languages for mobile devices, FScriptMe, Kahlua, Hecl, Simkin, and CellularBasic, and at some general scripting language implementations,  JScheme, and Rhino.
 
-FScriptME\cite{fscriptme} is the mobile edition of femto-script, which ``is an extremely simple scripting language''\cite{fscript}. 
+FScriptME \cite{fscriptme} is the mobile edition of femto-script, which ``is an extremely simple scripting language'' \cite{fscript}. 
 Out of the box, it only supports strings and integers as data types -- no compound types -- which limits use somewhat, and it is still in beta, since 2002. 
 
-JScheme\cite{jscheme} is a small Scheme implementation. An early version is benchmarked, as later versions have vastly larger code footprint, and would thus perform badly on that point. It depends on some reflection, and does therefor not run on Java Micro Edition, but is included as the implementation is compact, and may be changed to target mobile devices.
+JScheme \cite{jscheme} is a small Scheme implementation. We benchmark an early version as later versions have a vastly larger code footprint. It depends on some reflection, and does therefore not run on Java Micro Edition, but is included as the implementation is compact, and may be changed to target mobile devices.
 
-Kahlua\cite{kahlua} is an implementation of the Lua Virtual Machine for Java Micro Edition. 
+Kahlua \cite{kahlua} is an implementation of the Lua Virtual Machine for Java Micro Edition. 
 The implementation requires CLDC-1.1 due to the use of floating point arithmetics, and does therefor not run on the lowest end mobile devices, which only supports CLDC-1.0.
 Unlike the other languages, kahlua is not a full language interpreter, but only a virtual machine, so the the script cannot executed directly on the device, but needs to be compiled on another computer before being executed.
 
-Hecl\cite{hecl} seems to be \emph{the} major scripting language for mobile devices, or at least the one keep popping up in the top of most queries when searching for scripting languages for mobile devices.
+Hecl \cite{hecl} seems to be \emph{the} major scripting language for mobile devices, or at least the one keep popping up in the top of most queries when searching for scripting languages for mobile devices.
 It is very portable, with different editions running on CLDC-1.0, CLDC-1.1, Android, as applets and as usual applications.
 It has lots of libraries targeting mobile devices, which in this comparison were removed from the zip file of class files, not to give languages with fewer libraries an advantage in the size comparison.
 The language is a dialect of Tcl, and is simplified such that arithmetic operators, and the like, are prefix operators so expressions ends up a bit Lisp-like.
 
-Simkin\cite{simkin} is a scripting language for being embedded in XML, which also runs on mobile devices. It depends on kxml xml library, which is not included in the measured size. 
+Simkin \cite{simkin} is a scripting language for being embedded in XML, which also runs on mobile devices. It depends on kxml xml library, which is not included in the measured size. 
 
-CellularBasic\cite{cellularbasic} is a dialect of Qbasic, implemented for mobile devices. 
+CellularBasic \cite{cellularbasic} is a dialect of Qbasic, implemented for mobile devices. 
 It includes a floating point support library which is not included in the measured size. 
 
-Rhino\cite{rhino} is a JavaScript implementation. This language is not designed for, nor does it run on, mobile devices. It is included as an example of an implementation of a usual non-mobile scripting language.
+Rhino \cite{rhino} is a JavaScript implementation. This language is not designed for, nor does it run on, mobile devices. It is included as an example of an implementation of a usual non-mobile scripting language.
 
 \subsubsection{Results}
 The approximated JAR sizes of the scripting languages are:
@@ -1711,7 +1712,7 @@ The source code for the benchmarks can be seen in appendix~\ref{benchmarksource}
 The results of the benchmarks can be seen in figure~\ref{figure-execution-speed}.
 
 \subsection{Languages}
-The benchmarks are run on those of the languages from section~\ref{codefootprint-languages}, that have an approximated jar size of less than 64K. They also run on two JavaScript interpreters: Rhino 1.6r7 and SpiderMonkey 1.7.0, which are described in section~\ref{spidermonkey}, and are the default versions when installed on Ubuntu Linux.
+The benchmarks are run on those of the languages from section~\ref{codefootprint-languages}, that have an approximated JAR size of less than 64K. They also run on two JavaScript interpreters: Rhino 1.6r7 and SpiderMonkey 1.7.0, which are described in section~\ref{spidermonkey}, and are the default versions when installed on Ubuntu Linux.
 
 \subsection{The benchmarks}
 The benchmarks are the following:
@@ -1745,17 +1746,28 @@ The measurement of the performance of the different scripting languages are show
 \section{Summary}
 \chapter{Discussion and future work}
 \label{discussion}
-
 \section{Performance}
+\subsection{Speed}
 It is interesting to see that Rhino, SpiderMonkey, LightScript, Yolan, and Kahlua is all within the same magnitude of speed, indicating that this is the speed you get with a simple interpreter for these kinds of scripting languages. Here it is also suprising that Rhino and SpiderMonkey is not much faster, as Rhino compile to, and loads Java classes at run time, and SpiderMonkey is written in C rather than Java, which allows for using more advanced implementation techniques.
 
 Other observation are that Rhino is slow with exceptions, and that Kahlua seems to be fast with loops and slow with arrays. The last is probably due to that Kahlua implement arrays as hashtables, and loops in Lua has the integer sequence in the \verb|for|-construct, allowing \verb|for|-loops to be simpler to evaluate that in JavaScript, LightScript and Yolan, where the counter variable is explicit updated within the scripting language.
 
-It is also interesting how similar in performance Yolan and LightScript are, even though they have very different evaluation strategy: Yolan is interpreted by traversing a syntax tree data structure, whereas LightScript runs on a stack based virtual machine. 
+It is also interesting how similar in performance Yolan and LightScript are, even though they have very different evaluation strategy: Yolan is interpreted by traversing a syntax tree data structure, whereas LightScript runs on a stack-based virtual machine. 
 
 Most of the scripting languages with a small code footprint is an order of magnitude slower than LightScript, Yolan, and Kahlua and the JavaScript implementations.
 This may be due to inefficient implementation of variable access in JScheme, FScriptME and Hecl. Looking at the source code, JScheme and FScriptME variables are looked up in a linked list or hashtable at each access. Hecl has a more complex lookup mechanism with a stack of hashtables, but also employes some kind of caching.
 
+\subsection{Size}
+
+The scripting languages developed in this project has significantly smaller code footprint than other scripting languages for mobile Java devices.
+Two reasons for this are: 1) the implementations have focused on code footprint from start to end, using techniques for writing compact code to a much higher degree than existing scripting language implementation for mobile Java devices, and 2) the parsers, which usually would take tens, or more, of kilobytes, has been reduced significantly: in case of Yolan this was done by having a trivial syntax, and in case of LightScript by optimising and using top down operator precedence parsing.
+
+The size comparison even falls more favorable out, especially for LightScript, when taking the features of the languages into account:
+The third language in size, FScriptME, is a very minimalistic language, that does not have builtin support for arrays, or objects, or higher order functions, or exceptions, or anything like that, which accounts for its small size.
+The next two languages, on place four and five in size, are JScheme and Kahlua,
+have simple or no parser, due to having Lisp-like syntax or being just a virtual machine.
+
+That the parser is likely to be a bottleneck can be seen in FScriptME, where the parser is 90\% of the implementation, in CellularBasic, where the source code of the lexer and parser is more than 100KB, and may also have be an influence on Hecl not supporting Tcl-like \verb|expr| with infix binary operators, but insted Hecl only has comparisons and arithemetic operators written in Lisp-like prefix notation which are simpler to write parsers for.
 
 \section{Developed languages}
 \subsection{Yolan}
@@ -1819,18 +1831,27 @@ This reduce the memory usage, as the generated codebecomes shorter, and increase
 Another direction with the development of LightScript is the implementation on non-Java platforms.
 Embedded C is very different from Mobile Java: the importance of the run time memory usage and code footprint is reversed, as embedded devices often have larger built in flash ROM, than working memory.
 
-The first target platform for an embedded C implementation will be the Mindstorm NXT, which has 64K of RAM, and 256K TODO:verify of ROM.
+The first target platform for an embedded C implementation will be the Mindstorm NXT, which has 64K of RAM, and 256K of ROM.
 An optimisation here is to use 16bit tagged pointers/small integers rather than 32bit, to save memory. 
 
-An interesting implementation aspect to study is the effect to enforce unique immutable. This will cost approximately additional 3 bytes per string, and string creation will be more expensive, but at the same time, there will be no copies of identical strings, which can save significant space, and string comparison is changed to pointer comparision, which is much faster.
+An interesting implementation aspect to study is the effect to enforce unique strings. This will cost approximately additional 3 bytes per string, and string creation will be more expensive, but at the same time, there will be no copies of identical strings, which may save significant space, and string comparison is changed to pointer comparision, which is much faster.
 
 \subsection{Lint and prettyprinter}
 Better development tool for LightScript via the lint/prettyprinter,
 is also a potential development target in the long run.
 
-
 \chapter{Conclusion}
 \label{conclusion}
+Two new scripting languages has emerged out of a series of prototypes.
+
+Yolan is a minimalistic scripting language with first class functions and Lisp like syntax. This language is a proof of concept that the code footprint cost of an embeddable scripting language for Mobile Java applications, can be kept low, in this case approximately 5 KB.
+
+LightScript has also been created, and while it has a larger footprint than Yolan, it still smaller than other languages. LightScript may be more developer friendly, being a subset of JavaScript, and has also more features, such as an object system with inheritance and supports exceptions.
+The language and its implementation can be of practical use, and will be developed further, after this thesis.
+
+Yolan and LightScript is pushing the edge of small scripting language implementation on mobile Java enabled devices, by having smaller code footprint, being fast, and having advanced language features, compared to other scripting language on mobile devices.
+
+
 
 
 
