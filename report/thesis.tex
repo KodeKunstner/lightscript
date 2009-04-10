@@ -121,6 +121,7 @@ Design and implementation of a scripting language for mobile devices is spot on 
 
 \section{The structure and content of the report}
 
+TODO: update
 The report starts out with some background information: this introduction, and a survey on topics related to the project in Chapter~\ref{survey}.
 Then,  the methodology and design for the project are elaborated in Chapter~\ref{method}, including some of the principal design choices for the language implementations.
 The next couple of chapters then describe the actual results: the LightScript language in Chapter~\ref{lightscript}, the Yolan language in Chapter~\ref{yolan}, and some benchmarking of the two new languages compared to existing scripting languages in Chapter~\ref{benchmark}.
@@ -131,6 +132,30 @@ There is also an index to make it easier to find specific parts of the report.
 
 Each chapter contains a short introduction and summary, to makes the chapter easier to skim, and get an overview of the report.
 
+\section{Approach}
+\label{method}
+\subsection{Overall methodology}
+
+When making projects, the approach can be
+more or less bottom-up or top-down.
+A top-down approach could be like the waterfall model\cite{waterfall} of software devlopment,
+where we start with the specification, design and then implementation and test.
+The bottom-up is could be like stepwise refinement\cite{stepwise-refinement}, more agile\cite{agile-manifesto, extreme-programming}, starting out with a quick prototype, which gets more and more refined.
+
+The purpose of this project is to learn about programming languages and mobile development, and create a scripting language. 
+The bottom-up approach is choosen, as it opens more up for experimentation, and new ideas are easier follow, than with the top-down approach.
+
+The methodology of the project is to make a series of prototypes related to mobile scripting language implementation, while surveying the field. 
+The best parts of the prototypes are expanded and built further on, to get the scripting language, while documenting and specifying the language in parallel.
+
+\subsection{Prototypes}
+The design and implementation of the languages is not just a single design, but comes through ca. 30 prototypes of aspects of the languages.
+This leads up to LightScript and Yolan, which will be described in the next chapters.
+Discarded prototypes include a Forth-like language, several parser/compiler implementations on top of JavaScript, a couple of virtual machins on the jvm, some experiments towards an implementation in C, experiments with mobile applications and their GUI, and drafts of parts of what becomes LightScript and Yolan.
+
+\subsection{Evaluation}
+The evaluation should compare the code footprint and execution speed of the the developed languages, with existing scripting language.
+In addition to this, it could also be interesting to look at how different parts of a language implementation adds to the code footprint.
 \chapter{Survey}
 \label{survey}
 
@@ -796,32 +821,7 @@ Usually the variable is resolved at compilation time, or the first time it is en
 some interpreters have a less efficient approach, where they lookup up variables at run time, either through a stack, or a table of variables.
 
 \section{Summary}
-\chapter{Approach}
-\label{method}
-\section{Overall methodology}
 
-When making projects, the approach can be
-more or less bottom-up or top-down.
-A top-down approach could be like the waterfall model\cite{waterfall} of software devlopment,
-where we start with the specification, design and then implementation and test.
-The bottom-up is could be like stepwise refinement\cite{stepwise-refinement}, more agile\cite{agile-manifesto, extreme-programming}, starting out with a quick prototype, which gets more and more refined.
-
-The purpose of this project is to learn about programming languages and mobile development, and create a scripting language. 
-The bottom-up approach is choosen, as it opens more up for experimentation, and new ideas are easier follow, than with the top-down approach.
-
-The methodology of the project is to make a series of prototypes related to mobile scripting language implementation, while surveying the field. 
-The best parts of the prototypes are expanded and built further on, to get the scripting language, while documenting and specifying the language in parallel.
-
-\subsection{Prototypes}
-The design and implementation of the languages is not just a single design, but comes through ca. 30 prototypes of aspects of the languages.
-This leads up to LightScript and Yolan, which will be described in the next chapters.
-Discarded prototypes include a Forth-like language, several parser/compiler implementations on top of JavaScript, a couple of virtual machins on the jvm, some experiments towards an implementation in C, experiments with mobile applications and their GUI, and drafts of parts of what becomes LightScript and Yolan.
-
-\section{Evaluation}
-The evaluation should compare the code footprint and execution speed of the the developed languages, with existing scripting language.
-In addition to this, it could also be interesting to look at how different parts of a language implementation adds to the code footprint.
-
-\section{Summary}
 \chapter{Yolan}
 \label{yolan}
 \index{Yolan}
@@ -1584,8 +1584,7 @@ The minor version number is incremented with milestones and expansions of langua
 the features intended for version 1.2 are implemented in versions 1.1.\emph{something} and when all of them is added, the minor version number increases to 1.2, where only bug fixes will be added.
 The revision number correspond to the svn version, and is incremented on each commit.
 
-
-The following is the roadmap for changes to LightScript version 1:
+The following is the roadmap of scheduled changes to LightScript version 1:
 \begin{itemize}
 \item[1.0]
 Prototype for thesis and proof of concept.
@@ -1594,19 +1593,16 @@ Version 1.0 is the one used for the benchmarks and described throughout this rep
 Expansion of language and standard library, more operators from EcmaScript are added,
 and an additional fixed point number representation will be added. Better compatibility with EcmaScript type system.
 \item[1.4]
-Extra optional libraries to enable writing of practical applications, mainly creating zooming user interface, and also add support for simple cryptography and web access.
-\item[1.6]
-Addition of a LightScript implementation for embedded C, targeting devices limited to 64K RAM.
-\item[1.8]
-Better development tool with a LightScript lint/prettyprinter, and possibly also interpreter with more run time checking and debugging support.
+Extra optional libraries to make the language more usefull for practical applications.
 \end{itemize}
 
-\subsection{Language update}
+
+\subsection{Roadmap towards version 1.2}
 Where the previous parts of this chapter describes LightScript version 1.0, this section describes the most recent changes, and updates in the development branch, done after the report was written.
 This section described what have been done in version 1.1 and what needs to be done before version 1.2
 \subsubsection{Implemented changes}
 \begin{itemize}
-\item
+\item 
 \end{itemize}
 \subsubsection{Remaining tasks}
 \begin{itemize}
@@ -1624,21 +1620,6 @@ To determine whether it is worthwhile needs an actual implementation.
 \item Replace stack allocation instruction with automatic code to do this, based on metadata of the function object 
 \item Add clean-up code when exiting a function, to improve garbage collection
 \end{itemize}
-
-\subsection{Zooming user interface and other optional libraries}
-... TODO: zui
-
-
-\subsubsection{Other optional libraries}
-
-Much interactions happens via web, so a simple function for getting and parsing web pages will be practical for enabling LightScript as a tool for mobile mashups would be needed. This will be a simple heuristic html parser mapping the XML-tree to JsonML\footnote{JsonML is an embedding of XML in JSON, somewhat similar to SXML in the Scheme} \cite{jsonml}, which can then easily be interacted with in LightScript.
-
-When making applications that may handle the users private data, it should be secured, which is why support for simple cryptography should be added. There already exist a good open source library for mobile cryptography \cite{bouncycastle} where a couple of ciphers can be extracted and added as optional library in LightScript.
-
-\subsection{Embedded implementation}
-
-... TODO
-... unique strings ... 16bit cells for more space
 
 \section{Summary}
 \chapter{Benchmarks}
@@ -1765,21 +1746,8 @@ The measurement of the performance of the different scripting languages are show
 \chapter{Discussion}
 \label{discussion}
 
-
-Yolan does a good job having a tiny code footprint and decent performance, while being a scripting language with first class function, hashtables, easy embeddable, etc., and does a bad job trying to do anything else.
-The dynamic scoping makes it unsuitable for developing larger applications, and the Lisp-like syntax will probably scare away most developers.
-So the major use of this language is probably just to set a bar for how small a code footprint a high level scripting language can have.
-
-LightScript has tradeoffs between EcmaScript compliance and size/performance. 
-One of those is the joining of \verb|false|, \verb|null| and \verb|undefined|, and not needing the boolean type.
-As the overall size and performance of LightScript were better than expected,
-that optimisation-tradeoff is probably worth undoing to get better semantics, 
-but only an implementation and actual benchmark will show. 
-
-\section{Benchmarks}
-\subsection{Speed}
-
-It is interesting to see that Rhino, SpiderMonkey, LightScript, Yolan, and Kahlua is all within the same magnitude of speed, indicating that this is the speed you get with a simple interpreter for these kinds of scripting languages. Here it is also suprising that Rhino and SpiderMonkey is not much faster, as Rhino seems to be doing something with generating and loading Java classes at run time, and SpiderMonkey is written in C rather than Java.
+\section{Performance}
+It is interesting to see that Rhino, SpiderMonkey, LightScript, Yolan, and Kahlua is all within the same magnitude of speed, indicating that this is the speed you get with a simple interpreter for these kinds of scripting languages. Here it is also suprising that Rhino and SpiderMonkey is not much faster, as Rhino compile to, and loads Java classes at run time, and SpiderMonkey is written in C rather than Java, which allows for using more advanced implementation techniques.
 
 Other observation are that Rhino is slow with exceptions, and that Kahlua seems to be fast with loops and slow with arrays. The last is probably due to that Kahlua implement arrays as hashtables, and loops in Lua has the integer sequence in the \verb|for|-construct, allowing \verb|for|-loops to be simpler to evaluate that in JavaScript, LightScript and Yolan, where the counter variable is explicit updated within the scripting language.
 
@@ -1789,9 +1757,61 @@ Most of the scripting languages with a small code footprint is an order of magni
 This may be due to inefficient implementation of variable access in JScheme, FScriptME and Hecl. Looking at the source code, JScheme and FScriptME variables are looked up in a linked list or hashtable at each access. Hecl has a more complex lookup mechanism with a stack of hashtables, but also employes some kind of caching.
 
 
+\section{Developed languages}
+\subsection{Yolan}
+Yolan does a good job having a tiny code footprint and decent performance, while being a scripting language with first class function, hashtables, easy embeddable, etc., and does a bad job trying to do anything else:
+the dynamic scoping makes it unsuitable for developing larger applications, and the Lisp-like syntax will probably scare away most developers.
+So the major use of this language is probably just to set a bar for how small a code footprint a high level scripting language can have.
+
+While it has an interesting result, code size wise, there will probably not be any further developments in this language, other than it served as a stepping stone towards LightScript.
+
+\subsection{LightScript}
+LightScript is much more featurefull and usefull than Yolan, while this comes by having twice the footprint of Yolan, it is still small compared to other scripting languages targeting mobile devices. .
+The JavaScript/EcmaScript like syntax and semantics should make it much more approachable for other developers, while still having expressive features like supporting closures and higher order functions.
+
+There is a tradeoff between EcmaScript compliance and size/performance. 
+One of those is the joining of \verb|false|, \verb|null| and \verb|undefined|, and not needing the boolean type.
+As the overall size and performance of LightScript were better than expected,
+that optimisation-tradeoff is probably worth undoing to get better semantics, 
+but only an implementation and actual benchmark will show. 
+
+LightScript is definitely a language I will use for developing mobile applications in the future, so the project has at least been successful by making a tool in that direction.
+
+\section{Further development of LightScript}
+
+\subsection{Making it public}
+LightScript will be released as open source software. 
+Just releasing the source, is not enought to make it really usable for others: documentation, and examples, are also of major importance, and there also has to be an awareness about the exisitance of the language, which needs some work on publishing information on the project, including an informative wikipedia page, and press release/posting of articles on news sites related to programming languages and mobile development.
+This will be done when LightScript version 1.2 is done.
+The website \url{http://www.lightscript.net/}, will serve as the main site, and a small dummy page is already put up.
+
+\subsection{Zooming user interface and other optional libraries}
+The next major 
+... TODO: zui
+
+
+\subsubsection{Other optional libraries}
+
+Much interactions happens via web, so a simple function for getting and parsing web pages will be practical for enabling LightScript as a tool for mobile mashups would be needed. This will be a simple heuristic html parser mapping the XML-tree to JsonML\footnote{JsonML is an embedding of XML in JSON, somewhat similar to SXML in the Scheme} \cite{jsonml}, which can then easily be interacted with in LightScript.
+
+When making applications that may handle the users private data, it should be secured, which is why support for simple cryptography should be added. There already exist a good open source library for mobile cryptography \cite{bouncycastle} where a couple of ciphers can be extracted and added as optional library in LightScript.
+
+
+\subsection{Optimising the byte code}
+
+\subsection{Embedded implementation}
+
+Addition of a LightScript implementation for embedded C, targeting devices limited to 64K RAM.
+... TODO
+... unique strings ... 16bit cells for more space
+
+\subsection{Lint and prettyprinter}
+Better development tool with a LightScript lint/prettyprinter, and possibly also interpreter with more run time checking and debugging support.
+
 
 \chapter{Conclusion}
 \label{conclusion}
+
 
 
 %\chapter{Introduction to scripting \\ -- a user guide}
