@@ -1,3 +1,5 @@
+1.0.447
+    Fixed debugging bug introduced by reordering opcodes. LightScript.class 17513 bytes
 1.0.444
     Reordered opcodes, LightScript.class 17513 bytes
 1.0.443
