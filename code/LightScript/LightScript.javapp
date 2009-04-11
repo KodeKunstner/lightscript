@@ -4,7 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Hashtable;
 import java.util.Stack;
 
-/*`\subsection{Constants}'*/
+/*`\section{Definitions, API, and utility functions}'*/
 
 /* If debugging is enabled, more tests are run during run-time,
  * and errors may be caught in a more readable way.
@@ -512,7 +512,7 @@ public final class LightScript {
         }
     }
 
-/*`\subsection{Tokeniser}'*/
+/*`\section{Tokeniser}'*/
 
 #ifdef __COMPILE_TOKENISER__
     /** Read the next character from the input stream */
@@ -626,7 +626,7 @@ public final class LightScript {
     }
 #endif /* __COMPILE_TOKENISER__ */
 
-/*`\subsection{Parser}\label{code-lightscript-parser}'*/
+/*`\section{Parser}\label{code-lightscript-parser}'*/
 
 #ifdef __COMPILE_PARSER__
     /** Parse the next expression from the input stream
@@ -1230,7 +1230,7 @@ public final class LightScript {
     }
 #endif /* __COMPILE_PARSER__ */
 
-/*`\subsection{Compiler}'*/
+/*`\section{Compiler}'*/
 
 #ifndef __COMPILE_COMPILER__
     private Code compile(Object[] body) {
@@ -1942,7 +1942,7 @@ public final class LightScript {
     }
 #endif /*__COMPILE_COMPILER__*/
 
-/*`\subsection{Virtual Machine}'*/
+/*`\section{Virtual Machine}'*/
 
 #ifndef __COMPILE_VM__
     private static Object execute(Code cl) throws LightScriptException {

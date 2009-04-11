@@ -65,7 +65,7 @@ Yolan is highly optimised for reducing the size of the implementation code footp
 Yolan has a code footprint less than half the size of LightScript, and they are similar in speed, even though they have very different evaluation strategies.
 \end{abstract}
 
-\setcounter{tocdepth}{2}
+\setcounter{tocdepth}{1}
 \tableofcontents
 
 \chapter{Introduction}
@@ -123,41 +123,30 @@ Design and implementation of a scripting language for mobile devices is spot on 
 
 \section{The structure and content of the report}
 
-%TODO: update
-The report starts out with some background information: this introduction, and a survey on topics related to the project in Chapter~\ref{survey}.
-Then,  the methodology and design for the project are elaborated in Chapter~\ref{method}, including some of the principal design choices for the language implementations.
-The next couple of chapters then describe the actual results: the LightScript language in Chapter~\ref{lightscript}, the Yolan language in Chapter~\ref{yolan}, and some benchmarking of the two new languages compared to existing scripting languages in Chapter~\ref{benchmark}.
-Finally there is a discussion of the results in Chapter~\ref{discussion}, rounding off with a conclusion in Chapter~\ref{conclusion}
+This first chapter is an introduction to the project, defining the methodology and overall direction. 
+The second chapter is a survey topics related to the projects. This contains the background for decisions on platform, programming optimisations, language ideas gotten from other languages, and language implementation techniques.
+The third and the fourth chapter documents two scripting languages developed through this thesis: Yolan and LightScript. This contains design choices for the languages, implementation details, descriptions of the languages themselves, and developer guides for embedding and using the languages.
+The fifth chapter benchmarks benchmarks the developed languages against other scripting languages,
+and the sixth and seventh chapter is discussion and conclusion of the work.
 
-Some of the developed source code has been attached, such that the implementation details described in Chapter~\ref{lightscript},~\ref{yolan} and~\ref{benchmark}, can also be seen in practice.
-There is also an index to make it easier to find specific parts of the report.
-
-Each chapter contains a short introduction and summary, to makes the chapter easier to skim, and get an overview of the report.
+Source codes for benchmarks and the developed languages are in the appendix.
 
 \section{Approach}
 \label{method}
-\subsection{Overall methodology}
 
 When making projects, the approach can be
 more or less bottom-up or top-down.
-A top-down approach could be like the waterfall model \cite{waterfall} of software devlopment,
+A top-down approach could be like the waterfall model \cite{waterfall} of software development,
 where we start with the specification, design and then implementation and test.
 The bottom-up approach could be like stepwise refinement \cite{stepwise-refinement}, more agile \cite{agile-manifesto, extreme-programming}, starting out with a quick prototype, which gets more and more refined.
 
 The purpose of this project is to learn about programming languages and mobile development, and create a scripting language. 
 The bottom-up approach is chosen, as it opens more up for experimentation, and new ideas are easier follow, than with the top-down approach.
 
-The methodology of the project is to make a series of prototypes related to mobile scripting language implementation, while surveying the field. 
-The best parts of the prototypes are expanded and built further on, to get the scripting language, while documenting and specifying the language in parallel.
+The methodology of the project was to start out with a series of experimental prototypes related to mobile scripting language implementation, while surveying the field. 
+The best parts of the prototypes were then expanded and built further on, to create the actual scripting language.
+Obsoleted prototypes include a Forth-like language, several parser/compiler implementations on top of EcmaScript, a couple of virtual machines on the JVM, some experiments towards an implementation in C, experiments with mobile applications and their GUI, and drafts of parts of what became LightScript and Yolan.
 
-\subsection{Prototypes}
-The language design and implementation is not a top down design of a single design, but comes through ca. 30 prototypes of various aspects of mobile scripting languages.
-This leads up to LightScript and Yolan, which will be described in the next chapters.
-Discarded prototypes include a Forth-like language, several parser/compiler implementations on top of JavaScript, a couple of virtual machines on the JVM, some experiments towards an implementation in C, experiments with mobile applications and their GUI, and drafts of parts of what became LightScript and Yolan.
-
-%\subsection{Evaluation}
-%The evaluation should compare the code footprint and execution speed of the the developed languages, with existing scripting language.
-%In addition to this, it could also be interesting to look at how different parts of a language implementation adds to the code footprint.
 
 \chapter{Survey}
 \label{survey}
@@ -524,6 +513,16 @@ An object in Self contains a pointer to the parent (cloned) object, and a mappin
 \section{Interpreter implementation}
 \label{interpreter-implementation}
 %TODO: why these aspects
+%TODO: Garbage collections notes
+%TODO: Dispatch notes
+
+
+%TODO: as the embedded-C implementation of the language was not finished, this part does not belong in the thesis, but should be removed, and possibly make it into later documents. Keep note about using switch due to JVM, which is suboptimal compared to what can be done on a native machine.
+%... jvm only switch based or class based, which is suboptimal
+
+%TODO: as the embedded-C implementation of the language was not finished, this part does not belong in the thesis, but should be removed, and possibly make it into later documents. Replace note about piggy-backing on the JVM GC, which is unlikely to be generational, which means that heap allocated stack will be expensive.
+%... heap allocated stack frames and generational GC.
+%The KVM, which is the reference implementation for mobile Java Virtual Machines, is now using a compacting mark and sweep. It originally started out with a copying collector, which had a larger memory requirement. And subsequently it used a non-compacting mark and sweep, where compaction were later added.
 
 
 This section looks into different aspects of interpreter implementation.
@@ -548,20 +547,7 @@ Examples of register-based virtual machines are the Dalvik \cite{dalvik-vm} virt
 
 A third approach to virtual machines is just to use the abstract syntax tree for evaluation. This was for example used in earlier versions of WebKits JavaScript implementation, but has now been superseded by a stack-based virtual machine, and is currently being replaced by JIT compilation.
 
-\subsection{Optimising the dispatch}
-%TODO: as the embedded-C implementation of the language was not finished, this part does not belong in the thesis, but should be removed, and possibly make it into later documents. Keep note about using switch due to JVM, which is suboptimal compared to what can be done on a native machine.
-
-%... jvm only switch based or class based, which is suboptimal
-
-\subsection{Garbage collection}
-%TODO: as the embedded-C implementation of the language was not finished, this part does not belong in the thesis, but should be removed, and possibly make it into later documents. Replace note about piggy-backing on the JVM GC, which is unlikely to be generational, which means that heap allocated stack will be expensive.
-
-%... heap allocated stack frames and generational GC.
-
-%The KVM, which is the reference implementation for mobile Java Virtual Machines, is now using a compacting mark and sweep. It originally started out with a copying collector, which had a larger memory requirement. And subsequently it used a non-compacting mark and sweep, where compaction were later added.
-
-
-\section{Parsing}
+\subsection{Parsing}
 A language implementation must parse the source text into the abstract syntax tree that is manipulated by the rest of the compiler.
 
 An issue here is that parsers often take quite a large amount of code, especially if they are generated by compiler-compilers.
@@ -581,7 +567,7 @@ one function is needed for prefix operators, et cetera.
 So a top down operator precedence parser will be used for the implementation of LightScript.
 
 
-\subsection{Top down operator precedence parsers}
+\subsubsection{Top down operator precedence parsers}
 \label{tdop}
 Top down operator precedence parsing combines recursive descent parsing with operator precedence, which simplifies the implementation significantly.
 It was first described thirty years ago \cite{top-down-operator-precedence}, but has not received much attention until lately \cite{beautiful-code, crockford-tdop}.
@@ -611,7 +597,7 @@ The parsing of lists calls parse until the end of the list is reached. Other con
 
 The limitation of this parser as described here is that only one left-hand side expression is passed to the left denominator function, making reverse polish notation languages difficult to implement. A non-recursive version with an explicit stack instead could solve that.
 
-\section{Scope}
+\subsection{Scope}
 Defining the scope of variable declarations  is important when designing a programming language.
 There are two major kind of scopes: static scoping and dynamic scoping.
 Static scoping is also called lexical scoping, and corresponds to the lexical structure of the source code.
@@ -633,7 +619,7 @@ Static scoping is more natural as the scope matches the structure of the code. D
 On the other hand, dynamic scoping very trivial to implement, and can thus use slightly less space in the code footprint. Dynamic scoping also does not suffer from the funarg problem discussed in Section~\ref{funarg}.
 For more advanced language implementations static scoping has the benefit over dynamic scoping, that code is easier to analyse and optimise due to locality, in the sense that the use of variables is limited to the local lexical scope, and thus the optimisations on this part of the code need be concerned with other parts of the code.
 
-\subsection{Stacks and activation records}
+\subsubsection{Stacks and activation records}
 A typical way to implement local variables is by using a stack.
 In this section, we assume we are on a full stack machine; 
 in practical implementations on CPUs, the top of the stack is usually implemented in a number of registers instead.
@@ -641,7 +627,7 @@ in practical implementations on CPUs, the top of the stack is usually implemente
 Whenever a function is called, the arguments are pushed onto the stack. Then, when the function is entered, a return pointer is often pushed to the same stack, and space is allocated for the local variables. The computation is then done, and the function returns, jumping back to the call site and restoring the stack size to the original.
 The allocation on the stack allows for local variables, and functions can also be recursive without a problem. The space on the stack with the local variables, etc., is called the activation record for the function.
 
-\subsection{Scope and first class functions}
+\subsubsection{Scope and first class functions}
 \label{funarg}
 
 When we have first class functions and static scoping, we cannot just place the activation records on the stack. Inner functions may live on, and access local variables of the outer function, after the outer function has returned. Consider the following code:
@@ -677,7 +663,7 @@ which is not as expensive as it may seem, due to the high effiency of modern gar
 Another approach is to keep track of which variables may stay alive at the exit of a function, and move them to the heap at that time.
 Or just identify variables that are used by in inner functions, and put those on the heap.
 
-\subsection{Implementation of variables}
+\subsubsection{Implementation of variables}
 When we are implementing the scope, an issue is how to implement the variables. 
 Here are several options: 
 
@@ -1752,13 +1738,8 @@ Yolan and LightScript is pushing the edge of small scripting language implementa
 \chapter{Source code of the Yolan class}
 \lstinputlisting{../code/Yolan/src/Yolan.java}
 
-\chapter{LightScript}
-\section{The LightScript class}
+\chapter{Source code of the LightScript class}
 \lstinputlisting{../code/LightScript/LightScript.javapp}
-\section{Standard library}
-\lstinputlisting{../code/LightScript/LightScriptStdLib.java}
-\section{Object class}
-\lstinputlisting{../code/LightScript/LightScriptObject.java}
 
 
 \newpage
