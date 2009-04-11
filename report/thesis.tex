@@ -142,22 +142,23 @@ When making projects, the approach can be
 more or less bottom-up or top-down.
 A top-down approach could be like the waterfall model \cite{waterfall} of software devlopment,
 where we start with the specification, design and then implementation and test.
-The bottom-up is could be like stepwise refinement \cite{stepwise-refinement}, more agile \cite{agile-manifesto, extreme-programming}, starting out with a quick prototype, which gets more and more refined.
+The bottom-up approach could be like stepwise refinement \cite{stepwise-refinement}, more agile \cite{agile-manifesto, extreme-programming}, starting out with a quick prototype, which gets more and more refined.
 
 The purpose of this project is to learn about programming languages and mobile development, and create a scripting language. 
-The bottom-up approach is choosen, as it opens more up for experimentation, and new ideas are easier follow, than with the top-down approach.
+The bottom-up approach is chosen, as it opens more up for experimentation, and new ideas are easier follow, than with the top-down approach.
 
 The methodology of the project is to make a series of prototypes related to mobile scripting language implementation, while surveying the field. 
 The best parts of the prototypes are expanded and built further on, to get the scripting language, while documenting and specifying the language in parallel.
 
 \subsection{Prototypes}
-The design and implementation of the languages is not just a single design, but comes through ca. 30 prototypes of aspects of the languages.
+The language design and implementation is not a top down design of a single design, but comes through ca. 30 prototypes of various aspects of mobile scripting languages.
 This leads up to LightScript and Yolan, which will be described in the next chapters.
-Discarded prototypes include a Forth-like language, several parser/compiler implementations on top of JavaScript, a couple of virtual machins on the jvm, some experiments towards an implementation in C, experiments with mobile applications and their GUI, and drafts of parts of what becomes LightScript and Yolan.
+Discarded prototypes include a Forth-like language, several parser/compiler implementations on top of JavaScript, a couple of virtual machines on the JVM, some experiments towards an implementation in C, experiments with mobile applications and their GUI, and drafts of parts of what became LightScript and Yolan.
 
-\subsection{Evaluation}
-The evaluation should compare the code footprint and execution speed of the the developed languages, with existing scripting language.
-In addition to this, it could also be interesting to look at how different parts of a language implementation adds to the code footprint.
+%\subsection{Evaluation}
+%The evaluation should compare the code footprint and execution speed of the the developed languages, with existing scripting language.
+%In addition to this, it could also be interesting to look at how different parts of a language implementation adds to the code footprint.
+
 \chapter{Survey}
 \label{survey}
 
@@ -1207,12 +1208,14 @@ In the EcmaScript standard, identifier resolution is done by searching through t
 Instead we want to resolve the variables at compile time, while preserving as much of the EcmaScript semantics as is practical. The main issue here is that when we resolve the variable at compile time, we do not keep information to be able to resolve it dynamically at run time,
 which lead to limitations in \verb|eval| like statements when compared EcmaScript semantics. Currently there are no \verb|eval| statement in LightScript, but this may be an issue in future versions.
 
-Of the different implementation methods discussed in Section~\ref{survey-scope}, the only real possibilities for a partly imperative scripting language which also want good support for higher-order functions are either to allocate the activation records on the heap, or keep track of variables that could live on after exiting a function, and box those variable on the heap.
+Of the different methods for implementing scope, discussed in Section~\ref{survey-scope}, the only real possibilities for a partly imperative scripting language with support for first-class functions are either to allocate the activation records on the heap, or keep track of variables that could live on after exiting a function, and box those variable on the heap.
 The other options are ruled out, as we want to have closures, and we want the outer scope variables to be mutable.
-Allocating the activation records on the heap has the issue, that we are not in control of the garbage collector, and it may not be designed for that kind of usage, leading to expensive performance, so the approach will be only to box variables onto the heap, that could be alive after function exit.
+As we are implementing on top of the JVM, that also determines the garbage collector, which it may vary on different devices, and which may be badly suited activation record allocation on the heap.
+So the approach will be only to box variables onto the heap, that could be alive after function exit.
 
 To simplify this, it is done such that every variable that is added to a closure of an inner function is boxed on the heap, and other local variables are just stack allocated in the usual way. 
-I have not seen this exact approach to implement closures other places, but it seems so obvious, that it is probably done somewhere before, although it clearly is different from the Lua approach with upvals \cite{luasrc}, and also from the approach following the EcmaScript standard \cite{ecmascript} directly.
+%TODO: reference nanopass compiler paper by Kent Dybvig (ICFP in Snowbird) or other papers by dybvig
+%I have not seen this exact approach to implement closures other places, but it seems so obvious, that it is probably done somewhere before, although it clearly is different from the Lua approach with upvals \cite{luasrc}, and also from the approach following the EcmaScript standard \cite{ecmascript} directly.
 
 For the practical implementation of the stack on top of the JVM, there are two obvious possibilities: A \verb|java.util.Stack| object could be used, or a stack could be implemented manually with an array and an index pointer. 
 In order to select implementation strategy, a microbenchmark was done on the KVM, which indicated that the array approach is significantly faster than the \verb|java.util.Stack|. The array grows dynamically when entering a function that uses more stack space than is available. 
