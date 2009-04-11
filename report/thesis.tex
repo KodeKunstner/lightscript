@@ -173,8 +173,10 @@ Besides Java and native code, JavaScript is becoming a potential language for ap
 This is both due to its integration with the web, which means that it will be available on the phones with advanced browsers, due to the increased amount of memory on high end phones
 and due to recent major performance advances within the JavaScript implementations, which are propagating towards mobile devices.
 
-%TODO: spoiler - target J2ME. embedded systems and smartphones are described as they are potential targets for future versions, JavaScript additionally because of compatibility
+TODO: spoiler - target J2ME. embedded systems and smartphones are described as they are potential targets for future versions, JavaScript additionally because of compatibility
 \subsection{Embedded systems}
+TODO: Reduce this section, focus is on nxt-development device
+
 The personal computers, PCs, as we know them, are only a very small fraction of the computers in use.
 Billions of electronic devices nowadays have small embedded computers; they are in mobile phones, kitchen equipment, washing machines, music instruments, car, even advanced greeting cards. 
 These embedded computer systems vary tremendously, from low end micro controllers with memory measured in bytes, up to powerful CPUs with vector processing units and many megabytes of memory.
@@ -210,6 +212,8 @@ The coprocessor usually reads sensors, controls motors, and can power the main c
 The system also have a 100x64 black/white lcd display, and a couple of buttons, so it has a lot of potential as a development substitute platform for low-end mobile devices, which do not allow 3rd party firmware.
 
 \subsection{The J2ME / Java Micro Edition}
+TODO: make it clear that scripting languages is going to be built on J2ME
+
 J2ME (Java Micro Edition\footnote{Java Micro Edition is a recent rebranding of J2ME}) is the most common platform for mobile application, supported by more than a billion devices \cite{sun-j2me}. 
 It seems like two thirds of mobile phones shipped today supports Java \cite{esmertec-globenews}.
 %http://www.globenewswire.com/newsroom/news.html?d=149713
@@ -516,6 +520,9 @@ An object in Self contains a pointer to the parent (cloned) object, and a mappin
 
 \section{Interpreter implementation}
 \label{interpreter-implementation}
+TODO: why these aspects
+
+
 This section looks into different aspects of interpreter implementation.
 First, is a discussion on different types of virtual machines, namely register and stack machines, and their different benefits and tradeoffs.
 Then, there is a discussion on the implementation of dispatch, which is one of the bottlenecks of intepreters.
@@ -539,201 +546,53 @@ Examples of register-based virtual machines are the Dalvik \cite{dalvik-vm} virt
 A third approach to virtual machines is just to use the abstract syntax tree for evaluation. This was for example used in earlier versions of WebKits JavaScript implementation, but has now been superseded by a stack-based virtual machine, and is currently being replaced by JIT compilation.
 
 \subsection{Optimising the dispatch}
-Dispatch is an important bottleneck when implementing interpreters.
-An interpreter usually has a loop that fetches the next instruction, and executes it. The process of dispatching is to fetch an opcode and goto the implementation of that virtual instruction.
-The reason this is a bottleneck it has to be executed for every opcode, and while dispatching may be done in few instructions, so may the implementation of the virtual instruction, and thus the dispatch is still a relatively large part of the execution time. 
+TODO: as the embedded-C implementation of the language was not finished, this part does not belong in the thesis, but should be removed, and possibly make it into later documents. Keep note about using switch due to JVM, which is suboptimal compared to what can be done on a native machine.
 
-The usual approach is just to have a switch statement, which usually compiles to a jump table, such that:
-\begin{verbatim}
-for(;;) {
-    // pc is the program counter into an array
-    // of virtual instructions.
-    switch(*(++pc)) { 
-        case OP_FOO:
-            ... implementation of FOO ...
-            break; 
-        case OP_BAR:
-            ... implementation of BAR ...
-            break; 
-        case OP_BAZ:
-            ... implementation of BAZ ...
-            break; 
-    }
-}
-\end{verbatim}
-is compiled into something like:
-\begin{verbatim}
-.data:
-jumptable = {
-address of FOO,
-address of BAR,
-address of BAZ}
-
-.code:
-...
-label looptop:
-   inc register1  ; register1 contains the variable pc
-   load register1 -> register2
-   load jumptable[register2] -> register2
-   jump_to register2
-FOO:
-    ... implementation of FOO ...
-    jump looptop
-BAR:
-    ... implementation of BAR ...
-    jump looptop
-BAZ:
-    ... implementation of BAZ ...
-    jump looptop
-...
-\end{verbatim}
-
-This is a simple approach that works, but is a bit inefficient. It is portable across compilers, and is the only option on some virtual machines,
-This approach is used in SpiderMonkey, KVM\footnote{The reference implementation of JVM for mobile devices}, and in many other implementation.
-
-If the compiler supports direct addressing of labels, we can instead create an array of labels and jump to them as follows:
-\begin{verbatim}
-ops = { &OP_FOO, &OP_BAR, &OP_BAZ };
-   
-goto ops[++pc];
-
-OP_FOO:
-    ... implementation of FOO ...
-    goto ops[++pc];
-OP_BAR:
-    ... implementation of BAR ...
-    goto ops[++pc];
-OP_BAZ:
-    ... implementation of BAZ ...
-    goto ops[++pc];
-\end{verbatim}
-This has two benefits: it removes the jump to the loop top, as it jumps directly to the next instruction after the table lookup, and the jumps themselves may be faster due to better branch prediction.
-The reason the branch prediction may improve, is that branch prediction is often based on where previous branch at the specific code position were taken taken to. 
-When the branch is at the end of the code for the virtual instruction,
-the branch predictor has the current instruction as context for predicting the next instruction.
-When the implementation is a switch based interpreter, the branch predictor has no context for predicting the next instruction.
-This approach is called threaded code, and are up to twice as fast as switch based implementations \cite{ertl-efficient-2003}.
-The cost is a bit more code, as the code for the table lookup needs to be at each instruction, rather than a single place. 
-
-A further optimisation of the dispatch is to remove the table lookup. This is often done by replacing virtual machine instructions with the address of the implementation of the instruction. At the same time this costs space as an address usually uses 32 bit, where an virtual machine instruction often uses 8 bit. This is also better suited for stack machines, where the operands are coded implicit, rather that register machines, where the operands need to encoded beside the address of the implementation. This optimisation is commonly used in Forth implementations, and is also used other virtuel machines, for example optionally in the QScript \cite{qscript} and SquirrelFish \cite{webkit-source} JavaScript implementations.
-
-Another way to remove the table lookup for the dispatch is to have a fixed size of each instruction implementation, and then calculate the position of the implementation from the opcode \cite{dalvik-talk}. When some instruction implemenations are significantly longer than others, the longer instruction implementations can contain a jump to the code that is beyond the fixed instruction implementation size.
-For example:
-\begin{verbatim}
-INSTRUCTION_IMPLEMENTATIONS:
-   ... implementation of FOO ...
-   goto INSTRUCTION_IMPLEMENTATIONS + IMPLEMENTATION_SIZE * (++pc)
-   ... padding ...
-// address INSTRUCTION_IMPLEMENTATIONS + 1 * IMPLEMENTATION_SIZE
-   ... implementation of BAR ...
-   goto INSTRUCTION_IMPLEMENTATIONS + IMPLEMENTATION_SIZE * (++pc)
-   ... padding ...
-// address INSTRUCTION_IMPLEMENTATIONS + 2 * IMPLEMENTATION_SIZE
-   ... first part of implementation of BAZ  which is a long instruction...
-   goto REMAINING_IMPLEMENTATION_OF_BAZ
-// address INSTRUCTION_IMPLEMENTATIONS + 3 * IMPLEMENTATION_SIZE
-   ... implementation of other instructions...
-
-REMAINING_IMPLEMENTATION_OF_BAZ:
-   ... more implemenation of BAZ...
-   goto INSTRUCTION_IMPLEMENTATIONS + IMPLEMENTATION_SIZE * (++pc)
-\end{verbatim}
-This has the benefit of being even faster, as the table lookup is eliminated,
-but it is also more difficult to implement, 
-as the size of the implementation depends on the machine architechture
-and thus it is not possible to do in a high level language.
-Notice that \verb|IMPLEMENTATION_SIZE| should be a power of two such that the multiplication is just a shift.
-This optimisation is for example used in the Dalvik Virtual Machine \cite{dalvik-vm}
-
+... jvm only switch based or class based, which is suboptimal
 
 \subsection{Garbage collection}
-Garbage collection is an important issue in the design of virtual machines.
-There is a good introduction/survey on the topic \cite{gc-survey}.
-An additional way to get into the subject is to see what approach recent scripting language implementations have taken.
+TODO: as the embedded-C implementation of the language was not finished, this part does not belong in the thesis, but should be removed, and possibly make it into later documents. Replace note about piggy-backing on the JVM GC, which is unlikely to be generational, which means that heap allocated stack will be expensive.
 
-The next section looks into aspects of garbage collections.
-The following sections describes different approaches to garbage collection,
-with a final section looking at garbage collection implementation in actual language implementations.
+... heap allocated stack frames and generational GC.
 
-\subsubsection{Issues of dynamic memory management}
-Some of the following issues are relevant for dynamic memory management in general, and other are more focussed towards garbage collection.
+The KVM, which is the reference implementation for mobile Java Virtual Machines, is now using a compacting mark and sweep. It originally started out with a copying collector, which had a larger memory requirement. And subsequently it used a non-compacting mark and sweep, where compaction were later added.
 
-Locality covers that memory that is used at similar times also lies together in memory.  This has impact on the performance, due to levels of caching, and poor locality may also lead to more swapping to secondary storage when memory is scarce, and secondary storage is available.
-
-Fragmentation is when there is unused space between allocated blocks of memory. 
-Compacting garbage collection algorithms addresses this problem, by moving the blocks of memory to remove the fragmentation.
-
-Performance of the garbage collection is also an issue. This covers both CPU usage, and delays during execution.
-The garbage collection takes time, -- this comes both from the time from running the actual garbage collection algorithm, and also from lost caching, as garbage collection methods usually messes up the cache.
-Another issue with garbage collection is whether it is interactive or that there may be longer interruptions or delay of execution, in which the garbage collection cycle runs. This leads to development concurrent garbage collection, that may take more time overall as a tradeof of shorter interruptions of the execution.
-
-Garbage collection algorithms can be conservative or exact, where conservative garbage collection is not directed by strong typing and assumes that data are pointers, whereas exact garbage collection knows which of the data that are actually pointers that need to be tracked.
-
-\subsubsection{Reference counting}
-
-Each allocated block of memory also keeps track of the number of pointers to it, and when this is decreased to zero, the block is deallocated.
-This has the benefit of being reasonable interactive.
-The additional bookkeeping for each pointer assignment, gives it a bit slow performance, which i proportional to the program execution rather than the memory allocation. 
-Another issue is that cyclic references does not get caught by it, so it needs to be combined with another garbage collector or some kind of cycle detection.
-
-\subsubsection{Copying collector}
-A typical copying garbage collector, splits the heap in two, and when one part of it is filled up, it copies the root nodes and all of their descendents into the other part, and updates the pointers.  This also has the benefit that it removes fragmentation. 
-The execution time only depends on the amount of live data, and is executed whenever a part of the heap is filled up.
-The issue here is that the heap is split in two, leading to less available memory, and also that this process is often a stop-the-world approach, leading to a moderately long delay when the collection occur.
-
-\subsubsection{Mark and sweep}
-Mark and sweep essentially works in two phases: first walk through the live objects and mark them as alive, and then walk through the heap and make unmarked objects available as free.
-There are several variations over this topic. Rather than stop-the-world, it can be made more interactive by running in parallel with the execution, for example by coloring/marking ``alive and children marked'', ``alive but children not marked yet'' and ``not marked yet''.
-Instead of a mark and sweep, a mark and compact approach is also possible, where fragmentation is removed at the cost of a bit more execution time.
-
-\subsubsection{Generational Garbage Collection}
-\label{generational-gc}
-Generational garbage collection, can improve the performance of the collection. This is based on the hypothesis that recent allocated memory are more likely to be freed than older memory.
-This is exploited by dividing the memory into generations, where the youngest generations are garbage collected more often than the older ones. 
-Thus by only looking at a single generation/a smaller part of the memory, the garbage collection cycle is significant faster.
-An issue here is to keep track of pointers from older generations to younger ones, such that the younger generations can be collected independently.
-Another question is when to promote memory from younger to older generations.
-
-\subsubsection{Examples of garbage collection implementation}
-A common approach is to combine reference counting with some kind of cycle cleanup. 
-An example of this is the python implementation. 
-One of the benefits of this approach is most of the garbage collection only yields small pauses which will not be felt by the user in an interactive environment, unlike the stop-the-world approach.
-
-The KVM, which is the reference implementation for mobile Java Virtual Machines, is now using a compacting mark and sweep. It originally started out with a copying collector, which had a larger memory requirement, and also had a period with non-compacting mark and sweep.
-
-
-A practical example of a generational garbage collector is the one which is a part of the V8 JavaScript implementation.
-It has two generations, where the young generation is a copying-compacting collector, which is called often, combined with a mark-and-sweep for the full heap, when that is needed.
-The complexity of a copying collector is linear in the size of live objects, which means that there are essentially no overhead for heap allocating the run time stack with this garbage collection strategy, which solves some of the problems of the run time stack, as described later on.
 
 \section{Parsing}
-A language implementation must parse the source text into the abstract syntax tree to work on. 
+A language implementation must parse the source text into the abstract syntax tree that is manipulated by the rest of the compiler.
 
 An issue here is that parsers often take quite a large amount of code, especially if they are generated by compiler-compilers.
-Generated lexers and LALR(1) parsers, generated by for example  \cite{yacc, yacc2}, usually have quite large state tables.
+Generated lexers and LALR(1) parsers, generated by for example \cite{yacc, yacc2}, usually have quite large state tables.
 Recursive descent parsers seems to use a bit less code footprint that LALR parsers, but still requires functions for the all the grammar productions, which may still be expensive.
+Grammar based parser generation and implementation has been extensively studied and described for example in  \cite{basics-of-compiler-design, grammar}, and will not be discussed further in these sections.
 
-Grammar based parser generation and implementation is extensively studied and described for example in  \cite{basics-of-compiler-design, grammar}, and will not be discussed further in these sections.
 Another approach, which is also very elegant, 
-but have recieved less focus is the
-top down operator precedences parser,
-which will be discussed below.
+but have recieved less attention is the
+top down operator precedences parser.
+This has the benefit of a low code footprint,
+partly due to genericity of the parser code,
+for example: only one parsing
+function is needed for the left associative infix operators,
+one function is needed for the right associative infix operators,
+one function is needed for prefix operators, et cetera.
+So a top down operator precedence parser will be used for the implementation of LightScript.
+
 
 \subsection{Top down operator precedence parsers}
 \label{tdop}
 Top down operator precedence parsing combines recursive descent parsing with operator precedence, which simplifies the implementation significantly.
-It was described thirty years ago in  \cite{top-down-operator-precedence}, but has not had much attention until lately with  \cite{beautiful-code, crockford-tdop}.
+It was first described thirty years ago \cite{top-down-operator-precedence}, but has not received much attention until lately \cite{beautiful-code, crockford-tdop}.
 
 A token can have a null denominator function, a left denominator function and a precedence.
 The null denominator function is used to build the abstract syntax tree node, if the token stands first (is leftmost) in an expression.
 The left denominator function is used to build the abstract syntax tree node, if we already have something to the left of the token within the expression.
 The precedence of the next token is used to determine whether we are done parsing an expression or need to use the that token to build another abstract syntax tree node, by calling left denominator function of the token.
 
-To be able to build the abstract syntax tree node, the left denominator function gets the parsed node to the left of the token as a parameter. Additionally it is possible for the denominator functions to parse expressions to the right of the token by calling the parsing function recursively. Here it is necessary that the parsing function also takes a priority as a parameter. This priority parameter makes sure that you do not call left denominator functions for tokens with lower priority.
+To be able to build the abstract syntax tree node, the left denominator function gets the parsed node to the left of the token as a parameter. Additionally it is possible for the denominator functions to parse expressions to the right of the token by calling the parsing function recursively. Here it is necessary that the parsing function also take a priority as a parameter. This priority parameter ensure that the left denominator functions are not called for tokens with lower priority.
 
 The parsing itself is then simply done, by first calling null denominator function of the first token, and then calling the left denominator functions of the next tokens, as long as the next token has higher priority than the priority passed to the parsing function.
 The denominator functions attached to each token are then responsible for building the syntax tree.
-So the core loop of the parser is implemented like:
+So the core loop of the parser is implemented as follows:
 \begin{verbatim}
 define parse(int priority):
     syntax_tree = next_token.null_denominator()
@@ -742,12 +601,12 @@ define parse(int priority):
     return syntax_tree
 \end{verbatim}
 
-Now we need to assign meaningfull precedence and denominator functions to the tokens:
-Atoms, variable names, literals etc., just need to have a null denominator functions that return their node. Unary operations such as minus, not, ..., needs to have null denominator that calls parse once, and create a node that applies the operator to the parsed node.
-Binary (infix) operators are made by assigning the left denominator function to something that create a node with its parameter as the left hand side and calling parse to make the right hand side. Binary operators can be made right associative by reducing the priority passed to parse.
-Lists just calls parse until the end of the list is reached. And other constructions can be made similarly. 
+Now we need to assign meaningful precedence and denominator functions to the tokens:
+Atoms, variable names, literals etc., have a null denominator functions that return their node. Unary operations such as minus, not, etc., have a null denominator that calls parse once, and creates a node that applies the operator to the parsed node.
+Binary (infix) operators have a left denominator function that creates a node with its parameter as the left hand side and calls parse to construct the right hand side. Binary operators can be made right associative by reducing the priority passed to parse.
+The parsing of lists calls parse until the end of the list is reached. Other constructions can be implemented similarly. 
 
-The limitation of this parser as described here is that only one left hand side expression is passed to the left denominator function, making reverse polish notation languages difficult to implement. A non-recursive version with an explicit stack instead could solve that, though it may not be an issue with most syntaxes. 
+The limitation of this parser as described here is that only one left-hand side expression is passed to the left denominator function, making reverse polish notation languages difficult to implement. A non-recursive version with an explicit stack instead could solve that.
 
 \section{Scope}
 Defining the scope of variable declarations  is important when designing a programming language.
@@ -830,6 +689,8 @@ some interpreters have a less efficient approach, where they lookup up variables
 
 \chapter{Yolan}
 \label{yolan}
+TODO:
+... developer guide readable by itself
 \index{Yolan}
 \section{Design choices}
 The overall design direction of Yolan is to minimise the code footprint, while still having a scripting language with first class functions.
@@ -847,6 +708,7 @@ The next paragraphs elaborate the following design choices:
 \item Builtin support for arrays, hashtables, etc.
 \item Lazy Java interface
 \item Online exection
+\item Only single threaded/non-reentrant to archive small size
 \end{itemize}
 
 CLDC 1.0 is the most limited device configurations and API for mobile devices. If the language is able to run this configuration, it will also be able to run on the other Java configurations, and thus be able to run on most devices.
@@ -881,6 +743,8 @@ The motivation for this is that it is simpler to implement efficiently on top of
 If the interface with Java is lazy, this allows new control flow constructs to be added, by the embedded, which again allows the implementation to be a small core, with support for expansion.
 
 Execution should be online, in the sense that whenever a full statement is read from the input, it should be executed, not needing to read the full file. This is both practical for interactive evaluation, and also has a benefit memorywise as the entire program never needs to be fully in memory, as executed code may be garbage collected.
+
+By only having a single runtime, some classes can be made static and merged, leading to a smaller code footprint. This is a tradeoff leading to non-reentrant code and no support for threads.
 
 \section{Syntax tree rewriting}
 
@@ -1038,30 +902,32 @@ Create a new iterator across the values of either a dictionary or a list.
 \subsubsection*{\tt{[get-next }$iterator$\tt{]}}
 Get the next element from the iterator, or nil if the iterator is empty.
 
-\section{Developers guide}
+\section{Developer guide to embedding Yolan in Java}
 Yolan is a minimal scripting language implemented on Java.
-It allows scripting to be added to application, with a minimal overhead on the size of the JAR file -- which is the most limiting factor on low end mobile devices. The features and limitations of Yolan are:
+It allows scripting to be added to an application, with a minimal overhead in the size of the JAR file -- which is the most limiting factor on low end mobile devices. The features and limitations of Yolan are:
 \begin{itemize}
-\item A scripting language, with support for higher order functions
-\item Support for loading of code at run time
-\item Operates directly on standard Java classes, such as \verb|java.lang.Integer|, \verb|java.util.Hashtable| and \verb|java.util.Stack|
-\item Runs on Java Micro Edition/J2ME, and requires only CLDC 1.0/MIDP 1.0
-\item Adds approximately 5KB to the size of the optimised JAR file. Only single-threaded/non-reentrant, to achive the small size
-\item Parses and executes one expression at a time, allowing interactive programming, and implying that the entire program need not to be in memory at once
-\item Interpreted - code can be entered directly on the device, not needing an extra step of compilation, and thus it is also suitable for scriptable configuration files, user scripts etc.
+\item It is scripting language, with support for higher order functions
+\item Yolan supports loading of code at run time
+\item The datatypes of Yolan is implemented with the classes from the Java standard library, such as \verb|java.lang.Integer|, \verb|java.util.Hashtable| and \verb|java.util.Stack|, which makes it easier to interact with Java applications.
+\item It is implemented on top of Java Micro Edition/J2ME, and requires only CLDC 1.0.
+\item Adding scripting support to an application adds approximately 5KB to the size of the optimised JAR file
+\item Expressions are parsed and executed one at a time, allowing interactive programming, and implying that the entire program need not to be in memory at once
+\item Yolan scripts are interpreted -- they can be entered directly on the device, not needing an extra step of compilation, and thus it is also suitable for scriptable configuration files, user scripts etc.
 \end{itemize}
 
-The implementation of Yolan consists of a single class \verb|Yolan| with the actual implementation, and an interface \verb|Function| which is what a class need to implement in order to be callable from Yolan.
-While Yolan only has a single classfile for the implementation, in order to reduce the JAR file size, it consists several logical classes: a parser, a single static runtime, and Yolan instantiated objects are Yolan code that can be evaluated, i.e. delayed computations.
+The implementation of Yolan consists of a single class \verb|Yolan| with the actual implementation, and an interface \verb|Function|, which specifies what a class need to implement in order to be callable from Yolan.
+While Yolan only has a single classfile for the implementation, in order to reduce the JAR file size, it consists of several logical classes: a parser implemented as static properties, a runtime implemented as static properties, and delayed computations implemented as objects that can be instantiated.
 
-Having a single runtime reduces memory usage, but also limits applications to only execute a single script, and only having a single execution context, at a time. The reduction of memory usage comes from that refererences to the execution context can be hard coded, and thus the delayed computations does not have to carry a reference to the context. There are also a memory reduction due to that less code is needed and the class for the context can be joined into the main class file, as static properties.
+Having a single runtime reduces memory usage, but also limits applications to only executing a single script, and only having a single execution context at a time. The reduction of memory usage comes from that refererences to the execution context can be hard coded, and thus the delayed computations do not have to carry a reference to the context. There is also a memory reduction because less code is needed and the class for the context can be joined into the main class file, as static properties.
+The delayed computation is the same as a node in the abstract syntax tree, as the scope is dynamic and execution context is global. 
 
-The \verb|Function| interface consist of a function that takes an array of Yolan objects -- delayed computations -- as parameter, and the return a value. In this sense Java objects callable from Yolan are essentially lazy functions, and themselves responsible for evaluating their arguments.
+
+The \verb|Function| interface consists of a function that takes an array of Yolan objects -- delayed computations -- as parameter, and the return a value. In this sense Java objects callable from Yolan are essentially lazy functions, and themselves responsible for evaluating their arguments. This makes it easy to add custom control function, similar to \verb|if| and \verb|while|, as it is left up to the called Java function whether, and how many times, each argument expression should be evaluated.
 
 \subsection{Getting Started}
-The core method of a Yolan object is the \verb|value()| method which evaluates the code the Yolan object represents, and returns the result. This method may throw \verb|Exeception|s as well as \verb|Error|s if the code it represents has faults, so if we are executing user code, or want to be robust against errors in scripts, the Yolan evaluation should be surrounded by a \verb|catch(Throwable)|.
+The core method of a Yolan object is the \verb|value()| method which evaluates the code the Yolan object represents, and returns the result. This method may throw \verb|Exeception|s as well as \verb|Error|s if the code it represents has faults, so to make it robust against errors in scripts, the Yolan evaluation must be surrounded by a \verb|catch(Throwable)|.
 
-Yolan objects are created with the static \verb|readExpression| method that parses the next Yolan expression from an input stream. So if we want to create a simple interactive interpreter, we can write: \begin{lstlisting}
+Yolan objects are created with the static \verb|readExpression| method that parses the next Yolan expression from an input stream. So if we want to create a simple interactive interpreter, reading from the standard input stream \verb|System.in|, we can implement it in Java as: \begin{lstlisting}
 class Main {
     public static void main(String [] args) throws java.io.IOException {
         Yolan yl = Yolan.readExpression(System.in);
@@ -1078,7 +944,7 @@ class Main {
 
 This code could be saved in a file called Main.java, placed in a directory with Yolan.class and Function.class, and then compiled and executed by executing \verb|javac Main.java| and \verb|java Main|.
 
-Notice that the input stream \verb|System.in| can be replaced with any input stream, so the same basic idea for can be used for evaluating files, programs as strings within the application, or even as streams across the network, where Yolan could work as a shell for remote scripting/controlling an application.
+Notice that the input stream \verb|System.in| can be replaced with any input stream, so the same idea can be used for evaluating files, programs as strings within the application, or even as streams across the network, where Yolan could work as a shell for remote scripting/controlling an application.
 
 If we want to execute an entire stream, there is a short hand builtin method for doing that: \verb|eval|. For example:
 \begin{lstlisting}
@@ -1088,20 +954,22 @@ class Main {
     }
 }
 \end{lstlisting}
-This code opens the file "script.yl", and evaluate all the expressions within it. 
+This code opens the file ``script.yl'', and evaluates all the expressions within it. 
 \verb|eval| throws away the results of the individual expressions and does not print them,
-so the above code is only useful if we have added some user defined functions to Yolan that allows it to do something practical.
+so the above code is only useful if we have added some userdefined functions to Yolan that allow it to do something practical.
 
 \subsubsection{Adding functions to the runtime}
 This section describes how to make Java code callable from Yolan.
-While the builtin Yolan functions supports basic data structures etc., there is no built in way to do input/output from yolan that is platform dependent: Java Standard Edition supports files, where Java Micro Edition has a record store, and user interfaces ranges between Midlets, Applets, graphical applications, and text standard-in/out.
-So when the language needs communicate with the user, or work on the state of the host application, 
-some functionality needs to be added, which is most easily done by adding functions to the runtime.
+While the builtin Yolan functions support basic data structures such as lists and dictionaries,  there is no built in way to do input/output from Yolan that is platform dependent: Java Standard Edition supports files, where Java Micro Edition has a record store, and user interfaces ranges between Midlets, Applets, graphical applications, and text standard-in/out.
+So when a script needs to communicate with the user, or work on the state of the host application, 
+some functionality needs to be added. This is most easily done by adding functions to the runtime.
 
-The \verb|Function| interface is the way to do that. To implement the interface a single function \verb|apply|, that takes an array of Yolan objects as parameter, and returns an object is required.
-Notice that the parameters are passed lazily, e.g. they are only evaluated when the called function chooses to evaluate them, so we need to call the \verb|value()|-function of the Yolan objects when we want the actual value.
-Execution of the Yolan object may also have side effects, so whether, and the number of times, the \verb|value()| is called matters.
-In order to add a new Java function to be callable from the runtime, the method \verb|Yolan.addFunction| takes a name as a string and a \verb|Function| as parameters, and binds the name to the function. As an example the following code makes a new function, \verb|println|, available to the runtime. This function takes one argument, which it prints out to the standard output:
+The \verb|Function| interface is the way to do that. To implement the interface a single function \verb|apply| needs to be implemented in the class. 
+This function is the actual application of the function within Yolan, and
+it takes an array of \verb|Yolan|-objects as argument, and returns the result as a usual Java object.
+Notice that the \verb|Yolan|-objects are delayed computations, e.g. they are only evaluated when the called function chooses to evaluate them, by calling their \verb|value()|-function.
+Execution of the Yolan object may also have side effects, and thus the number of times \verb|value()| is called per argument matters.
+In order to add a new Java function to be callable from the runtime, the method \verb|Yolan.addFunction| takes a string name and a \verb|Function| as parameters, and binds the name to the function. As an example the following code makes a new function, \verb|println|, available to the runtime. This function takes one argument, which it prints out to the standard output:
 \begin{lstlisting}
 class PrintingFunction implements Function {
     Object apply(Yolan args[]) {
@@ -1131,7 +999,7 @@ If the Yolan object is not a callable user-defined function, the result of \verb
 The function is then applied with the \verb|apply| method, which takes the arguments to the function as arguments, for example:
 \begin{lstlisting}
 ...
-    // evaluation some yolan object that yields a function
+    // evaluation some Yolan object that yields a function
     Yolan function = yl.value();
     // ensure that it is a function and it takes two arguments
     if(function.nargs() == 2) {
@@ -1194,6 +1062,8 @@ Resetting is necessesary before scripts are executed after a \verb|Yolan.wipe()|
 It can also be practical when multiple scripts are run, one after another, and they must not modify the runtime for each other.
 
 \subsection{More on adding functions to the runtime}
+TODO: perhaps join with other section on adding functions
+
 The naive approach for adding functions to the runtime would be to create a new class implementing the \verb|Function| interface for each function. This would add significantly to the JAR-file
 .
 If the code size is critical, it can often be reduced by combining multiple functions into a single class, for example via a switch dispatch as shown below:
@@ -1773,7 +1643,7 @@ That the parser is likely to be a bottleneck can be seen in FScriptME, where the
 \subsection{Yolan}
 Yolan does a good job having a tiny code footprint and decent performance, while being a scripting language with first class function, hashtables, easy embeddable, etc., and does a bad job trying to do anything else:
 the dynamic scoping makes it unsuitable for developing larger applications, and the Lisp-like syntax will probably scare away most developers.
-So the major use of this language is probably just to set a bar for how small a code footprint a high level scripting language can have.
+So the major use of this language is probably just to set a bar for how small a code footprint a high-level scripting language can have.
 
 While it has an interesting result, code size wise, there will probably not be any further developments in this language, other than it served as a stepping stone towards LightScript.
 
