@@ -44,6 +44,8 @@ for Mobile Devices \\
 \date{2009}
 
 \begin{document}
+%TODO: Make it more clear what the difference between lightscript and yolan is.
+%TODO: Make it clear why different parts are in the survey
 
 \maketitle
 \begin{abstract}
@@ -121,7 +123,7 @@ Design and implementation of a scripting language for mobile devices is spot on 
 
 \section{The structure and content of the report}
 
-TODO: update
+%TODO: update
 The report starts out with some background information: this introduction, and a survey on topics related to the project in Chapter~\ref{survey}.
 Then,  the methodology and design for the project are elaborated in Chapter~\ref{method}, including some of the principal design choices for the language implementations.
 The next couple of chapters then describe the actual results: the LightScript language in Chapter~\ref{lightscript}, the Yolan language in Chapter~\ref{yolan}, and some benchmarking of the two new languages compared to existing scripting languages in Chapter~\ref{benchmark}.
@@ -173,9 +175,9 @@ Besides Java and native code, JavaScript is becoming a potential language for ap
 This is both due to its integration with the web, which means that it will be available on the phones with advanced browsers, due to the increased amount of memory on high end phones
 and due to recent major performance advances within the JavaScript implementations, which are propagating towards mobile devices.
 
-TODO: spoiler - target J2ME. embedded systems and smartphones are described as they are potential targets for future versions, JavaScript additionally because of compatibility
+%TODO: spoiler - target J2ME. embedded systems and smartphones are described as they are potential targets for future versions, JavaScript additionally because of compatibility
 \subsection{Embedded systems}
-TODO: Reduce this section, focus is on nxt-development device
+%TODO: Reduce this section, focus is on nxt-development device
 
 The personal computers, PCs, as we know them, are only a very small fraction of the computers in use.
 Billions of electronic devices nowadays have small embedded computers; they are in mobile phones, kitchen equipment, washing machines, music instruments, car, even advanced greeting cards. 
@@ -212,7 +214,7 @@ The coprocessor usually reads sensors, controls motors, and can power the main c
 The system also have a 100x64 black/white lcd display, and a couple of buttons, so it has a lot of potential as a development substitute platform for low-end mobile devices, which do not allow 3rd party firmware.
 
 \subsection{The J2ME / Java Micro Edition}
-TODO: make it clear that scripting languages is going to be built on J2ME
+%TODO: make it clear that scripting languages is going to be built on J2ME
 
 J2ME (Java Micro Edition\footnote{Java Micro Edition is a recent rebranding of J2ME}) is the most common platform for mobile application, supported by more than a billion devices \cite{sun-j2me}. 
 It seems like two thirds of mobile phones shipped today supports Java \cite{esmertec-globenews}.
@@ -449,7 +451,7 @@ Rhino is an implementation of JavaScript on top of Java. This is mainly as an em
 
 \paragraph{SpiderMonkey}
 \label{spidermonkey}
-SpiderMonkey \cite{spidermonkey} is the JavaScript engine in Mozillas browsers, and it is also usable as an embeddable engine in other applications. The execution is based on a switch dispatched virtual machine TODO:verify-that-I-remember-correctly-here.
+SpiderMonkey \cite{spidermonkey} is the JavaScript engine in Mozillas browsers, and it is also usable as an embeddable engine in other applications. The execution is based on a switch dispatched virtual machine. %TODO:verify-that-I-remember-correctly-here.
 
 \paragraph{TraceMonkey} 
 TraceMonkey is a branch of SpideMonkey, which incoperates JIT compilation, with a JIT compiler based on trace trees \cite{trace-tree}, 
@@ -520,7 +522,7 @@ An object in Self contains a pointer to the parent (cloned) object, and a mappin
 
 \section{Interpreter implementation}
 \label{interpreter-implementation}
-TODO: why these aspects
+%TODO: why these aspects
 
 
 This section looks into different aspects of interpreter implementation.
@@ -546,16 +548,16 @@ Examples of register-based virtual machines are the Dalvik \cite{dalvik-vm} virt
 A third approach to virtual machines is just to use the abstract syntax tree for evaluation. This was for example used in earlier versions of WebKits JavaScript implementation, but has now been superseded by a stack-based virtual machine, and is currently being replaced by JIT compilation.
 
 \subsection{Optimising the dispatch}
-TODO: as the embedded-C implementation of the language was not finished, this part does not belong in the thesis, but should be removed, and possibly make it into later documents. Keep note about using switch due to JVM, which is suboptimal compared to what can be done on a native machine.
+%TODO: as the embedded-C implementation of the language was not finished, this part does not belong in the thesis, but should be removed, and possibly make it into later documents. Keep note about using switch due to JVM, which is suboptimal compared to what can be done on a native machine.
 
-... jvm only switch based or class based, which is suboptimal
+%... jvm only switch based or class based, which is suboptimal
 
 \subsection{Garbage collection}
-TODO: as the embedded-C implementation of the language was not finished, this part does not belong in the thesis, but should be removed, and possibly make it into later documents. Replace note about piggy-backing on the JVM GC, which is unlikely to be generational, which means that heap allocated stack will be expensive.
+%TODO: as the embedded-C implementation of the language was not finished, this part does not belong in the thesis, but should be removed, and possibly make it into later documents. Replace note about piggy-backing on the JVM GC, which is unlikely to be generational, which means that heap allocated stack will be expensive.
 
-... heap allocated stack frames and generational GC.
+%... heap allocated stack frames and generational GC.
 
-The KVM, which is the reference implementation for mobile Java Virtual Machines, is now using a compacting mark and sweep. It originally started out with a copying collector, which had a larger memory requirement. And subsequently it used a non-compacting mark and sweep, where compaction were later added.
+%The KVM, which is the reference implementation for mobile Java Virtual Machines, is now using a compacting mark and sweep. It originally started out with a copying collector, which had a larger memory requirement. And subsequently it used a non-compacting mark and sweep, where compaction were later added.
 
 
 \section{Parsing}
@@ -638,10 +640,10 @@ in practical implementations on CPUs, the top of the stack is usually implemente
 Whenever a function is called, the arguments are pushed onto the stack. Then, when the function is entered, a return pointer is often pushed to the same stack, and space is allocated for the local variables. The computation is then done, and the function returns, jumping back to the call site and restoring the stack size to the original.
 The allocation on the stack allows for local variables, and functions can also be recursive without a problem. The space on the stack with the local variables, etc., is called the activation record for the function.
 
-\subsection{Higher order functions, and the funarg problem}
+\subsection{Scope and first class functions}
 \label{funarg}
 
-When we have higher order functions and static scoping, we cannot just place the activation records on the stack. The reason for this is that inner functions may live on, and acces local variables of the outer function, after the outer function has returned. Consider the following code:
+When we have first class functions and static scoping, we cannot just place the activation records on the stack. Inner functions may live on, and access local variables of the outer function, after the outer function has returned. Consider the following code:
 \begin{verbatim}
 function f(x) {
     function g(y) {
@@ -651,46 +653,46 @@ function f(x) {
 }
 \end{verbatim}
 
-The issue in this code is that the new function $g$ lives on after $f$ has returned, and at the same time $g$ uses a value that lies on the activation record of $f$. Therefor, if the activation record is just allocated on the call stack, and nothing further is done about it, the value of $x$ will no longer be available at the time $g$ is called.
+In this code the new function $g$ lives on after $f$ has returned, and at the same time $g$ uses a value that lies in the activation record of $f$. Therefore, if the activation record is allocated on the call stack, and nothing further is done about it, the value of $x$ will no longer be available at the time $g$ is called.
 
 There are several solutions to this problem:
 \begin{itemize}
-\item Disallowing/not supporting first order nested functions or access to outer scope within nested functions. Or not having static scope.
-\item Outer scope variables cannot be changed from inner scope, but is instead passed as immutable values at function/scope creation. 
+\item Disallowing/not supporting first-order nested functions or access to outer scope within nested functions. Or not having static scope.
+\item Outer scope variables cannot be changed from the inner scope, but are instead passed as immutable values at function/scope creation. 
 \item Allocate the activation records on the heap, instead of the stack, and let them be garbage collected. 
-\item Keep track of which may live on after the function exits, and move those to the heap.
+\item Keep track of which variables may live on after the function exits, and move those to the heap.
 \end{itemize}
 
+%TODO: definition of funarg problem
 Not having nested functions, only having a single-function-local and a global scope, or not having static scope, simplifies the implementation and is a solution in mostly imperative languages.
-The effect of this is that the funarg-problem is disallowed from the language rather than solved, and has the cost of not supporting closures either.
+This solves the issue, but at the same time it also removes support for closures.
 
-Copying outer scope variables to inner scope makes good sense in functional languages, where they are will not be mutated. The issue with this approach is that if the variable is mutated in an inner function, it is only the copy that is mutated, and the mutation is local to the function.
-A workaround for mutations in languages that copies variables from outer to inner scope is to us a reference to the mutated variable rather than the variable itself, such that when the reference is copied to the inner scope it is still possible to mutate the value, as we need not mutat the reference itself.
+Copying outer scope variables to inner scope is possible in functional languages, where they are will not be mutated. If the language is not purely functional, the issue with this approach is that when a variable is mutated in an inner function, it is only the copy that is mutated, and the mutation is local to the function.
+A workaround for mutations in languages that copy variables from outer to inner scope is to use a reference to the mutated variable rather than the variable itself, such that when the reference is copied to the inner scope it is still possible to mutate the value, as we need not mutate the reference itself.
 
 Another approach is to let the outer scope stay alive until the inner closure dies, and then just reference variables as usual.
-This can be done by allocating the activation records on a garbage collected heap,
+This can be done by allocating the activation records on a garbage-collected heap,
 which is not as expensive as it may seem, due to the high effiency of modern garbage collectors.
-Another way to do this is to keep track on which variables may stay alive at the exit of a function, and move them to the heap at that time.
+Another approach is to keep track of which variables may stay alive at the exit of a function, and move them to the heap at that time.
 Or just identify variables that are used by in inner functions, and put those on the heap.
 
 \subsection{Implementation of variables}
 When we are implementing the scope, an issue is how to implement the variables. 
 Here are several options: 
 
-The  classical good-performing approach is to implement them on a stack. On each function call, an activation record is added on a linear stack, and each of the variables can be spilled into its place on the activation record. This is very fast as allocation and deallocation is just a question of increasing/decreasing the stack pointer. The issue with this approach is that extra code is needed to handle the funarg problem.
+The  classical good-performing approach is to implement them on a stack. On each function call, an activation record is added on a linear stack, and each of the variables can be spilled into its place on the activation record. This is very fast, as allocation and deallocation just increase and decrease the stack pointer. The issue with this approach is that extra code is needed to handle the funarg problem.
 
-Another approach is to allocate the stack frame on the heap, and let it be cleaned up with the garbage collector. The quality of this approach depends a lot on the garbage collector, as it has nearly no overhead with a good generational garbage collector \cite{generational-heap}, see section~\ref{generational-gc}.
+Another approach is to allocate the stack frame on the heap, and let it be cleaned up with the garbage collector. The quality of this approach depends a lot on the garbage collector. In particular it has nearly no overhead with a good generational garbage collector \cite{generational-heap}, see Section~\ref{generational-gc}.
 This also solves the funarg problem as the closure has a reference to the activation record, which will then not be garbage collected.
 
 Usually the variable is resolved at compilation time, or the first time it is encountered, but 
-some interpreters have a less efficient approach, where they lookup up variables at run time, either through a stack, or a table of variables.
+some interpreters have a less efficient approach, where they look up variables at run time, either through a stack, or a table of variables.
 
 \section{Summary}
 
 \chapter{Yolan}
 \label{yolan}
-TODO:
-... developer guide readable by itself
+%TODO: ... developer guide readable by itself
 \index{Yolan}
 \section{Design choices}
 The overall design direction of Yolan is to minimise the code footprint, while still having a scripting language with first class functions.
@@ -906,7 +908,7 @@ Get the next element from the iterator, or nil if the iterator is empty.
 Yolan is a minimal scripting language implemented on Java.
 It allows scripting to be added to an application, with a minimal overhead in the size of the JAR file -- which is the most limiting factor on low end mobile devices. The features and limitations of Yolan are:
 \begin{itemize}
-\item It is scripting language, with support for higher order functions
+\item It is scripting language, with support for higher-order functions
 \item Yolan supports loading of code at run time
 \item The datatypes of Yolan is implemented with the classes from the Java standard library, such as \verb|java.lang.Integer|, \verb|java.util.Hashtable| and \verb|java.util.Stack|, which makes it easier to interact with Java applications.
 \item It is implemented on top of Java Micro Edition/J2ME, and requires only CLDC 1.0.
@@ -1062,7 +1064,7 @@ Resetting is necessesary before scripts are executed after a \verb|Yolan.wipe()|
 It can also be practical when multiple scripts are run, one after another, and they must not modify the runtime for each other.
 
 \subsection{More on adding functions to the runtime}
-TODO: perhaps join with other section on adding functions
+%TODO: perhaps join with other section on adding functions
 
 The naive approach for adding functions to the runtime would be to create a new class implementing the \verb|Function| interface for each function. This would add significantly to the JAR-file
 .
@@ -1116,6 +1118,7 @@ class YolanIf implements Function {
 
 \section{Summary}
 \chapter{LightScript}
+%TODO: goal and originality of the language
 \label{lightscript}
 \index{LightScript}
 \section{Design choices}
@@ -1167,40 +1170,44 @@ Exceptions should also be supported, and it should also be possible to throw bet
 
 \section{Imperative implementation of top down operator precedence parsers}
 \label{tdop-imp}
-The top down operator precedence parser described in section~\ref{tdop} is targeted functional languages.
-This section looks at how it can be implemented efficiently in an imperative language.
+This section looks at how top down operator precedence parsers can be implemented efficiently in an imperative language.
 
-To reduce the code size of the parser, we assume that the source code is well formed, and do not require that the parser reports syntax errors. This for example removes the need for keeping track of where we are in the code and also allows some tokens to be joined, for example list termination does need not distinguish between different kinds of list.
+As we have relaxed parsing requirements, such that only building the syntax tree, and not checking for error is required, several classes of tokens can be joined. An example is to create an end-of-list token, instead of list termination such as \verb|}|, \verb|)|, \verb|]|, which also allows a generalisation of parsing a list. Similarly a separator token can be introduced instead of \verb|,|, \verb|;|, \verb|:|.
 
-First class functions use a lot of space in the Java platform, as they require a class each.
-The solution is to use a dispatch function instead, and replace the function properties of the token, with integers.
+The top down operator precedence parser described in Section~\ref{tdop} 
+uses first class functions and are thus better suited for being implemented in functional languages rather than imperative languages.
+For example, in Java a simple implementation of the parser uses a lot of space as as the functions would ase a class each, in order to be passed around as first-class values.
+Our solution is to use a dispatch function instead, and replace the denominator functions of the token, with integers.
 Actually it is simpler with two dispatch functions, one for the null denominator functions and one for the left denominator functions.
 
 The token object contains information about the denominator functions, and corresponding abstract syntax tree node IDs, and also a priority/binding power.
-This is just five small integers, which, due to their limited range, easily can be represented in a single 32bit integer. 
-Some tokens represents literal values or identifier, where the value or identifier also has to be passed to the parser.
-So a token can be represented compactly by adding two properties to the parser: an integer and possible an object for the value, rather than a new class/object.
+This is just five small integers, which, due to their limited range, easily can be represented within a single 32bit integer. 
+Some tokens represents literal values or identifiers, where the value or identifier also has to be passed to the parser.
+So a token can be represented compactly as an integer and possibly an object for the value, which eliminates the need for an actual token object in the parse, thereby reducing the footprint by not needing a token class.
 
-The token types can be encoded by the token string followed by the five integers.
+The token types can be encoded by the string representing the token followed by the five integers.
+The token name string is not needed by the parser, but is used by the tokeniser, to map the token to the IDs.
 So the tokens can be written as {\tt "tokenname" + (char) binding\_power + 
 (char) null\_deno}\-{\tt{}minator\_function + (char) AST\_ID\_for\_null\_denominator
 + (char) left\_denomina}\-{\tt{}tor}\-{\tt{}\_function + (char) AST\_ID\_for\_left}\-{\tt{}\_denominator}. 
-So the task of writing the parser is to make a list of tokens, connected with their binding power, denominator function ids and abstract syntax tree ids, -- a simple parse loop, plus definition of sensible denominator function bodies in the dispatch.
+The syntax is implemented as list of the different token types, with the data described above.
+For this to be executed there also need to be a parse loop, and definitions of sensible denominator function bodies within the dispatch.
 The actual implementation can be seen on page~\pageref{code-lightscript-parser}.
 
 
 \subsection{Performance properties of the parser implementation}
 
-For each token, there is a instruction cost of 1-2 function calls, 1 switch-dispatch, 0-1 comparison, reading of 2-3 properties of the token object, and storing a copy of the token val, plus the cost of building the actual AST node, and the cost of parsing the token.
+For each token, there is a instruction cost of 1-2 function calls, 1 switch-dispatch, 0-1 comparisons, extracting of 2-3 parts of the token integer, and storing a copy of the token integer, plus the cost of building the actual AST node, and the cost of the tokenisation itself.
 
-The size of the implementation can be kept very small, as the denominator functions can be reused across different token-types. For example: the binary operators share a single case in the left denominator dispatch, and adding a new binary operator only takes the length in characters of the operator plus 5 bytes. 
+The size of the implementation can be kept very small, as the denominator functions can be reused across different token-types. For example: the binary operators share a single case in the left denominator dispatch, and adding a new binary operator only uses the length in characters of the operator plus 5 bytes. 
 
 \section{Implementation of variables and scope}
-In the EcmaScript standard, identifier resolution is done by searching through the scope chain, which is a list of objects. Objects in the EcmaScript context is a mapping from property names to values. This approach to implementation would be very performance expensive.
+In the EcmaScript standard, identifier resolution is done by searching through the scope chain, which is a list of objects. Objects in the EcmaScript context are a mapping from property names to values. This approach to implementation would be very performance expensive.
 
-Instead we want to resolve the variables at compile time, while preserving as much of the semantics as is practical. The main issue here is that we when we resolve the variable at compile time, we do not keep information to be able to resolve dynamically at run time, not supporting access to local variable with \verb|eval| statements, but as mentioned in section~\ref{designstyle}, eval is not availble in the first version of the language (though it could easily be added as an external java function that just calls LightScript).
+Instead we want to resolve the variables at compile time, while preserving as much of the EcmaScript semantics as is practical. The main issue here is that when we resolve the variable at compile time, we do not keep information to be able to resolve it dynamically at run time,
+which lead to limitations in \verb|eval| like statements when compared EcmaScript semantics. Currently there are no \verb|eval| statement in LightScript, but this may be an issue in future versions.
 
-Of the different implementation methods discussed in section~\ref{survey-scope}, the only real possibilities for a partly imperative scripting language which also want good support for higher order functions are either to allocate the activation records on the heap, or keep track of variables that could live on after exiting a function, and box those variable on the heap.
+Of the different implementation methods discussed in Section~\ref{survey-scope}, the only real possibilities for a partly imperative scripting language which also want good support for higher-order functions are either to allocate the activation records on the heap, or keep track of variables that could live on after exiting a function, and box those variable on the heap.
 The other options are ruled out, as we want to have closures, and we want the outer scope variables to be mutable.
 Allocating the activation records on the heap has the issue, that we are not in control of the garbage collector, and it may not be designed for that kind of usage, leading to expensive performance, so the approach will be only to box variables onto the heap, that could be alive after function exit.
 
@@ -1216,7 +1223,7 @@ The actual access to a \verb|Stack| requires a method call, which is 3 bytes plu
 The core of the LightScript implementation consists of three parts: 1) a top down operator precedence parser that is responsible for building the syntax tree, and identify which variables needs to be boxed on the heap for closures, 2) a compiler which translate the abstract syntax tree to a sequence of opcodes while keeping track of the stack depth, and 3) a stack-based virtual machine for executing the code.
 Beside these core elements, the implementation also contain an API for embedding, and a library of standard functions.
 
-The parser is a concrete implementation of the top down operator precedence parser for imperative laanguage, as described in section~\ref{tdop-imp}, with the additional detail, that during the parsing, the parser keep track of which variable is defined and used in each function, such that this information can be used for scoping later on. 
+The parser is a concrete implementation of the top down operator precedence parser for imperative laanguage, as described in Section~\ref{tdop-imp}, with the additional detail, that during the parsing, the parser keep track of which variable is defined and used in each function, such that this information can be used for scoping later on. 
 The source code for the parser starts on page~\pageref{lightscript-parser}.
 
 \subsection{Compiler}
@@ -1262,7 +1269,7 @@ Identifiers start with a letter or an underscore, and continues with any combina
 LightScript does not support escaped unicode sequences, but do accept utf-8 encoded. Non-letter unicode symbols with value larger than 127 are not supported. This allows a parsers to be implemented easier as they can just treat any 8-bit character with a value larger than 127 as a part of a unicode letter.
 
 The punctuators in the current version of LightScript are: {\tt \verb|{| \verb|}| ( ) [ ] . ; , < > <= >= === !== + - * \% >> ! \&\& || ? : = += -=}. 
-This will expand in the next version of LightScript where the remaining operators will be added, except for division as discussed in section~\ref{division} on page~\pageref{division}.
+This will expand in the next version of LightScript where the remaining operators will be added, except for division as discussed in Section~\ref{division} on page~\pageref{division}.
 
 String literals are always enclosed in double qoutation \verb|"|, and single quotation is not supported. It is possible to use backslash \verb|\| to escape quotation marks, backslashes and newline (\verb|"\n"| is the string containing a newline).
 
@@ -1475,15 +1482,16 @@ This section described what have been done in version 1.1 and what needs to be d
 \subsubsection{Implemented changes}
 \begin{itemize}
 \item Optimise code footprint, by reordering opcodes
+\item Add support for fixed-point arithmetics
 \end{itemize}
 \subsubsection{Remaining tasks}
 \begin{itemize}
-\item Add support for fixed-point arithmetics
 \item Add remaining arithmetic operators, comparison, etc. 
 \item Add postfix increment/decrement
 \item Let functions support a variable number of arguments
 \item Let catch, and function-def behave as implicit \verb|var|-decl
 \item Change of the implementation to make the it even more EcmaScript-like by relying on LightScript object class in Java, rather than standard Java classes, This costs a slightly larger code footprint, and also makes it slightly more complex to integrate with existing Java applications.
+\item Add support for fixed-point arithmetics
 To determine whether it is worthwhile needs an actual implementation.
 \item Walk through library specification, and add functions that does not add too large a foorprint
 \item Add prototype object to functions
@@ -1582,7 +1590,7 @@ The source code for the benchmarks can be seen in appendix~\ref{benchmarksource}
 The results of the benchmarks can be seen in figure~\ref{figure-execution-speed}.
 
 \subsection{Languages}
-The benchmarks are run on those of the languages from section~\ref{codefootprint-languages}, that have an approximated JAR size of less than 64K. They also run on two JavaScript interpreters: Rhino 1.6r7 and SpiderMonkey 1.7.0, which are described in section~\ref{spidermonkey}, and are the default versions when installed on Ubuntu Linux.
+The benchmarks are run on those of the languages from Section~\ref{codefootprint-languages}, that have an approximated JAR size of less than 64K. They also run on two JavaScript interpreters: Rhino 1.6r7 and SpiderMonkey 1.7.0, which are described in Section~\ref{spidermonkey}, and are the default versions when installed on Ubuntu Linux.
 
 \subsection{The benchmarks}
 The benchmarks are the following:
@@ -1633,7 +1641,7 @@ The scripting languages developed in this project has significantly smaller code
 Two reasons for this are: 1) the implementations have focused on code footprint from start to end, using techniques for writing compact code to a much higher degree than existing scripting language implementation for mobile Java devices, and 2) the parsers, which usually would take tens, or more, of kilobytes, has been reduced significantly: in case of Yolan this was done by having a trivial syntax, and in case of LightScript by optimising and using top down operator precedence parsing.
 
 The size comparison even falls more favorable out, especially for LightScript, when taking the features of the languages into account:
-The third language in size, FScriptME, is a very minimalistic language, that does not have builtin support for arrays, or objects, or higher order functions, or exceptions, or anything like that, which accounts for its small size.
+The third language in size, FScriptME, is a very minimalistic language, that does not have builtin support for arrays, or objects, or higher-order functions, or exceptions, or anything like that, which accounts for its small size.
 The next two languages, on place four and five in size, are JScheme and Kahlua,
 have simple or no parser, due to having Lisp-like syntax or being just a virtual machine.
 
@@ -1649,7 +1657,7 @@ While it has an interesting result, code size wise, there will probably not be a
 
 \subsection{LightScript}
 LightScript is much more featurefull and usefull than Yolan, while this comes by having twice the footprint of Yolan, it is still small compared to other scripting languages targeting mobile devices. .
-The JavaScript/EcmaScript like syntax and semantics should make it much more approachable for other developers, while still having expressive features like supporting closures and higher order functions.
+The JavaScript/EcmaScript like syntax and semantics should make it much more approachable for other developers, while still having expressive features like supporting closures and higher-order functions.
 
 There is a tradeoff between EcmaScript compliance and size/performance. 
 One of those is the joining of \verb|false|, \verb|null| and \verb|undefined|, and not needing the boolean type.

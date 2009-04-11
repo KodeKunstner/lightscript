@@ -11,7 +11,7 @@ import java.util.Stack;
  * It also adds support for more readable printing of
  * id, etc.
  */
-#define __DEBUG__
+//#define __DEBUG__
 
 /* These defines are used for benchmarking size,
  * by making compilation of different parts of the code
