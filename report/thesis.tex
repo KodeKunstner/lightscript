@@ -169,39 +169,54 @@ and due to recent major performance advances within the JavaScript implementatio
 \subsection{Embedded systems}
 %TODO: Reduce this section, focus is on nxt-development device
 
-The personal computers, PCs, as we know them, are only a very small fraction of the computers in use.
-Billions of electronic devices nowadays have small embedded computers; they are in mobile phones, kitchen equipment, washing machines, music instruments, car, even advanced greeting cards. 
-These embedded computer systems vary tremendously, from low end micro controllers with memory measured in bytes, up to powerful CPUs with vector processing units and many megabytes of memory.
+%The personal computers, PCs, as we know them, are only a very small fraction of the computers in use.
+%Billions of electronic devices nowadays have small embedded computers; they are in mobile phones, kitchen equipment, washing machines, music instruments, car, even advanced greeting cards. 
+%These embedded computer systems vary tremendously, from low end micro controllers with memory measured in bytes, up to powerful CPUs with vector processing units and many megabytes of memory.
+%
+%\subsubsection{Machine architecture}
+%There are two significantly different classes of computers: The Harvard architecture, and the von Neumann architecture. The difference is whether the program code is in the same memory as the data or if they are separated.
+%
+%Larger computers usually use the von Neumann architecture where program and data are in the same memory, and this is the most commonly known model.
+%On small micro controllers on the other hand, the data memory is usually separated from the program memory, which is what is called the Harvard architecture. 
+%These two approaches to architecture date back to some of the early computers: the Harvard Mark I \cite{harvard-mark1} and the EDVAC \cite{edvac} by John von Neumann.
+%
+%On small micro controllers, programs are usually stored in flashable ROM, and on the Harvard architecture the separation of data and code makes it easier and cheaper to build the micro controller. For example, the size of the code words can be independent of the size of the data words.
+%These may have less than a kilobyte of RAM, and some kilobytes of possibly flashable ROM for the executable code. Examples of this are the PIC-processors \cite{picspec}, or the ATmega 8-bit microcontrollers \cite{atmegaspec}.
+%An interesting operating system for low end devices is Contiki \cite{contiki}, which also demonstrate how very lightweight threads can be implement.
+%
+%On more powerful embedded devices, for example mobile phones, and larger computers,
+%it may sometimes be practical to be able to work with the code as data, and thus the von Neumann architecture makes more sense there.
+%For mobile and larger embedded devices a typical CPU architecture is the ARM \cite{arm-architecture}, which is a 32 bit RISC architecture.
+%
+%\subsubsection{Development platform}
 
-\subsubsection{Machine architecture}
-There are two significantly different classes of computers: The Harvard architecture, and the von Neumann architecture. The difference is whether the program code is in the same memory as the data or if they are separated.
+%While embedded systems are very very common, the software is a shipped, or possibly flashable updateable on larger system, but there are generally no support for software development.
+Low- to mid-end mobile phones are just another kind of embedded devices, where high-end phones are getting closer to being personal computers.
+One thing that characterises embedded systems is that the software is a shipped with the devices, and there are no or low support for software development.
+So while there are support for execution of midlets, native applications are not immediately possible to develop, unless you are also a hardware developer.
 
-Larger computers usually use the von Neumann architecture where program and data are in the same memory, and this is the most commonly known model.
-On small micro controllers on the other hand, the data memory is usually separated from the program memory, which is what is called the Harvard architecture. 
-These two approaches to architecture date back to some of the early computers: the Harvard Mark I \cite{harvard-mark1} and the EDVAC \cite{edvac} by John von Neumann.
+There are ways to experiment with development for low end devices nonteheless:
+Some devices are hackable in the sense that somebody has found out how to upload and customise the firmware, usually without documentation and support from the manufacturer -- examples here ranges from digital cameras, mobile phones and handheld gaming devices.
+A few devices opens up for development.
 
-On small micro controllers, programs are usually stored in flashable ROM, and on the Harvard architecture the separation of data and code makes it easier and cheaper to build the micro controller. For example, the size of the code words can be independent of the size of the data words.
-These may have less than a kilobyte of RAM, and some kilobytes of possibly flashable ROM for the executable code. Examples of this are the PIC-processors \cite{picspec}, or the ATmega 8-bit microcontrollers \cite{atmegaspec}.
-An interesting operating system for low end devices is Contiki \cite{contiki}, which also demonstrate how very lightweight threads can be implement.
+An interesting case here is the Lego Mindstorm NXT, which has hardware similar to low end mobile phones, except for the sound and GSM. 
+The hardware contains an 48MHz ARM cpu\cite{arm7tdmi}, which is the same that is used in many mobile devices, 256KB of ROM, and 64KB of RAM, plus a coprocessor, a low resolution small display and a couple of buttons.
+This may be used for prototyping an implementation of the scripting language, targeting embedded devices, although this will be postponed until a stable version on top of Java Mobile edition is done.
 
-On more powerful embedded devices, for example mobile phones, and larger computers,
-it may sometimes be practical to be able to work with the code as data, and thus the von Neumann architecture makes more sense there.
-For mobile and larger embedded devices a typical CPU architecture is the ARM \cite{arm-architecture}, which is a 32 bit RISC architecture.
 
-\subsubsection{Development platform}
-
-While embedded systems are very very common, the software is a shipped, or possibly flashable updateable on larger system, but there are generally no support for software development.
-So usually access to debug boards and expensive hardware is needed to get experiment with embedded devices.
-Another approach is that some devices is hackable in the sense that somebody has found out how to upload and customise the firmware, usually without documentation and support from the manufacturer -- examples here ranges from digital cameras, mobile phones and handheld gaming devices.
-An exceptional case on small embedded devices, where the manufacturer has actually opened up for development is the Lego brick that is a part of the Lego Mindstorm NXT, which will be elaborated in the next section.
-On larger devices it happens more often, though it is still rare: two smartphones \cite{openmoko, htc-android}, an E-book-reader, and some wireless routers and network attached storage \cite{wrtg, nslu, buffalo} have also opened, or partly opened, up for development.
-
-The Lego Mindstorm NXT is interesting because it is an easy to get started with embedded development platform. 
-The main cpu is an ARM7TDMI \cite{arm7tdmi}, which is commonly used in mobile phones, and also in many other embedded devices. 
-It is clocked at 48MHz, and is attached to 256 KB of flashable ROM and 64 KB of RAM, which means that it is low end, compared to mobile phones, while powerful viewed as an embedded device.
-There is also an ATmega48 \cite{atmega48} 8-bit coprocessor, which has 4KB of flashable ROM and 512 bytes of RAM, which is a typical microcontroller. 
-The coprocessor usually reads sensors, controls motors, and can power the main cpu down, to reduce power usage.
-The system also have a 100x64 black/white lcd display, and a couple of buttons, so it has a lot of potential as a development substitute platform for low-end mobile devices, which do not allow 3rd party firmware.
+%So usually access to debug boards and expensive hardware is needed to get experiment with embedded devices, if possible at all.
+%Another approach is that some devices is hackable in the sense that somebody has found out how to upload and customise the firmware, usually without documentation and support from the manufacturer -- examples here ranges from digital cameras, mobile phones and handheld gaming devices.
+%A case on small embedded devices, where the manufacturer has actually opened up for development is the Lego brick that is a part of the Lego Mindstorm NXT, which will be elaborated in the next section.
+%On larger devices it happens more often, though it is still rare: two smartphones \cite{openmoko, htc-android}, an E-book-reader, and some wireless routers and network attached storage \cite{wrtg, nslu, buffalo} have also opened, or partly opened, up for development.
+%
+%The Lego Mindstorm NXT is interesting because it is an easy to get started with embedded development platform. 
+%The main cpu is an ARM7TDMI \cite{arm7tdmi}, which is commonly used in mobile phones, and also in many other embedded devices. 
+%It is clocked at 48MHz, and is attached to 256 KB of flashable ROM and 64 KB of RAM, which means that it is low end, compared to mobile phones, while powerful viewed as an embedded device.
+%There is also an ATmega48 \cite{atmega48} 8-bit coprocessor, which has 4KB of flashable ROM and 512 bytes of RAM, which is a typical microcontroller. 
+%The coprocessor usually reads sensors, controls motors, and can power the main cpu down, to reduce power usage.
+%The system also have a 100x64 black/white lcd display, and a couple of buttons, so it has a lot of potential as a development substitute platform for low-end mobile devices, which do not allow 3rd party firmware.
+%
+%So while there are no low end mobile phone which opens up for development, the Mindstorm NXT has similar specs, and can thus be a prototype target for an implementation targeting this class of devices.
 
 \subsection{The J2ME / Java Micro Edition}
 %TODO: make it clear that scripting languages is going to be built on J2ME
@@ -228,7 +243,6 @@ In order to simplify the J2ME JVM implementation, Java class files have to be pr
 The preverification adds meta data about stack use, and removes certain instructions, such as local jump-and-save-register, to make it easier to implement a JVM that is safe against malicious code trying to overflow the stack.
 The reference implementation of CLDC 1.0, KVM, is a switch-based interpreter with a compacting mark-and-sweep garbage collector \cite{kvm}.
 
-
 The JVM limits interpreter implementation: it does not support label references as values, nor does it support functions as values. This makes some of the optimisations discussed in 
 Section~\ref{interpreter-implementation} impossible.
 Instead, it does have a builtin switch opcode as well as support for method-dispatch based on the type of an object, so an interpreter would either have to be switch-based, or have a class for every opcode.
@@ -236,50 +250,56 @@ Instead, it does have a builtin switch opcode as well as support for method-disp
 The resources available for J2ME applications on mobile phones start at 64KB for the size of the JAR-file and 200KB for the run time memory on the lowest end devices, and goes upwards from there \cite{nokia-optim}.
 These numbers are for the full application, so the resources available for an embeddable scripting language, could be significantly less than this, depending on the resource usage of the host application.
 
+As Java Mobile Edition is the most widespread platform for mobile devices, this will be the first target platform for the scripting language.
+
 \subsection{Smartphones}
 Many high end phones -- smartphones --  allows loading of native code. 
 This covers approximately 12\% of the mobile phone market measured in number of units\footnote{In the fourth quarter of 2008 38.1 million smartphones where sold \cite{gartner}, whereas the total number of mobile phones sold in the same period were 314.7 million devices \cite{cellular-news}.}.
 % http://www.cellular-news.com/story/36315.php
 Smartphones gives more access to the devices, than J2ME, but is at the same time more difficult to devlop for, due to the large number of platforms, and limits on distribution, which usually also requires cryptographical signing of code.
 
-The main operating systems for smartphones are: Symbian, RIM, Windows Mobile, Mac OS X and Linux, which will be discussed below.
-An important thing to notice is, development is not only possible as native applications, but many of the devices also support J2ME discussed earlier, and on those devices that include a modern web browser, JavaScript is also a possibility for application development.
+The main operating systems for smartphones are: Symbian, RIM, Windows Mobile, Mac OS X and Linux, which are very different operating systems, and even within the operating systems, there may be different user interfaces and programming models.
+An important thing to notice is, development is not only possible as native applications, but many of the devices also support J2ME or other Java implementations, and on those devices that include a modern web browser, JavaScript is also a possibility for application development.
 
-\subsubsection{Symbian}
+This means that if the scripting language is implemented on top of Java, then it will also run on many smartphones.  An aspect here is that some devices only supports other Java dialects that Java Micro Edition, so that should be kept in mind when developing the language. In addition, if the developed scripting language is a subset of JavaScript, it will already have an implementation deployed on those devices with advanced browsers.
 
-Symbian is the classical operating system for smartphones. Applications are usually written in C/C++, with some restrictions to allow it to run better on with a moderately small amount memory. 
-In order to distribute native applications on Symbian, it has to be cryptographically signed \cite{symbiansigned}.
-Symbian is a currently closed source, but is on its way to be released as open source \cite{symbianopensource}.
-
-It is the most popular operating system for smartphones, having 47.1\% of the market \cite{gartner-phone-survey-2008q4}. There are different incompatible user interfaces on top of Symbian, e.g. UIQ, QT, S60. 
-
-\subsubsection{RIM, Windows Mobile and Mac OS X}
-
-RIM (Research In Motion), Microsoft Windows Mobile and Mac OS X are the second to fourth most popular smart phone operating system, with 19.5\%, 12.4\% and 10.7\% market share respectively \cite{gartner-phone-survey-2008q4}.
-RIM is connected with the BlackBerry devices, Mac OS X is connected with the iPhone, and Windows Mobile covers different hardware vendors. 
-All these system are properitary closed source.
-
-\subsubsection{Linux}
-
-Linux has 8.4\% of the market share of smart phone operating systems.
-While most of these are properitary systems, two promising initiatives are opening up, wnad while they do not any significant market share yet, they are interesting from a developer point of view, and described below. These are the Android platform and the Openmoko project.
-
-
-\paragraph{Android}
-
-Android is a software stack for smartphones. It is open source, and driven forward by google.
-It is build upon a linux kernel, but user applications are not distributed natively, but executed on the Dalvik vm. Applications are written in Java, which is then compiled to Dalvik vm, rather than the usual JVM. The motivation for this is both to overcome some of the shortcomings of the JVM on mobile devices, and possibly also some cooperate issues with ownership of JVM technology.
-Beside supporting Dalvik applications, there is also a modern webbrowser -- a WebKit derivative -- meaning that JavaScript can also be executed on the device.
-
-While the software stack itself is open source, it also allows the manufactorer to make and keep proparitary changes for themselves. 
-Meaning that actual phones designed with the stack -- at least those currently on the market -- are not truely open, in the sense that thay contain properitery drivers and special developer-versions of the phones are needed if you want to be able to load customised operating system images/native code.
-
-Android is of course being ported to the devices from the Openmoko project, and in that case it is of course truely open.
-
-\paragraph{Openmoko}
-Openmoko is a project towards having open source phones.
-It is both a software stack for smartphones, and it is also a small development division of the hardware company FIC, where they are making the first open source phones.
-The two phones released so far have lots of rough edges both software and hardware wise, but from a developer point of view, these very interesting as they are not just phones but full Linux computers with X11 and most things as known from larger scale Linux environments -- and the source code is available for everything, so it is even possible to write new operating systems for them, and customise them in every way.
+%\subsubsection{Symbian}
+%
+%Symbian is the classical operating system for smartphones. Applications are usually written in C/C++, with some restrictions to allow it to run better on with a moderately small amount memory. 
+%In order to distribute native applications on Symbian, it has to be cryptographically signed \cite{symbiansigned}.
+%Symbian is a currently closed source, but is on its way to be released as open source \cite{symbianopensource}.
+%
+%It is the most popular operating system for smartphones, having 47.1\% of the market \cite{gartner-phone-survey-2008q4}. There are different incompatible user interfaces on top of Symbian, e.g. UIQ, QT, S60. 
+%
+%\subsubsection{RIM, Windows Mobile and Mac OS X}
+%
+%RIM (Research In Motion), Microsoft Windows Mobile and Mac OS X are the second to fourth most popular smart phone operating system, with 19.5\%, 12.4\% and 10.7\% market share respectively \cite{gartner-phone-survey-2008q4}.
+%RIM is connected with the BlackBerry devices, Mac OS X is connected with the iPhone, and Windows Mobile covers different hardware vendors. 
+%All these system are properitary closed source.
+%
+%\subsubsection{Linux}
+%
+%Linux has 8.4\% of the market share of smart phone operating systems.
+%While most of these are properitary systems, two promising initiatives are opening up, wnad while they do not any significant market share yet, they are interesting from a developer point of view, and described below. These are the Android platform and the Openmoko project.
+%
+%
+%\paragraph{Android}
+%
+%Android is a software stack for smartphones. It is open source, and driven forward by google.
+%It is build upon a linux kernel, but user applications are not distributed natively, but executed on the Dalvik vm. Applications are written in Java, which is then compiled to Dalvik vm, rather than the usual JVM. The motivation for this is both to overcome some of the shortcomings of the JVM on mobile devices, and possibly also some cooperate issues with ownership of JVM technology.
+%Beside supporting Dalvik applications, there is also a modern webbrowser -- a WebKit derivative -- meaning that JavaScript can also be executed on the device.
+%
+%While the software stack itself is open source, it also allows the manufactorer to make and keep proparitary changes for themselves. 
+%Meaning that actual phones designed with the stack -- at least those currently on the market -- are not truely open, in the sense that thay contain properitery drivers and special developer-versions of the phones are needed if you want to be able to load customised operating system images/native code.
+%
+%Android is of course being ported to the devices from the Openmoko project, and in that case it is of course truely open.
+%
+%\paragraph{Openmoko}
+%Openmoko is a project towards having open source phones.
+%It is both a software stack for smartphones, and it is also a small development division of the hardware company FIC, where they are making the first open source phones.
+%The two phones released so far have lots of rough edges both software and hardware wise, but from a developer point of view, these very interesting as they are not just phones but full Linux computers with X11 and most things as known from larger scale Linux environments -- and the source code is available for everything, so it is even possible to write new operating systems for them, and customise them in every way.
+%
+%
 
 \section{Optimising Java for low end mobile devices}
 The next to sections looks into methods of reducing the memory usage and code footprint of Java midlets.
@@ -669,13 +689,11 @@ Here are several options:
 
 The  classical good-performing approach is to implement them on a stack. On each function call, an activation record is added on a linear stack, and each of the variables can be spilled into its place on the activation record. This is very fast, as allocation and deallocation just increase and decrease the stack pointer. The issue with this approach is that extra code is needed to handle the funarg problem.
 
-Another approach is to allocate the stack frame on the heap, and let it be cleaned up with the garbage collector. The quality of this approach depends a lot on the garbage collector. In particular it has nearly no overhead with a good generational garbage collector \cite{generational-heap}, see Section~\ref{generational-gc}.
+Another approach is to allocate the stack frame on the heap, and let it be cleaned up with the garbage collector. The quality of this approach depends a lot on the garbage collector. In particular it has nearly no overhead with a good generational garbage collector \cite{generational-heap}.
 This also solves the funarg problem as the closure has a reference to the activation record, which will then not be garbage collected.
 
 Usually the variable is resolved at compilation time, or the first time it is encountered, but 
 some interpreters have a less efficient approach, where they look up variables at run time, either through a stack, or a table of variables.
-
-\section{Summary}
 
 \chapter{Yolan}
 \label{yolan}
@@ -1103,7 +1121,6 @@ class YolanIf implements Function {
 }
 \end{lstlisting}
 
-\section{Summary}
 \chapter{LightScript}
 %TODO: goal and originality of the language
 \label{lightscript}
@@ -1461,7 +1478,7 @@ Version 1.0 is the one used for the benchmarks and described throughout this rep
 Expansion of language and standard library, more operators from EcmaScript are added,
 and an additional fixed point number representation will be added. Better compatibility with EcmaScript type system.
 \item[1.4]
-Extra optional libraries to make the language more usefull for practical applications.
+Extra optional libraries to make the language more useful for practical applications.
 \end{itemize}
 
 
@@ -1489,7 +1506,6 @@ To determine whether it is worthwhile needs an actual implementation.
 \item Add clean-up code when exiting a function, to improve garbage collection
 \end{itemize}
 
-\section{Summary}
 \chapter{Benchmarks}
 \label{benchmark}
 
@@ -1575,7 +1591,7 @@ The size of the entire application, including the embedded scripting language im
 \section{Execution speed}
 This section benchmarks the execution speed of the languages. 
 In the following subsections, the languages that are benchmarked, and the actual benchmark programs are described.
-The source code for the benchmarks can be seen in appendix~\ref{benchmarksource}.
+%The source code for the benchmarks can be seen in appendix~\ref{benchmarksource}.
 The results of the benchmarks can be seen in figure~\ref{figure-execution-speed}.
 
 \subsection{Languages}
@@ -1610,7 +1626,6 @@ The measurement of the performance of the different scripting languages are show
 \hline \end{tabular}
 \end{center} 
 
-\section{Summary}
 \chapter{Discussion and future work}
 \label{discussion}
 \section{Performance}
@@ -1645,7 +1660,7 @@ So the major use of this language is probably just to set a bar for how small a 
 While it has an interesting result, code size wise, there will probably not be any further developments in this language, other than it served as a stepping stone towards LightScript.
 
 \subsection{LightScript}
-LightScript is much more featurefull and usefull than Yolan, while this comes by having twice the footprint of Yolan, it is still small compared to other scripting languages targeting mobile devices. .
+LightScript is much more featurefull and useful than Yolan, while this comes by having twice the footprint of Yolan, it is still small compared to other scripting languages targeting mobile devices. .
 The JavaScript/EcmaScript like syntax and semantics should make it much more approachable for other developers, while still having expressive features like supporting closures and higher-order functions.
 
 There is a tradeoff between EcmaScript compliance and size/performance. 
@@ -1733,7 +1748,7 @@ Yolan and LightScript is pushing the edge of small scripting language implementa
 
 \appendix
 
-\input{../code/bench/marks.tex}
+%\input{../code/bench/marks.tex}
 
 \chapter{Source code of the Yolan class}
 \lstinputlisting{../code/Yolan/src/Yolan.java}
