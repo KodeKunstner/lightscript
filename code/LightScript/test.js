@@ -1,19 +1,4 @@
-o = {
-    "t": "BAR", 
-    "x": function() {print(this.t);}
-};
+x = 1000 / 3;
+print(x);
+print(x*3);
 
-p = clone(o);
-p.t = "FOO";
-
-q = clone(p);
-q.t = "BAZ";
-
-p.x(); o.x(); q.x();
-
-f = function() {
-    return;
-}
-
-print(f());
-print("Here");

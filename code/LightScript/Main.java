@@ -48,6 +48,7 @@ static class FunctionLibrary implements LightScriptFunction {
     public static void main(String[] args) throws Exception {
 	InputStream is = new FileInputStream(new File(args[0]));
         LightScript ls = new LightScript();
+        /*
     FunctionLibrary.register(ls);
     ls.eval("obj = {}; obj.i = 1; obj.inc = propinc;"
                   +"while(obj.i < 10) { "
@@ -55,8 +56,9 @@ static class FunctionLibrary implements LightScriptFunction {
                   +"    obj.inc();"
                   +"}");
 
-
         System.out.println(ls.get("bar"));
+    */
+
 
         ls.eval(is);
     }

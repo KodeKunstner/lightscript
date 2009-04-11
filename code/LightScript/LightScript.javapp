@@ -11,7 +11,7 @@ import java.util.Stack;
  * It also adds support for more readable printing of
  * id, etc.
  */
-//#define __DEBUG__
+#define __DEBUG__
 
 /* These defines are used for benchmarking size,
  * by making compilation of different parts of the code
@@ -101,6 +101,7 @@ import java.util.Stack;
 #define ID_SET_THIS 70
 #define ID_SWAP 71
 
+#define ID_DIV 72
 
 /* The function id for the null denominator functions */
 #define NUD_NONE 12
@@ -359,7 +360,8 @@ public final class LightScript {
         "GET_BOXED", "GET_BOXED_CLOSURE", "GET_CLOSURE", "GET_LOCAL", 
         "INC_SP", "JUMP", "JUMP_IF_FALSE", "JUMP_IF_TRUE", "NEW_DICT", 
         "NEW_LIST", "NEXT", "POP", "PUSH", "PUT", "SAVE_PC", 
-        "SET_BOXED", "SET_CLOSURE", "SET_LOCAL", "SET_THIS", "SWAP"
+        "SET_BOXED", "SET_CLOSURE", "SET_LOCAL", "SET_THIS", "SWAP",
+        "DIV"
     };
     
     /** Function that maps from ID to a string representation of the ID,
@@ -606,7 +608,7 @@ public final class LightScript {
                 pushc();
             } while (isAlphaNum());
 
-        // Long symbol !== , ===, <= , &&, ...
+        // FixedPoint symbol !== , ===, <= , &&, ...
         } else if (isSymb()) {
             do {
                 pushc();
@@ -934,6 +936,12 @@ public final class LightScript {
             + (char) ID_NONE
             + (char) LED_INFIX
             + (char) ID_SHIFT_RIGHT
+        + "/"
+            + (char) 6
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX
+            + (char) ID_DIV
         + "*"
             + (char) 6
             + (char) NUD_NONE
@@ -1370,6 +1378,7 @@ public final class LightScript {
         switch (id) {
             case ID_ADD:
             case ID_MUL:
+            case ID_DIV:
             case ID_SHIFT_RIGHT:
             case ID_REM:
             case ID_SUB:
@@ -1955,6 +1964,81 @@ public final class LightScript {
         Object thisPtr = null;
         return execute(cl, stack, sp, thisPtr, 0);
     }
+    /**
+     * Transform a object to a fixed point number,
+     * represented as a long with 32bit integer part
+     * and 32 bit fractional part.
+     */
+    private static long toFixed(Object o) {
+        if(o instanceof FixedPoint) {
+            return ((FixedPoint) o).val;
+        } 
+
+#ifdef DEBUG
+        if(o instanceof Integer) {
+#endif
+            return (long)((Integer) o).intValue() << (long)32;
+#ifdef DEBUG
+        }
+        throw new Error("object " + o + " not an integer");
+#endif
+    }
+    private static int toInt(Object o) {
+        if(o instanceof Integer) {
+            return ((Integer) o).intValue();
+        } 
+#ifdef DEBUG
+        if(o instanceof FixedPoint) {
+#endif
+            return (int)((((FixedPoint) o).val + 0x8000000) >> 32);
+#ifdef DEBUG
+        }
+        throw new Error("object " + o + " not an integer");
+#endif
+    }
+    /**
+     * Wrap a number in either an Integer object
+     * if int, or a FixedPoint object, if fixed point
+     */
+    private static Object toNumObj(long l) {
+        System.out.println("toNumObj:" + l);
+        if((l & 0xffffffff) == 0) {
+            return new Integer((int)(l >> 32));
+        } else {
+            return new FixedPoint(l);
+        }
+    }
+    private static class FixedPoint {
+        public long val;
+        public FixedPoint(long l) {
+            val = l;
+        }
+        public String toString() {
+            long rounded = val + ((long) 1 << 32) / 2000;
+            String result = Integer.toString((int)(rounded >> 32));
+            result += ".";
+            int t = (int) rounded;
+            t >>>= 16;
+            for(int i = 0; i<3;i++) {
+                t *= 10;
+                result += Integer.toString(t >> 16);
+                t &= 0xffff;
+            }
+            return result;
+        }
+        public boolean equals(Object o) {
+            if(o instanceof Integer) {
+                return ((Integer)o).intValue() == (val >> 32);
+            } 
+            if(o instanceof FixedPoint) {
+                return ((FixedPoint)o).val == val;
+            }
+            return false;
+        }
+    }
+    /**
+     * evaluate some bytecode 
+     */
     private static Object execute(Code cl, Object[] stack, int sp, 
                                   Object thisPtr, int argcount) 
                             throws LightScriptException {
@@ -2155,7 +2239,7 @@ public final class LightScript {
                     break;
                 }
                 case ID_NEG: {
-                    stack[sp] = new Integer(-((Integer) stack[sp]).intValue());
+                    stack[sp] = toNumObj(-toFixed(stack[sp]));
                     break;
                 }
                 case ID_ADD: {
@@ -2166,33 +2250,83 @@ public final class LightScript {
                         int result = ((Integer) o).intValue();
                         result += ((Integer) o2).intValue();
                         stack[sp] = new Integer(result);
+                    } else if( (o instanceof Integer || o instanceof FixedPoint) 
+                           &&  (o2 instanceof Integer || o2 instanceof FixedPoint) ) {
+                        stack[sp] = toNumObj(toFixed(o) + toFixed(o2) );
                     } else {
                         stack[sp] = String.valueOf(o) + String.valueOf(o2);
                     }
                     break;
                 }
                 case ID_SUB: {
-                    int result = ((Integer) stack[sp]).intValue();
-                    result = ((Integer) stack[--sp]).intValue() - result;
-                    stack[sp] = new Integer(result);
+                    Object o2 = stack[sp];
+                    Object o1 = stack[--sp];
+                    if(o1 instanceof Integer && o2 instanceof Integer) {
+                        stack[sp] = new Integer(((Integer)o1).intValue() 
+                                    - ((Integer)o2).intValue());
+                    } else {
+                        stack[sp] = toNumObj(toFixed(o1) - toFixed(o2) );
+                    }
                     break;
                 }
                 case ID_SHIFT_RIGHT: {
-                    int result = ((Integer) stack[sp]).intValue();
-                    result = ((Integer) stack[--sp]).intValue() >> result;
+                    int result = toInt(stack[sp]);
+                    result = toInt(stack[--sp]) >> result;
                     stack[sp] = new Integer(result);
                     break;
                 }
                 case ID_MUL: {
-                    int result = ((Integer) stack[sp]).intValue();
-                    result *= ((Integer) stack[--sp]).intValue();
-                    stack[sp] = new Integer(result);
+                    Object o2 = stack[sp];
+                    Object o1 = stack[--sp];
+                    if(o1 instanceof Integer && o2 instanceof Integer) {
+                        stack[sp] = new Integer(((Integer)o1).intValue() 
+                                    * ((Integer)o2).intValue());
+                    } else {
+                        stack[sp] = toNumObj((toFixed(o1) >> (long)16) * (toFixed(o2) >> (long)16));
+                    }
+                    break;
+                }
+                case ID_DIV: {
+                    Object o2 = stack[sp];
+                    Object o1 = stack[--sp];
+                    if(o1 instanceof Integer && o2 instanceof Integer) {
+                        stack[sp] = toNumObj(
+                                    ((long)((Integer)o1).intValue() << (long) 32)
+                                    / ((Integer)o2).intValue());
+                    } else if(o2 instanceof Integer) {
+                        stack[sp] = toNumObj(toFixed(o1) / ((Integer)o2).intValue());
+                    } else {
+                        long l1 = toFixed(o1);
+                        long l2 = toFixed(o2);
+                        boolean negative = false;
+                        if(l1 < 0) {
+                            l1 = -l1;
+                            negative = !negative;
+                        }
+                        if(l2 < 0) {
+                            l2 = -l2;
+                            negative = !negative;
+                        }
+
+                        while(l1 > 0 && l2 > 0) {
+                            l1 <<= 1;
+                            l2 <<= 1;
+                        }
+                        l1 >>>= 1;
+                        l2 >>>= 33;
+                        stack[sp] = toNumObj(l1/l2);
+                    }
                     break;
                 }
                 case ID_REM: {
-                    int result = ((Integer) stack[sp]).intValue();
-                    result = ((Integer) stack[--sp]).intValue() % result;
-                    stack[sp] = new Integer(result);
+                    Object o2 = stack[sp];
+                    Object o1 = stack[--sp];
+                    if(o1 instanceof Integer && o2 instanceof Integer) {
+                        stack[sp] = new Integer(((Integer)o1).intValue() 
+                                    % ((Integer)o2).intValue());
+                    } else {
+                        stack[sp] = toNumObj(toFixed(o1) % (toFixed(o2)));
+                    }
                     break;
                 }
                 case ID_NOT_EQUALS: {
@@ -2216,7 +2350,7 @@ public final class LightScript {
                     Object key = stack[--sp];
                     Object container = stack[--sp];
                     if (container instanceof Stack) {
-                        int pos = ((Integer) key).intValue();
+                        int pos = toInt(key);
                         Stack s = (Stack) container;
                         if(pos >= s.size()) {
                             s.setSize(pos + 1);
@@ -2289,6 +2423,9 @@ public final class LightScript {
                     if (o1 instanceof Integer && o2 instanceof Integer) {
                         stack[sp] = ((Integer) o1).intValue() 
                             < ((Integer) o2).intValue() ? TRUE : null;
+                    } else if( (o1 instanceof Integer || o1 instanceof FixedPoint) 
+                           &&  (o2 instanceof Integer || o2 instanceof FixedPoint) ) {
+                        stack[sp] = toFixed(o1) < toFixed(o2) ? TRUE : null;
                     } else {
                         stack[sp] = o1.toString().compareTo(o2.toString()) 
                             < 0 ? TRUE : null;
@@ -2301,6 +2438,9 @@ public final class LightScript {
                     if (o1 instanceof Integer && o2 instanceof Integer) {
                         stack[sp] = ((Integer) o1).intValue() 
                             <= ((Integer) o2).intValue() ? TRUE : null;
+                    } else if( (o1 instanceof Integer || o1 instanceof FixedPoint) 
+                           &&  (o2 instanceof Integer || o2 instanceof FixedPoint) ) {
+                        stack[sp] = toFixed(o1) <= toFixed(o2) ? TRUE : null;
                     } else {
                         stack[sp] = o1.toString().compareTo(o2.toString()) 
                             <= 0 ? TRUE : null;
