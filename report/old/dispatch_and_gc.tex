@@ -1,0 +1,167 @@
+\subsection{Optimising the dispatch}
+Dispatch is an important bottleneck when implementing interpreters.
+An interpreter usually has a loop that fetches the next instruction, and executes it. The process of dispatching is to fetch an opcode and goto the implementation of that virtual instruction.
+The reason this is a bottleneck it has to be executed for every opcode, and while dispatching may be done in few instructions, so may the implementation of the virtual instruction, and thus the dispatch is still a relatively large part of the execution time. 
+
+The usual approach is just to have a switch statement, which usually compiles to a jump table, such that:
+\begin{verbatim}
+for(;;) {
+    // pc is the program counter into an array
+    // of virtual instructions.
+    switch(*(++pc)) { 
+        case OP_FOO:
+            ... implementation of FOO ...
+            break; 
+        case OP_BAR:
+            ... implementation of BAR ...
+            break; 
+        case OP_BAZ:
+            ... implementation of BAZ ...
+            break; 
+    }
+}
+\end{verbatim}
+is compiled into something like:
+\begin{verbatim}
+.data:
+jumptable = {
+address of FOO,
+address of BAR,
+address of BAZ}
+
+.code:
+...
+label looptop:
+   inc register1  ; register1 contains the variable pc
+   load register1 -> register2
+   load jumptable[register2] -> register2
+   jump_to register2
+FOO:
+    ... implementation of FOO ...
+    jump looptop
+BAR:
+    ... implementation of BAR ...
+    jump looptop
+BAZ:
+    ... implementation of BAZ ...
+    jump looptop
+...
+\end{verbatim}
+
+This is a simple approach that works, but is a bit inefficient. It is portable across compilers, and is the only option on some virtual machines,
+This approach is used in SpiderMonkey, KVM\footnote{The reference implementation of JVM for mobile devices}, and in many other implementation.
+
+If the compiler supports direct addressing of labels, we can instead create an array of labels and jump to them as follows:
+\begin{verbatim}
+ops = { &OP_FOO, &OP_BAR, &OP_BAZ };
+   
+goto ops[++pc];
+
+OP_FOO:
+    ... implementation of FOO ...
+    goto ops[++pc];
+OP_BAR:
+    ... implementation of BAR ...
+    goto ops[++pc];
+OP_BAZ:
+    ... implementation of BAZ ...
+    goto ops[++pc];
+\end{verbatim}
+This has two benefits: it removes the jump to the loop top, as it jumps directly to the next instruction after the table lookup, and the jumps themselves may be faster due to better branch prediction.
+The reason the branch prediction may improve, is that branch prediction is often based on where previous branch at the specific code position were taken taken to. 
+When the branch is at the end of the code for the virtual instruction,
+the branch predictor has the current instruction as context for predicting the next instruction.
+When the implementation is a switch based interpreter, the branch predictor has no context for predicting the next instruction.
+This approach is called threaded code, and are up to twice as fast as switch based implementations \cite{ertl-efficient-2003}.
+The cost is a bit more code, as the code for the table lookup needs to be at each instruction, rather than a single place. 
+
+A further optimisation of the dispatch is to remove the table lookup. This is often done by replacing virtual machine instructions with the address of the implementation of the instruction. At the same time this costs space as an address usually uses 32 bit, where an virtual machine instruction often uses 8 bit. This is also better suited for stack machines, where the operands are coded implicit, rather that register machines, where the operands need to encoded beside the address of the implementation. This optimisation is commonly used in Forth implementations, and is also used other virtuel machines, for example optionally in the QScript \cite{qscript} and SquirrelFish \cite{webkit-source} JavaScript implementations.
+
+Another way to remove the table lookup for the dispatch is to have a fixed size of each instruction implementation, and then calculate the position of the implementation from the opcode \cite{dalvik-talk}. When some instruction implemenations are significantly longer than others, the longer instruction implementations can contain a jump to the code that is beyond the fixed instruction implementation size.
+For example:
+\begin{verbatim}
+INSTRUCTION_IMPLEMENTATIONS:
+   ... implementation of FOO ...
+   goto INSTRUCTION_IMPLEMENTATIONS + IMPLEMENTATION_SIZE * (++pc)
+   ... padding ...
+// address INSTRUCTION_IMPLEMENTATIONS + 1 * IMPLEMENTATION_SIZE
+   ... implementation of BAR ...
+   goto INSTRUCTION_IMPLEMENTATIONS + IMPLEMENTATION_SIZE * (++pc)
+   ... padding ...
+// address INSTRUCTION_IMPLEMENTATIONS + 2 * IMPLEMENTATION_SIZE
+   ... first part of implementation of BAZ  which is a long instruction...
+   goto REMAINING_IMPLEMENTATION_OF_BAZ
+// address INSTRUCTION_IMPLEMENTATIONS + 3 * IMPLEMENTATION_SIZE
+   ... implementation of other instructions...
+
+REMAINING_IMPLEMENTATION_OF_BAZ:
+   ... more implemenation of BAZ...
+   goto INSTRUCTION_IMPLEMENTATIONS + IMPLEMENTATION_SIZE * (++pc)
+\end{verbatim}
+This has the benefit of being even faster, as the table lookup is eliminated,
+but it is also more difficult to implement, 
+as the size of the implementation depends on the machine architechture
+and thus it is not possible to do in a high level language.
+Notice that \verb|IMPLEMENTATION_SIZE| should be a power of two such that the multiplication is just a shift.
+This optimisation is for example used in the Dalvik Virtual Machine \cite{dalvik-vm}
+
+
+\subsection{Garbage collection}
+Garbage collection is an important issue in the design of virtual machines.
+There is a good introduction/survey on the topic \cite{gc-survey}.
+An additional way to get into the subject is to see what approach recent scripting language implementations have taken.
+
+The next section looks into aspects of garbage collections.
+The following sections describes different approaches to garbage collection,
+with a final section looking at garbage collection implementation in actual language implementations.
+
+\subsubsection{Issues of dynamic memory management}
+Some of the following issues are relevant for dynamic memory management in general, and other are more focussed towards garbage collection.
+
+Locality covers that memory that is used at similar times also lies together in memory.  This has impact on the performance, due to levels of caching, and poor locality may also lead to more swapping to secondary storage when memory is scarce, and secondary storage is available.
+
+Fragmentation is when there is unused space between allocated blocks of memory. 
+Compacting garbage collection algorithms addresses this problem, by moving the blocks of memory to remove the fragmentation.
+
+Performance of the garbage collection is also an issue. This covers both CPU usage, and delays during execution.
+The garbage collection takes time, -- this comes both from the time from running the actual garbage collection algorithm, and also from lost caching, as garbage collection methods usually messes up the cache.
+Another issue with garbage collection is whether it is interactive or that there may be longer interruptions or delay of execution, in which the garbage collection cycle runs. This leads to development concurrent garbage collection, that may take more time overall as a tradeof of shorter interruptions of the execution.
+
+Garbage collection algorithms can be conservative or exact, where conservative garbage collection is not directed by strong typing and assumes that data are pointers, whereas exact garbage collection knows which of the data that are actually pointers that need to be tracked.
+
+\subsubsection{Reference counting}
+
+Each allocated block of memory also keeps track of the number of pointers to it, and when this is decreased to zero, the block is deallocated.
+This has the benefit of being reasonable interactive.
+The additional bookkeeping for each pointer assignment, gives it a bit slow performance, which i proportional to the program execution rather than the memory allocation. 
+Another issue is that cyclic references does not get caught by it, so it needs to be combined with another garbage collector or some kind of cycle detection.
+
+\subsubsection{Copying collector}
+A typical copying garbage collector, splits the heap in two, and when one part of it is filled up, it copies the root nodes and all of their descendents into the other part, and updates the pointers.  This also has the benefit that it removes fragmentation. 
+The execution time only depends on the amount of live data, and is executed whenever a part of the heap is filled up.
+The issue here is that the heap is split in two, leading to less available memory, and also that this process is often a stop-the-world approach, leading to a moderately long delay when the collection occur.
+
+\subsubsection{Mark and sweep}
+Mark and sweep essentially works in two phases: first walk through the live objects and mark them as alive, and then walk through the heap and make unmarked objects available as free.
+There are several variations over this topic. Rather than stop-the-world, it can be made more interactive by running in parallel with the execution, for example by coloring/marking ``alive and children marked'', ``alive but children not marked yet'' and ``not marked yet''.
+Instead of a mark and sweep, a mark and compact approach is also possible, where fragmentation is removed at the cost of a bit more execution time.
+
+\subsubsection{Generational Garbage Collection}
+\label{generational-gc}
+Generational garbage collection, can improve the performance of the collection. This is based on the hypothesis that recent allocated memory are more likely to be freed than older memory.
+This is exploited by dividing the memory into generations, where the youngest generations are garbage collected more often than the older ones. 
+Thus by only looking at a single generation/a smaller part of the memory, the garbage collection cycle is significant faster.
+An issue here is to keep track of pointers from older generations to younger ones, such that the younger generations can be collected independently.
+Another question is when to promote memory from younger to older generations.
+
+\subsubsection{Examples of garbage collection implementation}
+A common approach is to combine reference counting with some kind of cycle cleanup. 
+An example of this is the python implementation. 
+One of the benefits of this approach is most of the garbage collection only yields small pauses which will not be felt by the user in an interactive environment, unlike the stop-the-world approach.
+
+The KVM, which is the reference implementation for mobile Java Virtual Machines, is now using a compacting mark and sweep. It originally started out with a copying collector, which had a larger memory requirement, and also had a period with non-compacting mark and sweep.
+
+
+A practical example of a generational garbage collector is the one which is a part of the V8 JavaScript implementation.
+It has two generations, where the young generation is a copying-compacting collector, which is called often, combined with a mark-and-sweep for the full heap, when that is needed.
+The complexity of a copying collector is linear in the size of live objects, which means that there are essentially no overhead for heap allocating the run time stack with this garbage collection strategy, which solves some of the problems of the run time stack, as described later on.

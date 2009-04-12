@@ -150,6 +150,9 @@ Obsoleted prototypes include a Forth-like language, several parser/compiler impl
 
 \chapter{Survey}
 \label{survey}
+The survey first looks at different mobile platform, to determine the target platform for the language. 
+The platform turns out to be Java Mobile Edition, and the next part of the survey then looks into implementation methods for that platform.
+The following section then surveys other languages related to scripting and low end devices, and the final section looks into implementation techniques relevant for the scripting language implementation on top of the choosen platform.
 
 \section{Mobile platforms}
 
@@ -375,7 +378,7 @@ The following sections surveys different programming languages:
 \item JavaScript is the basis for LightScript implemented in this thesis
 \item Lua has a focus on embedded devices, and solutions from their implementation can inspire the languages created here. There is also an implementation of the Lua virtual machine, targeting mobile devices, why this language is also related to the benchmarks later on.
 \item Python is becoming relevant on mobile devices, as it runs on many smart phones. Some of the language features may be usable in the design of new languages.
-\item Lisp and Scheme are some of the inspirations for Yolan, especially with regard to the syntax.
+\item Lisp and Scheme are some of the inspirations for Yolan, especially with regard to the syntax. 
 \item Self is highly relevant for the LightScript implementation, as the object system is based on this, via JavaScript.
 \end{itemize}
 
@@ -404,6 +407,7 @@ Forth is also interesting from the virtual machine point of view, as it similar 
 
 Other more recent stack languages are Joy \cite{joy-language}, Cat \cite{cat-language} and Factor \cite{factor-language}.
 Interesting developments here are stronger typing, and also the use of anonymous code blocks to create the control structure.
+The idea of the anonymous code block is an inspiration for the Yolan scripting language developed in this thesis, as the concept of delayed computation is somewhat similar.
 
 
 \subsection{Hecl and Tcl}
@@ -433,14 +437,20 @@ Another aspect of Tcl is that everything are string, meaning that for example va
 
 \subsection{JavaScript/EcmaScript}
 \label{JavaScript}
-JavaScript was created as scripting language for web browsers, and was later standardised under the name of EcmaScript.
+JavaScript was created as scripting language for web browsers, and was later standardised under the name of EcmaScript \cite{ecma-262}.
 The reason it has become interesting is that it is included within most webbrowsers, and there by one of the most widely available platforms.
-The following sections will describe the language, some of the implementations and finally some issues and approache to getting JavaScript to run on mobile and embedded devices.
 
-\subsubsection{Language description}
-It is a dynamically typed scripting language with first class functions, a prototypical object system, and a C-like syntax.
-A good introduction to JavaScript is given in the book ``JavaScript the good parts'' \cite{goodparts} and some of its material is also available online \cite{crockford-javascript-web} which serves well as an overview of the language. The EcmaScript standard \cite{ecma-262} can be used for getting to know the details of the languages.
+It is a dynamically typed scripting language with closures / first class functions, and a prototypical object system.
+While it has expressive language features, it is also a very mainstream languages, both through its presence within the web and C-like syntax, and thus it may be less intimidating for new programmers.
 
+When making a new scripting language for mobile devices, it may make sense to make it a subset of EcmaScript for several reasons: It already exist as a platform meaning that the new scripting language already has virtual machines deployed. As the EcmaScript syntax is known, or at least recognisable for many developers, even web-``developers'' and users, it may be easier for them to transition, or start using the new scripting language on mobile devices. While being a subset of EcmaScript, closures and higher order functions can still be a part of the language.
+
+An issue with EcmaScript is that it has some unfortunate design decisions\cite{crockford-web}, which will be elaborated on in section~\ref{lightscript-design}.
+
+
+The following sections looks at the implementation of EcmaScript, and existing approache to EcmaScript on mobile devices. Implementation techniques from those, as well as existing work, may be relevant as one of the scripting languages developed in this thesis is a subset of EcmaScript.
+%At the same time, the language was developed in a hurry, also leading to some less fortunate design choices
+%A good introduction to JavaScript is given in the book ``JavaScript the good parts'' \cite{goodparts} and some of its material is also available online which serves well as an overview of the language. The EcmaScript standard \cite{ecma-262} can be used for getting to know the details of the languages.
 
 \subsubsection{Implementations}
 The following section described the main open source implementations of JavaScript/EcmaScript.
@@ -532,6 +542,22 @@ An object in Self contains a pointer to the parent (cloned) object, and a mappin
 
 \section{Interpreter implementation}
 \label{interpreter-implementation}
+
+As we are building on top of Java, 
+several interpreter implementation issues
+becomes less relevant:
+\begin{itemize}
+\item On this platform, the dispatch can only be implemented 
+with a switch statement, or based on class types, where the
+latter is much more expensive, spacewise, and therefore not applicable.
+Threaded dispatch, and other faster dispatch methods is not possible
+due to restrictions of the JVM.
+\item With regard to garbage collection, we can piggyback on the garbage collector from the JVM, which saves code footprint as we do not need to implement one ourselves. This has the issue that we can not rely on how it is implemented, meaning that heap allocated activation records may be less of an option, as it is stongly affected by the performance of the garbage collector.
+\item JIT compilation to native code, or targeting the JVM, is not possible as dynamic loading of code is not supported at all on most Java Mobile Edition implementations.
+\end{itemize}
+
+The next section looks at register vs. stack virtual machines, which is an important aspect at the design of virtual machines. This is followed by a look at parsing, more specificly the top down operator precedence parser as this has low code footprint, which is important on this platform. And finally there is an investigation of scope and implementation of variables.
+
 %TODO: why these aspects
 %TODO: Garbage collections notes
 %TODO: Dispatch notes
@@ -545,11 +571,11 @@ An object in Self contains a pointer to the parent (cloned) object, and a mappin
 %The KVM, which is the reference implementation for mobile Java Virtual Machines, is now using a compacting mark and sweep. It originally started out with a copying collector, which had a larger memory requirement. And subsequently it used a non-compacting mark and sweep, where compaction were later added.
 
 
-This section looks into different aspects of interpreter implementation.
-First, is a discussion on different types of virtual machines, namely register and stack machines, and their different benefits and tradeoffs.
-Then, there is a discussion on the implementation of dispatch, which is one of the bottlenecks of intepreters.
-Third, there is a discussion of garbage collection techniques.
-And finally there is a discussion on different approaches to managing run time stack.
+%This section looks into different aspects of interpreter implementation.
+%First, is a discussion on different types of virtual machines, namely register and stack machines, and their different benefits and tradeoffs. 
+%Then, there is a discussion on the implementation of dispatch, which is one of the bottlenecks of intepreters.
+%Third, there is a discussion of garbage collection techniques.
+%And finally there is a discussion on different approaches to managing run time stack.
 
 \subsection{Register and stack machines}
 Virtual machines are usually either register-based or stack-based.
@@ -703,7 +729,7 @@ some interpreters have a less efficient approach, where they look up variables a
 The overall design direction of Yolan is to minimise the code footprint, while still having a scripting language with first class functions.
 The next paragraphs elaborate the following design choices:
 \begin{itemize}
-\item Should be able to run on CLDC 1.0/MIDP 1.0
+\item Should be able to run on CLDC 1.0
 \item Use standard Java classes, for easier interaction with Java code
 \item Execution of code, loaded as source text at run time
 \item Functions as first class values
@@ -1129,7 +1155,7 @@ class YolanIf implements Function {
 The next paragraphs elaborate the following design choices:
 \begin{itemize}
 \item A subset of EcmaScript.
-\item Should be able to run on CLDC 1.0/MIDP 1.0
+\item Should be able to run on CLDC 1.0
 \item Use standard Java classes, for easier interaction with Java code
 \item Execution of code, loaded as source text at run time
 \item Functions as first class values
@@ -1145,11 +1171,11 @@ The next paragraphs elaborate the following design choices:
 There are several reasons to make the language a subset of EcmaScript:
 When LightScript is a subset of EcmaScript, it automatically runs within most webbrowsers, including within smartphones where Java may not be installed.
 Being an EcmaScript subset also makes it easier to get started on for developers, that already know EcmaScript, or other languages with C-like syntax.
-The issues are that being a subset of EcmaScript will add more complexity to LightScript, and also that EcmaScript has some unfortunate design choices \cite{crockford}, e.g. global variables by default, function-scoping rather then block-scoping, non-transitive equality test, traversal of parent object in for-each, arrays and null are objects in typeof-operator, restrictions on names due to many reserved words, automatic semi colon insertion, the with-statement, 
+The issues are that being a subset of EcmaScript will add more complexity to LightScript, and also that EcmaScript has some unfortunate design choices \cite{crockford-web}, e.g. global variables by default, function-scoping rather then block-scoping, non-transitive equality test, traversal of parent object in for-each, arrays and null are objects in typeof-operator, restrictions on names due to many reserved words, automatic semi colon insertion, the with-statement, 
 where some of these will also be a part of LightScript,
 although many can be omitted by being a subset and thus more strict. 
 
-Like Yolan, LightScript will run on CLDC 1.0/MIDP 1.0, and will use standard classes for better embedding and code footprint size, will support run time loading of source code, and will have functions as first class values. See the Yolan design choices on page~\pageref{yolandesign}.
+Like Yolan, LightScript will run on CLDC 1.0, and will use standard classes for better embedding and code footprint size, will support run time loading of source code, and will have functions as first class values. See the Yolan design choices on page~\pageref{yolandesign}.
 
 The parser may assume that the programs have valid syntax. 
 Usually parsers both build a syntax tree of valid programs and also reject programs with invalid syntax. 
@@ -1329,7 +1355,7 @@ The type coerced equality operators from JavaScript \verb|!=| and \verb|==|, are
 
 The current assignment operators supported by the language are: \verb|=|, \verb|+=| and \verb|-=|.
 The remaining will be added in the next version.
-The conditional operator \verb|? :| is supported. The comma operator \verb|,| is not supported, as that one generally is considered bad programming style \cite{crockford-comma}.
+The conditional operator \verb|? :| is supported. The comma operator \verb|,| is not supported, as that one generally is considered bad programming style \cite{crockford-web}.
 
 \subsection{Statements}
 Statements are separated by semicolon \verb|;|.
