@@ -25,11 +25,7 @@ import java.util.Stack;
 #define __COMPILE_VM__
 
 /* Identifiers, used both as node type,
- * and also used as opcode. TODO: A slight space optimisation
- * would be to order these, such that IDs which are opcodes
- * lies consecutively, and the IDs that are node types
- * also lies consecutively, as that would reduce the size of 
- * the branch table of the two switches.
+ * and also used as opcode. 
  */
 #define ID_NONE 127
 #define ID_PAREN 4

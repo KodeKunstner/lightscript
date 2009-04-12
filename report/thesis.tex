@@ -1507,24 +1507,22 @@ and an additional fixed point number representation will be added. Better compat
 Extra optional libraries to make the language more useful for practical applications.
 \end{itemize}
 
-
 \subsection{Roadmap towards version 1.2}
 Where the previous parts of this chapter describes LightScript version 1.0, this section describes the most recent changes, and updates in the development branch, done after the report was written.
-This section described what have been done in version 1.1 and what needs to be done before version 1.2
+In the following is listed what have been done in version 1.1 and what needs to be done before version 1.2
 \subsubsection{Implemented changes}
 \begin{itemize}
 \item Optimise code footprint, by reordering opcodes
 \item Add support for fixed-point arithmetics
+To determine whether it is worthwhile needs an actual implementation. - this costed 2-3KB code footprint.
 \end{itemize}
 \subsubsection{Remaining tasks}
 \begin{itemize}
-\item Add remaining arithmetic operators, comparison, etc. 
+\item Add more functions, operators, etc. 
 \item Add postfix increment/decrement
 \item Let functions support a variable number of arguments
 \item Let catch, and function-def behave as implicit \verb|var|-decl
 \item Change of the implementation to make the it even more EcmaScript-like by relying on LightScript object class in Java, rather than standard Java classes, This costs a slightly larger code footprint, and also makes it slightly more complex to integrate with existing Java applications.
-\item Add support for fixed-point arithmetics
-To determine whether it is worthwhile needs an actual implementation.
 \item Walk through library specification, and add functions that does not add too large a foorprint
 \item Add prototype object to functions
 \item Improve virtual machine by joining common instruction pairs to single instructions (adding superinstructions)
@@ -1616,9 +1614,8 @@ The size of the entire application, including the embedded scripting language im
 
 \section{Execution speed}
 This section benchmarks the execution speed of the languages. 
-In the following subsections, the languages that are benchmarked, and the actual benchmark programs are described.
+In the following subsections, the languages that are benchmarked, and the actual benchmark programs are described, and finally the results of running the benchmarks are tabulated. 
 %The source code for the benchmarks can be seen in appendix~\ref{benchmarksource}.
-The results of the benchmarks can be seen in figure~\ref{figure-execution-speed}.
 
 \subsection{Languages}
 The benchmarks are run on those of the languages from Section~\ref{codefootprint-languages}, that have an approximated JAR size of less than 64K. They also run on two JavaScript interpreters: Rhino 1.6r7 and SpiderMonkey 1.7.0, which are described in Section~\ref{spidermonkey}, and are the default versions when installed on Ubuntu Linux.
@@ -1655,7 +1652,6 @@ The measurement of the performance of the different scripting languages are show
 \chapter{Discussion and future work}
 \label{discussion}
 \section{Performance}
-\subsection{Speed}
 It is interesting to see that Rhino, SpiderMonkey, LightScript, Yolan, and Kahlua is all within the same magnitude of speed, indicating that this is the speed you get with a simple interpreter for these kinds of scripting languages. Here it is also suprising that Rhino and SpiderMonkey is not much faster, as Rhino compile to, and loads Java classes at run time, and SpiderMonkey is written in C rather than Java, which allows for using more advanced implementation techniques.
 
 Other observation are that Rhino is slow with exceptions, and that Kahlua seems to be fast with loops and slow with arrays. The last is probably due to that Kahlua implement arrays as hashtables, and loops in Lua has the integer sequence in the \verb|for|-construct, allowing \verb|for|-loops to be simpler to evaluate that in JavaScript, LightScript and Yolan, where the counter variable is explicit updated within the scripting language.
@@ -1665,7 +1661,7 @@ It is also interesting how similar in performance Yolan and LightScript are, eve
 Most of the scripting languages with a small code footprint is an order of magnitude slower than LightScript, Yolan, and Kahlua and the JavaScript implementations.
 This may be due to inefficient implementation of variable access in JScheme, FScriptME and Hecl. Looking at the source code, JScheme and FScriptME variables are looked up in a linked list or hashtable at each access. Hecl has a more complex lookup mechanism with a stack of hashtables, but also employes some kind of caching.
 
-\subsection{Size}
+\section{Size}
 
 The scripting languages developed in this project has significantly smaller code footprint than other scripting languages for mobile Java devices.
 Two reasons for this are: 1) the implementations have focused on code footprint from start to end, using techniques for writing compact code to a much higher degree than existing scripting language implementation for mobile Java devices, and 2) the parsers, which usually would take tens, or more, of kilobytes, has been reduced significantly: in case of Yolan this was done by having a trivial syntax, and in case of LightScript by optimising and using top down operator precedence parsing.
@@ -1745,8 +1741,13 @@ An optimisation here is to use 16bit tagged pointers/small integers rather than 
 An interesting implementation aspect to study is the effect to enforce unique strings. This will cost approximately additional 3 bytes per string, and string creation will be more expensive, but at the same time, there will be no copies of identical strings, which may save significant space, and string comparison is changed to pointer comparision, which is much faster.
 
 \subsection{Lint and prettyprinter}
-Better development tool for LightScript via the lint/prettyprinter,
-is also a potential development target in the long run.
+
+Another future target is to improve the development environment for LightScript.
+As the parser does not support error checking, currently the easiest way to develop is to use an EcmaScript compliant development platform, and stay within the limits of the LightScript subset.
+A LightScript linting program would be a practical tool, as this would also be able to catch if the programmer goes outside the LightScript subset of EcmaScript.
+Currently much of this can be caught with debugging in the current version LightScript, but a real linter may also warn about bad usages, and have more helpful messages to the developer.
+
+Another development tool, possibly integrateable with the linter is a prettyprinter, which is both practival to enforce coding conventions, to keep source readable when several programmers are working on the same project, and it may also go beyond just prettyprinting and transform some unsupported EcmaScript features into LightScript.
 
 \chapter{Conclusion}
 \label{conclusion}
@@ -1754,13 +1755,10 @@ Two new scripting languages has emerged out of a series of prototypes.
 
 Yolan is a minimalistic scripting language with first class functions and Lisp like syntax. This language is a proof of concept that the code footprint cost of an embeddable scripting language for Mobile Java applications, can be kept low, in this case approximately 5 KB.
 
-LightScript has also been created, and while it has a larger footprint than Yolan, it still smaller than other languages. LightScript may be more developer friendly, being a subset of JavaScript, and has also more features, such as an object system with inheritance and supports exceptions.
+LightScript has also been created, and while it has a larger footprint than Yolan, it still smaller than other languages. LightScript is more developer friendly, being a subset of JavaScript, and has also more features, such as an object system with inheritance and support for exceptions.
 The language and its implementation can be of practical use, and will be developed further, after this thesis.
 
-Yolan and LightScript is pushing the edge of small scripting language implementation on mobile Java enabled devices, by having smaller code footprint, being fast, and having advanced language features, compared to other scripting language on mobile devices.
-
-
-
+Yolan and LightScript are pushing the edge of small scripting language implementation on mobile Java enabled devices, by having smaller code footprint, being fast, and having advanced language features, compared to other scripting language on mobile devices.
 
 
 %\chapter{Introduction to scripting \\ -- a user guide}
