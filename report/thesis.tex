@@ -44,8 +44,6 @@ for Mobile Devices \\
 \date{2009}
 
 \begin{document}
-%TODO: Make it more clear what the difference between lightscript and yolan is.
-%TODO: Make it clear why different parts are in the survey
 
 \maketitle
 \begin{abstract}
@@ -57,8 +55,10 @@ and an order of magnitude faster than most of the benchmarked scripting language
 
 Both scripting languages have first class functions, dynamic typing, built-in support for hashtables, stacks, etc., and support interactive programming. They are also able to load and execute scripts presented in source form at run-time. 
 The Java Micro Edition does not support dynamic loading of code, so both languages are interpreted.
+\index{Java Micro Edition}
 
 LightScript is a subset of JavaScript; it is static scoped, and also includes support for objects and exceptions. It is compiled to, and executed on, a stack-based virtual machine. One of things that makes the compact implementation possible is that the LightScript parser is an imperative optimised version of the top-down operator precedence parser.
+\index{scope}
 
 Yolan is highly optimised for reducing the size of the implementation code footprint. It has dynamic scope, a Lisp-inspired syntax, and is interpreted by evaluating each node of the syntax tree.
 
@@ -96,9 +96,10 @@ than megabytes.
     The approach will be pragmatic and favor simplicity.
 
 \section{Motivation}
-
+\index{Goals}
 Scripting languages make it easier to write applications \cite{scripting-ousterhout}. Beside higher productivity, they also opens up for user based scripting and scriptable configurations.
 On more powerful devices, ranging from high-end smartphones to personal computers, there are very good scripting languages available.
+\index{Smartphones}
 Scripting language implementations usually take a lot of resources, which is a problem on low-end mobile devices. On those devices, implementations may not be available, may be very slow, or have limitations, such as they cannot be executed directly, but need to be compiled on another machine, or they do not have basic data types.
 The focus on a better implementation of scripting languages for mobile devices is thus a niche, where the result may actually be of practical use.
 
@@ -129,7 +130,7 @@ The third and the fourth chapter documents two scripting languages developed thr
 The fifth chapter benchmarks benchmarks the developed languages against other scripting languages,
 and the sixth and seventh chapter is discussion and conclusion of the work.
 
-Source codes for benchmarks and the developed languages are in the appendix.
+The appendix contain the source code for the core Yolan and LightScript class.
 
 \section{Approach}
 \label{method}
@@ -151,26 +152,26 @@ Obsoleted prototypes include a Forth-like language, several parser/compiler impl
 \chapter{Survey}
 \label{survey}
 The survey first looks at different mobile platform, to determine the target platform for the language. 
-The platform turns out to be Java Mobile Edition, and the next part of the survey then looks into implementation methods for that platform.
+The platform turns out to be Java Micro Edition, and the next part of the survey then looks into implementation methods for that platform.
 The following section then surveys other languages related to scripting and low end devices, and the final section looks into implementation techniques relevant for the scripting language implementation on top of the choosen platform.
 
 \section{Mobile platforms}
-
+\index{Mobile platforms}
 This section surveys the different development platform for mobile devices, to determine a target platform for the language.
 Mobile devices ranges from low end phones, which, if they are programmable at all, only support Java Micro Edition, up to advanced smartphones with performance resources similar to older desktop computers.
+\index{Java Micro Edition}
 
 Most low end phones support some kind of Java midlets\footnote{A midlet is a small Java application targeting mobile devices, similar to applets, which are small Java applications targeting web browsers}.
 Here there are different APIs and device profiles, but the basic execution and deployment model is the same for devices that support midlets.
 
 Low end devices rarely support loading of native code, and higher end devices may require various kinds of code signing to allow native programs to be distributed.
 
-Besides Java and native code, JavaScript is becoming a potential language for applications for high end phone. 
+Besides Java and native code, JavaScript is becoming a potential language for applications for high end phone. \index{EcmaScript}
 This is both due to its integration with the web, which means that it will be available on the phones with advanced browsers, due to the increased amount of memory on high end phones
 and due to recent major performance advances within the JavaScript implementations, which are propagating towards mobile devices.
 
-%TODO: spoiler - target J2ME. embedded systems and smartphones are described as they are potential targets for future versions, JavaScript additionally because of compatibility
 \subsection{Embedded systems}
-%TODO: Reduce this section, focus is on nxt-development device
+\index{Embedded systems}
 
 %The personal computers, PCs, as we know them, are only a very small fraction of the computers in use.
 %Billions of electronic devices nowadays have small embedded computers; they are in mobile phones, kitchen equipment, washing machines, music instruments, car, even advanced greeting cards. 
@@ -202,8 +203,9 @@ There are ways to experiment with development for low end devices nonteheless:
 Some devices are hackable in the sense that somebody has found out how to upload and customise the firmware, usually without documentation and support from the manufacturer -- examples here ranges from digital cameras, mobile phones and handheld gaming devices.
 A few devices opens up for development.
 
+\index{Mindstorm NXT}
 An interesting case here is the Lego Mindstorm NXT, which has hardware similar to low end mobile phones, except for the sound and GSM. 
-The hardware contains an 48MHz ARM cpu\cite{arm7tdmi}, which is the same that is used in many mobile devices, 256KB of ROM, and 64KB of RAM, plus a coprocessor, a low resolution small display and a couple of buttons.
+The hardware contains an 48MHz ARM cpu\cite{arm7tdmi}, which is the same that is used in many mobile devices, 256KB of ROM, and 64KB of RAM, plus a coprocessor, a low resolution small display and a couple of buttons. \index{ARM cpu}
 This may be used for prototyping an implementation of the scripting language, targeting embedded devices, although this will be postponed until a stable version on top of Java Mobile edition is done.
 
 
@@ -222,10 +224,12 @@ This may be used for prototyping an implementation of the scripting language, ta
 %So while there are no low end mobile phone which opens up for development, the Mindstorm NXT has similar specs, and can thus be a prototype target for an implementation targeting this class of devices.
 
 \subsection{The J2ME / Java Micro Edition}
-%TODO: make it clear that scripting languages is going to be built on J2ME
+\index{Java Micro Edition}
+\index{J2ME|see{Java Micro Edition}}
 
 J2ME (Java Micro Edition\footnote{Java Micro Edition is a recent rebranding of J2ME}) is the most common platform for mobile application, supported by more than a billion devices \cite{sun-j2me}. 
-It seems like two thirds of mobile phones shipped today supports Java \cite{esmertec-globenews}.
+It seems like two thirds of mobile phones shipped today supports Java \cite{esmertec-globenews}. 
+\index{Mobile platforms!marketshares}
 %http://www.globenewswire.com/newsroom/news.html?d=149713
 Most mobile devices either require strict code signing, or do not allow native applications to be loaded at all, implies that J2ME is often the only option for mobile application development.
 J2ME is a trimmed down Java Virtual Machine (JVM) so it has most of the features and limitations of a standard Java JVM, with some notable exceptions, such as the lack of dynamic class loading and reflection. It is a heterogenous platform:
@@ -253,11 +257,13 @@ Instead, it does have a builtin switch opcode as well as support for method-disp
 The resources available for J2ME applications on mobile phones start at 64KB for the size of the JAR-file and 200KB for the run time memory on the lowest end devices, and goes upwards from there \cite{nokia-optim}.
 These numbers are for the full application, so the resources available for an embeddable scripting language, could be significantly less than this, depending on the resource usage of the host application.
 
-As Java Mobile Edition is the most widespread platform for mobile devices, this will be the first target platform for the scripting language.
+As Java Micro Edition is the most widespread platform for mobile devices, this will be the first target platform for the scripting language.
 
 \subsection{Smartphones}
+\index{Smartphones}
 Many high end phones -- smartphones --  allows loading of native code. 
 This covers approximately 12\% of the mobile phone market measured in number of units\footnote{In the fourth quarter of 2008 38.1 million smartphones where sold \cite{gartner}, whereas the total number of mobile phones sold in the same period were 314.7 million devices \cite{cellular-news}.}.
+\index{Mobile platforms!marketshares}
 % http://www.cellular-news.com/story/36315.php
 Smartphones gives more access to the devices, than J2ME, but is at the same time more difficult to devlop for, due to the large number of platforms, and limits on distribution, which usually also requires cryptographical signing of code.
 
@@ -370,7 +376,7 @@ Thus, in this project with the design of an embedded scripting language, code fo
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Programming languages}
+\section{Programming Languages}
 The following sections surveys different programming languages:
 \begin{itemize}
 \item Forth is surveyed as this language runs on very minimalistic systems, and is also a stack language, thus relevant for the design of virtual machines. 
@@ -384,6 +390,7 @@ The following sections surveys different programming languages:
 
 
 \subsection{Forth and other stack languages}
+\index{Forth}
 Forth is a stack-based language.
 It is very interesting for this project, as it is an example of an interpreted minimalistic language running on even very low-end devices.
 
@@ -403,6 +410,7 @@ A couple of very pointers related to Forth are:
 ``Thinking Forth'' is a very good book, not only on Forth programming, but also touches a lot programming and problem solving in general. This include details on implementation of stack-based languages.
 There is also a tutorial Forth implementation \cite{jonesforth}, that shows how Forth, and thereby stack machines, can be implemented - it is the implementation of a full Forth system, written in assembler, but very readable and well documented.
 
+\index{Virtual machine}
 Forth is also interesting from the virtual machine point of view, as it similar to the languages of a stack-based virtual machines. So Forth implementation techniques share a lot those of virtual machines. And research within this topic overlaps, an example is a dissertation on implementation of stack languages on register-based machine \cite{ertl-dissertation}, which uses Forth as the representitive stack-based language.
 
 Other more recent stack languages are Joy \cite{joy-language}, Cat \cite{cat-language} and Factor \cite{factor-language}.
@@ -411,6 +419,8 @@ The idea of the anonymous code block is an inspiration for the Yolan scripting l
 
 
 \subsection{Hecl and Tcl}
+\index{Hecl}
+\index{Tcl}
 Hecl appears to be the major mobile scripting language, and is a dialect of Tcl. 
 Tcl (Tool Command Language) is an embeddable scripting language \cite{tclbook} with a prefix notation, e.g. the syntax is similar to Logo, -- and also similar to Lisp if we see each unquoted line break as an end+begin parenthesis \verb|)(|. Unquoted here means not within quotations or brackets which is also a kind of quoting in Tcl.
 In order to avoid prefix mathematical expressions, Tcl has the notion of expressions, which can be evaluated with the \verb|expr| command or as the condition in \verb|if|-statments etc, for example:
@@ -437,11 +447,13 @@ Another aspect of Tcl is that everything are string, meaning that for example va
 
 \subsection{JavaScript/EcmaScript}
 \label{JavaScript}
+\index{EcmaScript}
 JavaScript was created as scripting language for web browsers, and was later standardised under the name of EcmaScript \cite{ecma-262}.
 The reason it has become interesting is that it is included within most webbrowsers, and there by one of the most widely available platforms.
 
 It is a dynamically typed scripting language with closures / first class functions, and a prototypical object system.
 While it has expressive language features, it is also a very mainstream languages, both through its presence within the web and C-like syntax, and thus it may be less intimidating for new programmers.
+\index{Closure}
 
 When making a new scripting language for mobile devices, it may make sense to make it a subset of EcmaScript for several reasons: It already exist as a platform meaning that the new scripting language already has virtual machines deployed. As the EcmaScript syntax is known, or at least recognisable for many developers, even web-``developers'' and users, it may be easier for them to transition, or start using the new scripting language on mobile devices. While being a subset of EcmaScript, closures and higher order functions can still be a part of the language.
 
@@ -456,31 +468,38 @@ The following sections looks at the implementation of EcmaScript, and existing a
 The following section described the main open source implementations of JavaScript/EcmaScript.
 
 \paragraph{JavaScriptCore} 
+\index{JavaScriptCore}
 JavaScriptCore is the implementation of JavaScript in Webkit.
 The latest version has is called SquirrelFish and is an optimised register-based virtual machine,
 with emerging support for JIT compilation.
 
+\index{SquirrelFish}
 The engine has been optimised a lot recently: the earlier versions was evaluating by walking through the abstract syntax tree, and was at that that time similar in performance to SpiderMonkey.
 The new version -- SquirrelFish -- is much faster, which means that it is similar in performance to TraceMonkey and V8.
 
 \paragraph{QScript}
+\index{QScript}
 QScript is the EcmaScript implementation which is a part of QT. This implementation is targeting application scripting rather that web scripting. An interesting part of QScript is its support for automatic binding generation. As WebKit is being integrated with QT, QScript is likely to be replaced with or merged a WebKit scripting engine in the long run.
 
 \paragraph{Rhino}
+\index{Rhino}
 Rhino is an implementation of JavaScript on top of Java. This is mainly as an embedded language for java applications. The implementation transforms the JavaScript program to Java classes, which is then executed.
 
 \paragraph{SpiderMonkey}
 \label{spidermonkey}
+\index{SpiderMonkey}
 SpiderMonkey \cite{spidermonkey} is the JavaScript engine in Mozillas browsers, and it is also usable as an embeddable engine in other applications. The execution is based on a switch dispatched virtual machine. %TODO:verify-that-I-remember-correctly-here.
 
 \paragraph{TraceMonkey} 
 TraceMonkey is a branch of SpideMonkey, which incoperates JIT compilation, with a JIT compiler based on trace trees \cite{trace-tree}, 
+\index{TraceMonkey}
 which rather than JIT compiling the entire program,
 traces and then compiles the most executed paths through the program.
 This means that the JIT compiled code gets optimised to the actual execution,
 and the approach also reduces the amount of code needed to be compiled.
 
 \paragraph{V8} V8 \cite{v8} is a JavaScript implementation made by Google, and released in 2008 in conjunction with the release of their browser ``Chrome''. 
+\index{v8}
 While it is not directly connected with the Android platform, a JIT compiler is already in place targeting the ARM CPU, so it seems likely that it will also target mobile devices in the long term.
 
 A main focus and benefit of V8 is high execution speed.
@@ -497,18 +516,20 @@ There is the standardised EcmaScript Mobile Profile, which removes some features
 
 During the project it has turned out that there are other projects working on JavaScript languages for mobile devices.
 
+\index{EcmaScript!Mojax}
 Mojax (Mobile Ajax) \cite{mojax} is a properitary virtual machine for an EcmaScript like language. This language is also a subset of of EcmaScript, integer only, and appears not to support exception exceptions nor regular expressions.
 The Mojax implementation seems to be a virtual machine which cannot execute scripts directly, but they need to be compiled before they can be loaded.
 
-
+\index{EcmaScript!Mbedthis}
 Mbedthis has a closed source implementation of a subset of JavaScript, this one targeting embedded devices \cite{mbedthis}. This uses integers by default, and does not have exceptions, labelled statements, switch, while, do-while, regular expressions, function literals, object literals, array literals, prototypes nor class methods.
 % http://www.embedthis.com/products/appweb/doc/guide/appweb/users/ejs/overview.html
 Recently that implementation seems to have been abandoned, in favor of new, more compliant implementation: Ejscript \cite{ejscript}.
 %http://www.ejscript.org/products/ejs/index.html
 While the C based implementation is available under GPL, there apparently is a J2ME implemention which is not published yet.
+\index{EcmaScript!Ejscript}
 
 \subsection{Lua}
-
+\index{Lua}
 Lua is interesting, both as a language design/implementation, as it have looked into issues that also comes up in this project, and also as a language for low end devices, as lua implementations are available on embedded and mobile devices.
 Lua is a dynamically typed, statically scoped embeddable scripting language, which is characterized by only have one datastructure: associative tables.
 It has both good performance, and relatively low code footprint, and is as such also interesting for this project.
@@ -522,9 +543,10 @@ As phones are becoming more powerful, Python is beginning to play a role as a mo
 Python have some nice features, that may be inspiring when implementing other languages. Comments/documentation is integrated in the language via the concept of docstrings, which is a special kind of comment that will also be available for inspection during runtime. Unit testing is also integrated within the documentation framework, where a special syntax indicates that code in the documentation can also be executed when running tests.
 Required indentation leads to easier readable programs.
 
-The issue with python on mobile devices is, that it is relatively resource intensive, and thus use more energy, and is only available on high end phones.
+The issue with Python on mobile devices is, that it is relatively resource intensive, and thus use more energy, and is only available on high end phones.
 
 \subsection{Scheme and Lisp}
+\index{Lisp and Scheme}
 Scheme and Lisp are especially interesting in this context, due to their minimalism, which inspiring in the design of a language with strong restrictions on the implementation environment.
 The syntax is mostly isomorphic with the abstract syntax tree, meaning that parsing is mostly trivial.
 
@@ -534,6 +556,8 @@ Another Scheme implementation, which targets mobile devices is ULM (Un Langage p
 This was considered as a potential benchmark target, but I did not have time to get it to run, due to issues with dependencies, and at the same time it has a relatively large code footprint -- 96KB.
 
 \subsection{Self}
+\index{Self}
+\index{Prototypical inheritance}
 \label{survey-self}
 Self \cite{self} is especially interesting due to its use of prototypical inheritance.
 In traditional object oriented programming, we have classes and objects, where classes can inherit from other classes, and objects are instantiations of classes.
@@ -553,20 +577,15 @@ latter is much more expensive, spacewise, and therefore not applicable.
 Threaded dispatch, and other faster dispatch methods is not possible
 due to restrictions of the JVM.
 \item With regard to garbage collection, we can piggyback on the garbage collector from the JVM, which saves code footprint as we do not need to implement one ourselves. This has the issue that we can not rely on how it is implemented, meaning that heap allocated activation records may be less of an option, as it is stongly affected by the performance of the garbage collector.
-\item JIT compilation to native code, or targeting the JVM, is not possible as dynamic loading of code is not supported at all on most Java Mobile Edition implementations.
+\item JIT compilation to native code, or targeting the JVM, is not possible as dynamic loading of code is not supported at all on most Java Micro Edition implementations.
 \end{itemize}
 
 The next section looks at register vs. stack virtual machines, which is an important aspect at the design of virtual machines. This is followed by a look at parsing, more specificly the top down operator precedence parser as this has low code footprint, which is important on this platform. And finally there is an investigation of scope and implementation of variables.
 
-%TODO: why these aspects
-%TODO: Garbage collections notes
-%TODO: Dispatch notes
-
-
-%TODO: as the embedded-C implementation of the language was not finished, this part does not belong in the thesis, but should be removed, and possibly make it into later documents. Keep note about using switch due to JVM, which is suboptimal compared to what can be done on a native machine.
+%as the embedded-C implementation of the language was not finished, this part does not belong in the thesis, but should be removed, and possibly make it into later documents. Keep note about using switch due to JVM, which is suboptimal compared to what can be done on a native machine.
 %... jvm only switch based or class based, which is suboptimal
 
-%TODO: as the embedded-C implementation of the language was not finished, this part does not belong in the thesis, but should be removed, and possibly make it into later documents. Replace note about piggy-backing on the JVM GC, which is unlikely to be generational, which means that heap allocated stack will be expensive.
+%as the embedded-C implementation of the language was not finished, this part does not belong in the thesis, but should be removed, and possibly make it into later documents. Replace note about piggy-backing on the JVM GC, which is unlikely to be generational, which means that heap allocated stack will be expensive.
 %... heap allocated stack frames and generational GC.
 %The KVM, which is the reference implementation for mobile Java Virtual Machines, is now using a compacting mark and sweep. It originally started out with a copying collector, which had a larger memory requirement. And subsequently it used a non-compacting mark and sweep, where compaction were later added.
 
@@ -644,6 +663,7 @@ The parsing of lists calls parse until the end of the list is reached. Other con
 The limitation of this parser as described here is that only one left-hand side expression is passed to the left denominator function, making reverse polish notation languages difficult to implement. A non-recursive version with an explicit stack instead could solve that.
 
 \subsection{Scope}
+\index{Scope}
 Defining the scope of variable declarations  is important when designing a programming language.
 There are two major kind of scopes: static scoping and dynamic scoping.
 Static scoping is also called lexical scoping, and corresponds to the lexical structure of the source code.
@@ -662,7 +682,9 @@ g(42)
 which would print 42 if it were written in a statically scoped language, and would print 17 if it were written in a dynamically scoped language.
 
 Static scoping is more natural as the scope matches the structure of the code. Dynamic scoping requires more discipline, as it allows the programmer to tamper with local variables of other parts of the code, and counters good habits of information hiding. A very importeant feature is also that static scoping can be used to create closures for functions, which gives extra flexibility to the language.
-On the other hand, dynamic scoping very trivial to implement, and can thus use slightly less space in the code footprint. Dynamic scoping also does not suffer from the funarg problem discussed in Section~\ref{funarg}.
+\index{Closure}
+On the other hand, dynamic scoping very trivial to implement, and can thus use slightly less space in the code footprint. 
+Dynamic scoping also does not suffer from the problem discussed in Section~\ref{funarg}.
 For more advanced language implementations static scoping has the benefit over dynamic scoping, that code is easier to analyse and optimise due to locality, in the sense that the use of variables is limited to the local lexical scope, and thus the optimisations on this part of the code need be concerned with other parts of the code.
 
 \subsubsection{Stacks and activation records}
@@ -674,7 +696,6 @@ Whenever a function is called, the arguments are pushed onto the stack. Then, wh
 The allocation on the stack allows for local variables, and functions can also be recursive without a problem. The space on the stack with the local variables, etc., is called the activation record for the function.
 
 \subsubsection{Scope and first class functions}
-\label{funarg}
 
 When we have first class functions and static scoping, we cannot just place the activation records on the stack. Inner functions may live on, and access local variables of the outer function, after the outer function has returned. Consider the following code:
 \begin{verbatim}
@@ -687,6 +708,8 @@ function f(x) {
 \end{verbatim}
 
 In this code the new function $g$ lives on after $f$ has returned, and at the same time $g$ uses a value that lies in the activation record of $f$. Therefore, if the activation record is allocated on the call stack, and nothing further is done about it, the value of $x$ will no longer be available at the time $g$ is called.
+This is an example of the funarg problem, which is the problem with scoping when a function is given as an argument or returned.
+\label{funarg}
 
 There are several solutions to this problem:
 \begin{itemize}
@@ -696,9 +719,9 @@ There are several solutions to this problem:
 \item Keep track of which variables may live on after the function exits, and move those to the heap.
 \end{itemize}
 
-%TODO: definition of funarg problem
 Not having nested functions, only having a single-function-local and a global scope, or not having static scope, simplifies the implementation and is a solution in mostly imperative languages.
 This solves the issue, but at the same time it also removes support for closures.
+\index{Closure}
 
 Copying outer scope variables to inner scope is possible in functional languages, where they are will not be mutated. If the language is not purely functional, the issue with this approach is that when a variable is mutated in an inner function, it is only the copy that is mutated, and the mutation is local to the function.
 A workaround for mutations in languages that copy variables from outer to inner scope is to use a reference to the mutated variable rather than the variable itself, such that when the reference is copied to the inner scope it is still possible to mutate the value, as we need not mutate the reference itself.
@@ -723,7 +746,6 @@ some interpreters have a less efficient approach, where they look up variables a
 
 \chapter{Yolan}
 \label{yolan}
-%TODO: ... developer guide readable by itself
 \index{Yolan}
 \section{Design choices}
 The overall design direction of Yolan is to minimise the code footprint, while still having a scripting language with first class functions.
@@ -768,6 +790,7 @@ Null is also the false value. This simplifies the implementation slightly, and t
 Yolan has a Lisp-inspired syntax. This trivialises the parser ipmlementation, and thus reduces code footprint.
 
 Dynamic scope removes the issue of the funarg problem, and thus simplifies the implementation of variables. This is generally bad language design, but at the same time it may reduce the code footprint slightly.
+\index{Scope}
 
 The language is more like a traditional scripting language, than a functional language, 
 as it does not support tail recursion nor has cons-list, but instead it uses resizable arrays and hashtable as data structures, and has more imperative programming model, with while- and foreach-loops, etc.
@@ -994,6 +1017,7 @@ so the above code is only useful if we have added some userdefined functions to 
 \subsubsection{Adding functions to the runtime}
 This section describes how to make Java code callable from Yolan.
 While the builtin Yolan functions support basic data structures such as lists and dictionaries,  there is no built in way to do input/output from Yolan that is platform dependent: Java Standard Edition supports files, where Java Micro Edition has a record store, and user interfaces ranges between Midlets, Applets, graphical applications, and text standard-in/out.
+\index{Java Micro Edition}
 So when a script needs to communicate with the user, or work on the state of the host application, 
 some functionality needs to be added. This is most easily done by adding functions to the runtime.
 
@@ -1018,6 +1042,56 @@ class Main {
 \end{lstlisting} 
 The above program reads and evaluates the file script.yl, with an augmented runtime that also has the \verb|println| function.
 
+\subsubsection{Code footprint efficient addition of several functions to the runtime}
+The naive approach for adding functions to the runtime would be to create a new class implementing the \verb|Function| interface for each function. This would add significantly to the JAR-file
+.
+If the code size is critical, it can often be reduced by combining multiple functions into a single class, for example via a switch dispatch as shown below:
+\begin{lstlisting}
+class ManyFunction implements Function {
+    int id;
+    ManyFunction(int id) {
+        this.id = id;
+    }
+    Object apply(Yolan args[]) {
+        switch(id) {
+            case 0: // first function
+                    ....
+                break;
+            case 1: // second function
+                    ....
+                break;
+            case 2: // third function
+                    ....
+                break;
+            ....
+            default:
+                throw SomeKindOfError();
+    }
+    static void register() {
+        Yolan.addFunction(new ManyFunction(0), "firstFunction");
+        Yolan.addFunction(new ManyFunction(1), "secondFunction");
+        Yolan.addFunction(new ManyFunction(2), "thirdFunction");
+        ....
+    }
+}
+\end{lstlisting}
+
+When implementing functions, it is also possible to create control structures, due to the laziness of Yolan objects. This is done by not evaluating the arguments' \verb|value|-functions exactly one time each, but zero or more times, depending on the purpose. The example below shows how the usual if-statement could be implemented:
+\begin{lstlisting}
+class YolanIf implements Function {
+    Object apply(Yolan args[]) {
+        // first evaluate the condition
+        // and find out if it i true (not null)
+        if(arg[0].value() != null) {
+            // only evaluate if the condition yields true
+            return arg[1].value();
+        } else {
+            // only evaluate if the condition yield false
+            return arg[2].value();
+        }
+    }
+}
+\end{lstlisting}
 \subsubsection{Values and types}
 The builtin types in Yolan are mapped to Java classes for easier interoperability,
 so lists are implemented as java.util.Stack, dictionaries are implemented as java.util.Hashtable, strings are implemented as java.lang.String, nil/false is implemented as the value null, integers are implemented as java.lang.Integer, and iterators are implemented as java.util.Enumeration. 
@@ -1094,61 +1168,7 @@ When the runtime has been wiped, Yolan expressions can no longer be evaluated, a
 Resetting is necessesary before scripts are executed after a \verb|Yolan.wipe()|.
 It can also be practical when multiple scripts are run, one after another, and they must not modify the runtime for each other.
 
-\subsection{More on adding functions to the runtime}
-%TODO: perhaps join with other section on adding functions
-
-The naive approach for adding functions to the runtime would be to create a new class implementing the \verb|Function| interface for each function. This would add significantly to the JAR-file
-.
-If the code size is critical, it can often be reduced by combining multiple functions into a single class, for example via a switch dispatch as shown below:
-\begin{lstlisting}
-class ManyFunction implements Function {
-    int id;
-    ManyFunction(int id) {
-        this.id = id;
-    }
-    Object apply(Yolan args[]) {
-        switch(id) {
-            case 0: // first function
-                    ....
-                break;
-            case 1: // second function
-                    ....
-                break;
-            case 2: // third function
-                    ....
-                break;
-            ....
-            default:
-                throw SomeKindOfError();
-    }
-    static void register() {
-        Yolan.addFunction(new ManyFunction(0), "firstFunction");
-        Yolan.addFunction(new ManyFunction(1), "secondFunction");
-        Yolan.addFunction(new ManyFunction(2), "thirdFunction");
-        ....
-    }
-}
-\end{lstlisting}
-
-When implementing functions, it is also possible to create control structures, due to the laziness of Yolan objects. This is done by not evaluating the arguments' \verb|value|-functions exactly one time each, but zero or more times, depending on the purpose. The example below shows how the usual if-statement could be implemented:
-\begin{lstlisting}
-class YolanIf implements Function {
-    Object apply(Yolan args[]) {
-        // first evaluate the condition
-        // and find out if it i true (not null)
-        if(arg[0].value() != null) {
-            // only evaluate if the condition yields true
-            return arg[1].value();
-        } else {
-            // only evaluate if the condition yield false
-            return arg[2].value();
-        }
-    }
-}
-\end{lstlisting}
-
 \chapter{LightScript}
-%TODO: goal and originality of the language
 \label{lightscript}
 \index{LightScript}
 \section{Design choices}
@@ -1170,6 +1190,7 @@ The next paragraphs elaborate the following design choices:
 
 There are several reasons to make the language a subset of EcmaScript:
 When LightScript is a subset of EcmaScript, it automatically runs within most webbrowsers, including within smartphones where Java may not be installed.
+\index{Smartphones}
 Being an EcmaScript subset also makes it easier to get started on for developers, that already know EcmaScript, or other languages with C-like syntax.
 The issues are that being a subset of EcmaScript will add more complexity to LightScript, and also that EcmaScript has some unfortunate design choices \cite{crockford-web}, e.g. global variables by default, function-scoping rather then block-scoping, non-transitive equality test, traversal of parent object in for-each, arrays and null are objects in typeof-operator, restrictions on names due to many reserved words, automatic semi colon insertion, the with-statement, 
 where some of these will also be a part of LightScript,
@@ -1190,6 +1211,8 @@ Similar to Yolan, LightScript also only have one false value, which also joins t
 LightScript should have a lexical scope similar to EcmaScript.
 This has the benefit of allowing closures which makes the use of functions much more expressive.
 The lexical scope in EcmaScript, and thus LightScript, is a bit different from most other lexical scoping, as the scope limit is the enclosing function rather than the block.
+\index{Scope}
+\index{Closure}
 
 Similarly to Yolan, LightScript should support fast variable access. This also means that another approach than looking through the chain of execution context objects, as described in the EcmaScript standard must be used. Here LightScript should use a usual execution stack, boxing objects in the closure onto the heap.
 
@@ -1199,6 +1222,7 @@ Inheritance will be slightly different: while EcmaScript has prototypical inheri
 Exceptions should also be supported, and it should also be possible to throw between, and across Java-functions and LightScript functions.
 
 \section{Imperative implementation of top down operator precedence parsers}
+\index{Top down operator precedence parser}
 \label{tdop-imp}
 This section looks at how top down operator precedence parsers can be implemented efficiently in an imperative language.
 
@@ -1232,6 +1256,7 @@ For each token, there is a instruction cost of 1-2 function calls, 1 switch-disp
 The size of the implementation can be kept very small, as the denominator functions can be reused across different token-types. For example: the binary operators share a single case in the left denominator dispatch, and adding a new binary operator only uses the length in characters of the operator plus 5 bytes. 
 
 \section{Implementation of variables and scope}
+\index{Scope}
 In the EcmaScript standard, identifier resolution is done by searching through the scope chain, which is a list of objects. Objects in the EcmaScript context are a mapping from property names to values. This approach to implementation would be very performance expensive.
 
 Instead we want to resolve the variables at compile time, while preserving as much of the EcmaScript semantics as is practical. The main issue here is that when we resolve the variable at compile time, we do not keep information to be able to resolve it dynamically at run time,
@@ -1239,6 +1264,7 @@ which lead to limitations in \verb|eval| like statements when compared EcmaScrip
 
 Of the different methods for implementing scope, discussed in Section~\ref{survey-scope}, the only real possibilities for a partly imperative scripting language with support for first-class functions are either to allocate the activation records on the heap, or keep track of variables that could live on after exiting a function, and box those variable on the heap.
 The other options are ruled out, as we want to have closures, and we want the outer scope variables to be mutable.
+\index{Closure}
 As we are implementing on top of the JVM, that also determines the garbage collector, which it may vary on different devices, and which may be badly suited activation record allocation on the heap.
 So the approach will be only to box variables onto the heap, that could be alive after function exit.
 
@@ -1257,6 +1283,7 @@ Beside these core elements, the implementation also contain an API for embedding
 
 The parser is a concrete implementation of the top down operator precedence parser for imperative laanguage, as described in Section~\ref{tdop-imp}, with the additional detail, that during the parsing, the parser keep track of which variable is defined and used in each function, such that this information can be used for scoping later on. 
 The source code for the parser starts on page~\pageref{lightscript-parser}.
+\index{Top down operator precedence parser}
 
 \subsection{Compiler}
 
@@ -1274,9 +1301,11 @@ By having the integer for the abstract syntax tree node type match the virtual m
 The virtual machine is stack-based in order to reduce the footprint of the compiler.
 It is implemented with a single larger switch statement as it is running on top of JVM, as the JVM, does not support for references to labels, etc.
 The instruction set is inspired by the JVM and calling conventions on i386, and is also product of the iterative development, such that new instructions are added, as they are needed by the compiler.
+\index{Virtual machine}
 
 
 \section{Language specification}
+\index{Language specification!LightScript}
 The language is mostly a subset of EcmaScript \cite{ecma-262}, and the description of the different parts of the languages is written in the same sequence as the EcmaScript standard, to make it easier to compare the two. The focus will on where LightScript differs from EcmaScript.
 Scripts written for LightScript also runs unaltered in EcmaScript compliant interpreters, with af couple of extra functions defined within EcmaScript. On the other hand, EcmaScript may or may not run within LightScript, as LightScript is only a subset of EcmaScript.
 
@@ -1318,6 +1347,7 @@ Numbers are 32 bit integers.
 An array is a growable and mutable sequence of values, where the values can have any type.
 Objects are mappings between names and values, where the name should be of the string type, and the value can be of any type. Objects can have another object prototype, where, if the lookup in the first object does not find a mapping, the name is then looked up in the prototype object.
 The order of traversal of the object names/values, may be implementation dependent such that implementations may choose to implement them via hashtables or lists, depending on what makes most sense for the platform. This is different from EcmaScript, where the traversal is in the order the properties were added to the object.
+\index{Prototypical inheritance}
 
 \subsection{Execution contexts}
 
@@ -1326,6 +1356,7 @@ Variabled defined with the \verb|var| keyword are allocated on the current activ
 If a variable is not in the current functions activation record,
 it is looked up in the lexical outer function, or if there is no outer function, the global scope.
 This is the usual static scoping, where functions are the only way to make a scope closure.
+\index{Scope}
 
 \subsection{Expressions}
 
@@ -1373,6 +1404,7 @@ These may be added in later versions of LightScript.
 Exceptions are thrown with the \verb|throw| statements, which works similarly to JavaScript.
 The \verb|try| statment is slightly different, as LightScript only supports the \verb|try|$\cdots$\verb|catch| version, and does not currently support \verb|finally| option.
 LightScript also has slightly different scoping rules for the catch block, where the caught variable is a usual variable, where JavaScript is creating a new object in the scope chain only containing this variable. The motivation for this change is that it is a more consistent approach to scoping, where this would otherwise be a special case, requireing more code space, where at the same time, this only an incompatibilities if the variable in the catch-statment shadows another variable, whose value is used after the catch block, - which also should be avoided as that would lead to more difficult-to-read code.
+\index{Exceptions}
 
 \subsection{Function definitions}
 Functions are defined using the \verb|function| keyword, followed by an optional function name, a list of parameters and the function body.
@@ -1487,6 +1519,7 @@ LightScript objects are instances of \verb|java.lang.Hashtable|. If the lightscr
 Exceptions that can be thrown to/from LightScript are of the class \verb|LightScriptException|. This exception has a property \verb|value| that is the object that is thrown/caught within LightScript. The constructor just takes the value as an argument.
 
 \section{Versions and future directions}
+\index{Future works}
 The LightScript version described above is version 1.0.426
 
 The version number consist of a major version number, a minor version number and a revision number.
@@ -1514,14 +1547,14 @@ In the following is listed what have been done in version 1.1 and what needs to 
 \begin{itemize}
 \item Optimise code footprint, by reordering opcodes
 \item Add support for fixed-point arithmetics
-To determine whether it is worthwhile needs an actual implementation. - this costed 2-3KB code footprint.
+%To determine whether it is worthwhile needs an actual implementation. - this costed 2-3KB code footprint.
 \end{itemize}
 \subsubsection{Remaining tasks}
 \begin{itemize}
 \item Add more functions, operators, etc. 
 \item Add postfix increment/decrement
 \item Let functions support a variable number of arguments
-\item Let catch, and function-def behave as implicit \verb|var|-decl
+%\item Let catch, and function-def behave as implicit \verb|var|-decl
 \item Change of the implementation to make the it even more EcmaScript-like by relying on LightScript object class in Java, rather than standard Java classes, This costs a slightly larger code footprint, and also makes it slightly more complex to integrate with existing Java applications.
 \item Walk through library specification, and add functions that does not add too large a foorprint
 \item Add prototype object to functions
@@ -1532,6 +1565,7 @@ To determine whether it is worthwhile needs an actual implementation. - this cos
 
 \chapter{Benchmarks}
 \label{benchmark}
+\index{Benchmarks}
 
 \section{Code footprint}
 This section looks at the code footprint: first footprint estimates are compared for different scripting languages, then details on the footprint of LightScript is investigated, and finally the actual size of the library embedded in a minimal application is found.
@@ -1544,30 +1578,39 @@ The motivation for this approach is to make the comparison more fair, as some of
 which would count against them if we just looked at the JAR file. 
 In addition, compilation of some of the languages is obscurified/optimised by default,
 which would give those an advantage. So this approach should give a more fair comparison.
+\index{JAR-file}
 
 \subsubsection{Languages}
 \label{codefootprint-languages}
 The code size benchmark looks at the languages implemented in this project, Yolan and LightScript, at scripting languages for mobile devices, FScriptMe, Kahlua, Hecl, Simkin, and CellularBasic, and at some general scripting language implementations,  JScheme, and Rhino.
 
+\index{FScriptME}
 FScriptME \cite{fscriptme} is the mobile edition of femto-script, which ``is an extremely simple scripting language'' \cite{fscript}. 
 Out of the box, it only supports strings and integers as data types -- no compound types -- which limits use somewhat, and it is still in beta, since 2002. 
 
+\index{Lisp and Scheme!JScheme}
+\index{Scheme|see{Lisp and Scheme}}
 JScheme \cite{jscheme} is a small Scheme implementation. We benchmark an early version as later versions have a vastly larger code footprint. It depends on some reflection, and does therefore not run on Java Micro Edition, but is included as the implementation is compact, and may be changed to target mobile devices.
 
+\index{Lua!Kahlua}
 Kahlua \cite{kahlua} is an implementation of the Lua Virtual Machine for Java Micro Edition. 
 The implementation requires CLDC-1.1 due to the use of floating point arithmetics, and does therefor not run on the lowest end mobile devices, which only supports CLDC-1.0.
 Unlike the other languages, kahlua is not a full language interpreter, but only a virtual machine, so the the script cannot executed directly on the device, but needs to be compiled on another computer before being executed.
 
+\index{Hecl}
 Hecl \cite{hecl} seems to be \emph{the} major scripting language for mobile devices, or at least the one keep popping up in the top of most queries when searching for scripting languages for mobile devices.
 It is very portable, with different editions running on CLDC-1.0, CLDC-1.1, Android, as applets and as usual applications.
 It has lots of libraries targeting mobile devices, which in this comparison were removed from the zip file of class files, not to give languages with fewer libraries an advantage in the size comparison.
 The language is a dialect of Tcl, and is simplified such that arithmetic operators, and the like, are prefix operators so expressions ends up a bit Lisp-like.
 
+\index{Simkin}
 Simkin \cite{simkin} is a scripting language for being embedded in XML, which also runs on mobile devices. It depends on kxml xml library, which is not included in the measured size. 
 
+\index{CellularBasic}
 CellularBasic \cite{cellularbasic} is a dialect of Qbasic, implemented for mobile devices. 
 It includes a floating point support library which is not included in the measured size. 
 
+\index{Rhino}
 Rhino \cite{rhino} is a JavaScript implementation. This language is not designed for, nor does it run on, mobile devices. It is included as an example of an implementation of a usual non-mobile scripting language.
 
 \subsubsection{Results}
@@ -1607,6 +1650,7 @@ Parser+Tokeniser & 3825 & 7093 & \\ \hline
 \end{tabular} \end{center}
 
 \subsection{Optimised JAR-file footprint}
+\index{JAR-file}
 Previous sections have looked at comparable footprints for implementations by approximated JAR file size, and also at what parts contributes to the size of the LightScript class.
 From a practical view it is also interesting to see the actual size of the optimised obscurified JAR-file of embedding the languages in a trivial host application.
 The host application is a simple Midlet that adds a print function to the language, and includes a hello-world program.
@@ -1694,18 +1738,16 @@ but only an implementation and actual benchmark will show.
 LightScript is definitely a language I will use for developing mobile applications in the future, so the project has at least been successful by making a tool in that direction.
 
 \section{Future development of LightScript}
-
+\index{Future works}
 The next development with LightScript is toward version 1.2, which is described in the LightScript chapter, and after that publishing it, and expanding the library as discussed below.
 On the long term, other possible milestones are optimisation of the byte code, porting LightScript to embedded C, and better development tools in shape of prettyprinting and linting.
 
 \subsection{Making it public}
 LightScript will be released as open source software. 
 Just releasing the source, is not enought to make it really usable for others: documentation, and examples, are also of major importance, and there also has to be an awareness about the exisitance of the language, which needs some work on publishing information on the project, including an informative wikipedia page, and press release/posting of articles on news sites related to programming languages and mobile development.
-This will be done when LightScript version 1.2 is done.
 The website \url{http://www.lightscript.net/}, will serve as the main site, and a small dummy page is already put up.
 
 \subsection{User interface and other optional libraries}
-
 Currently LightScript needs custom Java functions to be added for doing anything useful, as there are no input library for input/output.
 As the language implementation stabilises, the next step is to create a library which can optionally be included within the application.
 A lot of standard functionality, such as cryptography, http-networking, storage, etc.,  can relatively easily merged from the platform, or existing open source libraries. 
@@ -1717,6 +1759,7 @@ Issues are very varying or limited resolutions and and input methods, ranging fr
 
 A solution that will be interesting to pursue is in the direction of zooming interfaces, as these able to scale down to small screens.
 Prototypes within this project has has also gone in the direction of zooming interfaces, though they have yet to be integrated with the scripting language, and have achived maturity to become a part of this report.
+\index{Zooming user interfaces}
 
 \subsubsection{Other optional libraries}
 
@@ -1725,7 +1768,7 @@ The access to http-connections are supported within CLDC/1.0 and CLDC/1.1, as we
 
 When making applications that may handle the users private data, it should be secured, which is why support for simple cryptography should be added. There already exist a good open source library for mobile cryptography \cite{bouncycastle} where a couple of ciphers can be extracted and added as optional library in LightScript.
 
-\subsection{Optimising the byte code}
+\subsection{Optimising the bytecode}
 
 A way to optimise the execution, and reduce the memeory usage of compiled programs, would be to optimise the byte codes, by joining common code sequences. Which byte codes to combine can be determined by using grammar based compression techniques on generated code, and create new codes from the founcd dictionary. 
 This reduce the memory usage, as the generated codebecomes shorter, and increases the performance as the joined codes only need a single dispatch for the new code. The cost is a larger larger code footprint due to the new byte codes. If this is to be implemented, it probably has to wait until there are more code written within LightScript, as a larger amount of code is needed for better generation of dictionaries.
@@ -1736,6 +1779,7 @@ Another direction with the development of LightScript is the implementation on n
 Embedded C is very different from Mobile Java: the importance of the run time memory usage and code footprint is reversed, as embedded devices often have larger built in flash ROM, than working memory.
 
 The first target platform for an embedded C implementation will be the Mindstorm NXT, which has 64K of RAM, and 256K of ROM.
+\index{Mindstorm NXT}
 An optimisation here is to use 16bit tagged pointers/small integers rather than 32bit, to save memory. 
 
 An interesting implementation aspect to study is the effect to enforce unique strings. This will cost approximately additional 3 bytes per string, and string creation will be more expensive, but at the same time, there will be no copies of identical strings, which may save significant space, and string comparison is changed to pointer comparision, which is much faster.
@@ -1751,6 +1795,7 @@ Another development tool, possibly integrateable with the linter is a prettyprin
 
 \chapter{Conclusion}
 \label{conclusion}
+\index{Conclusion}
 Two new scripting languages has emerged out of a series of prototypes.
 
 Yolan is a minimalistic scripting language with first class functions and Lisp like syntax. This language is a proof of concept that the code footprint cost of an embeddable scripting language for Mobile Java applications, can be kept low, in this case approximately 5 KB.
@@ -1766,6 +1811,7 @@ Yolan and LightScript are pushing the edge of small scripting language implement
 %
 
 \newpage
+\index{Bibliography}
 \addcontentsline{toc}{chapter}{Bibliography}
 \bibliography{bibliography}
 \bibliographystyle{alpha}
@@ -1775,9 +1821,11 @@ Yolan and LightScript are pushing the edge of small scripting language implement
 %\input{../code/bench/marks.tex}
 
 \chapter{Source code of the Yolan class}
+\index{Yolan!source code}
 \lstinputlisting{../code/Yolan/src/Yolan.java}
 
 \chapter{Source code of the LightScript class}
+\index{LightScript!source code}
 \lstinputlisting{../code/LightScript/LightScript.javapp}
 
 
