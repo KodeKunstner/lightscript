@@ -508,7 +508,7 @@ public final class LightScript {
         }
     }
 
-/*`\section{Tokeniser}'*/
+/*`\section{Tokeniser}'\index{Tokeniser}*/
 
 #ifdef __COMPILE_TOKENISER__
     /** Read the next character from the input stream */
@@ -622,7 +622,8 @@ public final class LightScript {
     }
 #endif /* __COMPILE_TOKENISER__ */
 
-/*`\section{Parser}\label{code-lightscript-parser}'*/
+/*`\section{Parser}\label{code-lightscript-parser} 
+\index{Top down operator precedence parser}'*/
 
 #ifdef __COMPILE_PARSER__
     /** Parse the next expression from the input stream
@@ -1938,7 +1939,7 @@ public final class LightScript {
     }
 #endif /*__COMPILE_COMPILER__*/
 
-/*`\section{Virtual Machine}'*/
+/*`\section{Virtual Machine}\index{Virtual machine}'*/
 
 #ifndef __COMPILE_VM__
     private static Object execute(Code cl) throws LightScriptException {
