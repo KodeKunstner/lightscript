@@ -1,3 +1,5 @@
+1.0.470
+    Added *=, /=, and support for ++ and -- as non-late postfix. classsize: 19118
 1.0.469
     Removed instruction for allocating stack space, - done automatically per
     class instead.
@@ -6,7 +8,7 @@
     LightScript support for distinction between null, false and undefined on
     its way. Fixed issue with out of bound array get
 1.0.467
-    Expriments with fork of LightScript with classes for types
+    Expriments with fork of LightScript with classes for types, disbanded
 1.0.450
     Added support for fixed point numbers. L...S..class 18856 bytes, FixedPointClass 897 bytes.
 1.0.447

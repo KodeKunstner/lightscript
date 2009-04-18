@@ -4,7 +4,7 @@ for(i in x) {
         print(i + x[i]);
 }
 
-a = {"foo": undefined, "bar": true, "baz": true};
+a = {"foo": null, "bar": false, "baz": undefined};
 print(a);
 a = {"foo": 1, "bar": true, "baz": undefined};
 print(a);
