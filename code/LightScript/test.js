@@ -1,3 +1,4 @@
+print(1/3);
 x = {"foo": 1, "bar": 2};
 for(i in x) {
         print(i + x[i]);

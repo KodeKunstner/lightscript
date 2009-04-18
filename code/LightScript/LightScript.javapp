@@ -177,11 +177,13 @@ public final class LightScript {
 
     /** The true truth value of results 
       * of tests/comparisons within LightScript */
-    public static final Object TRUE = "true";
+    public static final Object TRUE = new StringBuffer("true");
 
     /** The false truth value of results 
       * of tests/comparisons within LightScript */
-    public static final Object FALSE = null;
+    public static final Object NULL = null;
+    public static final Object UNDEFINED = new StringBuffer("undefined");
+    public static final Object FALSE = new StringBuffer("false");
 
     /** Token string when reaching end of file, it can only occur
       * at end of file, as it would otherwise be parsed as three
@@ -1175,9 +1177,6 @@ public final class LightScript {
             + (char) ID_NONE
         + "true"
             + (char) 1
-            // true translates to the string true, 
-            // could be changed to be a real Boolean
-            // by adding another nud-case
             + (char) NUD_LITERAL 
             + (char) ID_NONE
             + (char) LED_NONE
@@ -1998,7 +1997,6 @@ public final class LightScript {
      * if int, or a FixedPoint object, if fixed point
      */
     private static Object toNumObj(long l) {
-        System.out.println("toNumObj:" + l);
         if((l & 0xffffffff) == 0) {
             return new Integer((int)(l >> 32));
         } else {
@@ -2032,6 +2030,25 @@ public final class LightScript {
             }
             return false;
         }
+    }
+    private static boolean toBool(Object o) {
+        if(o == TRUE) {
+            return true;
+        }
+        if(o == null || o == FALSE || o == UNDEFINED) {
+            return false;
+        }
+        if(o instanceof String) {
+            return !((String)o).equals("");
+        }
+#ifdef DEBUG
+        if(o instanceof Integer) {
+#endif
+            return ((Integer)o).intValue() != 0;
+#ifdef DEBUG
+        }
+        throw new Error("unhandled toBool case for:" + o.toString());
+#endif
     }
     /**
      * evaluate some bytecode 
@@ -2369,8 +2386,11 @@ public final class LightScript {
                     Object container = stack[--sp];
                     if (container instanceof Stack) {
                         if(key instanceof Integer) {
-                            stack[sp] = ((Stack) container).elementAt(
-                                ((Integer) key).intValue());
+                            int pos = ((Integer) key).intValue();
+                            Stack s = (Stack) container;
+                            stack[sp] = pos < s.size()
+                                         ? s.elementAt(pos)
+                                         : null;
                         } else {
                             stack[sp] = ((Hashtable) ((Object[])
                                 ((Object[])closure[0])[0])[0]).get(key);
@@ -2449,16 +2469,16 @@ public final class LightScript {
                     break;
                 }
                 case ID_JUMP_IF_FALSE: {
-                    if (stack[sp] == null) {
-                        pc += readShort(pc, code) + 2;
-                    } else {
+                    if (toBool(stack[sp])) {
                         pc += 2;
+                    } else {
+                        pc += readShort(pc, code) + 2;
                     }
                     --sp;
                     break;
                 }
                 case ID_JUMP_IF_TRUE: {
-                    if (stack[sp] != null) {
+                    if (toBool(stack[sp])) {
                         pc += readShort(pc, code) + 2;
                     } else {
                         pc += 2;
