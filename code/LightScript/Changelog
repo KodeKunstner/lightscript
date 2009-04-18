@@ -1,3 +1,6 @@
+1.0.468
+    LightScript support for distinction between null, false and undefined on
+    its way. Fixed issue with out of bound array get
 1.0.467
     Expriments with fork of LightScript with classes for types
 1.0.450

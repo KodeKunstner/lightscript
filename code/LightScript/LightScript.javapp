@@ -495,12 +495,14 @@ public final class LightScript {
         public byte[] code;
         public Object[] constPool;
         public Object[] closure;
+        public int maxDepth;
 
-        public Code(int argc, byte[] code, Object[] constPool, Object[] closure) {
+        public Code(int argc, byte[] code, Object[] constPool, Object[] closure, int maxDepth) {
             this.argc = argc;
             this.code = code;
             this.constPool = constPool;
             this.closure = closure;
+            this.maxDepth = maxDepth;
         }
 
         public Code(Code cl) {
@@ -1284,11 +1286,6 @@ public final class LightScript {
         constPool = new Stack();
         code = new StringBuffer();
 
-        // make sure that there are sufficient stack space for the function
-        emit(ID_ENSURE_STACKSPACE);
-        pushShort(0);
-        int spacePos = code.length();
-
         // allocate space for local vars
         maxDepth = depth = varsLocals.size();
         int framesize = depth - varsArgc;
@@ -1321,11 +1318,10 @@ public final class LightScript {
 
         // patch amount of stack space needed
         maxDepth -= varsArgc;
-        setShort(spacePos, maxDepth);
 
         // create a new code object;
         Code result = new Code(varsArgc, new byte[code.length()], 
-                new Object[constPool.size()], new Object[varsClosure.size()]);
+                new Object[constPool.size()], new Object[varsClosure.size()], maxDepth);
 
         // copy values into the code object
         constPool.copyInto(result.constPool);
@@ -2050,6 +2046,18 @@ public final class LightScript {
         throw new Error("unhandled toBool case for:" + o.toString());
 #endif
     }
+    private static Object[] ensureSpace(Object[] stack, int sp, int maxDepth) {
+        if (stack.length <= maxDepth + sp + 1) {
+            // Currently keep the allocate stack tight to max, 
+            // to catch errors;
+            // Possibly change this to grow exponential 
+            // for better performance later on.
+            Object[] newstack = new Object[maxDepth+ sp + 1];
+            System.arraycopy(stack, 0, newstack, 0, sp + 1);
+            return newstack;
+        }
+        return stack;
+    }
     /**
      * evaluate some bytecode 
      */
@@ -2063,6 +2071,8 @@ public final class LightScript {
         Object[] closure = cl.closure;
         int exceptionHandler = - 1;
         int startStackPos = sp + 1 - argcount;
+        stack = ensureSpace(stack, sp, cl.maxDepth);
+
         for (;;) {
             ++pc;
             /*
@@ -2071,20 +2081,6 @@ public final class LightScript {
                              + " int:" + readShort(pc, code));
             */
             switch (code[pc]) {
-                case ID_ENSURE_STACKSPACE: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    if (stack.length <= arg + sp + 1) {
-                        // Currently keep the allocate stack tight to max, 
-                        // to catch errors;
-                        // Possibly change this to grow exponential 
-                        // for better performance later on.
-                        Object[] newstack = new Object[(arg + sp + 1)];
-                        System.arraycopy(stack, 0, newstack, 0, sp + 1);
-                        stack = newstack;
-                    }
-                    break;
-                }
                 case ID_INC_SP: {
                     sp += code[++pc];
                     break;
@@ -2126,6 +2122,7 @@ public final class LightScript {
                         code = fn.code;
                         constPool = fn.constPool;
                         closure = fn.closure;
+                        stack = ensureSpace(stack, sp, fn.maxDepth);
                     } else if (o instanceof LightScriptFunction) {
                         try {
                             Object result = ((LightScriptFunction)o
@@ -2133,26 +2130,25 @@ public final class LightScript {
                             sp -= argc + RET_FRAME_SIZE;
                             stack[sp] = result;
                         } catch(LightScriptException e) {
-                    if(exceptionHandler < 0) {
-                        throw e;
-                    } else {
-                        //System.out.println(stringify(stack));
-                        sp = exceptionHandler;
-                        exceptionHandler = ((Integer) stack[sp]).intValue();
-                        pc = ((Integer) stack[--sp]).intValue();
-                        code = (byte[]) stack[--sp];
-                        constPool = (Object[]) stack[--sp];
-                        closure = (Object[]) stack[--sp];
-                        stack[sp] = e.value;
-                    }
-                    break;
+                            if(exceptionHandler < 0) {
+                                throw e;
+                            } else {
+                                //System.out.println(stringify(stack));
+                                sp = exceptionHandler;
+                                exceptionHandler = ((Integer) stack[sp]).intValue();
+                                pc = ((Integer) stack[--sp]).intValue();
+                                code = (byte[]) stack[--sp];
+                                constPool = (Object[]) stack[--sp];
+                                closure = (Object[]) stack[--sp];
+                                stack[sp] = e.value;
+                            }
+                            break;
                         }
-                    } 
 #ifdef __DEBUG__
-                    else {
+                    } else {
                         throw new Error("Unknown function:" + o);
-                    }
 #endif
+                    }
                     break;
                 }
                 case ID_BUILD_FN: {
