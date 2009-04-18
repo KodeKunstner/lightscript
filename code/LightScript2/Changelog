@@ -1,0 +1,10 @@
+1.0.450
+    Added support for fixed point numbers. L...S..class 18856 bytes, FixedPointClass 897 bytes.
+1.0.447
+    Fixed debugging bug introduced by reordering opcodes. LightScript.class 17513 bytes
+1.0.444
+    Reordered opcodes, LightScript.class 17513 bytes
+1.0.443
+    Documentation, LightScript.class 17690 bytes
+1.0.428 
+    Prototype of the language done
