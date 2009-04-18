@@ -14,3 +14,9 @@ print(a);
 for(x in a) {
     print(x + a[x]);
 }
+
+j = 0;
+for(i=0;i<100;i++) {
+    j += i;
+}
+print(j);
