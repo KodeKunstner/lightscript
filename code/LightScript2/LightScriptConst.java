@@ -8,7 +8,7 @@ public class LightScriptConst implements LightScriptThing {
         this.kind = kind;
     }
     public int getType() {
-        return 2 << kind;
+        return 8 << kind;
     }
     public LightScriptThing apply(LightScriptThing[] stack, int pos, int argc) {
         return LightScript.UNDEFINED;

@@ -23,4 +23,7 @@ class LightScriptNum implements LightScriptThing {
     public int toInt() {
         return val;
     }
+    public String toString() {
+        return Integer.toString(val);
+    }
 }

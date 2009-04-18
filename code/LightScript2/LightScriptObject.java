@@ -1,7 +1,11 @@
 import java.util.Hashtable; 
 
-public final class LightScriptObject extends Hashtable {
+public class LightScriptObject extends Hashtable implements LightScriptThing {
     private Hashtable parent;
+
+    public LightScriptObject() {
+        this.parent = null;
+    }
 
     public LightScriptObject(Hashtable parent) {
         this.parent = parent;
@@ -23,5 +27,24 @@ public final class LightScriptObject extends Hashtable {
                 : parent.get(key);
         }
         return result;
+    }
+
+    public int getType() {
+        return 8;
+    }
+    public LightScriptThing apply(LightScriptThing[] stack, int pos, int argc) {
+        return LightScript.UNDEFINED;
+    }
+    public LightScriptThing get(LightScriptThing index) {
+        return (LightScriptThing) this.get((Object) index);
+    }
+    public void put(LightScriptThing index, LightScriptThing value) {
+        this.put((Object) index, (Object) value);
+    }
+    public boolean toBool() {
+        return true;
+    }
+    public int toInt() {
+        return super.size();
     }
 }
