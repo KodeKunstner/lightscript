@@ -11,7 +11,7 @@ import java.util.Stack;
  * It also adds support for more readable printing of
  * id, etc.
  */
-//#define __DEBUG__
+#define __DEBUG__
 
 /* These defines are used for benchmarking size,
  * by making compilation of different parts of the code
@@ -514,6 +514,7 @@ public final class LightScript {
             this.argc = cl.argc;
             this.code = cl.code;
             this.constPool = cl.constPool;
+            this.maxDepth = cl.maxDepth;
         }
     }
 
@@ -2090,7 +2091,7 @@ public final class LightScript {
             // to catch errors;
             // Possibly change this to grow exponential 
             // for better performance later on.
-            Object[] newstack = new Object[maxDepth+ sp + 1];
+            Object[] newstack = new Object[maxDepth + sp + 1];
             System.arraycopy(stack, 0, newstack, 0, sp + 1);
             return newstack;
         }
@@ -2155,6 +2156,9 @@ public final class LightScript {
                     Object o = stack[sp - argc];
                     if(o instanceof Code) {
                         Code fn = (Code) o;
+                        if(argc != fn.argc) {
+                            throw new Error("Wrong argc: " + argc + " != " + fn.argc);
+                        }
                         stack[sp - argc] = new Integer(pc);
                         pc = -1;
                         code = fn.code;
