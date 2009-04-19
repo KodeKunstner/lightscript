@@ -1550,19 +1550,19 @@ In the following is listed what have been done in version 1.1 and what needs to 
 \begin{itemize}
 \item Optimise code footprint, by reordering opcodes
 \item Add support for fixed-point arithmetics
+\item Add postfix increment/decrement
+\item Distinguish between false, null and undefined
+\item Replace stack allocation instruction with automatic code to do this, based on metadata of the function object 
 %To determine whether it is worthwhile needs an actual implementation. - this costed 2-3KB code footprint.
+\item Let functions support a variable number of arguments
 \end{itemize}
 \subsubsection{Remaining tasks}
 \begin{itemize}
 \item Add more functions, operators, etc. 
-\item Add postfix increment/decrement
-\item Let functions support a variable number of arguments
 %\item Let catch, and function-def behave as implicit \verb|var|-decl
-\item Change the implementation to make it even more EcmaScript-like by relying on LightScript-object classes in Java, rather than standard Java classes. This costs a slightly larger code footprint, and also makes it slightly more complex to integrate with existing Java applications.
 \item Walk through EcmaScript library specification, and add those functions that do not add too much to the footprint
 \item Add prototype object to functions
 \item Improve virtual machine by joining common instruction pairs to single instructions (adding superinstructions)
-\item Replace stack allocation instruction with automatic code to do this, based on metadata of the function object 
 \item Add clean-up code when exiting a function, to improve garbage collection
 \end{itemize}
 

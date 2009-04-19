@@ -1,3 +1,5 @@
+1.0.473
+    Support for variable number of arguments to functions... and bugfix. 19299
 1.0.471
     Distinction between null, false and undefined on its way... 19208
 1.0.470

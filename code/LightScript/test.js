@@ -1,5 +1,7 @@
-function f(x) {
-    print(x * x);
+function f(x, y, z) {
+    print(x);
+    print(y);
+    print(z);
 }
 
-f(3);
+f(3, 4);
