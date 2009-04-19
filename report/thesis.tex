@@ -1555,15 +1555,15 @@ In the following is listed what have been done in version 1.1 and what needs to 
 \item Replace stack allocation instruction with automatic code to do this, based on metadata of the function object 
 %To determine whether it is worthwhile needs an actual implementation. - this costed 2-3KB code footprint.
 \item Let functions support a variable number of arguments
+\item Add optional clean-up code when exiting a function, to improve garbage collection
+\item Add prototype object to functions
 \end{itemize}
 \subsubsection{Remaining tasks}
 \begin{itemize}
 \item Add more functions, operators, etc. 
 %\item Let catch, and function-def behave as implicit \verb|var|-decl
 \item Walk through EcmaScript library specification, and add those functions that do not add too much to the footprint
-\item Add prototype object to functions
 \item Improve virtual machine by joining common instruction pairs to single instructions (adding superinstructions)
-\item Add clean-up code when exiting a function, to improve garbage collection
 \end{itemize}
 
 \chapter{Benchmarks}

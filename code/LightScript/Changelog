@@ -1,19 +1,21 @@
-1.0.473
+1.1.474
+    Optional stack zeroing, function prototype, undefined-false-null. 19388
+1.1.473
     Support for variable number of arguments to functions... and bugfix. 19299
-1.0.471
+1.1.471
     Distinction between null, false and undefined on its way... 19208
-1.0.470
+1.1.470
     Added *=, /=, and support for ++ and -- as non-late postfix. classsize: 19118
-1.0.469
+1.1.469
     Removed instruction for allocating stack space, - done automatically per
     class instead.
     Current size of LightScript class is: 19075
-1.0.468
+1.1.468
     LightScript support for distinction between null, false and undefined on
     its way. Fixed issue with out of bound array get
-1.0.467
+1.1.467
     Expriments with fork of LightScript with classes for types, disbanded
-1.0.450
+1.1.450
     Added support for fixed point numbers. L...S..class 18856 bytes, FixedPointClass 897 bytes.
 1.0.447
     Fixed debugging bug introduced by reordering opcodes. LightScript.class 17513 bytes

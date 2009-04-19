@@ -102,11 +102,14 @@ class LightScriptStdLib implements LightScriptFunction {
 
         Hashtable stringMembers = new Hashtable();
 
+        Hashtable functionMembers = new Hashtable();
+
         // Special environment object, containing methods for stack, ...
-        Object[] env = new Object[3];
+        Object[] env = new Object[4];
         env[0] = stackMembers;
         env[1] = objectMembers;
         env[2] = stringMembers;
+        env[3] = functionMembers;
         ls.set("(ENV)", env);
     }
 }
