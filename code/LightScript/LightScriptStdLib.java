@@ -3,6 +3,7 @@ import java.util.Hashtable;
 
 class LightScriptStdLib implements LightScriptFunction {
     private int id;
+    private Object closure;
 
     // globally named functions
     private static final int PRINT = 0;
@@ -91,25 +92,37 @@ class LightScriptStdLib implements LightScriptFunction {
             ls.set(names[i], new LightScriptStdLib(i));
         }
 
-        // Create members for stack
-        Hashtable stackMembers = new Hashtable();
-        stackMembers.put("push", new LightScriptStdLib(ARRAY_PUSH));
-        stackMembers.put("pop", new LightScriptStdLib(ARRAY_POP));
-        stackMembers.put("join", new LightScriptStdLib(ARRAY_JOIN));
+        Hashtable objectPrototype = new Hashtable();
+        objectPrototype.put("hasOwnProperty", new LightScriptStdLib(HAS_OWN_PROPERTY));
+        objectPrototype.put("prototype", new objectPrototype);
+        LightScriptObject object = new LightScriptObject(objectPrototype);
 
-        Hashtable objectMembers = new Hashtable();
-        objectMembers.put("hasOwnProperty", new LightScriptStdLib(HAS_OWN_PROPERTY));
+        // Create members for array
+        Hashtable arrayPrototype = new Hashtable();
+        arrayPrototype.put("push", new LightScriptStdLib(ARRAY_PUSH));
+        arrayPrototype.put("pop", new LightScriptStdLib(ARRAY_POP));
+        arrayPrototype.put("join", new LightScriptStdLib(ARRAY_JOIN));
+        arrayPrototype.put("prototype", new arrayPrototype);
+        LightScriptObject array = new LightScriptObject(arrayPrototype);
 
-        Hashtable stringMembers = new Hashtable();
+        Hashtable stringPrototype = new LightScriptObject(objectPrototype);
+        stringPrototype.put("prototype", new stringPrototype);
+        LightScriptObject string = new LightScriptObject(stringPrototype);
 
-        Hashtable functionMembers = new Hashtable();
+        Hashtable functionPrototype = new LightScriptObject(objectPrototype);
+        functionPrototype.put("prototype", new functionPrototype);
+        LightScriptObject function = new LightScriptObject(stringPrototype);
 
-        // Special environment object, containing methods for stack, ...
+        // Special environment object, containing methods for array, ...
         Object[] env = new Object[4];
-        env[0] = stackMembers;
-        env[1] = objectMembers;
-        env[2] = stringMembers;
-        env[3] = functionMembers;
+        env[0] = arrayPrototype;
+        env[1] = objectPrototype;
+        env[2] = stringPrototype;
+        env[3] = functionPrototype;
         ls.set("(ENV)", env);
+        ls.set("Object", object);
+        ls.set("String", string);
+        ls.set("Array", array);
+        ls.set("Function", function);
     }
 }

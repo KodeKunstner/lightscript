@@ -7,6 +7,9 @@ public final class LightScriptObject extends Hashtable {
         this.parent = parent;
     }
 
+    public LightScriptObject() {
+    }
+
     public void set(Object key, Object value) {
         if(value == null) {
             super.remove(key);
@@ -16,6 +19,9 @@ public final class LightScriptObject extends Hashtable {
     }
 
     public Object get(Object key) {
+        if("prototype".equals(key)) {
+            return parent;
+        }
         Object result = super.get(key);
         if(result == null && parent != null) {
             result = parent instanceof LightScriptObject 

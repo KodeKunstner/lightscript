@@ -492,10 +492,11 @@ public final class LightScript {
         public Object apply(Object thisPtr, Object[] args, 
                             int argpos, int argcount) 
                                 throws LightScriptException {
+// TODO: realloc stack, and var-argcount
 #ifdef __DEBUG__
             if(argcount == argc) {
 #endif
-                return execute(this, args, argpos+argcount-1, thisPtr, argcount);
+                return execute(this, args, argpos+argcount-1, thisPtr);
 #ifdef __DEBUG__
             } 
             else {
@@ -1998,7 +1999,7 @@ public final class LightScript {
         int sp = -1;
         Object[] stack = new Object[0];
         Object thisPtr = null;
-        return execute(cl, stack, sp, thisPtr, 0);
+        return execute(cl, stack, sp, thisPtr);
     }
     /**
      * Transform a object to a fixed point number,
@@ -2106,7 +2107,7 @@ public final class LightScript {
      * evaluate some bytecode 
      */
     private static Object execute(Code cl, Object[] stack, int sp, 
-                                  Object thisPtr, int argcount) 
+                                  Object thisPtr) 
                             throws LightScriptException {
         //System.out.println(stringify(cl));
         int pc = -1;
@@ -2114,7 +2115,7 @@ public final class LightScript {
         Object[] constPool = cl.constPool;
         Object[] closure = cl.closure;
         int exceptionHandler = - 1;
-        int startStackPos = sp + 1 - argcount;
+        int startStackPos = sp + 1 - cl.argc;
         stack = ensureSpace(stack, sp, cl.maxDepth);
 #ifdef __CLEAR_STACK__
         int usedStack = sp + cl.maxDepth;
