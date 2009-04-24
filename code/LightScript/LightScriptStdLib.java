@@ -94,7 +94,7 @@ class LightScriptStdLib implements LightScriptFunction {
 
         Hashtable objectPrototype = new Hashtable();
         objectPrototype.put("hasOwnProperty", new LightScriptStdLib(HAS_OWN_PROPERTY));
-        objectPrototype.put("prototype", new objectPrototype);
+        objectPrototype.put("prototype", objectPrototype);
         LightScriptObject object = new LightScriptObject(objectPrototype);
 
         // Create members for array
@@ -102,15 +102,15 @@ class LightScriptStdLib implements LightScriptFunction {
         arrayPrototype.put("push", new LightScriptStdLib(ARRAY_PUSH));
         arrayPrototype.put("pop", new LightScriptStdLib(ARRAY_POP));
         arrayPrototype.put("join", new LightScriptStdLib(ARRAY_JOIN));
-        arrayPrototype.put("prototype", new arrayPrototype);
+        arrayPrototype.put("prototype", arrayPrototype);
         LightScriptObject array = new LightScriptObject(arrayPrototype);
 
         Hashtable stringPrototype = new LightScriptObject(objectPrototype);
-        stringPrototype.put("prototype", new stringPrototype);
+        stringPrototype.put("prototype", stringPrototype);
         LightScriptObject string = new LightScriptObject(stringPrototype);
 
         Hashtable functionPrototype = new LightScriptObject(objectPrototype);
-        functionPrototype.put("prototype", new functionPrototype);
+        functionPrototype.put("prototype", functionPrototype);
         LightScriptObject function = new LightScriptObject(stringPrototype);
 
         // Special environment object, containing methods for array, ...
