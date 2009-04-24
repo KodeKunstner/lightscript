@@ -17,3 +17,4 @@ print("f.hello: " + f.hello);
 print("f.blah: " + f.blah);
 print("obj-foo: " + ({}).foo);
 print("x.class" + x.class);
+print("f.length" + f.length);

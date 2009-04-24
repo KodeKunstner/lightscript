@@ -63,7 +63,6 @@ import java.util.Stack;
 #define ID_DEC 25
 #define ID_ADD 26
 #define ID_EQUALS 27
-#define ID_LENGTH 28
 #define ID_LESS 29
 #define ID_LESS_EQUALS 30
 #define ID_LITERAL 31
@@ -363,7 +362,7 @@ public final class LightScript {
         "BUILD_FUNCTION", "IF", "WHILE", "CALL_FUNCTION", "AND",
         "OR", "ELSE", "SET", "IDENT", "BLOCK", "SEP", "IN", "FOR",
         "END", "CATCH", "DO", "INC", "DEC", "ADD", "EQUALS", 
-        "LENGTH", "LESS", "LESS_EQUALS", "LITERAL", "MUL", "NEG", 
+        "NOT_USED_ANYMORE", "LESS", "LESS_EQUALS", "LITERAL", "MUL", "NEG", 
         "NOT", "NOT_EQUALS", "NOT_USED_ANYMORE", "REM", "RETURN", "SHIFT_RIGHT", 
         "SUB", "SUBSCRIPT", "THIS", "THROW", "TRY", "UNTRY", "BOX_IT", 
         "BUILD_FN", "CALL_FN", "DROP", "DUP", "NOT_USED_ANYMORE", 
@@ -879,12 +878,8 @@ public final class LightScript {
                 }
 #endif
 
-                if("length".equals(right[1])) {
-                    return v(ID_LENGTH, left);
-                } else {
-                    right[0] = new Integer(ID_LITERAL);
-                    return v(ID_SUBSCRIPT, left, right);
-                }
+                right[0] = new Integer(ID_LITERAL);
+                return v(ID_SUBSCRIPT, left, right);
             }
             case LED_INFIX_IF: {
                 Object branch1 = parse(0);
@@ -1442,7 +1437,6 @@ public final class LightScript {
                 break;
             }
             case ID_NOT:
-            case ID_LENGTH:
             case ID_NEG: {
                 compile(expr[1], true);
                 emit(id);
@@ -2291,23 +2285,6 @@ public final class LightScript {
                     --sp;
                     break;
                 }
-                case ID_LENGTH: {
-                    Object o = stack[sp];
-                    if(o instanceof Stack) {
-                        stack[sp] = new Integer(((Stack)o).size());
-                    } else if(o instanceof String) {
-                        stack[sp] = new Integer(((String)o).length());
-                    } else if(o instanceof LightScriptObject) {
-                        stack[sp] = ((LightScriptObject)o).get("length");
-                    } else if(o instanceof Hashtable) {
-                        stack[sp] = ((Hashtable)o).get("length");
-                    } else if(o instanceof Code) {
-                        stack[sp] = new Integer(((Code)o).argc);
-                    } else {
-                        stack[sp] = UNDEFINED;
-                    }
-                    break;
-                }
                 case ID_NOT: {
                     stack[sp] = stack[sp] == null ? TRUE : FALSE;
                     break;
@@ -2452,15 +2429,22 @@ public final class LightScript {
                             result = 0 <= pos && pos < s.size()
                                          ? s.elementAt(pos)
                                          : null;
+                        } else if(key.equals("length")) {
+                            result = new Integer(((Stack)container).size());
                         } else {
                             result = ((Hashtable) ((Object[])
                                 ((Object[])closure[0])[0])[0]).get(key);
                         }
                     } else if (container instanceof Hashtable) {
-                        if (container instanceof LightScriptObject) {
-                            result = ((LightScriptObject) container).get(key);
-                        } else {
+                        for(;;) {
                             result = ((Hashtable) container).get(key);
+                            if(result != null) {
+                                break;
+                            }
+                            container = ((Hashtable)container).get("prototype");
+                            if(!(container instanceof Hashtable)) {
+                                break;
+                            }
                         }
 
                         // Get object from default object prototype, 
@@ -2473,16 +2457,24 @@ public final class LightScript {
                     } else if (container instanceof String) {
                         if(key instanceof Integer) {
                             int pos = ((Integer) key).intValue();
-                            result = ((String) container)
-                                            .substring(pos, pos+1);
+                            String s = (String)container;
+                            result = 0 <= pos && pos < s.length()
+                                         ? s.substring(pos, pos+1)
+                                         : null;
+                        } else if(key.equals("length")) {
+                            result = new Integer(((String)container).length());
                         } else {
                             result = ((Hashtable) ((Object[])
                                 ((Object[])closure[0])[0])[2]).get(key);
                         }
-                    } else if (container instanceof LightScriptFunction 
-                              ||container instanceof Code) {
-                        result = ((Hashtable) ((Object[])
+                    } else if (container instanceof LightScriptFunction) {
+                        if(container instanceof Code &&
+                            key.equals("length")) {
+                            result = new Integer(((Code)container).argc);
+                        } else {
+                            result = ((Hashtable) ((Object[])
                                 ((Object[])closure[0])[0])[3]).get(key);
+                        }
                     } 
                     if(result == null) {
                         result = UNDEFINED;
