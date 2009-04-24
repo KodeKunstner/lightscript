@@ -2449,7 +2449,7 @@ public final class LightScript {
                         if(key instanceof Integer) {
                             int pos = ((Integer) key).intValue();
                             Stack s = (Stack) container;
-                            result = pos < s.size()
+                            result = 0 <= pos && pos < s.size()
                                          ? s.elementAt(pos)
                                          : null;
                         } else {
