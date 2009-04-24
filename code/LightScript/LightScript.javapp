@@ -312,7 +312,7 @@ public final class LightScript {
                     }
                     c.closure[i] = box;
                 }
-                execute(c, new Object[0], null);
+                execute(c, new Object[0], 0, null);
             }
 #ifndef __DEBUG__
         } catch(Error e) {
@@ -495,11 +495,16 @@ public final class LightScript {
 #ifdef __DEBUG__
             if(argcount == argc) {
 #endif
-                Object stack[] = new Object[argcount];
-                for(int i = 0; i<argcount; i++) {
-                    stack[i] = args[argpos + i];
+                Object stack[];
+                if(argpos != 0) {
+                    stack = new Object[argcount];
+                    for(int i = 0; i<argcount; i++) {
+                        stack[i] = args[argpos + i];
+                    }
+                } else {
+                    stack = args;
                 }
-                return execute(this, stack, thisPtr);
+                return execute(this, stack, argcount, thisPtr);
 #ifdef __DEBUG__
             } 
             else {
@@ -2103,8 +2108,8 @@ public final class LightScript {
     /**
      * evaluate some bytecode 
      */
-    private static Object execute(Code cl, Object[] stack, Object thisPtr) throws LightScriptException {
-        int sp = stack.length - 1;
+    private static Object execute(Code cl, Object[] stack, int argcount, Object thisPtr) throws LightScriptException {
+        int sp = argcount - 1;
 
         //System.out.println(stringify(cl));
         int pc = -1;
