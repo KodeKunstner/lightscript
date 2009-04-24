@@ -24,6 +24,12 @@ class LightScriptStdLib implements LightScriptFunction {
         , 0, 1, 0, 1
     };
 
+    private static Hashtable clone(Object o) {
+        Hashtable result = new Hashtable();
+        result.put("prototype", o);
+        return result;
+    }
+
 
     private LightScriptStdLib(int id) {
         this.id = id;
@@ -57,7 +63,7 @@ class LightScriptStdLib implements LightScriptFunction {
                 return Integer.valueOf((String)args[argpos], ((Integer)args[argpos +1]).intValue());
             }
             case CLONE: {
-                return new LightScriptObject((Hashtable)args[argpos]);
+                return clone((Hashtable)args[argpos]);
             }
             case HAS_OWN_PROPERTY: {
                 return ((Hashtable)thisPtr).contains(args[argpos])?LightScript.TRUE:null;
@@ -95,7 +101,7 @@ class LightScriptStdLib implements LightScriptFunction {
         Hashtable objectPrototype = new Hashtable();
         objectPrototype.put("hasOwnProperty", new LightScriptStdLib(HAS_OWN_PROPERTY));
         objectPrototype.put("prototype", objectPrototype);
-        LightScriptObject object = new LightScriptObject(objectPrototype);
+        Hashtable object = clone(objectPrototype);
 
         // Create members for array
         Hashtable arrayPrototype = new Hashtable();
@@ -103,15 +109,15 @@ class LightScriptStdLib implements LightScriptFunction {
         arrayPrototype.put("pop", new LightScriptStdLib(ARRAY_POP));
         arrayPrototype.put("join", new LightScriptStdLib(ARRAY_JOIN));
         arrayPrototype.put("prototype", arrayPrototype);
-        LightScriptObject array = new LightScriptObject(arrayPrototype);
+        Hashtable array = clone(arrayPrototype);
 
-        Hashtable stringPrototype = new LightScriptObject(objectPrototype);
+        Hashtable stringPrototype = clone(objectPrototype);
         stringPrototype.put("prototype", stringPrototype);
-        LightScriptObject string = new LightScriptObject(stringPrototype);
+        Hashtable string = clone(stringPrototype);
 
-        Hashtable functionPrototype = new LightScriptObject(objectPrototype);
+        Hashtable functionPrototype = clone(objectPrototype);
         functionPrototype.put("prototype", functionPrototype);
-        LightScriptObject function = new LightScriptObject(stringPrototype);
+        Hashtable function = clone(stringPrototype);
 
         // Special environment object, containing methods for array, ...
         Object[] env = new Object[4];

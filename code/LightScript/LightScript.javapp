@@ -2413,8 +2413,6 @@ public final class LightScript {
                         } else {
                             ((Hashtable) container).put(key, val);
                         }
-                    } else if (container instanceof LightScriptObject) {
-                        ((LightScriptObject) container).set(key, val);
                     }
                     break;
                 }
