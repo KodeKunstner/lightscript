@@ -53,16 +53,18 @@ The code footprint is the major limitation on low-end mobile devices, and both l
 The languages are comparable in speed to larger scripting language implementations,
 and an order of magnitude faster than most of the benchmarked scripting languages for mobile devices.
 
-The two scripting languages have first class functions, dynamic typing, built-in support for hashtables, stacks, etc., and they support interactive programming. They are also able to load and execute scripts presented in source form at run-time. 
+Both Yolan and LightScript have first class functions, dynamic typing, built-in support for hashtables, stacks, etc., and they support interactive programming. They are also able to load and execute scripts presented in source form at run-time. 
 The Java Micro Edition does not support dynamic loading of code, so both languages are interpreted.
 \index{Java Micro Edition}
 
-LightScript is a subset of JavaScript; it is static scoped, and also includes support for objects and exceptions. It is compiled to, and executed on, a stack-based virtual machine. One of things that makes the compact implementation possible is that the LightScript parser is an imperative optimised version of the top-down operator precedence parser.
+Yolan is highly optimised for reducing the size of the implementation code footprint. It has dynamic scope, a Lisp-inspired syntax, and is interpreted by evaluating each node of the syntax tree. 
+
+LightScript is a subset of JavaScript; it has static scoped, and also includes support for closures, objects and exceptions. It is compiled to, and executed on, a stack-based virtual machine. One of things that makes the compact implementation possible is that the LightScript parser is an imperative optimised version of the top-down operator precedence parser.
 \index{scope}
 
-Yolan is highly optimised for reducing the size of the implementation code footprint. It has dynamic scope, a Lisp-inspired syntax, and is interpreted by evaluating each node of the syntax tree.
-
 Yolan has a code footprint less than half the size of LightScript, and they are similar in speed, even though they have very different evaluation strategies.
+Yolan served as a proof of concept and as a stepping-stone toward LightScript. 
+LightScript is now a practical language for mobile development and will continue to be developed after this thesis.
 \end{abstract}
 
 \setcounter{tocdepth}{1}
@@ -457,46 +459,45 @@ EcmaScript supports closures and first class functions, which can thus be includ
 
 An issue with EcmaScript is that it has some unfortunate design decisions \cite{crockford-web}, which will be elaborated on in Section~\ref{lightscript-design}.
 
-
-The following sections look at the implementation of EcmaScript and also at EcmaScript on mobile devices. 
+%The following sections look at the implementation of EcmaScript and also at EcmaScript on mobile devices. 
 %Implementation techniques from those, as well as existing works, may be relevant as one of the scripting languages developed in this thesis is a subset of EcmaScript.
 %At the same time, the language was developed in a hurry, also leading to some less fortunate design choices
 %A good introduction to JavaScript is given in the book ``JavaScript the good parts'' \cite{goodparts} and some of its material is also available online which serves well as an overview of the language. The EcmaScript standard \cite{ecma-262} can be used for getting to know the details of the languages.
 
 \subsubsection{Implementations}
-The following section describes the main open source implementations of Java\-Script/EcmaScript.
+The following paragraphsdescribes the main open source implementations of Java\-Script/EcmaScript.
 
 \paragraph{JavaScriptCore} 
 \index{JavaScriptCore}
-JavaScriptCore is the implementation of JavaScript in Webkit.
+JavaScriptCore \cite{webkit-src} is the implementation of JavaScript in Webkit.
 The latest version is called SquirrelFish and is an optimised register-based virtual machine,
-with emerging support for JIT compilation.
+where support for JIT compilation is also being developed.
 
 \index{SquirrelFish}
-The engine has been optimised a lot recently: the earlier versions were evaluating by walking through the abstract syntax tree, and were at that time similar in performance to SpiderMonkey.
-The new version -- SquirrelFish -- is much faster, which means that it is similar in performance to TraceMonkey and V8.
+The engine has been optimised a lot within the last year TODO:or-one-and-a-half-year-check-the-reference \cite{squirrelfish-bench}: the earlier versions were performing evaluation by walking through the abstract syntax tree, and were at that time similar in performance to SpiderMonkey JavaScript implementation.
+The new version -- SquirrelFish -- is much faster, which means that it is similar in performance to TraceMonkey and V8 JavaScript implementations.
 
 \paragraph{QScript}
 \index{QScript}
-QScript is the EcmaScript implementation which is a part of QT. This implementation is targeting application scripting rather that web scripting. An interesting part of QScript is its support for automatic binding generation. As WebKit is being integrated with QT, QScript is likely to be replaced with or merged with the WebKit scripting engine in the long run.
+QScript \cite{qt} is the EcmaScript implementation that is a part of QT.\footnote{QT is a programming API and cross platform graphical toolkit. It is the base for KDE (the K Desktop Environment) as well as the GUI for several Motorola mobile phones. It was recently acquired by Nokia, who has released it under the LGPL licences, and is making it a part of their Symbian platform.} This implementation is targeting application scripting rather that web scripting. An interesting part of QScript is its support for generation of bindings to native functions. As WebKit is being integrated with QT, QScript is likely to be replaced with or merged with the WebKit scripting engine in the long run.
 
 \paragraph{Rhino}
 \index{Rhino}
-Rhino is an implementation of JavaScript on top of Java. The implementation is mainly used as an embedded language for Java applications. The implementation transforms the JavaScript program to Java classes, which is then executed.
+Rhino \cite{rhino} is an implementation of JavaScript on top of Java. The implementation is mainly used as an embedded language for Java applications. The implementation transforms the JavaScript program to Java classes, which are then executed.
 
 \paragraph{SpiderMonkey}
 \label{spidermonkey}
 \index{SpiderMonkey}
-SpiderMonkey \cite{spidermonkey} is the JavaScript engine in Mozillas browsers, and it is also usable as an embeddable engine in other applications. %TODO:verify-that-I-remember-correctly-here.
+SpiderMonkey \cite{spidermonkey} is the JavaScript engine in Mozilla's browsers, and is also usable as an embeddable engine in other applications. Execution is based on a virtual machine, which either has a switch-based dispatch or direct threading, depending on what the compiler supports. %TODO:verify-that-I-remember-correctly-here.
 
 %TODO: i am here wrgt articles
 \paragraph{TraceMonkey} 
-TraceMonkey is a branch of SpiderMonkey, which incoperates JIT compilation, with a JIT compiler based on trace trees \cite{trace-tree}, 
+TraceMonkey is a branch of SpiderMonkey, which incooperates JIT compilation, with a JIT compiler based on trace trees \cite{trace-tree}, 
 \index{TraceMonkey}
 which, rather than JIT-compiling the entire program,
 traces and then compiles the most executed paths through the program.
 This means that the JIT compiled code gets optimised to the actual execution,
-and the approach also reduces the amount of code needed to be compiled.
+and less code needed to be compiled.
 
 \paragraph{V8} V8 \cite{v8} is a JavaScript implementation made by Google, and released in 2008 in conjunction with the release of their browser ``Chrome''. 
 \index{v8}
@@ -505,10 +506,10 @@ While it is not directly connected with the Android platform, a JIT compiler is 
 A main focus and benefit of V8 is high execution speed.
 The design builds upon experience from Self/Smalltalk implementations \cite{articles-before-v8}.
 It is designed for JIT compilation from the beginning, and it also does some class inference to optimise methods and property accesses.
-The idea here is that whenever a property is added to a JavaScript object this create an implicit class. When code is JIT'ed, a property access is compiled to a type check followed by fast code for accessesing the property, similar to that of more static, class based languages. This is possible due to the type check and implicit class, and it is much faster than a traditional JavaScript object property lookup.
+Specifically, whenever a property is added to a JavaScript object this creates an implicit class. When code is JIT'ed, a property access is compiled to a type check followed by fast code for accessesing the property, similar to that of more static, class based languages. This is possible due to the type check and implicit class, and it is much faster than a traditional JavaScript object property lookup.
 
-The garbage collector is fast, - it is a generational garbage collector with two generations. The young generation is collected with a copy-collector which is linear in the time of live data, and thus heap allocation of activation records is almost free. 
-This is combined with a mark and sweep collector when a full collect is needed.
+The garbage collector is fast, - it is a generational garbage collector with two generations. The young generation is collected with a copy-collector which is linear in the amount of live data, and thus heap allocation of activation records is almost free. 
+This is combined with a mark and sweep collector when a full collection is needed.
 
 \subsubsection{Targeting mobile devices}
 
@@ -640,11 +641,11 @@ It was first described thirty years ago \cite{top-down-operator-precedence}, but
 A token can have a null denominator function, a left denominator function and a precedence.
 The null denominator function is used to build the abstract syntax tree node, if the token stands first (is leftmost) in an expression.
 The left denominator function is used to build the abstract syntax tree node, if we already have something to the left of the token within the expression.
-The precedence of the next token is used to determine whether we have finished parsing an expression or need to use the token to build another abstract syntax tree node, by calling left denominator function of the token.
+The precedence of the next token is used to determine whether we have finished parsing an expression or need to use the token to build another abstract syntax tree node by calling left denominator function of the token.
 
 To be able to build the abstract syntax tree node, the left denominator function gets the parsed node to the left of the token as a parameter. Additionally it is possible for the denominator functions to parse expressions to the right of the token by calling the parsing function recursively. Here it is necessary that the parsing function also take a priority as a parameter. This priority parameter ensure that the left denominator functions are not called for tokens with lower priority.
 
-The parsing itself is then simply done, by first calling null denominator function of the first token, and then calling the left denominator functions of the next tokens, as long as the next token has higher priority than the priority passed to the parsing function.
+The parsing itself is then simply done by first calling null denominator function of the first token, and then calling the left denominator functions of the next tokens, as long as the next token has higher priority than the priority passed to the parsing function.
 The denominator functions attached to each token are then responsible for building the syntax tree.
 So the core loop of the parser is implemented as follows:
 \begin{verbatim}
@@ -803,7 +804,7 @@ The language is more like a traditional scripting language, than a functional la
 as it does not support tail recursion nor has cons-list, but instead it uses resizable arrays and hashtable as data structures, and has more imperative programming model, with while- and foreach-loops, etc.
 The motivation for this is, that it is simpler to implement efficiently on top of an already imperative/objectoriented virtual machine, and that functional languages often are less space efficient.
 
-If the interface with Java is lazy, this allows new control flow constructs to be added, by the embedded, which again allows the implementation to be a small core, with support for expansion.
+If the interface with Java is lazy, this allows new control flow constructs to be added easily from Java by the embedder, which again allows the implementation to be a small core, with support for expansion.
 
 Execution should be online, in the sense that whenever a full statement is read from the input, it should be executed, not needing to read the full file. This is both practical for interactive evaluation, and also has a benefit memorywise as the entire program never needs to be fully in memory, as executed code may be garbage collected.
 
@@ -1178,50 +1179,53 @@ It can also be practical when multiple scripts are run, one after another, and t
 \chapter{LightScript}
 \label{lightscript}
 
-LightScript is an attempt to make a practical scripting language for low end mobile devices.
+The purpose of LightScript is to make a practical scripting language for mobile devices. 
+It should overcome some of the limitations of Yolan, especially: LightScript should support lexical scope to allow real closures, and it should not invent a new syntax, but build on a mainstream language in order to be readable and easy to learn for other programmers.
 
+As for the name of the language I chose to call it LightScript, as it is a lightweight scripting language, and a light (reduced) version of JaveScript. The name also has an aspect of illumination, and the ``-Script'' suffix also indicates the connection with JavaScript/EcmaScript whose dialects often have names with this suffix.
 
-As for the name of the language I chose to call it LightScript, as it is a lightweight scripting language, and a light (reduced) version of JaveScript. The name also has an aspect of illumination, and the ``-Script'' suffix also indicates the connection with JavaScript/EcmaScript whose dialects have often names with this suffix.
+LightScript is a moving target, as I continually improve the code and most of this chapter discusses LightScript version 1.0 as that was the language as it looked at the beginning of writing the report.
 
+Section~4.1 gives an introduction to the design choices of the language. The next three sections, Section~4.2-4.4 looks into some implementation details. Then Section~4.5 describes the language, and Section~4.6 is a guide to how to embed, use, and integrate it with mobile Java applications.
+Section~4.7 looks into future directions, and outlines the current status of LightScript version 1.1. 
 
 \index{LightScript}
 \section{Design choices}
 \label{lightscript-design}
-The next paragraphs elaborate the following design choices for LightScript version 1.0:
+This section first lists the design choices of LightScript version 1.0, which are then elaborated on in the following paragraphs.
+The main design choices that distinguish LightScript from Yolan are:
 \begin{itemize}
-\item LightScript should be a subset of EcmaScript.
+\item LightScript should be a subset of EcmaScript
+\item Scoping is lexical, and the language has closures
+\item Objects are supported, and have prototypical inheritance with a self-like \verb|clone| function
+\item Exceptions are supported, and can be thrown to, from and across Java code
+\end{itemize}
+In addition to these, there are also some language design choices that are similar to those of Yolan:
+\begin{itemize}
 \item It must be able to run on CLDC 1.0
 \item Standard Java classes should be used for the builtin types, to make interaction with Java code easier
 \item Code should be loadable/executable as source code at run-time
 \item Functions are first class values
 \item Parsing does not need to be concerned about error checking
-\item Only integers will be supported, - no floating point numbers.
-\item Undefined, null and false, is joined in a single type/value and is the only false value.
-\item Scoping is lexical, and the language has closures
-\item Variable access should be fast.
-\item Objects are supported, and have prototypical inheritance with a self-like \verb|clone| function
-\item Exceptions are supported, and can be thrown to, from and across Java code too.
+\item Only integers will be supported, - no floating point numbers
+\item Undefined, null and false, are joined into a single type/value. This joined value is the only false value
+\item Variable access should be fast
 \end{itemize}
 
 There are several reasons to make the language a subset of EcmaScript:
-When LightScript is a subset of EcmaScript, it automatically runs within most webbrowsers, including within smartphones where Java may not be installed.
+This allows it to automatically run within most web browsers, including within smartphones where Java may not be installed.
 \index{Smartphones}
-Being an EcmaScript subset also makes it easier to get started on for developers, that already know EcmaScript, or other languages with C-like syntax.
-The issues are, that being a subset of EcmaScript will add more complexity to LightScript, and also that EcmaScript has some unfortunate design choices \cite{crockford-web}, e.g. global variables by default, function-scoping rather then block-scoping, non-transitive equality test, traversal of parent object in for-each, arrays and null are objects in typeof-operator, restrictions on names due to many reserved words, automatic semicolon insertion, the with-statement, 
-some of these also being a part of LightScript,
+Being an EcmaScript subset also makes it easier for developers, that already know EcmaScript, or other languages with C-like syntax, to get started with.
+Nevertheless, being a subset of EcmaScript will also add more complexity to LightScript, and EcmaScript has some unfortunate design choices \cite{crockford-web}, for example: 
+Variables are global by default.
+Scope is limited by functions rather than blocks, which is unusual.
+The usual equality operator \verb|==| does type coercion leading to non-transitivity, so \verb|===| should be used instead.
+Traversal of objects through for-each loops also traverse the prototype of the object which is usually not the intended semantic.
+Arrays and \verb|null| are objects in typeof-operator, leading to more complex type test for those values as well as objects.
+The many reserved word adds unnecessary restrictions to naming of properties and variables.
+Automatic semicolon insertion encourages sloppy programming style.
+For compatibility with EcmaScript, some of these will be a part LightScript,
 although many can be omitted by being a subset and thus more strict. 
-
-Like Yolan, LightScript will run on CLDC 1.0, and will use standard classes for better embedding and code footprint size. It will support run-time loading of source code, and will have functions as first class values. See the Yolan design choices on page~\pageref{yolandesign}.
-
-The parser may assume that the programs have valid syntax. 
-Usually parsers both build a syntax tree of valid programs and also reject programs with invalid syntax. 
-By removing the rejecting part, and only requiring that, the can parsers build a syntax tree from valid programs, the parser may be optimised to run better on the limited devices.
-The parser should still guarentee to terminate, even with invalid programs though the resulting syntax tree may be undefined.
-
-LightScript only supports integers as number type, due to the platform. This is radically different from EcmaScript, which only supports floating point numbers. Script can still be compatible: addition, and multiplication, subtraction and modulo operations stay within the integer subset of floating point numbers, as long as there are no overflow, and they start out with integers. The shifts and bitwise operators temporarily cast to integers in EcmaScript, so they are not an issue. The only problem of the operators is division, and the solution here is to omit the \verb|/| binary operator from lightScript, and instead allow integer division to be implemented as a function \verb|div|, which can also be implemented in EcmaScript with a combination of division and rounding.
-
-Similar to Yolan, LightScript also only has one false value, which also joins the \verb|undefined|, \verb|null|, and \verb|false| value of EcmaScript, which also removes the boolean type. This is an optimisation that makes truth test faster and slightly smaller, as they can be written as \verb|obj != null|, rather than
-\verb%!( obj == null% \verb%|| (obj instanceof% \verb%Boolean% \verb%&&% \verb%!((Boolean)obj).booleanValue() )% \verb%||% \verb%(obj instanceof Integer &&% \verb%((Integer)obj).intvalue()% \verb%== 0 )% \verb%|| (obj instanceof String && obj.equals(""))%. It is still possible to preserve compatibility of scripts with EcmaScripts by requiring that conditions are always boolean values -- as it is required in many static typed languages. Another issue with this choice is, that there is no distinction between \verb|undefined| and \verb|null|, which may be desirable.
 
 LightScript should have a lexical scope similar to EcmaScript.
 This has the benefit of allowing closures which makes the use of functions much more expressive.
@@ -1229,12 +1233,25 @@ The lexical scope in EcmaScript, and thus LightScript, is a bit different from m
 \index{Scope}
 \index{Closure}
 
-Similarly to Yolan, LightScript should support fast variable access. This also means that another approach than looking through the chain of execution context objects, as described in the EcmaScript standard, must be used. Here LightScript should use a usual execution stack, boxing objects in the closure onto the heap.
-
 LightScript should support an object system similar to EcmaScript.
 Inheritance will be slightly different: while EcmaScript has prototypical inheritance, it mixes it with some Java/C++like syntax. The semantics will be the same for LightScript, but the inheritance will be done with a self-like \verb|clone| clone, which seems more pure prototypical than EcmaScripts syntax. The \verb|clone| function can easily be implemented in EcmaScript.
 
 Exceptions should also be supported, and it should also be possible to throw between, and across Java-functions and LightScript functions.
+
+
+Like Yolan, LightScript will run on CLDC 1.0, and will use standard classes for easier embedding and lower code footprint size. It will support run-time loading of source code, and will have functions as first class values. See the Yolan design choices on page~\pageref{yolandesign}.
+
+The parser may assume that the programs have valid syntax. 
+Usually parsers both build a syntax tree of valid programs and also reject programs with invalid syntax. 
+By removing the rejecting part, and only requiring that the parsers can build a syntax tree from valid programs, the parser may be optimised to run better on limited devices.
+The parser should still be guarenteed to terminate, even with invalid programs though the resulting syntax tree may be undefined.
+
+LightScript only supports integers as number type, due to the platform. This is radically different from EcmaScript, which only supports floating point numbers. Scripts can still be compatible: addition, and multiplication, subtraction and modulo operations stay within the integer subset of floating point numbers, as long as there is no overflow and they start out with integers. The shifts and bitwise operators temporarily cast to integers in EcmaScript, so they are not an issue. The only problem of the operators is division, and the solution here is to omit the \verb|/| binary operator from LightScript, and instead allow integer division to be implemented as a function \verb|div|, which can also be implemented in EcmaScript with a combination of division and rounding.
+
+Similar to Yolan, LightScript also only has one false value, which also joins the \verb|undefined|, \verb|null|, and \verb|false| value of EcmaScript, which also removes the boolean type. This is an optimisation that makes truth test faster and slightly smaller, as they can be written as \verb|obj != null|, rather than
+{\tt !( obj == null \verb%||% (obj instanceof Boolean \verb%&&% !((Boolean)obj).booleanValue()) \verb%||% (obj instanceof Integer \verb%&&% ((Integer)obj).intvalue() == 0) \verb%||% (obj instanceof String \verb|&&| obj.equals(""))}. It is still possible to preserve compatibility of scripts with EcmaScripts by requiring that conditions are always boolean values -- as it is required in many static typed languages. Another issue with this choice is, that there is no distinction between \verb|undefined| and \verb|null|, which may be desirable.
+
+Similarly to Yolan, LightScript should support fast variable access. This also means that another approach than looking through the chain of execution context objects, as described in the EcmaScript standard, must be used. Here LightScript should use a usual execution stack, boxing objects in the closure onto the heap.
 
 \section{Imperative implementation of top-down operator precedence parsers}
 \index{Top-down operator precedence parser}
@@ -1562,23 +1579,22 @@ In the following is listed what have been done in version 1.1 and what needs to 
 \begin{itemize}
 \item Optimise code footprint, by reordering opcodes
 \item Add support for fixed-point arithmetics
-\item Add postfix increment/decrement
+\item Add simplified postfix increment/decrement, to be able to run some existing JavaScript code.
 \item Distinguish between false, null and undefined
 \item Replace stack allocation instruction with automatic code to do this, based on metadata of the function object 
-%To determine whether it is worthwhile needs an actual implementation. - this costed 2-3KB code footprint.
 \item Let functions support a variable number of arguments
 \item Add optional clean-up code when exiting a function, to improve garbage collection
 \item Add prototype object to functions
 \end{itemize}
 \subsubsection{Remaining tasks}
 \begin{itemize}
-\item Add more functions, operators, etc. 
-%\item Let catch, and function-def behave as implicit \verb|var|-decl
-\item Walk through EcmaScript library specification, and add those functions that do not add too much to the footprint
-\item Generalise the system for builtin objects, making it even easier to add support for using plain Java classes from within LightScript. Add LightScript-getter/setter interface
-\item Let the LightScript object implement getter/setter interface, and be the global object.
-\item Let this point to global object when function not called as a method.
-\item Improve virtual machine by joining common instruction pairs to single instructions (adding superinstructions)
+\item Generalise the system for builtin objects, making it even easier to add support for using plain Java classes from within LightScript, i.e. LightScript-getter/setter interface
+\item Let the LightScript object implement getter/setter interface. The LightScript object should the represent the global object, and when we are not in a method call, it should be the content of ``\verb|this|''
+\item Support for the \verb|new| operator and \verb|.prototype| property to allow existing object oriented JavaScript code to run within LightScript
+\item Walk through EcmaScript specification, and add those operators and library functions that do not add too much to the footprint
+\item Maybe improve virtual machine by joining common instruction pairs to single instructions (adding superinstructions)
+\item Maybe add optional support for floating point numbers
+\item Maybe add breaks, continues and/or switches
 \end{itemize}
 
 \chapter{Benchmarks}
