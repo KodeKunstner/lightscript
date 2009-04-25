@@ -721,13 +721,12 @@ There are several solutions to this problem:
 \item Keep track of which variables may live on after the function exits, and move those to the heap.
 \end{itemize}
 
-Not having nested functions, only having a single-function-local and a global scope, or not having static scope, simplifies the implementation and is a solution in mostly imperative languages.
-This solves the issue, but at the same time it also removes support for closures.
+Not having nested functions, only having a single-function-local and a global scope, or not having static scope, simplifies the implementation and is a solution often taken in mostly imperative languages.
+%This solves the issue, but at the same time it also removes support for closures.
 \index{Closure}
 
-Copying outer scope variables to inner scope is possible in functional languages, as the variables are not mutated. If the language is not purely functional, the issue with this approach is that when a variable is mutated in an inner function, it is only the copy that is mutated, and the mutation is local to the function.
+Copying the values of outer scope variables to an inner scope is possible in a purely functional language, as variables are not mutated. If the language is not purely functional, when a variable is mutated in an inner function, it is only the copy that is mutated, and the mutation is local to the function.
 A workaround for mutations in languages that copy variables from outer to inner scope is to use a reference to the mutated variable rather than the variable itself, such that when the reference is copied to the inner scope it is still possible to mutate the value, as we need not mutate the reference itself.
-
 Another approach is to let the outer scope stay alive until the inner closure dies, and then just reference variables as usual.
 This can be done by allocating the activation records on a garbage-collected heap,
 which is not as expensive as it may seem, due to the high effiency of modern garbage collectors.
