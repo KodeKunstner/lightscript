@@ -747,6 +747,7 @@ Or just identify variables that are used by in inner functions, and put those on
 %
 \chapter{Yolan}
 \label{yolan}
+%TODO: change math-mode to italics
 \index{Yolan}
 Yolan is an experiment in minimalism of language design and implementation. 
 The goal is to minimise the code footprint, while still having a practical scripting language with first-class functions.
@@ -760,17 +761,17 @@ The next paragraphs elaborate on the following design choices:
 \begin{itemize}
 \item The implementation must be able to run on CLDC 1.0
 \item It should use standard Java classes, for easier interaction with Java code
-\item Code should be executable at runtime, loadable as source text
-\item Functions should be first-class values
+\item Code should be loadable/executable as source code at run-time
+\item Functions should be first-class values, to make the language more expressive
 \item Variable look up should should be fast
 \item Only integers will be supported, - no floating point numbers
 \item Null is the false value
-\item Syntax will be Lisp-like
+\item Syntax should be Lisp-like, to reduce the size of the parser
 \item Scoping should be dynamic
 \item Arrays, hashtables, etc. should be built in in the language
-\item The interface with Java should be lazy
+\item The interface with Java should be lazy, to allow implementation of custom control structures
 \item Execution is online / one statement at a time
-\item A tradeoff for size may be that the implementation is single threaded/non-reentrant 
+\item The implementation is single threaded/non-reentrant to reduce code size
 \end{itemize}
 
 CLDC 1.0 is the most limited device configuration and API for mobile devices. If the language is able to run this configuration, it will also be able to run on the other Java configurations, and then be able to run on most devices.
