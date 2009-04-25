@@ -53,7 +53,7 @@ The code footprint is the major limitation on low-end mobile devices, and both l
 The languages are comparable in speed to larger scripting language implementations,
 and an order of magnitude faster than most of the benchmarked scripting languages for mobile devices.
 
-Both Yolan and LightScript have first class functions, dynamic typing, built-in support for hashtables, stacks, etc., and they support interactive programming. They are also able to load and execute scripts presented in source form at run-time. 
+Both Yolan and LightScript have first-class functions, dynamic typing, built-in support for hashtables, stacks, etc., and they support interactive programming. They are also able to load and execute scripts presented in source form at run-time. 
 The Java Micro Edition does not support dynamic loading of code, so both languages are interpreted.
 \index{Java Micro Edition}
 
@@ -101,7 +101,7 @@ than megabytes.
 \index{Goals}
 Scripting languages make it faster to write applications \cite{scripting-ousterhout}:
 The type systems allow for more reuse and compared to traditional system programming languages.
-They are also more expressive, with more instructions per statement and support for higher level language features such as first class functions.
+They are also more expressive, with more instructions per statement and support for higher level language features such as first-class functions.
 In addition, scripting languages open up for code at run-time, allowing user based scripting and scriptable configurations.
 
 On more powerful devices, ranging from high-end smartphones to personal computers, there are very good scripting languages available.
@@ -172,8 +172,8 @@ Here there are various APIs and device profiles, but the basic execution and dep
 
 Low end devices rarely support loading of native code, and higher end devices may require various kinds of code signing to allow native programs to be distributed.
 
-Besides Java and native code, JavaScript is becoming a potential language for applications for high end phone. \index{EcmaScript}
-This is both due to its integration with the web, which means that it is available on the phones with advanced browsers, due to the increased amount of memory on high end phones
+Besides Java and native code, JavaScript is becoming a potential language for applications for high-end phone. \index{EcmaScript}
+This is both due to its integration with the web, which means that it is available on the phones with advanced browsers, due to the increased amount of memory on high-end phones
 and due to recent major performance advances within the JavaScript implementations, which are propagating towards mobile devices.
 
 \subsection{Embedded systems}
@@ -272,7 +272,7 @@ As Java Micro Edition is the most widespread platform for mobile devices, this w
 
 \subsection{Smartphones}
 \index{Smartphones}
-Many high end phones -- smartphones --  allow loading of native code. 
+Many high-end phones -- smartphones --  allow loading of native code. 
 This covers approximately 12\% of the mobile phone market measured in number of units.\footnote{In the fourth quarter of 2008 38.1 million smartphones where sold \cite{gartner}, whereas the total number of mobile phones sold in the same period were 314.7 million devices \cite{cellular-news}.}
 \index{Mobile platforms!marketshares}
 % http://www.cellular-news.com/story/36315.php
@@ -418,7 +418,7 @@ Besides the stack for arguments, there is also a stack for return addresses.
 Forth supports meta programming.
 Forth systems have explicit compilation, the system has two modes: compile mode and interpret mode. 
 It is possible to create words that are executed at compile time, using the immediate keyword.
-Words -- ``functions'' in Forth -- are first class data types.
+Words -- ``functions'' in Forth -- are first-class data types.
 
 An introduction to Forth is
 ``Thinking Forth'' \cite{thinking-forth} which covers, not only Forth programming, but it also touches a lot programming and problem solving in general. This include details on implementation of stack-based languages.
@@ -449,13 +449,13 @@ The documentation and online materials seems well rounded, which may be a factor
 JavaScript was created as a scripting language for web browsers, and was later standardised under the name of EcmaScript \cite{ecma-262}.
 The reason it has become interesting is that it is included within most web browsers, and is thereby one of the most widely available platforms.
 
-JavaScript is a dynamically typed scripting language with closures / first class functions, and a prototype-based object system, similar to Self.
+JavaScript is a dynamically typed scripting language with closures / first-class functions, and a prototype-based object system, similar to Self.
 While it has expressive features, it is also a very mainstream language, both through its presence within the web and its C-like syntax, and thus making it possibly less intimidating for new programmers.
 \index{Closure}
 
 JavaScript is very relevant for this thesis, as the LightScript language developed here, is a subset of JavaScript/EcmaScript, for several reasons: 
 It already exists as a platform meaning that the new scripting language already has virtual machines deployed. As the EcmaScript syntax is known, or at least recognisable for many developers, even web-``developers'' and users, it may be easier for them to transition, or start using the new scripting language on mobile devices. 
-EcmaScript supports closures and first class functions, which can thus be included in LightScript without breaking compatibility.
+EcmaScript supports closures and first-class functions, which can thus be included in LightScript without breaking compatibility.
 
 An issue with EcmaScript is that it has some unfortunate design decisions \cite{crockford-web}, which will be elaborated on in Section~\ref{lightscript-design}.
 
@@ -464,8 +464,7 @@ An issue with EcmaScript is that it has some unfortunate design decisions \cite{
 %At the same time, the language was developed in a hurry, also leading to some less fortunate design choices
 %A good introduction to JavaScript is given in the book ``JavaScript the good parts'' \cite{goodparts} and some of its material is also available online which serves well as an overview of the language. The EcmaScript standard \cite{ecma-262} can be used for getting to know the details of the languages.
 
-\subsubsection{Implementations}
-The following paragraphsdescribes the main open source implementations of Java\-Script/EcmaScript.
+The following paragraphs describes the main open source implementations of Java\-Script/EcmaScript.
 
 \paragraph{JavaScriptCore} 
 \index{JavaScriptCore}
@@ -513,45 +512,46 @@ This is combined with a mark and sweep collector when a full collection is neede
 
 \subsubsection{Targeting mobile devices}
 
-There is the standardised EcmaScript Mobile Profile, which removes some features from the language, but is not implementable in practice on top of CLDC 1.0 as it still relies on floating point numbers
-
 During the writing of this thesis, it has turned out that there are other projects working on JavaScript languages for mobile devices.
 
+There is a standardised EcmaScript Mobile Profile, which removes some features from the language, but is not implementable in practice on top of CLDC 1.0 as it still relies on floating point numbers.
+
 \index{EcmaScript!Mojax}
-Mojax (Mobile Ajax) \cite{mojax} is a properitary virtual machine for an EcmaScript like language. This language is also a subset of of EcmaScript, integer only, and appears not to support exceptions nor regular expressions.
-The Mojax implementation seems to be a virtual machine which cannot execute scripts directly, but they need to be compiled before they can be loaded.
+Mojax (Mobile Ajax) \cite{mojax} is a properitary virtual machine for an EcmaScript-like language. The language is also a subset of of EcmaScript, integer only, and appears not to support exceptions nor regular expressions.
+The Mojax implementation appears to be a virtual machine that cannot execute scripts directly, but they need to be compiled before they can be loaded.
 
 \index{EcmaScript!Mbedthis}
-Mbedthis has a closed source implementation of a subset of JavaScript, which is targeting embedded devices \cite{mbedthis}. This uses integers by default, and does not have exceptions, labelled statements, switch, while, do-while, regular expressions, function literals, object literals, array literals, prototypes nor class methods.
+There is a closed source implementation of a subset of JavaScript, that targets embedded devices, written in C, and developed by Mbedthis \cite{mbedthis}. It uses integers and does not have exceptions, labelled statements, switch, while, do-while, regular expressions, function literals, object literals, array literals, prototypes nor class methods.
 % http://www.embedthis.com/products/appweb/doc/guide/appweb/users/ejs/overview.html
 Recently that implementation seems to have been abandoned, in favor of a new, more compliant implementation: Ejscript \cite{ejscript}.
 %http://www.ejscript.org/products/ejs/index.html
-While the C based implementation is available under GPL, there apparently is a J2ME implemention which is not published yet.
+A C based implementation is available under the GPL, there is apparently a J2ME implemention that is not published yet.
 \index{EcmaScript!Ejscript}
 
 \subsection{Lua}
 \index{Lua}
-Lua is relevant for this project, both as a language design/implementation, as it has looked into issues that also comes up in this project, and also as a language for low-end devices, as lua implementations are available on embedded and mobile devices.
-Lua is a dynamically typed, statically scoped embeddable scripting language, which is characterized by only having one data structure: associative tables.
-It has both good performance, and relatively low code footprint, and is as such also interesting for this project.
+Lua is the language that comes closet to the goals of this project: it is a scripting language with first-class functions that runs on embedded and mobile devices.
+In addition, it is a dynamically typed, statically scoped embeddable scripting language, which is characterized by only having one data structure: associative tables.
+It has both good performance and a relatively low code footprint.
 
 On mobile devices there is an implementation of the Lua virtual machine called Kahlua \cite{kahlua}.
-This is only the Lua virtual machine.
+It is only a virtual machine, meaning that the Lua scripts need to be compiled on another platform, before they can be loaded and executed.
 
 \subsection{Python}
-As phones are becoming more powerful, Python is beginning to play a role as a mobile scripting language on high end devices. This is carrying over from being a popular and major scripting language on computer platforms.
+As phones are becoming more powerful, Python is beginning to play a role as a mobile scripting language on high-end devices. This is probably due to that Pythin is already a popular and major scripting language on computer platforms.
 
-Python has some nice features, that may be inspiring when implementing other languages. Comments/documentation is integrated in the language via the concept of docstrings, which is a special kind of comment that will also be available for inspection during runtime. Unit testing is also integrated within the documentation framework, where a special syntax indicates that code in the documentation can also be executed when running tests.
-Required indentation leads to easier readable programs.
+Python has some nice features, that may be inspiring when implementing other languages. Comments/documentation are integrated in the language via the concept of docstrings, which are a special kind of comment that is also available for inspection during runtime. Unit testing is also integrated within the documentation framework, where a special syntax indicates that code in the documentation can also be executed when running tests.
+Required indentation leads to more easily readable programs.
 
-The issue with Python on mobile devices is, that it is relatively resource intensive, and it is only available on high end phones.
+The issue with Python on mobile devices is that its implementation is relatively resource intensive, and it is thus currently only available on high-end phones.
 
 \subsection{Scheme and Lisp}
 \index{Lisp and Scheme}
-Scheme and Lisp are especially interesting in this context, due to their minimalism, which is inspiring in the design of a language with strong restrictions on the implementation environment.
+Scheme and Lisp are especially interesting, due to their minimalism, which is inspiring in the design of a language with strong restrictions on the implementation environment.
 The syntax is mostly isomorphic with the abstract syntax tree, meaning that parsing is mostly trivial.
 
-For mobile devices, early versions of JScheme \cite{norvig-jscheme} are small enough, that they can be made to run, even with the limitations of footprint on the low-end devices. It would need to be ported, as it uses parts of the language not available on the limited devices, but it can be usable as a benchmark target due to the sensible footprint size.
+Early versions of JScheme\cite{norvig-jscheme} have code footprints that are small enough for mobile devices, but would need to be ported, as they use reflection that is not available on mobile devices.
+JScheme is interesting as a benchmarking target, as it is a high level language with a small footprint.
 
 %Another Scheme implementation, which targets mobile devices is ULM (Un Langage pour la Mobilité) which is a part of a thesis on agent systems \cite{ulm}. Essentially the implementation is a virtual machine, which runs as a backend of a modified version of the Bigloo \cite{bigloo} Scheme compiler.
 %This was considered as a potential benchmark target, but I did not have time to get it to run, due to issues with dependencies, and at the same time it has a relatively large code footprint -- 96KB.
@@ -560,8 +560,8 @@ For mobile devices, early versions of JScheme \cite{norvig-jscheme} are small en
 \index{Self}
 \index{Prototypical inheritance}
 \label{survey-self}
-Self \cite{self} is in particular interesting due to its use of prototypical inheritance.
-In traditional object oriented programming, we have classes and objects, where classes can inherit from other classes, and objects are instantiations of classes.
+Self \cite{self} is in particular interesting due to the prototypical inheritance, that is the object model of EcmaScript and thus also LightScript.
+Traditional object oriented programming, is designed around classes and objects, where classes can inherit from other classes, and objects instantiate classes.
 Instead of classes and subclasses for inheritance, Self has a clone operator, which creates a new object using an existing object as blueprint.
 An object in Self contains a pointer to the parent (cloned) object, and a mapping from property names to values or methods. When a property is read, the mapping of the current object is first searched, and if the name is not found there, then the parent objects are searched for the property.
 
@@ -572,16 +572,16 @@ As we are building on top of Java,
 several interpreter implementation issues
 become less relevant:
 \begin{itemize}
-\item On this platform, the dispatch can only be implemented 
-with a switch statement or based on class types, where the
+\item On JVM platform, the dispatch can only be implemented 
+with a switch statement or be based on class types. The
 latter is much more expensive, spacewise, and therefore not applicable.
 Threaded dispatch, and other faster dispatch methods are not possible
-due to restrictions of the JVM.
-\item With regard to garbage collection, we can piggyback on the garbage collector from the JVM, which saves code footprint as we do not need to implement one ourselves. This has the issue that we can not rely on how it is implemented, meaning that heap allocated activation records may be less of an option, as it is stongly affected by the performance of the garbage collector.
+due to lack of support for using pointers to code.
+\item With regard to garbage collection, we can piggyback on the garbage collector from the JVM, which reduces the code footprint as we do not need to implement one ourselves. This has the issue that we can not rely on how it is implemented, meaning that the use of heap allocated activation records may be less of an option, as it is stongly affected by the performance of the garbage collector.
 \item JIT compilation to native code, or targeting the JVM, is not possible as dynamic loading of code is not supported at all on most Java Micro Edition implementations.
 \end{itemize}
 
-The next section looks at register vs. stack virtual machines, which is an important aspect at the design of virtual machines. This is followed by a look at parsing, more specifically the top-down operator precedence parser as this has low code footprint, which is important on this platform. And finally there is an investigation of scope and implementation of variables.
+The next section looks at register vs. stack virtual machines, which is an important aspect at the design of virtual machines. This is followed by a look at parsing, more specifically top-down operator precedence parsing as this has low code footprint, which is important in our context. And finally we consider the issue of  scope and the implementation of variables.
 
 %as the embedded-C implementation of the language was not finished, this part does not belong in the thesis, but should be removed, and possibly make it into later documents. Keep note about using switch due to JVM, which is suboptimal compared to what can be done on a native machine.
 %... jvm only switch based or class based, which is suboptimal
@@ -600,52 +600,52 @@ The next section looks at register vs. stack virtual machines, which is an impor
 \subsection{Stack and register based virtual machines}
 Virtual machines are usually either stack-based or register-based.
 
-Stack-based virtual machines operates similar to the language Forth, where the operations work on the top of the stack. 
-Operands are implicit coded, such that for example the add instruction just pops the two top elements of the stack, and pushes the sum. 
+A stack-based virtual machine operates similar to the language Forth, where all operations work on the top of the stack. 
+Operands are implicitly coded, such that for example the add instruction just pops the top two elements of the stack, and pushes the sum. 
 Stack machines are easy to compile to, 
 which can simply be done by emitting the opcodes of a post-order walk through of the abstract syntax tree. 
 There are no issues of register allocation, spilling, etc.
-Stack machines are commonly used, the best known example being the Java Virtual Machine, and there are many others that turn out to be stack machines when looking under the hood, for example: Python, the SpiderMonkey JavaScript implementation, and the .NET Common Intermediate Language.
+Stack machines are commonly used, the best known example being the Java Virtual Machine, and there are many other languages that turn out to be implemented on stack machines when looking under the hood, for example: Python, the SpiderMonkey JavaScript implementation, and the .NET Common Intermediate Language.
 
 Register-based virtual machines are becoming more common. 
-Usually they have a high number of registers, leading to longer opcodes than stack-based virtual machines. But on the other hand, they have fewer opcodes, leading to faster execution \cite{register-vs-stack1, register-vs-stack2}. 
+Usually they have a high number of registers, leading to longer opcodes than stack-based virtual machines. But on the other hand, they have fewer opcode per program, leading to faster execution \cite{register-vs-stack1, register-vs-stack2}. 
 Examples of register-based virtual machines are the Dalvik \cite{dalvik-vm} virtual machine, LLVM \cite{llvm}, Parrot \cite{parrot}, and the virtual machine of Lua 5.0 \cite{luavm}.
 
-A third approach to virtual machines is just to use the abstract syntax tree for evaluation. This was for example used in earlier versions of WebKits JavaScript implementation, but has now been superseded by a stack-based virtual machine, and is currently being replaced by JIT compilation.
+A third approach to implementing a virtual machine is just to use the abstract syntax tree for evaluation. This was for example used in earlier versions of WebKits JavaScript implementation, but has now been superseded by a stack-based virtual machine, which is currently being replaced by JIT compilation.
 
 \subsection{Parsing}
 A language implementation must parse the source text into the abstract syntax tree that is manipulated by the rest of the compiler.
 
-An issue here is that parsers often take quite a large amount of code, especially if they are generated by compiler-compilers.
+Parsers often take quite a large amount of code, especially if they are generated by compiler-compilers.
 Generated lexers and LALR(1) parsers, generated by for example \cite{yacc, yacc2}, usually have quite large state tables.
-Recursive descent parsers seem to use a bit less code footprint that LALR parsers, but still require functions for all the grammar productions, which may still be expensive.
-Grammar based parser generation and implementation have been extensively studied and described for example in  \cite{basics-of-compiler-design, grammar}, and will not be discussed further in these sections.
+Recursive descent parsers seem to use a bit less code footprint that LALR parsers, but still require functions for all the grammar productions, which still takes quite a bit of space..
+Grammar-based parser generation and implementation have been extensively studied, for example in  \cite{basics-of-compiler-design, grammar}, and will not be discussed further.
 
 Another approach, which is also very elegant, 
-but have recieved less attention is the
-top-down operator precedences parser.
-This has the benefit of a low code footprint,
+but has recieved less attention is the
+top-down operator precedence parser.
+This kind of parser has the benefit of a low code footprint,
 partly due to genericity of the parser code,
 for example: only one parsing
-function is needed for the left associative infix operators,
-one function is needed for the right associative infix operators,
-one function is needed for prefix operators, et cetera.
-So a top-down operator precedence parser will be used for the implementation of LightScript.
-
+function for the left associative infix operators,
+one function for the right associative infix operators,
+one function is needed for prefix operators, etc.
+So a top-down operator precedence parser will be used for parsing in LightScript.
 
 \subsubsection{Top-down operator precedence parsers}
 \label{tdop}
 Top-down operator precedence parsing combines recursive descent parsing with operator precedence, which simplifies the implementation significantly.
 It was first described thirty years ago \cite{top-down-operator-precedence}, but has not received much attention until lately \cite{beautiful-code, crockford-tdop}.
 
-A token can have a null denominator function, a left denominator function and a precedence.
-The null denominator function is used to build the abstract syntax tree node, if the token stands first (is leftmost) in an expression.
-The left denominator function is used to build the abstract syntax tree node, if we already have something to the left of the token within the expression.
+
+A token may have two functions and a precedence, which are used to build the syntax tree when the token is encountered.
+If the token stands first (is leftmost) in an expression, and the null denominator function is use to build the abstract syntax tree node..
+The second function is the left denominator function is used to build the abstract syntax tree node, if we already have something to the left of the token within the expression.
 The precedence of the next token is used to determine whether we have finished parsing an expression or need to use the token to build another abstract syntax tree node by calling left denominator function of the token.
 
-To be able to build the abstract syntax tree node, the left denominator function gets the parsed node to the left of the token as a parameter. Additionally it is possible for the denominator functions to parse expressions to the right of the token by calling the parsing function recursively. Here it is necessary that the parsing function also take a priority as a parameter. This priority parameter ensure that the left denominator functions are not called for tokens with lower priority.
+To be able to build the abstract syntax tree node, the left denominator function takes an argument, which is the parsed node to the left of the token. Additionally it is possible for the denominator functions to parse expressions to the right of the token by calling the parsing function recursively. Here it is necessary that the parsing function also take a priority as a parameter. This priority parameter ensures that the left denominator functions are not called for tokens with lower priority.
 
-The parsing itself is then simply done by first calling null denominator function of the first token, and then calling the left denominator functions of the next tokens, as long as the next token has higher priority than the priority passed to the parsing function.
+The parsing itself is then simply done by first calling the null denominator function of the first token, and then calling the left denominator functions of the next tokens, as long as the next token has higher priority than the priority passed to the parsing function.
 The denominator functions attached to each token are then responsible for building the syntax tree.
 So the core loop of the parser is implemented as follows:
 \begin{verbatim}
@@ -657,11 +657,11 @@ define parse(int priority):
 \end{verbatim}
 
 Now we need to assign meaningful precedence and denominator functions to the tokens:
-Atoms, variable names, literals etc., have a null denominator functions that return their node. Unary operations such as minus, not, etc., have a null denominator that calls parse once, and creates a node that applies the operator to the parsed node.
-Binary (infix) operators have a left denominator function that creates a node with its parameter as the left hand side and calls parse to construct the right hand side. Binary operators can be made right associative by reducing the priority passed to parse.
+Atoms, variable names, literals etc., have a null denominator function that returns their node. Unary operations such as minus, not, etc., have a null denominator function that calls parse once and creates a node that applies the operator to the parsed node.
+Binary (infix) operators have a left denominator function that creates a node with its parameter as the left hand side and calls parse to construct the right hand side. Binary operators can be made right associative by passing a priority to parse, that is one less than the priority of the operator itself.
 The parsing of lists calls parse until the end of the list is reached. Other constructions can be implemented similarly. 
 
-The limitation of this parser as described here is that only one left-hand side expression is passed to the left denominator function, making reverse polish notation languages difficult to implement. A non-recursive version with an explicit stack instead could solve that.
+The limitation of this parser as described here is that only one left-hand side expression is passed to the left denominator function, making reverse polish notation languages difficult to implement. A non-recursive version with an explicit stack could solve that.
 
 \subsection{Scope}
 \label{survey-scope}
@@ -681,25 +681,25 @@ function g(x) {
 }
 g(42)
 \end{verbatim}
-which would print 42 if it was written in a statically scoped language, and would print 17 if it was written in a dynamically scoped language.
+which would print 42 in a statically scoped language, and would print 17 in a dynamically scoped language.
 
-Static scoping is more natural as the scope matches the structure of the code. Dynamic scoping requires more discipline, as it allows the programmer to tamper with local variables of other parts of the code, and counters good habits of information hiding. A very importeant feature is also that static scoping can be used to create closures for functions, which gives extra flexibility to the language.
+Static scoping is more natural as the scope matches the structure of the code. Dynamic scoping requires more discipline, as it allows the programmer to tamper with local variables of other parts of the code, and counters good habits of information hiding. A very important feature is also that static scoping can be used to create closures for functions, which gives extra flexibility to the language.
 \index{Closure}
-On the other hand, dynamic scoping is very trivial to implement, and can thus use slightly less space in the code footprint. 
+On the other hand, dynamic scoping can simply be implemented by a global mapping from name to value, and can thus use slightly less space in the code footprint. 
 Dynamic scoping also does not suffer from the funarg problem discussed in Section~\ref{funarg}.
-For more advanced language implementations static scoping has the benefit over dynamic scoping, that code is easier to analyse and optimise due to locality, in the sense that the use of variables is limited to the local lexical scope.
+For more advanced language implementations static scoping has the benefit over dynamic scoping that code is easier to analyse and optimise due to locality, in the sense that the use of variables is limited to the local lexical scope.
 
 \subsubsection{Stacks and activation records}
 A typical way to implement local variables is by using a stack.
 In this section, we assume that we are on a full stack machine; 
 in practical implementations on CPUs, the top of the stack is usually implemented in a number of registers instead.
 
-Whenever a function is called, the arguments are pushed onto the stack. Then, when the function is entered, a return pointer is often pushed to the same stack, and space is allocated for the local variables. The computation is then done, and the function returns, jumping back to the call site and restoring the stack size to the original.
-The allocation on the stack allows for local variables, and functions can also be recursive without a problem. The space on the stack with the local variables, etc., is called the activation record for the function.
+Whenever a function is called, the arguments are pushed onto the stack. Then, when the function is entered, a return pointer is often pushed onto the same stack, and space is allocated for the local variables. The computation is then done, and the function returns, jumping back to the call site and restoring the stack size to the original.
+The allocation on the stack allows for local variables, and functions can also be recursive. The part of the stack containing the local variables, etc., is called the activation record for the function.
 
-\subsubsection{Scope and first class functions}
+\subsubsection{Scope and first-class functions}
 
-When we have first class functions and static scoping, we cannot just place the activation records on the stack. Inner functions may live on, and access local variables of the outer function, after the outer function has returned. Consider the following code:
+When we have first-class functions and static scoping, we cannot just place the activation records on the stack. When functions are nested, inner functions may live on, and access local variables of the outer function, after the outer function has returned. Consider the following code:
 \begin{verbatim}
 function f(x) {
     function g(y) {
@@ -709,15 +709,15 @@ function f(x) {
 }
 \end{verbatim}
 
-In this code the new function $g$ lives on after $f$ has returned, and at the same time $g$ uses a value that lies in the activation record of $f$. Therefore, if the activation record is allocated on the call stack, and nothing further is done about it, the value of $x$ will no longer be available at the time $g$ is called.
-This is an example of the funarg problem, which is the problem with scoping when a function is given as an argument or returned.
+In this code the function $g$ lives on after $f$ has returned, and at the same time $g$ uses a value that lies in the activation record of $f$. Therefore, if the activation record is allocated on the call stack, and nothing further is done about it, the value of $x$ will no longer be available when $g$ is called.
+This is an example of the ``funarg problem'', which is the problem with scoping when a function is given as an argument or returned.
 \label{funarg}
 
 There are several solutions to this problem:
 \begin{itemize}
-\item Disallowing/not supporting first-order nested functions or access to outer scope within nested functions. Or not having static scope.
-\item Outer scope variables cannot be changed from the inner scope, but are instead passed as immutable values at function/scope creation. 
-\item Allocate the activation records on the heap, instead of the stack, and let them be garbage collected. 
+\item Disallow/not support first-order nested functions or access to outer scope within nested functions. Or not having static scope.
+\item Disallow scope variables to be changed from the inner scope. Instead such variables are passed as immutable values at function/scope creation. 
+\item Allocate the activation records on the heap, instead of on the stack, and let them be garbage collected. 
 \item Keep track of which variables may live on after the function exits, and move those to the heap.
 \end{itemize}
 
@@ -750,7 +750,7 @@ Or just identify variables that are used by in inner functions, and put those on
 \label{yolan}
 \index{Yolan}
 Yolan is an experiment in minimalism of language design and implementation. 
-The goal is to minimise the code footprint, while still having a practical scripting language with first class functions.
+The goal is to minimise the code footprint, while still having a practical scripting language with first-class functions.
 I call the language Yolan as a contraction of yocto-language, where yocto- is the SI-unit of $10^{-24}$ and thus means very very small.
 Yolan also serves as a pilot system and stepping stone for further development.
 
@@ -762,7 +762,7 @@ The next paragraphs elaborate on the following design choices:
 \item The implementation must be able to run on CLDC 1.0
 \item It should use standard Java classes, for easier interaction with Java code
 \item Code should be executable at runtime, loadable as source text
-\item Functions should be first class values
+\item Functions should be first-class values
 \item Variable look up should should be fast
 \item Only integers will be supported, - no floating point numbers
 \item Null is the false value
@@ -786,7 +786,7 @@ It allows adding updates and new features to the programs, without needing them 
 It allows the language to be used for configuration files, and data initialisation.
 Being loaded as source code both gives more clarity, and make it easier to distribute and edit, thereby making it more suitable for for use as configuration language, and scripting by users.
 
-Functions should be first class values, both to enable functional programming and increase the expressiveness of the language.
+Functions should be first-class values, both to enable functional programming and increase the expressiveness of the language.
 
 If variables are looked up at every access at runtime, this is likely to be bottleneck for performance, and instead the implementation must ensure that they are only resolved once for each place they are used in the source text.
 The platform is already slow, so performancewise we probably can not afford not doing this optimisation.
@@ -1205,7 +1205,7 @@ In addition to these, there are also some language design choices that are simil
 \item It must be able to run on CLDC 1.0
 \item Standard Java classes should be used for the builtin types, to make interaction with Java code easier
 \item Code should be loadable/executable as source code at run-time
-\item Functions are first class values
+\item Functions are first-class values
 \item Parsing does not need to be concerned about error checking
 \item Only integers will be supported, - no floating point numbers
 \item Undefined, null and false, are joined into a single type/value. This joined value is the only false value
@@ -1239,7 +1239,7 @@ Inheritance will be slightly different: while EcmaScript has prototypical inheri
 Exceptions should also be supported, and it should also be possible to throw between, and across Java-functions and LightScript functions.
 
 
-Like Yolan, LightScript will run on CLDC 1.0, and will use standard classes for easier embedding and lower code footprint size. It will support run-time loading of source code, and will have functions as first class values. See the Yolan design choices on page~\pageref{yolandesign}.
+Like Yolan, LightScript will run on CLDC 1.0, and will use standard classes for easier embedding and lower code footprint size. It will support run-time loading of source code, and will have functions as first-class values. See the Yolan design choices on page~\pageref{yolandesign}.
 
 The parser may assume that the programs have valid syntax. 
 Usually parsers both build a syntax tree of valid programs and also reject programs with invalid syntax. 
@@ -1261,7 +1261,7 @@ This section looks at how top-down operator precedence parsers can be implemente
 As we have relaxed parsing requirements, such that only building the syntax tree, and not checking for error is required, several classes of tokens can be joined. An example is to create an end-of-list token, instead of list termination such as \verb|}|, \verb|)|, \verb|]|, which also allows a generalisation of parsing a list. Similarly a separator token can be introduced instead of ``\verb|,|'', ``\verb|;|'', and ``\verb|:|''.
 
 The top-down operator precedence parser described in Section~\ref{tdop} 
-uses first class functions and is thus better suited for being implemented in functional languages rather than imperative languages.
+uses first-class functions and is thus better suited for being implemented in functional languages rather than imperative languages.
 For example, in Java a simple implementation of the parser uses a lot of space as the functions would use a class each, in order to be passed around as first-class values.
 Our solution is to use a dispatch function instead, and replace the denominator functions of the token, with integers.
 Actually it is simpler with two dispatch functions, one for the null denominator functions and one for the left denominator functions.
@@ -1444,7 +1444,7 @@ If the function name is specified, a variable with that name assigned to the fun
 
 The LightScript currently does not support a variable numbers of parameters, nor can the functions have properties.
 This is going to be added in the next version.
-Functions are first class objects, and can be passed around, and used as such. Applications of functions are done with the usual $f$\verb|(|$\cdots$\verb|)|.
+Functions are first-class objects, and can be passed around, and used as such. Applications of functions are done with the usual $f$\verb|(|$\cdots$\verb|)|.
 
 \subsection{Native LightScript objects and functions}
 The current LightScript implementation only has a small standard library, with the purpose of being a proof of concept that functions can easily be added. The following functions and methods are implemented:
@@ -1754,7 +1754,7 @@ The cost of parser implementation may also have be an influence on Hecl not supp
 
 \section{Developed languages}
 \subsection{Yolan}
-Yolan does a good job having a tiny code footprint and decent performance, while being a scripting language with first class function, hashtables, easy embeddable, etc., and does a bad job trying to do anything else:
+Yolan does a good job having a tiny code footprint and decent performance, while being a scripting language with first-class function, hashtables, easy embeddable, etc., and does a bad job trying to do anything else:
 the dynamic scoping makes it unsuitable for developing larger applications, and the Lisp-like syntax will probably scare away most developers.
 So the major use of this language is probably just to set a bar for how small a code footprint a high-level scripting language can have.
 
@@ -1833,7 +1833,7 @@ Another development tool, possibly integrateable with the linter is a prettyprin
 \index{Conclusion}
 I have created two new scripting languages targeting mobile devices.
 
-Yolan is a minimalistic scripting language with first class functions and Lisp-like syntax. This language is a proof of concept that the code footprint cost of an embeddable scripting language for Mobile Java applications, can be kept low, in this case approximately 5 KB.
+Yolan is a minimalistic scripting language with first-class functions and Lisp-like syntax. This language is a proof of concept that the code footprint cost of an embeddable scripting language for Mobile Java applications, can be kept low, in this case approximately 5 KB.
 
 LightScript is a more advanced language, that has a larger footprint than Yolan, but it still smaller than other languages. LightScript is more developer friendly, being a subset of JavaScript, and it has also more features, such as an object system with inheritance and support for exceptions.
 The language and its implementation can be of practical use. I have released it as open source and will develop it further after this thesis.

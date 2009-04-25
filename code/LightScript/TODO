@@ -1,4 +1,6 @@
 - static getter-setter interface and extend stdlib
+  Default-get function default set function
+  new iterator
   ::: LightScript thing: APPLY, SET, GET!
     - default object, for non-LightScript things
     - LightScript a LightScript-thing
