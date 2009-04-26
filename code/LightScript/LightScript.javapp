@@ -2283,7 +2283,7 @@ public final class LightScript {
                     break;
                 }
                 case ID_NOT: {
-                    stack[sp] = stack[sp] == null ? TRUE : FALSE;
+                    stack[sp] = toBool(stack[sp]) ? FALSE : TRUE;
                     break;
                 }
                 case ID_NEG: {
