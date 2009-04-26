@@ -46,6 +46,7 @@ for Mobile Devices \\
 \begin{document}
 
 \maketitle
+\renewcommand\abstractname{Abstract}
 \begin{abstract}
 This thesis creates two new languages: Yolan and LightScript, which run on top of Java Micro Edition and enable scripting on very low-end mobile devices.
 
@@ -67,6 +68,31 @@ Yolan served as a proof of concept and as a stepping-stone toward LightScript.
 LightScript is now a practical language for mobile development and will continue to be developed after this thesis.
 \end{abstract}
 
+\renewcommand\abstractname{Resumé}
+\begin{abstract}
+I dette speciale har jeg udviklet to nye scriptingsprog til mobiltelefoner: Yolan og LightScript.
+De er udviklet i Java Micro Edition, der er den program\-udviklings\-platform der gør det muligt at køre på flest telefoner.
+
+Størrelsen af det eksekverbare program er den mest begrænsende faktor for Java Micro Edition, og sprogene udviklet i dette speciale fylder mindre end eksisterende scriptingsprog.
+Udførselshastigheden er på niveau med større scripting\-sprogs\-implementationer,
+og betydeligt hurtigere end mange af de små scriptingsprog.
+
+Både Yolan og LightScript har funktioner som værdier, har dynamisk typesystem, har indbyggede hashtabeller, stakke, osv., og kan udføre program\-stumper der indlæses som kildekode under kørslen.
+Begge sprog er fortolkede, da Java Micro Edition ikke understøtter indlæsning af ny kode under kørslen.
+
+Yolan er optimeret med henblik på programstørrelsen.
+Sproget har dynamisk virtkefelt, Lisp-inspireret syntaks, og bliver fortolket ved at gennemløbe syn\-taks\-træet og evaluere de enkelte knuder.
+
+
+LightScript er kompatibelt med en delmængde af JavaScript, hvilket gør sproget mere tilgængeligt for andre. 
+Det har statisk virkefelt, understøtter ``closures'', undtagelser og objekt orienteret programmering.
+Det oversættes til, og udføres på, en stakbaseret virtuel maskine.
+
+Yolan fylder cirka halvt så meget som LightScript, og de er omtrent lige hurtige, til trods for deres forskellige tilgange til programudførsel.
+Yolan afdækker mulighederne for scripting\-sprogs\-udvikling indenfor mobiltelefonernes be\-græns\-ninger, og det tjener også som en grundsten for udviklingen af LightScript.
+LightScript er et praktisk værktøj til udvikling af software til mobiltelefoner, og det vil fortsat blive videreudviklet efter dette speciale.
+
+\end{abstract}
 \setcounter{tocdepth}{1}
 \tableofcontents
 
@@ -1283,83 +1309,82 @@ The actual implementation can be seen on page~\pageref{code-lightscript-parser}.
 
 \subsection{Performance properties of the parser implementation}
 
-For each token, there is an instruction cost of 1-2 function calls, 1 switch-dispatch, 0-1 comparisons, extracting of 2-3 parts of the token integer, and storing a copy of the token integer, plus the cost of building the actual AST node, and the cost of the tokenisation itself.
+For each token, there is an instruction cost of 1-2 function calls, 1 switch-dispatch, 0-1 comparisons, extracting 2-3 parts of the token integer, and storing a copy of the token integer, plus the cost of building the actual AST node, and the cost of the tokenisation itself.
 
 The size of the implementation can be kept very small, as the denominator functions can be reused across different token-types. For example: the binary operators share a single case in the left denominator dispatch, and adding a new binary operator only uses the length in characters of the operator plus 5 bytes. 
 
 \section{Implementation of variables and scope}
 \index{Scope}
-In the EcmaScript standard, identifier resolution is done by searching through the scope chain, which is a list of objects. Objects in the EcmaScript context are a mapping from property names to values. This approach to implementation would be very performance expensive.
+In the EcmaScript standard, identifier resolution is done by searching through the scope chain, which is a list of objects. An object in the EcmaScript context is a mapping from property names to values. This approach to implementation would be very performance expensive.
 
-Instead we want to resolve the variables at compile time, while preserving as much of the EcmaScript semantics as it is practical. The main issue here is that when we resolve the variable at compile time, we do not keep information to be able to resolve it dynamically at run-time,
-which lead to limitations in \verb|eval| like statements when compared EcmaScript semantics. Currently there are no \verb|eval| statement in LightScript, but this may be an issue in future versions.
+Instead we want to resolve the variables at compile time, while preserving as much of the EcmaScript semantics as is practical. The main issue here is that when we resolve the variable at compile time, we do not keep information to be able to resolve it dynamically at run-time,
+which lead to limitations in \verb|eval| like statements when compared to the EcmaScript semantics. Currently there is no \verb|eval| statement in LightScript, but this may be an issue in future versions.
 
-Of the different methods for implementing scope, discussed in Section~\ref{survey-scope}, the only real possibilities for a partly imperative scripting language with support for first-class functions are either to allocate the activation records on the heap, or keep track of variables that could live on after exiting a function, and box those variable on the heap.
+Of the different methods for implementing scope, discussed in Section~\ref{survey-scope}, the only real possibility for a partly imperative scripting language with support for first-class functions is either to allocate the activation records on the heap, or to keep track of variables that could live on after exiting a function, and box those variable on the heap.
 The other options are ruled out, as we want to have closures, and we want the outer scope variables to be mutable.
 \index{Closure}
-As we are implementing on top of the JVM, that also determines the garbage collector, which may vary between different devices, and which may be badly suited for activation record allocation on the heap.
-So the approach will be only to box variables onto the heap, that could be alive after function exit.
-
-To simplify this, it is done such that every variable that is added to a closure of an inner function is boxed on the heap, and other local variables are just stack allocated in the usual way. 
+As we are implementing on top of the JVM, we inherit its garbage collector, which may vary between different devices, and which may be badly suited for activation record allocation on the heap.
+So the approach will be only to box variables onto the heap that could be alive after function exit.
+To simplify this every variable that is added to a closure of an inner function is boxed on the heap, and other local variables are just stack allocated in the usual way. 
 %TODO: reference nanopass compiler paper by Kent Dybvig (ICFP in Snowbird) or other papers by dybvig
 %I have not seen this exact approach to implement closures other places, but it seems so obvious, that it is probably done somewhere before, although it clearly is different from the Lua approach with upvals \cite{luasrc}, and also from the approach following the EcmaScript standard \cite{ecmascript} directly.
 
 For the practical implementation of the stack on top of the JVM, there are two obvious possibilities: A \verb|java.util.Stack| object could be used, or a stack could be implemented manually with an array and an index pointer. 
 In order to select implementation strategy, a microbenchmark was done on the KVM, which indicated that the array approach is significantly faster than the \verb|java.util.Stack|. The array grows dynamically when entering a function that uses more stack space than is available. 
-The code footprint size is similar for both approaches, though probably a bit smaller for the Stack, as that one automatically grows, unlike the array approach, which need a manual implementation.
-The actual access to a \verb|Stack| requires a method call, which is 3 bytes plus 1-3 bytes for self and parameter loading, where reading from an array is a single byte opcode plus 2-4 bytes for self, index and parameter loading, and at the same time the array approach sometimes need to adjust the index, costing 3 bytes.
+The code footprint size is similar for both approaches, though probably a bit smaller for the {\tt java.util.Stack}, as that one automatically grows, unlike the array approach, which needs a manual implementation.
+The actual access to a \verb|Stack| requires a method call, which is 3 bytes plus 1-3 bytes for self and parameter loading, where reading from an array is a single byte opcode plus 2-4 bytes for self, index and parameter loading, and at the same time the array approach sometimes needs to adjust the index, costing 3 bytes.
 
 \section{Overview of the implementation}
-The core of the LightScript implementation consists of three parts: 1) a top-down operator precedence parser that is responsible for building the syntax tree, and for identifying which variables needs to be boxed on the heap for closures, 2) a compiler which translate the abstract syntax tree to a sequence of opcodes while keeping track of the stack depth, and 3) a stack-based virtual machine for executing the code.
+The core of the LightScript implementation consists of three parts: 1) a top-down operator precedence parser that is responsible for building the syntax tree, and for identifying which variables needs to be boxed on the heap for closures, 2) a compiler that translates the abstract syntax tree to a sequence of opcodes while keeping track of the stack depth, and 3) a stack-based virtual machine that executes the code.
 Besides these core elements, the implementation also contains an API for embedding, and a library of standard functions.
 
-The parser is a concrete implementation of the top-down operator precedence parser for imperative language, as described in Section~\ref{tdop-imp}, with the additional detail, that during the parsing, the parser keeps track of which variable is defined and used in each function, such that this information can be used for scoping later on. 
+The parser is a concrete implementation of the top-down operator precedence parser for imperative language, as described in Section~\ref{tdop-imp}, with the additional detail that during the parsing, the parser keeps track of which variables are defined and used in each function, such that this information can be used for scoping later on. 
 The source code for the parser starts on page~\pageref{code-lightscript-parser}.
 \index{Top-down operator precedence parser}
 
 \subsection{Compiler}
 
 The core of the compiler is a function that compiles a node of the syntax tree, possibly calling itself recursively for the children.
-As it is compiling to a stack-based virtual machine, the compilation itself can be quite simple/small, as functions and operators just need to evaluate its parameters in a way that pushes the results to the stack, followed by doing the operation on the top elements of the stack.
+As it is compiling to a stack-based virtual machine, the compilation itself can be quite simple/small, as a function or operator just needs to evaluate its parameters in a way that pushes the results to the stack, followed by doing the operation on the top elements of the stack.
 
-As the activation records are also allocated on the stack, the compiler needs to keep track of the current stack depth, so whenever emitting a function that changes the stack depth, the stack depth variable also needs to be kept updated.
+As the activation records are allocated on the execution stack. The compiler keeps track of the stack depth of the emitted code, such that there is no need for a frame pointer at execution, but variables is referenced relative to the stack top.
 
-The abstract syntax tree does not distinguise between statements and expressions. Instead the compiler function takes a parameter which indicates whether the generated code is expected to push a result on the stack or not, and corresponding code will be generated. 
+The abstract syntax tree does not distinguise between statements and expressions. Instead the compiler takes a parameter that indicates whether the generated code is expected to push a result on the stack or not, and corresponding code will be generated. 
 
 By having the integer for the abstract syntax tree node type matching the virtual machine instruction, many of the compilation cases can be joined.
 
 
 \subsection{Virtual Machine}
 The virtual machine is stack-based in order to reduce the footprint of the compiler.
-It is implemented with a single larger switch statement as it is running on top of JVM, as the JVM does not support for references to labels, etc.
-The instruction set is inspired by the JVM and calling conventions on i386, and it is also a product of the iterative development, such that new instructions are added, as they are needed by the compiler.
+It is implemented with a single larger switch statement as it is running on top of JVM and the JVM does not support for references to labels, etc.
+The instruction set is inspired by the JVM and calling conventions on i386, and it is also a product of the incremental development.
 \index{Virtual machine}
 
 
 \section{Language specification}
 \index{Language specification!LightScript}
 The language is mostly a subset of EcmaScript \cite{ecma-262}, and the description of the different parts of the languages is written in the same sequence as the EcmaScript standard, to make it easier to compare the two. The focus will be on where LightScript differs from EcmaScript.
-Scripts written for LightScript also runs unaltered in EcmaScript compliant interpreters, with af couple of extra functions defined within EcmaScript. On the other hand, EcmaScript may or may not run within LightScript, as LightScript is only a subset of EcmaScript.
+Scripts written for LightScript also run unaltered in EcmaScript compliant interpreters, with a couple of extra functions defined within EcmaScript. On the other hand, EcmaScript may or may not run within LightScript, as LightScript is only a subset of EcmaScript.
 
 The specification is stricter than the actual implementation, for example: the implementation does not distinguish between statements and expressions, and it allows a statement everywhere an expression could be written, whereas the specification follows EcmaScript, and distinguishes the two.
 
-Only a subset relatively small subset of EcmaScript is implemented: operators have been added as needed, meaning that rare operators have not yet been added. 
+Only a relatively small subset of EcmaScript is implemented: operators have been added as needed, meaning that rare operators have not yet been added. 
 On the other hand, more interesting language aspects, such as exceptions and prototypical inheritance, have been implemented and tested, though they may not have been needed for the example programs or benchmarks.
 
-The specification below follows the overall structure of the EcmaScript specification, in order to make it easier to compare the two.
+%The specification below follows the overall structure of the EcmaScript specification, in order to make it easier to compare the two.
 
 
 \subsection{Lexical conventions}
 The lexical conventions are slightly different from EcmaScript. 
 Whitespaces are space, tab, carriage return and line feed. 
-LightScript does not distinguish between whitespace and line terminators, and do not have automatic semicolon insertion.
+LightScript does not distinguish between whitespace and line terminators, and does not have automatic semicolon insertion.
 
-Comments are started with two consecutive slashes \verb|//| and runs to the next newline character.
+Comments starts with two consecutive slashes \verb|//| and run to the next newline character.
 
 Keywords reserved by EcmaScript are also reserved by LightScript. The keywords currently used by LightScript are: {\tt catch do else for function if return this throw try var while}. 
 
-Identifiers start with a letter or an underscore, and continues with any combination of letters, underscores and digits. 
-LightScript does not support escaped unicode sequences, but do accept utf-8 encoded. Non-letter unicode symbols with value larger than 127 are not supported. This allows parsers to be implemented easier as they can just treat any 8-bit character with a value larger than 127 as a part of a unicode letter.
+An identifier starts with a letter or an underscore and continues with any combination of letters, underscores and digits. 
+LightScript does not support escaped unicode sequences, but does accept utf-8 encoded. Non-letter unicode symbols with value larger than 127 are not supported. This allows the parser to be implemented more easily as they can just treat any 8-bit character with a value larger than 127 as a part of a unicode letter.
 
 The punctuators in the current version of LightScript are: {\tt \verb|{| \verb|}| ( ) [ ] . ; , < > <= >= === !== + - * \% >> ! \&\& || ? : = += -=}. 
 Floating point division is omitted, but an integer \verb|div| operator can be added, as discussed in Section~\ref{division} on page~\pageref{division}.
@@ -1368,28 +1393,29 @@ String literals are always enclosed in double qoutation \verb|"|, and single quo
 
 Integer literals are written as a sequence of digits, not starting with a zero, unless the number is zero. Only base 10 literals are supported.
 
-Other literals are \verb|true| which translates to a value that has a true truth value, and \verb|false|, \verb|null| and \verb|undefined| which translates to a value that has a false truth value.
+Other literals are \verb|true| which translate to a value that has a true truth value, and \verb|false|, \verb|null| and \verb|undefined| which translates to a value that has a false truth value.
 
 \subsection{Types}
 LightScript has 5 builtin types: nil, string, number, array, and objects.
 
-The nil type only has one value, which is referenced to as \verb|undefined|, \verb|null| or \verb|false|. 
-Strings are immutable sequences of characters.
-Numbers are 32 bit integers.
+The nil type only has one value, which is referenced as \verb|undefined|, \verb|null| or \verb|false|. 
+A string is an immutable sequences of characters.
+A numbers is a 32 bit integer.
 An array is a growable and mutable sequence of values, where the values can have any type.
-Objects are mappings between names and values, where the name should be of the string type, and the value can be of any type. An object can have another object prototype, where, if the lookup in the first object does not find a mapping, the name is then looked up in the prototype object.
-The order of traversal of the object names/values, may be implementation dependent such that implementations may choose to implement them via hashtables or lists, depending on what makes most sense for the platform. This is different from EcmaScript, where the traversal is in the order the properties were added to the object.
+An object is a mapping between names and values, where the name should be of string type, and the value can be of any type. An object can have another object as its prototype, such that if the lookup in the first object does not find a mapping, the name is then looked up in the prototype object.
+The order of traversal of the object names/values, may be implementation dependent in that implementations may choose to implement them via hashtables or lists, depending on what makes most sense for the platform. This is different from EcmaScript, where the traversal is in the order the properties were added to the object.
 \index{Prototypical inheritance}
 
 \subsection{Execution contexts}
 
-With each function call a new execution context / activation record is created. 
-Variables defined with the \verb|var| keyword are allocated on the current activation record. 
-If a variable is not in the current functions activation record,
-it is looked up in the lexical outer function, or if there is no outer function, the global scope.
+Variables defined with the \verb|var| keyword are allocated in the current function's activation record. 
+A new activation record is created at each function call. 
+If a variable is not in the current function's activation record,
+it is looked up in the lexically enclosing function, or if there is no outer function, in the global scope.
 This is the usual static scoping, where functions are the only way to make a scope closure.
 \index{Scope}
 
+%TODO: a bit about omitting bad parts of ecmascript, mentioned earlier in the design, more references to footprint
 \subsection{Expressions}
 
 When a function is called as a property on an object, evaluation of \verb|this| within the function yields the object.  Identifiers are evaluated in the scope to yield a value. Literal values are just their actual values.
@@ -1398,64 +1424,67 @@ Arrays are initialised with square brackets \verb|[| $elem_1,\cdots,elem_n$ \ver
 Objects can similarly be initialised with curly brackets: \verb|{| 
 $key_1: value_1, \cdots key_n: value_n$ \verb|}|, where the keys must be string literals, and values can be any expression.
 
-Parenthesis can be used to group expressions together, for example: $2 * (3 + 4) \neq 2 * 3 + 4$
+Parenthesis can be used to group expressions together, for example: $2 * (3 + 4)$ is different from $2 * 3 + 4$
 
-Objects and arrays can be subscripted with the bracket notation: $object$\verb|[|$key$\verb|]|, where $key$ can be any expression that yields something that can be used as a subscript. The dot notation can be used as a shorthand for the case where $key$ is a string literal, such that $object$\verb|.|$name$ is equivalent to $object$\verb|["|$name$\verb|"]|.
+Objects and arrays can be subscripted with the bracket notation: $object$\verb|[|$key$\verb|]|, where $key$ can be any expression. The dot notation can be used as a shorthand for the case where $key$ is a string literal, such that $object$\verb|.|$name$ is equivalent to $object$\verb|["|$name$\verb|"]|.
 
-The \verb|new| operator from JavaScript is not supported in LightScript, but instead objects can be initialised with \verb|{}|, or in case of inheritance, the \verb|clone| library function can be used.
+The \verb|new| operator from JavaScript is not needed, and is therefor not supported in LightScript.
+A new object can be written as an object literal, created by constructor function, or be \verb|clone|d for inheritance.
 
 Function calls are written as an expression followed by, a possibly empty, parenthesised argument list, e.g. $func$\verb|(|$arg_1,\cdots,arg_n$\verb|)|, where the arguments are separated by commas. 
-A function written in LightScript, currently have a fixed number of arguments.
+A LightScript function currently have a fixed number of arguments.
 
-The postfix versions of increment/decrement are not supported, and the prefix versions should be used instead. The postfix operators has the effect of altering the variable, but returning the unaltered result, which can lead to difficult-to-read programs, and thus in the current version of LightScript, this is disencouraged by not having the postfix operators at all.
+Postfix operators are not supported. Their implementation would add slightly more to the code space than the prefix versions.
 
 The implemented prefix operators are \verb|++|, \verb|--|, \verb|-|, and \verb|!|, which work as usual. The \verb|typeof| operator is omitted due to its unfortunate semantics \cite{crockford-web}, and instead a \verb|gettype| function is supplied, which can easily also be implemented on top of EcmaScript.
 
-Implemented binary arithmetic operations are: multiplication \verb|*|, modulo \verb|%|, addition \verb|+|, subtraction \verb|-| and right shift \verb|>>|. These works only on numbers, except addition, that, if one of the arguments is not a number, does string concatenation instead.  Division \label{division} is not implemented as \verb|/|, due to the semantic differences in integer and floating point division, but can instead be implemented as an integer division function, \verb|div(|$a,b$\verb|)|. 
+The implemented binary arithmetic operations are: multiplication \verb|*|, modulo \verb|%|, addition \verb|+|, subtraction \verb|-| and right shift \verb|>>|. Except for addition, these work only on numbers. For addition, if one of the arguments is not a number, it does string concatenation instead.  Division \label{division} is not implemented as \verb|/|, due to the semantic differences in integer and floating point division, but can instead be implemented as an integer division function, \verb|div(|$a,b$\verb|)|. 
 
-Comparison operators are: \verb|<|, \verb|<=|, \verb|>|, \verb|>=|, \verb|!==|, \verb|===|, which works as usual. The equality operators do an actual comparison and not just a reference comparison. 
-The type coerced equality operators from JavaScript \verb|!=| and \verb|==|, are omitted and should generally not be used \cite{javascriptnoeqeq} as they have some semantic issues, they are for example not transitive.
+Comparison operators are \verb|<|, \verb|<=|, \verb|>|, \verb|>=|, \verb|!==|, \verb|===|, which works as usual. The equality operators do an actual comparison\footnote{This is equivalent with the Jave {\tt .equals}- method.} and not just a pointer comparison. 
+The type coerced equality operators from JavaScript \verb|!=| and \verb|==|, are omitted 
+as they have semantic issues, such as not being transitive \cite{javascriptnoeqeq}.
 
 The current assignment operators supported by the language are: \verb|=|, \verb|+=| and \verb|-=|.
 The remaining will be added in the next version.
-The conditional operator ``\verb|? :|'' is supported. The comma operator ``\verb|,|'' is not supported, as that one generally is considered bad programming style \cite{crockford-web}.
+The conditional operator ``\verb|? :|'' is supported. The comma operator ``\verb|,|'' is not supported, as that is generally considered bad programming style \cite{crockford-web}.
 
 \subsection{Statements}
-Statements are separated by semicolon \verb|;|.
-Blocks consist of a sequence of statments within curly brackets \verb|{|$\cdots$\verb|}|. This may for example be needed in conjunction with \verb|if| or \verb|function| declaration. Notice that in EcmaScript, and thereby also in LightScript, a block is not a scope limit. In LightScript, blocks are only allowed, where they could actually be needed, e.g. in conjunction with different conditional/iteration statements, function declaration and try/catch.
+Statements are terminated by semicolon \verb|;|.
+A blocks consists of a sequence of statments within curly brackets \verb|{|$\cdots$\verb|}|. A block may, for example, be used in conjunction with \verb|if| or \verb|function| declaration. Notice that in EcmaScript, and thereby also in LightScript, a block is not a scope limit. In LightScript, blocks are only allowed, where they could actually be needed, e.g. in conjunction with different conditional/iteration statements, function declaration and try/catch.
 
-The conditional and iteration statements supported by LightScript are: \verb|if|, \verb|do|$\cdots$\verb|while|, \verb|while|, and \verb|for|, which work similarly to EcmaScript.
+The conditional and iteration statements supported by LightScript are: \verb|if|, \verb|do|$\cdots$\verb|while|, \verb|while|, and \verb|for|, which work similarly to their EcmaScript counterparts.
 
-Functions can be exited with the \verb|return| statement, where the optional parameter to the return statement is returned.
+Functions can be exited with the \verb|return| statement, where the optional argument to the return statement is the value returned.
 
-LightScript does not support the \verb|with|, as this is considered bad programming style.
+LightScript does not support the \verb|with| statement,\footnote{The {\tt with} statement lets properties of an object behave as local variables.} as this is considered bad programming style.
 
-\verb|switch| statements, \verb|break|, \verb|continue| and labelled statements are not supported. In JavaScript the semantics of the switch statement are mostly syntactic sugar for a sequence of \verb|if|-statements combined with an anonymous variable, as the expressions of the \verb|case|-clauses are evaluated sequentially and then compared to the result of the expression in the switch clause.
-These may be added in later versions of LightScript.
+\verb|switch| statements, \verb|break|, \verb|continue| and labelled statements are not supported. In JavaScript a statement is mostly syntactic sugar for a sequence of \verb|if|-statements combined with an anonymous variable, as the expressions of the \verb|case|-clauses are evaluated sequentially and then compared to the result of the expression in the switch clause.
+These constructs may be added in later versions of LightScript.
 
-Exceptions are thrown with the \verb|throw| statements, which works similarly to JavaScript.
-The \verb|try| statement is slightly different, as LightScript only supports the \verb|try|$\cdots$\verb|catch| version, and does not currently support \verb|finally| option.
-LightScript also has slightly different scoping rules for the catch block, where the caught variable is a usual variable, where JavaScript is creating a new object in the scope chain only containing this variable. The motivation for this change is that it is a more consistent approach to scoping, where this would otherwise be a special case, requireing more code space, where at the same time, this is only an incompatibilities if the variable in the catch-statment shadows another variable, whose value is used after the catch block, - which also should be avoided as that would lead to more difficult-to-read code.
+Exceptions are thrown with the \verb|throw| statements, which works as in JavaScript.
+The \verb|try| statement is slightly different, as LightScript only supports the \verb|try|$\cdots$\verb|catch| version, and does not currently support the \verb|finally| option.
+LightScript also has slightly different scoping rules for the catch block, where the caught variable is an ordinary local scoped variable, whereas JavaScript creates a new object in the scope chain containing only this variable. The motivation for this change is that it is a more consistent approach to scoping, where this would otherwise be a special case, requiring more code space. 
+At the same time, it is only in the case that the variable in the catch-statment shadows another variable, that JaveScript and LightScript will be different, and this case should be avoided anyhow, as it leads to more difficult-to-read code. 
 \index{Exceptions}
 
 \subsection{Function definitions}
 Functions are defined using the \verb|function| keyword, followed by an optional function name, a list of parameters and the function body.
 If the function name is specified, a variable with that name assigned to the function.
 
-The LightScript currently does not support a variable numbers of parameters, nor can the functions have properties.
-This is going to be added in the next version.
-Functions are first-class objects, and can be passed around, and used as such. Applications of functions are done with the usual $f$\verb|(|$\cdots$\verb|)|.
+The LightScript currently does not support a variable numbers of arguments, nor can functions have properties.
+Support for variable number of arguments is added in the next version.
+Functions are first-class objects, and can be passed around, and used as such. A function applications is expressed with the usual $f$\verb|(|$\cdots$\verb|)|.
 
 \subsection{Native LightScript objects and functions}
-The current LightScript implementation only has a small standard library, with the purpose of being a proof of concept that functions can easily be added. The following functions and methods are implemented:
+The current LightScript implementation only has a small standard library, with the purpose of being a proof of concept to which functions can easily be added. The following functions and methods are implemented:
 
-\paragraph{print(value)} Prints a value to standard out.
+\paragraph{print(value)} Prints a value to the standard output.
 \paragraph{gettype(value)} Returns a string representation of the type of the parameter, either ``object'', ``array'', ``number'', ``undefined'' or ``builtin''. This can be used instead of the \verb|typeof| operator, which in EcmaScript has some semantic issues.
-\paragraph{parseint(str)} Parses a string as a base 10 integer, and return the integer result.
+\paragraph{parseint(str)} Parses a string as a base 10 integer, and returns the integer result.
 \paragraph{clone(parent)} Creates a new object using the parameter as the prototype.
 \paragraph{Array.push(elem)} Pushes an element to the end of the array. This is a method of the array prototype.
 \paragraph{Array.pop()} Pops an element from the end of the array and returns it. This is a method of the array prototype.
-\paragraph{Array.join(sep)} Joins the elements of an array as strings, with separator between each neighbours. This is a method of the array prototype.
+\paragraph{Array.join(sep)} Joins the elements of an array as strings, with separator between neighbours. This is a method of the array prototype.
 \paragraph{Object.hasOwnProperty(name)} Determines whether the object has a (non-inherited) property of the given name. This is a method of the object prototype.
 \paragraph{*.length} A special property, indicating the length of an array or string, or the number of properties in an object.
 
@@ -1465,13 +1494,13 @@ The current LightScript implementation only has a small standard library, with t
 
 
 \section{Developer guide to embedding LightScript in Java}
-To evaluate code with LightScript, the developer first has to instantiate a LightScript object, which keeps track of global values, loaded libraries, and internal compiler state. The constructor takes no parameters, so creating it is just:
+To evaluate code with LightScript, the developer first has to instantiate a LightScript object, which keeps track of global values, loaded libraries, and the internal compiler state. The constructor takes no parameters, and is used as:
 \begin{lstlisting}
     LightScript lsContext = new LightScript();
 \end{lstlisting}
-This context can then be used to evaluate LightScript code, using the \verb|eval| method. This method either takes a string or an \verb|java.io.InputStream| as parameter, which is then read and executed:
+The LightScript object is a context that can be used to evaluate LightScript code, using the \verb|eval| method. This method either takes a string or an \verb|java.io.InputStream| as parameter, which is then read and executed:
 \begin{lstlisting}
-    lsContext.eval("print(\"Hello world \" + 17 * 42)");
+    lsContext.eval("print(\"Hello world \" + 17 * 42);");
     lsContext.eval(new FileInputStream(new File("myscript.js")));
 \end{lstlisting}
 Global variables of the context can be read and written with the \verb|get| and \verb|set| method, so for example:
@@ -1487,7 +1516,7 @@ would print \verb|42|.
 A method of a Java object can be called from LightScript if the object implements the \verb|LightScriptFunction| interface, which defines an \verb|apply| method.
 The interface is:
 \lstinputlisting{../code/LightScript/LightScriptFunction.java}
-So for example a function that returns the current number of milliseconds could be implemented as:
+So, for example, a function that returns the current number of milliseconds could be implemented as:
 \begin{lstlisting}
 class MillisecondsFunction implements LightScriptFunction {
     public Object apply(Object thisPtr, Object[] args, int argpos, 
@@ -1498,8 +1527,8 @@ class MillisecondsFunction implements LightScriptFunction {
 \end{lstlisting}
 
 Adding a function to the runtime is just like adding any other variable,
-via using the \verb|put| method of the LightScript object.
-So using the function above to perform some timings in LightScript can be done as follows:
+via the \verb|put| method of the LightScript object.
+So the function above can be used to perform some timings in LightScript as follows:
 \begin{lstlisting}
     lsContext.set("timer",new MillisecondsFunction());
     lsContext.eval("begin = timer();"
@@ -1507,7 +1536,7 @@ So using the function above to perform some timings in LightScript can be done a
                   +"print(\"Time used: \" + (timer() - begin));");
 \end{lstlisting}
 
-When registrering several functions, it is more compact to join them via a dispatch, 
+When registering several functions, it is more compact to join them via a dispatch, 
 so a class implementing several functions could be implemented as follows:
 \begin{lstlisting}
 class FunctionLibrary implements LightScriptFunction {
@@ -1543,10 +1572,10 @@ which could be used like:
 
 \subsection{Datatypes}
 LightScript uses ordinary Java objects for most data.
-Strings, stacks, tables, are the standard Java classes.
-Boolean values are the constants \verb|LightScript.TRUE| and \verb|LightScript.FALSE|, instead of Java Booleans as that improves performance.
+Strings, stacks, tables, are implemented using the standard Java classes.
+Boolean values are the constants \verb|LightScript.TRUE| and \verb|LightScript.FALSE|, instead of Java Booleans as that improves performance, as we can just do a pointer comparison, rather than first casting to the Boolean class followed by a method call to retrieve the boolean value.
 
-LightScript objects are instances of \verb|java.lang.Hashtable|. If the lightscript object is cloned from another object, it is an instance of the \verb|LightScriptObject| class, which is subclass of \verb|java.lang.Hashtable|. LightScript objects have a constructor that corresponds to clone in Self, described in Section~\ref{survey-self}, and the parameter to the constructor is a LightScript object, either as a \verb|java.lang.Hashtable| or a \verb|LightScriptObject|. \verb|LightScriptObject| overloads the \verb|get| operator of the hashtable superclass, such that when the key is not found in the current object, it does a lookup in the prototype from which the object was cloned.
+LightScript objects are instances of \verb|java.lang.Hashtable|. If a LightScript object is cloned from another object, it is an instance of the \verb|LightScriptObject| class, which is subclass of \verb|java.lang.Hashtable|. LightScript objects have a constructor that corresponds to clone in Self, described in Section~\ref{survey-self}, and the parameter to the constructor is a LightScript object, either as a \verb|java.lang.Hashtable| or a \verb|LightScriptObject|. \verb|LightScriptObject| overloads the \verb|get| operator of the hashtable superclass, such that when the key is not found in the current object, it does a lookup in the prototype from which the object was cloned.
 
 Exceptions that can be thrown to/from LightScript are of the class \verb|LightScriptException|. This exception has a property \verb|value| that is the object that is thrown/caught within LightScript. The constructor just takes the value as an argument.
 
@@ -1556,8 +1585,8 @@ The LightScript version described above is version 1.0.426
 
 The version number consist of a major version number, a minor version number and a revision number.
 The major version number is incremented at major rewrites and redesign.
-The minor version number is incremented with milestones and expansions of language/added functionality, it uses an even/uneven strategy, such that even minor versions get bugfixes, and the uneven minor versions are development versions where the new features are added, i.e. 
-the features intended for version 1.2 are implemented in versions 1.1.\emph{something} and when all of them areare  added, the minor version number increases to 1.2, where only bug fixes will be added.
+The minor version number is incremented with milestones and expansions of language/added functionality, it uses an even/odd strategy, such that even minor versions get bugfixes, and the odd minor versions are development versions where the new features are added, i.e. 
+the features intended for version 1.2 are implemented in versions 1.1.\emph{something} and when all of them are added, the minor version number increases to 1.2, where only bug fixes will be added.
 The revision number correspond to the svn version, and is incremented on each commit.
 
 The following is the roadmap of scheduled changes to LightScript version 1:
@@ -1567,27 +1596,37 @@ Prototype for thesis and proof of concept.
 Version 1.0 is the one used for the benchmarks and described throughout this report, unless otherwise mentioned. 
 \item[1.2]
 Expansion of language and standard library, more operators from EcmaScript are added,
-and an additional fixed point number representation will be added. Better compatibility with EcmaScript type system.
+and an additional fixed point number representation will be added. 
+More constructs from EcmaScript should be added, including distinction between false, null and undefined.
 \item[1.4]
 Extra optional libraries to make the language more useful for practical applications.
 \end{itemize}
 
+As the benchmarks in the next chapter show, version 1.0 fullfills the goal of a small code footprint and decent performance.
+Version 1.2 and 1.4 will add more functionality at a tradeoff of footprint and performance degradation, but should still be possible to keep it small the footprint reasonable small. Some functionality may optionally be left out at the compile time.
+
+
+
 \subsection{Roadmap towards version 1.2}
-Where the previous parts of this chapter describes LightScript version 1.0, this section describes the most recent changes and updates in the development branch, done after the report was written.
+Whereas the previous parts of this chapter describes LightScript version 1.0, this section describes the most recent changes and updates in the development branch.
 In the following is listed what have been done in version 1.1 and what needs to be done before version 1.2
 \subsubsection{Implemented changes}
 \begin{itemize}
-\item Optimise code footprint, by reordering opcodes
-\item Add support for fixed-point arithmetics
-\item Add simplified postfix increment/decrement, to be able to run some existing JavaScript code.
-\item Distinguish between false, null and undefined
-\item Replace stack allocation instruction with automatic code to do this, based on metadata of the function object 
-\item Let functions support a variable number of arguments
-\item Add optional clean-up code when exiting a function, to improve garbage collection
+\item Optimise the code footprint by reordering opcode IDs. The saving comes by a smaller dispatch table, is in the magnitude of hundred bytes code footprint, and has no other side effects
+\item Add support for fixed-point arithmetic. The cost in code footprint is in the magnitude of a few kilobytes.
+\item Distinguish between false, null and undefined.
+\item Replace the stack allocation instruction with automatic code to do this, based on metadata of the function object. This does not change to the footprint significantly
+\item Let the functions support a variable number of arguments
+\item Add optional clean-up code when exiting a function, to improve garbage collection. This degrade performance slightly for better reclaimation of runtime memory
 \item Add prototype object to functions
 \end{itemize}
+Unless otherwise mentioned, each of these changes addes in the magnitude of hundred of bytes or less to the code footprint.
+
+A change toward more EcmaScript-like semantics by having cutom Java-classes for the different types in LightScript, was abandoned as the implementation turned out to be too expensive spacewise.
+
 \subsubsection{Remaining tasks}
 \begin{itemize}
+\item Make the fixed-point arithmetic optional.
 \item Generalise the system for builtin objects, making it even easier to add support for using plain Java classes from within LightScript, i.e. LightScript-getter/setter interface
 \item Let the LightScript object implement getter/setter interface. The LightScript object should the represent the global object, and when we are not in a method call, it should be the content of ``\verb|this|''
 \item Support for the \verb|new| operator and \verb|.prototype| property to allow existing object oriented JavaScript code to run within LightScript
@@ -1595,6 +1634,7 @@ In the following is listed what have been done in version 1.1 and what needs to 
 \item Maybe improve virtual machine by joining common instruction pairs to single instructions (adding superinstructions)
 \item Maybe add optional support for floating point numbers
 \item Maybe add breaks, continues and/or switches
+\item Maybe optimise compiler footprint, by changing code generation for some constructs to syntax tree rewriting
 \end{itemize}
 
 \chapter{Benchmarks}
@@ -1602,53 +1642,59 @@ In the following is listed what have been done in version 1.1 and what needs to 
 \index{Benchmarks}
 
 \section{Code footprint}
-This section looks at the code footprint: first footprint estimates are compared for different scripting languages, then details on the footprint of LightScript version 1.0 are investigated, and finally the actual size of the library embedded in a minimal application is found.
+This section looks at the code footprint: first footprint estimates are compared for different scripting languages, then details of the footprint of LightScript version 1.0 are investigated, and finally the actual size of the library embedded in a minimal application is found.
 
 \subsection{Comparison with other languages}
-To compare the code footprint size across languages, I have added an estimate of the JAR file size. 
-The estimate is done by making a zip archive of the non-obscurified class files,
-trying to exclude class files that are parts of extra libraries.
-The motivation for this approach is to make the comparison more fair, as some of the languages have large GUI libraries,
-which would count against them if we just looked at the JAR file. 
-In addition, compilation of some of the languages is obscurified/optimised by default,
-which would give those an advantage. So this approach should give a more fair comparison.
+Just comparing the JAR file size would yield an unfair comparison as some of the languages have large GUI libraries, which would be included in the size, and count against them.
+Similarly, some languages do not optimise/obscurify the JAR file.
+So to have a more fair comparison, the size is measured of zip archives\footnote{A JAR file is a zip archive, possibly with some meta data included} where the class files are non-obscurified, and extra libraries are removed, rather than the actual executable JAR.
+
+
+%To compare the code footprint size across languages, I have added an estimate of the JAR file size. 
+%The estimate is done by making a zip archive of the non-obscurified class files,
+%trying to exclude class files that are parts of extra libraries.
+%The motivation for this approach is to make the comparison more fair, as some of the languages have large GUI libraries,
+%which would count against them if we just looked at the JAR file. 
+%In addition, compilation of some of the languages is obscurified/optimised by default,
+%which would give those an advantage. So this approach should give a more fair comparison.
 \index{JAR-file}
 
 \subsubsection{Languages}
 \label{codefootprint-languages}
-The code size benchmark compares the languages implemented in this project, Yolan and LightScript, at scripting languages for mobile devices, FScriptMe, Kahlua, Hecl, Simkin, and CellularBasic, and at some general scripting language implementations,  JScheme, and Rhino.
+The code size benchmark compares the languages implemented in this project, Yolan and LightScript, to other scripting languages for mobile devices, FScriptMe, Kahlua, Hecl, Simkin, and CellularBasic, and to some general scripting languages,  JScheme, and Rhino.
 
 \index{FScriptME}
-FScriptME \cite{fscriptme} is the mobile edition of femto-script, which ``is an extremely simple scripting language'' \cite{fscript}. 
+FScriptME \cite{fscriptme} is the mobile edition of femto-script, which is ``an extremely simple scripting language'' \cite{fscript}. 
 Out of the box, it only supports strings and integers as data types -- no compound types -- which limits use somewhat, and it is still in beta, since 2002. 
-
-\index{Lisp and Scheme!JScheme}
-\index{Scheme|see{Lisp and Scheme}}
-JScheme \cite{jscheme} is a small Scheme implementation. We benchmark an early version as later versions have a vastly larger code footprint. It depends on reflection, and therefore it does not run on Java Micro Edition, but it is included because the implementation is compact, and may be changed to target mobile devices.
 
 \index{Lua!Kahlua}
 Kahlua \cite{kahlua} is an implementation of the Lua Virtual Machine for Java Micro Edition. 
-The implementation requires CLDC-1.1 due to the use of floating point arithmetics, and therfore it does not run on the lowest-end mobile devices, which only supports CLDC-1.0.
-Unlike the other languages, kahlua is not a full language interpreter, but only a virtual machine, so the the script cannot be executed directly on the device, but it needs to be compiled on another computer before being executed.
+The implementation requires CLDC-1.1 due to the use of floating point arithmetic, and therfore it does not run on the lowest-end mobile devices, which only support CLDC-1.0.
+Unlike the other languages, Kahlua is not a full language interpreter, but only a virtual machine, so the script cannot be executed directly on the device, but needs to be compiled on another computer before being executed.
 
 \index{Hecl}
-Hecl \cite{hecl} seems to be \emph{the} major scripting language for mobile devices, or at least the one that keeps popping up in the top of most queries, when searching for scripting languages for mobile devices.
-It is very portable with different editions running on CLDC-1.0, CLDC-1.1, Android, as applets and as usual applications.
-It has lots of libraries targeting mobile devices, which in this comparison were removed from the zip file of class files, not to give languages with fewer libraries an advantage in the size comparison.
-The language is a dialect of Tcl, and is simplified such that arithmetic operators, and the like, are prefix operators so expressions ends up a bit Lisp-like.
+Hecl \cite{hecl} seems to be \emph{the} major scripting language for mobile devices, or at least the one that keeps popping up at the top of most results, when searching for scripting languages for mobile devices.
+It is very portable with different editions running on CLDC-1.0, CLDC-1.1, Android, as applets and as standalone applications.
+It has many libraries targeting mobile devices, which in this comparison were removed from the zip file of class files, so as not to give languages with fewer libraries an advantage in the size comparison.
+The language is a dialect of Tcl, and is simplified such that arithmetic operators, and the like, are prefix operators, so expressions end up a bit Lisp-like.
 
 \index{Simkin}
-Simkin \cite{simkin} is a scripting language for being embedded in XML, which also runs on mobile devices. It depends on kxml xml library, which is not included in the measured size. 
+Simkin \cite{simkin} is a scripting language embedded in XML, which also runs on mobile devices. It depends on kxml XML library, which is not included in the measured size. 
 
 \index{CellularBasic}
 CellularBasic \cite{cellularbasic} is a dialect of Qbasic, implemented for mobile devices. 
 It includes a floating point support library which is not included in the measured size. 
 
+\index{Lisp and Scheme!JScheme}
+\index{Scheme|see{Lisp and Scheme}}
+JScheme \cite{jscheme} is a small Scheme implementation. We benchmark an early version as later versions have a vastly larger code footprint. It depends on reflection, and therefore it does not run on Java Micro Edition, but it is included because the implementation is compact, and may be changed to target mobile devices.
+
+
 \index{Rhino}
 Rhino \cite{rhino} is a JavaScript implementation. This language is not designed for, nor does it run on, mobile devices. It is included as an example of an implementation of a usual non-mobile scripting language.
 
 \subsubsection{Results}
-The approximated JAR sizes of the scripting languages are:
+The approximate JAR sizes of the scripting languages are:
 \begin{center}
 \begin{tabular}{|c|r|} \hline 
 Yolan & 7K \\ \hline 
@@ -1665,23 +1711,27 @@ Rhino & 397K \\ \hline
 \end{tabular}
 \end{center}
 
-The languages developed in my are smaller than other scripting languages for the platform. 
+The languages developed in this thesis are smaller than other scripting languages for the platform. 
 Yolan is approximately half the size of LightScript. 
+One of the reasons for this can be that most of the other languages are implemented with nice object oriented designs on top of Java. Yolan and LightScript has been implemented with code space optimisations in mind from the very beginning, and with a focus on the generated JVM code rather than just using the abstractions of Java.
+
+%TODO: julia-question: is there anything to say about FScriptME since it is small to
 
 \subsection{Details on the footprint of LightScript}
-The sizes of the different part of the LightScript class are listed below.
+The sizes of the different parts of the LightScript class are listed below.
 ``Reduction'' is the reduction of the full class file when the mentioned part is left out. ``Alone'' is the size of the class containing only the mentioned part. These numbers are different as some things are shared and some things cannot be left out when compiling the class file.
 
 \begin{center} \begin{tabular}{|r|r|rl|} \hline
-\multicolumn{2}{|r|}{Reduction} & \multicolumn{2}{|l|}{Alone}\\ \hline
+&\multicolumn{1}{|r|}{Reduction} & \multicolumn{2}{|l|}{Alone}\\ \hline
 Everything & 15030 & 17706 & \\ \hline
-API & 645  & 3597  & \\ \hline
+Embedding API & 645  & 3597  & \\ \hline
 Tokeniser & 1261 & 4048 & \\ \hline
 Parser & 2542 & 5850 & \\ \hline
 Compiler & 5324 & 8413 & \\ \hline
-Vm & 4589 & 7650 & \\ \hline
+Virtual machine & 4589 & 7650 & \\ \hline
 Parser+Tokeniser & 3825 & 7093 & \\ \hline
 \end{tabular} \end{center}
+%TODO: why above results as they are
 
 \subsection{Optimised JAR-file footprint}
 \index{JAR-file}
