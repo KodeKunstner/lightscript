@@ -24,7 +24,6 @@
 \lstset{language=java}
 \lstset{escapeinside=`'}
 \lstset{basicstyle=\scriptsize}
-%TODO navne i indledningen
 
 \title{
 Design and Implementation of \\
@@ -70,7 +69,7 @@ LightScript is now a practical language for mobile development and will continue
 
 \renewcommand\abstractname{Resumé}
 \begin{abstract}
-I dette speciale har jeg udviklet to nye scriptingsprog til mobiltelefoner: Yolan og LightScript.
+I dette speciale er der udviklet to nye scriptingsprog til mobiltelefoner: Yolan og LightScript.
 De er udviklet i Java Micro Edition, der er den program\-udviklings\-platform der gør det muligt at køre på flest telefoner.
 
 Størrelsen af det eksekverbare program er den mest begrænsende faktor for Java Micro Edition, og sprogene udviklet i dette speciale fylder mindre end eksisterende scriptingsprog.
@@ -499,7 +498,9 @@ The latest version is called SquirrelFish and is an optimised register-based vir
 where support for JIT compilation is also being developed.
 
 \index{SquirrelFish}
-The engine has been optimised a lot within the last year TODO:or-one-and-a-half-year-check-the-reference \cite{squirrelfish-bench}: the earlier versions were performing evaluation by walking through the abstract syntax tree, and were at that time similar in performance to SpiderMonkey JavaScript implementation.
+The engine has been optimised a lot within the last year 
+%TODO:or-one-and-a-half-year-check-the-reference 
+\cite{squirrelfish-bench}: the earlier versions were performing evaluation by walking through the abstract syntax tree, and were at that time similar in performance to SpiderMonkey JavaScript implementation.
 The new version -- SquirrelFish -- is much faster, which means that it is similar in performance to TraceMonkey and V8 JavaScript implementations.
 
 \paragraph{QScript}
@@ -513,7 +514,7 @@ Rhino \cite{rhino} is an implementation of JavaScript on top of Java. The implem
 \paragraph{SpiderMonkey}
 \label{spidermonkey}
 \index{SpiderMonkey}
-SpiderMonkey \cite{spidermonkey} is the JavaScript engine in Mozilla's browsers, and is also usable as an embeddable engine in other applications. Execution is based on a virtual machine, which either has a switch-based dispatch or direct threading, depending on what the compiler supports. %TODO:verify-that-I-remember-correctly-here.
+SpiderMonkey \cite{spidermonkey} is the JavaScript engine in Mozilla's browsers, and is also usable as an embeddable engine in other applications. Execution is based on a virtual machine, which either has a switch-based dispatch or direct threading, depending on what the compiler supports.
 
 %TODO: i am here wrgt articles
 \paragraph{TraceMonkey} 
@@ -803,42 +804,44 @@ The next paragraphs elaborate on the following design choices:
 CLDC 1.0 is the most limited device configuration and API for mobile devices. If the language is able to run this configuration, it will also be able to run on the other Java configurations, and then be able to run on most devices.
 
 \label{yolandesign}
-Use of standard Java classes instead of custom classes for builtin data types such as arrays or tables has three benefits: the code footprint is smaller, as these data types do not have to be implemented, it may be faster, as the builtins may be implemented natively, and it is easier embeddable, as the developers already know the data types from standard Java.
-The issue of using the builtins is that it gives less flexibility to the design of the behaviour of the data types in Yolan.
+Use of standard Java classes instead of custom classes for builtin data types such as arrays or tables has three benefits: the code footprint is smaller, as these data types do not have to be reimplemented, it may be faster, as the builtins may be implemented natively, and it is more easily embeddable, as the developers already know the data types from standard Java. %<- TODO: is the issue the developers knowledge, or that host program is already manipulating values of these types
+Nevertheless, using the builtins gives less flexibility to the design of the behaviour of the data types in Yolan.
 
 Being able to load code at run-time is important for several reasons:
-It allows larger programs, than would otherwise be possible within the devices, as the different parts of the program can be loaded and unloaded as needed.
+It allows larger programs than would otherwise be possible within the devices, as the different parts of the program can be loaded and unloaded as needed.
 It allows adding updates and new features to the programs, without needing them to be reinstalled manually.
 It allows the language to be used for configuration files, and data initialisation.
-Being loaded as source code both gives more clarity, and make it easier to distribute and edit, thereby making it more suitable for for use as configuration language, and scripting by users.
+Being loaded as source code both gives more clarity, and make the scripts easier to edit and deploy, thereby making it more suitable for use as configuration language, and scripting by users.
 
 Functions should be first-class values, both to enable functional programming and increase the expressiveness of the language.
 
-If variables are looked up at every access at runtime, this is likely to be bottleneck for performance, and instead the implementation must ensure that they are only resolved once for each place they are used in the source text.
-The platform is already slow, so performancewise we probably can not afford not doing this optimisation.
 
-Integers is the only number type supported on the platform. Floating point numbers would have to be emulated, which would both give a performance penalty, and more importantly a huge increase in code footprint due to emulation code.
+If variables are looked up at every access at runtime, this is likely to be bottleneck for performance.  %<- TODO: reformulate
+Instead the implementation must ensure that they are only resolved once for each place they are used in the source text.
+%The platform is already slow, so performancewise we probably can not afford not doing this optimisation.
+
+Integer is the only number type supported on the platform. Floating point numbers would have to be emulated on CLDC-1.0 based devices, which would both give a performance penalty, and more importantly a huge increase in code footprint due to emulation code.
 
 Null is also the false value. This simplifies the implementation slightly, thereby reducing the footprint.
 
-Yolan has a Lisp-inspired syntax. This trivialises the parser implementation, and thus reduces code footprint.
+Yolan has a Lisp-inspired syntax. This makes the implementation of the parser trivial, and thus reduces code footprint.
 
-Dynamic scope removes the issue of the funarg problem, and thus simplifies the implementation of variables. This is generally bad language design, but at the same time it may reduce the code footprint slightly.
+Dynamic scope removes the issue of the funarg problem, and thus simplifies the implementation of variables, thereby reducing the implementation footprint. So this is chosen, although dynamic scope is generally bad language design.
 \index{Scope}
 
 The language is more like a traditional scripting language, than a functional language, 
-as it does not support tail recursion nor has cons-list, but instead it uses resizable arrays and hashtable as data structures, and has more imperative programming model, with while- and foreach-loops, etc.
-The motivation for this is, that it is simpler to implement efficiently on top of an already imperative/objectoriented virtual machine, and that functional languages often are less space efficient.
+as it does not support tail recursion nor does it use linked list as the basic language structure, but instead it uses resizable arrays and hashtable as data structures, and has a more imperative programming model, with while- and foreach-loops, etc.
+The motivation for this is that it is simpler to implement efficiently on top of an already imperative/object-oriented virtual machine, and that functional languages often use more runtime memory.
 
-If the interface with Java is lazy, this allows new control flow constructs to be added easily from Java by the embedder, which again allows the implementation to be a small core, with support for expansion.
+Making the interface with Java lazy, allows new control-flow constructs to be added easily from Java by the embedder, which again allows the implementation to be a small core, with support for expansion.
 
-Execution should be online, in the sense that whenever a full statement is read from the input, it should be executed, not needing to read the full file. This is both practical for interactive evaluation, and also has a benefit memorywise as the entire program never needs to be fully in memory, as executed code may be garbage collected.
+Execution should be online, in the sense that whenever a full statement is read from the input, it should be executed, without needing to read the full file. This is both practical for interactive evaluation, and also has a benefit memorywise as the entire program never needs to be fully in memory, as executed code may be garbage collected.
 
 By only having a single runtime, some classes can be made static and merged, leading to a smaller code footprint. This is a tradeoff leading to non-reentrant code and no support for threads.
 
 \section{Syntax tree rewriting}
 
-To make the interpreter as simple as possible, it interprets the syntax tree directly. Still this has some performance issues, as for example variable and function lookup would be done at each execution. To avoid the cost of this some of the evaluation functions instead resolve the variables the first time they are executed and replaces the node itself with a node of the resolved variable or function.
+To make the interpreter as simple as possible, it interprets the syntax tree directly. Still this has some performance issues, as for example variable and function lookup must be done at each execution. To avoid the cost of this, some of the evaluation functions instead resolve the variables the first time they are executed and replace the node in the abstract syntax tree with a node of the resolved variable or function.
 
 \section{Language specification}
 
@@ -846,7 +849,7 @@ To make the interpreter as simple as possible, it interprets the syntax tree dir
 \subsubsection{Function applications / lists}
 Function applications are written in Lisp-style as lists. The first element in the list is the function to be applied.
 Lists are enclosed within square brackets \verb|[|$\cdots$\verb|]|, and may be nested. 
-The reason to use square brackets, rather than parenthesis as in Lisp, is that the lists are not cons-list, but instead arrays, which are usually written with square bracket notation in other scripting languages. This is also an indication that Yolan is not a proper Lisp-like functional language, but rather a scripting language. The notation is also similar to Tcl, except that there are not automatic expression breaks at new lines.
+The reason to use square brackets, rather than parenthesis as in Lisp, is that the lists are not cons-lists, but instead arrays, which are usually written with square bracket notation in other scripting languages. This is also an indication that Yolan is not a proper Lisp-like functional language, but rather a scripting language. The notation is also similar to that of Tcl, except that there are not automatic expression breaks at newlines.
 The elements within the lists are separated by whitespace. 
 As lists are the notation for function applications, every list must have at least one element, which is an expression evaluating to the function to be applied.
 
@@ -861,9 +864,11 @@ Integers are written as a sequence of digits (\verb|0123456789|). Only base 10 i
 Characters with a unicode value of 32 or less are regarded as whitespaces. These include the usual space, tab, newline, and line-feed. Whitespace is used to separate list elements, and is discarded during parsing. A comment must be preceded by whitespace, it starts with a semicolon \verb|;| and it continues until the end of the line. Comments are discarded during parsing.
 
 \subsection{Builtin functions}
-The builtin functions are listed below. As the language is designed for embedding in other applications, there are no standard functions for input/output, file access, network, etc. as these might not be present or differ significantly between target devices/platforms.
+The builtin functions are listed below. As the language is designed for embedding in other applications, there are no standard functions for input/output, file access, network, etc. as these might not be present or differ significantly between target devices/platforms. 
+This functionality can instead be added via Java functions added to the Yolan runtime.
 
-In the following, function names are written with {\tt fixed width} font, and the arguments are written in $cursive$. Arguments can be any expression, and they are named according to their type or functionality: $num$s are expressions that should evaluate to numbers, $exp$s are expressions that may be optionally evaluated (e.g. in {\tt if}), $val$s are expressions that will be evaluated, $string$s are expressions that should evaluate to a string, and so on.
+%TODO: $ $ -> {\textit }
+In the following, function names are written with {\tt fixed width} font, and their arguments are written in {\textit cursive}. An argument is named according to its type or functionality: $num$s are expressions that should evaluate to numbers, $exp$s are expressions that may be optionally evaluated (e.g. in {\tt if}), $val$s are expressions that will be evaluated, $string$s are expressions that should evaluate to a string, {\textit name} is the name of a variable, and so on.
 
 \subsubsection{Variables}
 \subsubsection*{\tt{[set }$name$ $value$\tt{]}}
@@ -874,26 +879,26 @@ Let $name_1 \cdots name_n$ be local variables in $expr_1 \cdots expr_n$: First s
 
 \subsubsection{Conditionals and logic}
 \subsubsection*{\tt{[if }$cond$ $expr_1$ $expr_2$\tt{]}}
-Evaluate $cond$ and if the result is non-$nil$ then evaluate and return $expr_1$, else evaluate and return $expr_2$.
+Evaluate $cond$ and if the result is non-$null$ then evaluate and return $expr_1$, else evaluate and return $expr_2$.
 
 \subsubsection*{\tt{[not }$cond$\tt{]}}
-If the value of $cond$ is $nil$ return $true$ else return $nil$.
+If the value of $cond$ is $null$ return $true$ else return \textit{null}.
 
 \subsubsection*{\tt{[and }$expr_1$ $expr_2$\tt{]}}
-Evaluate $expr_1$ and if it is non-$nil$, evaluate and return the value of $expr_2$, else return $nil$.
+Evaluate $expr_1$ and if it is non-\textit{null}, evaluate and return the value of $expr_2$, else return \textit{null}.
 
 \subsubsection*{\tt{[or }$expr_1$ $expr_2$\tt{]}}
-Evaluate $expr_1$ and if it is non-$nil$ return its value, else evaluate and return the value of $expr_2$.
+Evaluate $expr_1$ and if it is non-\textit{null} return its value, else evaluate and return the value of $expr_2$.
 
 \subsubsection{Repetition and sequencing}
 \subsubsection*{\tt{[repeat }$num$ $expr_1 \cdots expr_n$\tt{]}}
-Evaluate $expr_1 \cdots expr_n$ $num$ number of times ($num$ is evaluated once, and must evaluate to a number). The result is the last execution of $expr_n$, or $nil$ if no expressions were evaluated, i.e. $num \leq 0$.
+Evaluate $expr_1 \cdots expr_n$ $num$ number of times ($num$ is evaluated once, and must evaluate to a number). The result is the last execution of $expr_n$, or \textit{null} if no expressions were evaluated, i.e. $num \leq 0$.
 
 \subsubsection*{\tt{[foreach }$name$ $iterator$ $expr_1 \cdots expr_n$\tt{]}}
-For every value from the $iterator$, bind it to the local $name$ and evaluate $expr_1 \cdots expr_n$. The result of the evaluation is the last executed $expr_n$ or $nil$ if no expressions were evaluated. $name$ is a local variable, and is thus saved before the loop, and restored afterwards.
+For every value from the $iterator$, bind it to the local $name$ and evaluate $expr_1 \cdots expr_n$. The result of the evaluation is the last executed $expr_n$ or \textit{null} if no expressions were evaluated. $name$ is a local variable, and is thus saved before the loop, and restored afterwards.
 
 \subsubsection*{\tt{[while }$cond$ $expr_1 \cdots expr_n$\tt{]}}
-While $cond$ evaluates to non-$nil$, evaluate $expr_1 \cdots expr_n$, and return the value of the last $expr_n$ or $nil$ if no expressions were evaluated.
+While $cond$ evaluates to non-\textit{null}, evaluate $expr_1 \cdots expr_n$, and return the value of the last $expr_n$ or \textit{null} if no expressions were evaluated.
 
 
 \subsubsection*{\tt{[do }$expr_1 \cdots expr_n$\tt{]}}
@@ -907,8 +912,8 @@ Create a new anonymous function, with the parameters $name_1\cdots name_n$. Appl
 \subsubsection*{\tt{[defun [}$name_{function}$ $name_1 \cdots name_n$\tt{]} $expr_1 \cdots expr_n$\tt{]}}
 Create a new function, and bind it to the variable $name_{function}$. The \verb|defun| statement above is equivalent to {\tt{[set }}$name_{function}${\tt{ [lambda [}}$name_1 \cdots name_n${\tt{]}} $expr_1 \cdots expr_n${\tt{]]}}.
 
-\subsubsection*{\tt{[apply }$function$ $param_1 \cdots param_n$\tt{]}}
-Apply the $function$ to the parameters $param_1\cdots param_n$. The difference between this and the usual function application {\tt{[}$function$ $param_1\cdots param_n$\tt{]}} is that that \verb|apply| allows $function$ to change between invocations, whereas the usual function application assumes that $function$ is static, to be able to optimise it during runtime.
+\subsubsection*{{\tt{[apply }}\textnormal{\textit{function}} $param_1 \cdots param_n$\tt{]}}
+Apply the \textit{function} to the parameters $param_1\cdots param_n$. The difference between this and the usual function application {{\tt{[}}\textit{function} $param_1\cdots param_n$\tt{]}} is that that \verb|apply| allows \textit{function} to change between invocations, whereas the usual function application assumes that \textit{function} is static, to be able to optimise it during runtime.
 
 \subsubsection{Integer operations}
 \subsubsection*{\tt{[+ }$num_1$ $num_2$\tt{]}}
@@ -918,9 +923,9 @@ Calculate the difference of two integers, the result is $num_2$ subtracted from 
 \subsubsection*{\tt{[* }$num_1$ $num_2$\tt{]}}
 Calculate the product of two integers.
 \subsubsection*{\tt{[/ }$num_1$ $num_2$\tt{]}}
-Integer division, $num_1$ is divided by $num_2$.
+Calculate $num_1$ divided by $num_2$.
 \subsubsection*{\tt{[\% }$num_1$ $num_2$\tt{]}}
-Returns the remainder of dividing $num_1$ by $num_2$.
+Calculate the remainder of dividing $num_1$ by $num_2$.
 
 \subsubsection{Type predicates}
 \subsubsection*{\tt{[is-integer }$val$\tt{]}}
@@ -936,24 +941,24 @@ Returns $true$ if $val$ is a iterator.
 
 \subsubsection{Polymorphic functions}
 \subsubsection*{\tt{[equals }$val_1$ $val_2$\tt{]}}
-Compare $val_1$ to $val_2$ and return $true$ if they are the same, or $nil$ if they are different. $val_1$ and $val_2$ must have the same type, and should either be integers or strings.
+Compare $val_1$ to $val_2$ and return $true$ if they are the same, or \textit{null} if they are different. $val_1$ and $val_2$ must have the same type.
 \subsubsection*{\tt{[is-empty }$val$\tt{]}}
-Returns $true$ if a list, dictionary or iterator does not have any elements. Otherwise, it returns $nil$.
+Returns $true$ if a list, dictionary or iterator does not have any elements. Otherwise, it returns \textit{null}.
 \subsubsection*{\tt{[put }$container$ $position$ $value$\tt{]}}
 Store a value into a list or a dictionary. If the container is a list, the $position$ must be an integer in the range $0,1, \cdots, ${\tt{[size }}$container${\tt{]}}$-1$.
-If the container is a dictionary, the position must be a string or an integer. An entry is deleted from a dictionary by storing $nil$ as the $value$.
+If the container is a dictionary, the position must be a string or an integer. An entry is deleted from a dictionary by storing \textit{null} as the $value$.
 \subsubsection*{\tt{[get }$container$ $position$\tt{]}}
-Retrieve a value from a list or a dictionary. It has the same constraints on $position$ as with \verb|put|. Retrieving an uninitialised entry from a dictionary yields $nil$.
+Retrieve a value from a list or a dictionary. The same on $position$ are the same as with \verb|put|. Retrieving an uninitialised entry from a dictionary yields \textit{null}.
 \subsubsection*{\tt{[random }$val$\tt{]}}
 If $val$ is an integer, return a random number in the range $0,1, \cdots, val -1$. If $val$ is a list, pick a random value from the list.
 \subsubsection*{\tt{[size }$val$\tt{]}}
 Return the length of a string, the number of values in a list, or the number of entries in a dictionary.
 \subsubsection*{\tt{[< }$val_1$ $val_2$\tt{]}}
-Compares $val_1$ with $val_2$. If $val_1$ and $val_2$ are integers, return $true$ if $val_1$ is strictly less than $val_2$ and otherwise $nil$.
-If $val_1$ and $val_2$ are strings, do a lexicographical comparison and return $true$ if $val_1$ comes strictly before $val_2$, and otherwise $nil$.
+Compare $val_1$ with $val_2$. If $val_1$ and $val_2$ are integers, return $true$ if $val_1$ is strictly less than $val_2$ and otherwise \textit{null}.
+If $val_1$ and $val_2$ are strings, do a lexicographic comparison and return $true$ if $val_1$ comes strictly before $val_2$, and otherwise \textit{null}.
 \subsubsection*{\tt{[<= }$val_1$ $val_2$\tt{]}}
-Compares $val_1$ with $val_2$. If $val_1$ and $val_2$ are integers, return $true$ if $val_1$ is less than or equal to $val_2$ and otherwise $nil$.
-If $val_1$ and $val_2$ are strings, do a lexicographical comparison and return $true$ if they are equal or $val_1$ comes before $val_2$, and otherwise $nil$.
+Compare $val_1$ with $val_2$. If $val_1$ and $val_2$ are integers, return $true$ if $val_1$ is less than or equal to $val_2$ and otherwise \textit{null}.
+If $val_1$ and $val_2$ are strings, do a lexicographic comparison and return $true$ if they are equal or $val_1$ comes before $val_2$, and otherwise \textit{null}.
 
 \subsubsection{String functions}
 \subsubsection*{\tt{[stringjoin }$val_1\cdots val_n$\tt{]}}
@@ -965,14 +970,14 @@ A list is converted to a string by concatenating its elements, as if {\tt string
 Create a substring from a string, starting inclusively at character position $num_{begin}$ and ending exclusively at character position $num_{end}$. The positions starts counting at $0$, so thus {\tt{[substring }$string$ $0$ \tt{[size }$string$\tt{]]}} is the entire string.
 
 \subsubsection{List functions}
-The following functions work on lists. Notice that lists in Yolan are similar to lists in Python, and thus the functions below are imperative in such that they alters the list parameter, which is different to what happens in functional languages, where lists are typically cons-cells. When speaking about the end of the list, it is the element at the position equal to the length of the list minus one.
+The following functions work on lists. Notice that lists in Yolan are similar to lists in Python, and thus the functions below are imperative in that they alters the list parameter, which is different to what happens in functional languages, where lists are typically cons-cells. The end of a list is the element at the position equal to the length of the list minus one.
 
 \subsubsection*{\tt{[list }$val_1\cdots val_n$\tt{]}}
 Create a new list, containing the elements $val_1\cdots val_n$.
 
 \subsubsection*{\tt{[resize }$list$ $num$\tt{]}}
 Change the size of the $list$ to be $num$ elements. 
-If the new size is larger than the current size, new elements will be added to the end of the list, with the initial value of nil. If the new size is smaller than the current size, then the list will be truncated at the end. The list is modified by the function and then returned.
+If the new size is larger than the current size, new elements will be added to the end of the list, with the initial value of \textit{null}. If the new size is smaller than the current size, then the list will be truncated at the end. The list is modified by the function and then returned.
 
 \subsubsection*{\tt{[push }$list$ $val$\tt{]}}
 Push the value $val$ at the end of the $list$. The size of the list grows by one, and the last element is now $val$.
@@ -990,29 +995,29 @@ Create a new iterator across the keys of a dictionary.
 \subsubsection*{\tt{[values }$container$\tt{]}}
 Create a new iterator across the values of either a dictionary or a list.
 \subsubsection*{\tt{[get-next }$iterator$\tt{]}}
-Get the next element from the iterator, or nil if the iterator is empty.
+Get the next element from the iterator, or \emph{null} if the iterator is empty.
 
 \section{Developer guide to embedding Yolan in Java}
-Yolan is a minimal scripting language implemented on Java.
-It allows scripting to be added to an application, with a minimal overhead in the size of the JAR file -- which is the most limiting factor on low-end mobile devices. The features and limitations of Yolan are:
-\begin{itemize}
-\item It is scripting language, with support for higher-order functions
-\item Yolan supports loading of code at run-time
-\item The datatypes of Yolan is implemented with the classes from the Java standard library, such as \verb|java.lang.Integer|, \verb|java.util.Hashtable| and \verb|java.util.Stack|, which makes it easier to interact with Java applications.
-\item It is implemented on top of Java Micro Edition/J2ME, and requires only CLDC 1.0.
-\item Adding scripting support to an application adds approximately 5KB to the size of the optimised JAR file
-\item Expressions are parsed and executed one at a time, allowing interactive programming, and implying that the entire program need not to be in memory at once
-\item Yolan scripts are interpreted -- they can be entered directly on the device, not needing an extra step of compilation, and thus it is also suitable for scriptable configuration files, user scripts etc.
-\end{itemize}
+%Yolan is a minimal scripting language implemented on Java.
+%It allows scripting to be added to an application, with a minimal overhead in the size of the JAR file -- which is the most limiting factor on low-end mobile devices. The features and limitations of Yolan are:
+%\begin{itemize}
+%\item It is scripting language, with support for higher-order functions
+%\item Yolan supports loading of code at run-time
+%\item The datatypes of Yolan is implemented with the classes from the Java standard library, such as \verb|java.lang.Integer|, \verb|java.util.Hashtable| and \verb|java.util.Stack|, which makes it easier to interact with Java applications.
+%\item It is implemented on top of Java Micro Edition/J2ME, and requires only CLDC 1.0.
+%\item Adding scripting support to an application adds approximately 5KB to the size of the optimised JAR file
+%\item Expressions are parsed and executed one at a time, allowing interactive programming, and implying that the entire program need not to be in memory at once
+%\item Yolan scripts are interpreted -- they can be entered directly on the device, not needing an extra step of compilation, and thus it is also suitable for scriptable configuration files, user scripts etc.
+%\end{itemize}
 
-The implementation of Yolan consists of a single class \verb|Yolan| with the actual implementation, and an interface \verb|Function|, which specifies what a class need to implement in order to be callable from Yolan.
-While Yolan only has a single classfile for the implementation, in order to reduce the JAR file size, it consists of several logical classes: a parser implemented as static properties, a runtime implemented as static properties, and delayed computations implemented as objects that can be instantiated.
+The implementation of Yolan consists of a single class, \verb|Yolan|, containing the actual implementation, and an interface \verb|Function|, which specifies what a class needs to implement in order to be callable from Yolan.
+While Yolan only has a single classfile for the implementation, in order to reduce the JAR file size, it consists of several logical classes: a parser implemented as static properties,\footnote{A static property is a property pertaining to the class rather than to the object} a runtime implemented as static properties, and delayed computations are the actual instantiated objects.
 
-Having a single runtime reduces memory usage, but also limits applications to only executing a single script, and only having a single execution context at a time. The reduction of memory usage comes from, that refererences to the execution context can be hard coded, and thus the delayed computations do not have to carry a reference to the context. There is also a memory reduction because less code is needed and the class for the context can be joined into the main class file, as static properties.
+Having a single runtime reduces memory usage, but also limits applications to only executing a single script, and only having a single execution context at a time. The reduction of memory usage comes from the fact that refererences to the execution context can be hard coded, and thus the delayed computations do not have to carry a reference to the context. There is also a memory reduction because less code is needed and the class for the context can be joined into the main class file, as static properties.
 The delayed computation is the same as a node in the abstract syntax tree, as the scope is dynamic and execution context is global. 
 
 
-The \verb|Function| interface consists of a function that takes an array of Yolan objects -- delayed computations -- as parameter, and then return a value. In this sense Java objects callable from Yolan are essentially lazy functions, and responsible themselves for evaluating their arguments. This makes it easy to add custom control function, similar to \verb|if| and \verb|while|, as it is left up to the called Java function whether, and how many times, each argument expression should be evaluated.
+The \verb|Function| interface consists of a function that takes an array of Yolan objects -- delayed computations -- as a parameter, and then returns a value. In this sense Java objects callable from Yolan are essentially lazy functions, and responsible themselves for evaluating their arguments. This makes it easy to add custom control function, similar to \verb|if| and \verb|while|, as it is left up to the called Java function whether, and how many times, each argument expression should be evaluated.
 
 \subsection{Getting Started}
 The core method of a Yolan object is the \verb|value()| method which evaluates the code the Yolan object represents, and returns the result. This method may throw \verb|Exeception|s as well as \verb|Error|s if the code it represents has faults, so to make it robust against errors in scripts, the Yolan evaluation must be surrounded by a \verb|catch(Throwable)|.
@@ -1036,7 +1041,7 @@ This code could be saved in a file called Main.java, placed in a directory with 
 
 Notice that the input stream \verb|System.in| can be replaced with any input stream, so the same idea can be used for evaluating files, programs as strings within the application, or even as streams across the network, where Yolan could work as a shell for remote scripting/controlling an application.
 
-If we want to execute an entire stream, there is a short hand builtin method for doing that: \verb|eval|. For example:
+If we want to execute an entire stream, there is a shorthand builtin method for doing that: \verb|eval|. For example:
 \begin{lstlisting}
 class Main {
     public static void main(String [] args) throws java.io.IOException {
@@ -1046,20 +1051,21 @@ class Main {
 \end{lstlisting}
 This code opens the file ``script.yl'', and evaluates all the expressions within it. 
 \verb|eval| throws away the results of the individual expressions and does not print them,
-so the above code is only useful if we have added some userdefined functions to Yolan that allow it to do something practical.
+so the above code is only useful if we have added some user defined functions to Yolan that allow some kind of input or output.
 
-\subsubsection{Adding functions to the runtime}
-This section describes how to make Java code callable from Yolan.
-While the builtin Yolan functions support basic data structures such as lists and dictionaries,  there is no built in way to do input/output from Yolan that is platform dependent: Java Standard Edition supports files, where Java Micro Edition has a record store, and user interfaces ranges between Midlets, Applets, graphical applications, and text standard-in/out.
+\subsection{Adding functions to the runtime}
+Yolan needs to call Java functions to do anything practical, and this section shows how to make Java code available for Yolan.
+While the builtin Yolan functions support basic data structures such as lists and dictionaries,  there is no built in way to do input/output from Yolan, as that is platform dependent: Java Standard Edition supports files, while Java Micro Edition has a record store, and user interfaces ranges between Midlets, Applets, graphical applications, and text standard-in/out.
 \index{Java Micro Edition}
 So when a script needs to communicate with the user, or work on the state of the host application, 
 some functionality needs to be added. This is most easily done by adding functions to the runtime.
 
-The \verb|Function| interface is the way to do that. To implement the interface a single function \verb|apply| needs to be implemented in the class. 
-This function is the actual application of the function within Yolan, and
-it takes an array of \verb|Yolan|-objects as argument, and returns the result as a usual Java object.
-Notice that the \verb|Yolan|-objects are delayed computations, e.g. they are only evaluated when the called function chooses to evaluate them, by calling their \verb|value()|-function.
-Execution of the Yolan object may also have side effects, and thus the number of times \verb|value()| is called per argument matters.
+The \verb|Function| interface is the way to do that. To implement the interface a single function, \verb|apply|, needs to be implemented in the class. 
+This function performs the actual application of the function within Yolan, and
+it takes an array of delayed computations (instances of the \verb|Yolan|-class) as argument, and returns the result as a usual object.
+The delayed computations they are only evaluated when the called function chooses to evaluate them, by calling their \verb|value()|-function.
+Execution of the delayed computations may also have side effects, and thus the number of times \verb|value()| is called per argument matters.
+
 In order to add a new Java function to be callable from the runtime, the method \verb|Yolan.addFunction| takes a string name and a \verb|Function| as parameters, and binds the name to the function. As an example the following code makes a new function, \verb|println|, available to the runtime. This function takes one argument, which it prints to the standard output:
 \begin{lstlisting}
 class PrintingFunction implements Function {
@@ -1076,17 +1082,16 @@ class Main {
 \end{lstlisting} 
 The above program reads and evaluates the file script.yl, with an augmented runtime that also has the \verb|println| function.
 
-\subsubsection{Code footprint efficient addition of several functions to the runtime}
-The naive approach for adding functions to the runtime would be to create a new class implementing the \verb|Function| interface for each function. This would add significantly to the JAR-file
-.
+\subsection{Code-footprint-efficient addition of multiple functions to the runtime}
+The naive approach for adding functions to the runtime would be to create a new class implementing the \verb|Function| interface for each function. This would add significantly to the size of the JAR-file.
 If the code size is critical, it can often be reduced by combining multiple functions into a single class, for example via a switch dispatch as shown below:
 \begin{lstlisting}
-class ManyFunction implements Function {
+class ManyFunctions implements Function {
     int id;
-    ManyFunction(int id) {
+    ManyFunctions(int id) {
         this.id = id;
     }
-    Object apply(Yolan args[]) {
+    public Object apply(Yolan args[]) {
         switch(id) {
             case 0: // first function
                     ....
@@ -1113,7 +1118,7 @@ class ManyFunction implements Function {
 When implementing functions, it is also possible to create control structures, due to the laziness of Yolan objects. This is done by not evaluating the arguments' \verb|value|-functions exactly one time each, but zero or more times, depending on the purpose. The example below shows how the usual if-statement could be implemented:
 \begin{lstlisting}
 class YolanIf implements Function {
-    Object apply(Yolan args[]) {
+    public Object apply(Yolan args[]) {
         // first evaluate the condition
         // and find out if it i true (not null)
         if(arg[0].value() != null) {
@@ -1126,21 +1131,21 @@ class YolanIf implements Function {
     }
 }
 \end{lstlisting}
-\subsubsection{Values and types}
+\subsection{Values and types}
 The builtin types in Yolan are mapped to Java classes for easier interoperability,
-so lists are implemented as java.util.Stack, dictionaries are implemented as java.util.Hashtable, strings are implemented as java.lang.String, nil/false is implemented as the value null, integers are implemented as java.lang.Integer, and iterators are implemented as java.util.Enumeration. 
-Operations on those data types are just as for the native builtin types. 
+so lists are implemented as java.util.Stack, dictionaries are implemented as java.util.Hashtable, strings are implemented as java.lang.String, null/false is implemented as the value null, integers are implemented as java.lang.Integer, and iterators are implemented as java.util.Enumeration. 
+Operations on those data types are just as in Java.
 
-Any Java object can be passed around within Yolan, so adding support for new data types is just a question of adding functions that work on those data types.
+Any Java object can be passed around within Yolan, so adding support for new data types is just a question of adding functions that work on values of those data types.
 
-\subsubsection{Functions defined within Yolan}
+\subsection{Functions defined within Yolan}
 When a user defines functions within Yolan, they are instances of the Yolan class. 
 Before calling such a function, the number of arguments can be found using the \verb|nargs| method.
-If the Yolan object is not a callable user-defined function, the result of \verb|nargs()| is -1, and this is the only API method to check if a Yolan object is a callable function.
-The function is then applied with the \verb|apply| method, which takes the arguments to the function as arguments, for example:
+If the Yolan object is not a callable user-defined function, the result of \verb|nargs()| is -1, and this is the only API method needed to check if a Yolan object is a callable function.
+This function is then applied with the \verb|apply| method, which takes the arguments to the function as arguments, for example:
 \begin{lstlisting}
 ...
-    // evaluation some Yolan object that yields a function
+    // evaluate some Yolan object that yields a function
     Yolan function = yl.value();
     // ensure that it is a function and it takes two arguments
     if(function.nargs() == 2) {
@@ -1151,13 +1156,13 @@ The function is then applied with the \verb|apply| method, which takes the argum
 \end{lstlisting}
 The apply method is defined from zero up to three arguments. If there is a need for an apply method with more arguments, they are simple to add; see page~\pageref{source-yolan-apply} for the implementation details. There is also a general apply method, that takes an array of arguments as argument.
 
-\subsubsection{Modifying the runtime}
+\subsection{Modifying the runtime}
 
-In order for the scripting language to be practical, it should be able to work and share data with the host application. 
+In order for the scripting language to be practical, it should be able to work with and share data with the host application. 
 Of course this can be done with functions, and evaluation, as described above, but an additional connection with the language can be added by accessing the variables defined, and used, by the running scripts.
 For this there are three functions: \verb|Yolan.resolveVar|, \verb|Yolan.getVar|, and \verb|Yolan.setVar|.
 
-When a value is accessed, this is done through a handle, which is found by using \verb|resolveVar|. This handle can then be used for reading and writing the variable. The motivation for the handle is that it takes time to look up a variable name, so this computation can be done once for each variable that needs to be accessed, and then additional accesses to the resolved variable are significantly faster. The \verb|resolveVar| function takes the variable name as a string parameter, and return the handle, which is an integer. If the variable does not exist in the runtime, space is allocated for it.
+When the value of a variable is accessed, this is done through a handle, which is found using \verb|resolveVar|. This handle can then be used for reading and writing the variable. The motivation for the handle is that it takes time to look up a variable name, so this computation can be done once for each variable that needs to be accessed, and then additional accesses to the resolved variable are significantly faster. The \verb|resolveVar| function takes the variable name as a string parameter, and returns the handle, which is an integer. If the variable does not exist in the runtime, space is allocated for it.
 
 With a handle, it is then possible to set the value of a variable with \verb|setVar|. For example setting the variable foo to 42 can be done with:
 \begin{lstlisting}
@@ -1191,12 +1196,12 @@ class Class {
 \end{lstlisting}
 When defining functions, as described earlier, it is actually the same that is happening: the function is encapsulated in a Yolan object and added to the runtime as done by \verb|setVar|.
 
-\subsubsection{Resetting the runtime and saving space}
+\subsection{Resetting the runtime and saving space}
 When the scripting language is only used in some parts of the application, it can be pratical to be able to unload its runtime data in order to save memory. 
 For this there are two utility functions \verb|Yolan.wipe()| and \verb|Yolan.reset()|.
 
 \verb|Yolan.wipe()| sets all references in the runtime to zero, allowing data to be garbage collected.
-When the runtime has been wiped, Yolan expressions can no longer be evaluated, and trying to evaluate them will yield errors. 
+When the runtime has been wiped, Yolan expressions can no longer be evaluated, and trying to evaluate them yields errors. 
 
 \verb|Yolan.reset()| resets the runtime: all variable handles are invalidated, all variables are removed from the runtime, and only the builtin functions remain. Existing Yolan expressions are invalid, and evaluation of them may lead to unexpected behavior. User defined functions and variables need to be re-added.
 Resetting is necessesary before scripts are executed after a \verb|Yolan.wipe()|.
@@ -1641,6 +1646,10 @@ A change toward more EcmaScript-like semantics by having cutom Java-classes for 
 \label{benchmark}
 \index{Benchmarks}
 %TODO: Julia: The chapter could have an introduction that gives an overview of the things you want to measure. Mention why the code footprint is important
+% TODO: Julia: In the benchmarks section, it would be good to say what is important about each benchmark.  Just giving a reference is not good enough, since the reader will probably not be industrious enough to go look it up.
+% TODO: Julia: In the results section, I missed to have some assessment of the number.  I see that it appears in chapter 6, but the reader really wants some interpretation of the numbers right away.  For example: Why do some languages do well?  Why do some not do well?  Why does lightscript sometimes do better than Yolan, and vice versa.  Why does lightscript do badly on Fannkuch?
+% TODO: Julia: If possible, it would be good to have a proper grammar of each language.  Reviewers tend to like that.  If you could make a semantics as well, but perhaps there is not time for that.
+
 
 \section{Code footprint}
 This section looks at the code footprint: first footprint estimates are compared for different scripting languages, then details of the footprint of LightScript version 1.0 are investigated, and finally the actual size of the library embedded in a minimal application is found.
