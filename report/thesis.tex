@@ -129,7 +129,7 @@ than megabytes.
 
 \section{Motivation}
 \index{Goals}
-Scripting languages make it faster to write applications \cite{scripting-ousterhout}:
+Scripting languages make it faster to write applications \cite{ousterhout-scripting}:
 The type systems allow for more reuse and compared to traditional system programming languages.
 They are also more expressive, with more instructions per statement and support for higher level language features such as first-class functions.
 In addition, scripting languages open up for code at run-time, allowing user based scripting and scriptable configurations.
@@ -452,7 +452,7 @@ Words -- ``functions'' in Forth -- are first-class data types.
 
 An introduction to Forth is
 ``Thinking Forth'' \cite{thinking-forth} which covers, not only Forth programming, but it also touches a lot programming and problem solving in general. This include details on implementation of stack-based languages.
-There is also a tutorial Forth implementation \cite{jonesforth}, that shows how Forth, and thereby stack machines, can be implemented. 
+There is also a tutorial Forth implementation \cite{jones-forth}, that shows how Forth, and thereby stack machines, can be implemented. 
 
 \index{Virtual machine}
 Forth is also interesting from the virtual machine point of view, as it is similar to the machine code of a stack-based virtual machines. So Forth implementation techniques share a lot with those of virtual machines. And research within this topic overlaps, an example is a dissertation on implementation of stack languages on register-based machine \cite{ertl-dissertation}, which uses Forth as the representative stack-based language.
@@ -640,7 +640,7 @@ Stack machines are commonly used, the best known example being the Java Virtual 
 
 Register-based virtual machines are becoming more common. 
 Usually they have a high number of registers, leading to longer opcodes than stack-based virtual machines. But on the other hand, they have fewer opcode per program, leading to faster execution \cite{register-vs-stack1, register-vs-stack2}. 
-Examples of register-based virtual machines are the Dalvik \cite{dalvik-vm} virtual machine, LLVM \cite{llvm}, Parrot \cite{parrot}, and the virtual machine of Lua 5.0 \cite{luavm}.
+Examples of register-based virtual machines are the Dalvik \cite{dalvik-vm} virtual machine, LLVM \cite{llvm}, Parrot \cite{parrot}, and the virtual machine of Lua 5.0 \cite{lua-vm}.
 
 A third approach to implementing a virtual machine is just to use the abstract syntax tree for evaluation. This was for example used in earlier versions of WebKits JavaScript implementation, but has now been superseded by a stack-based virtual machine, which is currently being replaced by JIT compilation.
 
