@@ -1,3 +1,7 @@
+1.1.502
+    Removed support for not compiling different parts of LightScript
+1.1.502
+    Added iterators to stdlib
 1.1.501
     Support for default getter/setter functions for non-LightScriptObjects,
     Improved implementation of prototypes. 19907

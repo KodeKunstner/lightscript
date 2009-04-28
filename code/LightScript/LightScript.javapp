@@ -19,18 +19,6 @@ import java.util.Stack;
  */
 #define __CLEAR_STACK__
 
-
-/* These defines are used for benchmarking size,
- * by making compilation of different parts of the code
- * optional. Notice that undefining these,
- * will yield a defunct program.
- */
-#define __COMPILE_TOKENISER__
-#define __COMPILE_API__
-#define __COMPILE_PARSER__
-#define __COMPILE_COMPILER__
-#define __COMPILE_VM__
-
 /* Identifiers, used both as node type,
  * and also used as opcode. 
  */
@@ -214,8 +202,6 @@ public final class LightScript implements LightScriptObject {
       * where opcodes are added, during the compilation */
     private StringBuffer code;
 
-#ifdef __COMPILE_TOKENISER__
-
     /** The stream which we are parsing */
     private InputStream is;
 
@@ -224,8 +210,6 @@ public final class LightScript implements LightScriptObject {
 
     /** the buffer for building the tokens */
     private StringBuffer sb;
-
-#endif /* __COMPILE_TOKENISER__ */
 
     /* Per function statistics
      * Sets of variable names for keeping track of which variables
@@ -257,8 +241,6 @@ public final class LightScript implements LightScriptObject {
       * and Function ids for null/left denominator functions */
     private int token;
 
-#ifdef __COMPILE_API__
-
     /** The globals variables in this execution context.
       * they are boxed, in such that they can be passed
       * to the closure of af function, which will then
@@ -284,11 +266,9 @@ public final class LightScript implements LightScriptObject {
 #ifndef __DEBUG__
         try {
 #endif
-#ifdef __COMPILE_TOKENISER__
             this.is = is;
             sb = new StringBuffer();
             c = ' ';
-#endif
             varsArgc = 0;
             nextToken();
             while(tokenVal != EOF || token != TOKEN_END) {
@@ -370,17 +350,6 @@ public final class LightScript implements LightScriptObject {
      * and takes the key as argument
      */
     public LightScriptFunction defaultGetter;
-#else
-    public void eval(String s) throws LightScriptException {
-    }
-    public void eval( InputStream is) throws LightScriptException {
-    }
-    public void set(Object key, Object value) {
-    }
-    public Object get(Object key) {
-        return null;
-    }
-#endif /* __COMPILE_API__ */
 
 /*`\subsection{Debugging}'*/
 
@@ -495,8 +464,6 @@ public final class LightScript implements LightScriptObject {
         return os;
     }
 
-#ifdef __COMPILE_PARSER__
-
     /** Push a value into a stack if it is not already there */
     private static void stackAdd(Stack s, Object val) {
         if(s == null) {
@@ -508,8 +475,6 @@ public final class LightScript implements LightScriptObject {
             s.push(val);
         }
     }
-
-#endif /* __COMPILE_PARSER__ */
 
 /*`\subsection{Utility classes}'*/
 
@@ -569,7 +534,6 @@ public final class LightScript implements LightScriptObject {
 
 /*`\section{Tokeniser}'\index{Tokeniser}*/
 
-#ifdef __COMPILE_TOKENISER__
     /** Read the next character from the input stream */
     private void nextc() {
         try {
@@ -676,15 +640,10 @@ public final class LightScript implements LightScriptObject {
         resolveToken(sb.toString());
         return;
     }
-#else
-    private void nextToken() {
-    }
-#endif /* __COMPILE_TOKENISER__ */
 
 /*`\section{Parser}\label{code-lightscript-parser} 
 \index{Top down operator precedence parser}'*/
 
-#ifdef __COMPILE_PARSER__
     /** Parse the next expression from the input stream
       * @param rbp right binding power
       */
@@ -1302,21 +1261,9 @@ public final class LightScript implements LightScriptObject {
             token = ((Integer)o).intValue() + MASK_BP;
         }
     }
-#else
-    private Object[] parse(int rbp) {
-        return null;
-    }
-    private void resolveToken(Object o) {
-    }
-#endif /* __COMPILE_PARSER__ */
 
 /*`\section{Compiler}'*/
 
-#ifndef __COMPILE_COMPILER__
-    private Code compile(Object[] body) {
-        return null;
-    }
-#else
     private void pushShort(int i) {
         emit(((i >> 8) & 0xff));
         emit((i & 0xff));
@@ -2011,20 +1958,9 @@ public final class LightScript implements LightScriptObject {
             compile(v(ID_LITERAL, UNDEFINED), true);
         }
     }
-#endif /*__COMPILE_COMPILER__*/
 
 /*`\section{Virtual Machine}\index{Virtual machine}'*/
 
-#ifndef __COMPILE_VM__
-    private static Object execute(Code cl) throws LightScriptException {
-        return null;
-    }
-    private static Object execute(Code cl, Object[] stack, int sp, 
-                                  Object thisPtr, int argcount) 
-                            throws LightScriptException {
-        return null;
-    }
-#else
     private static int readShort(int pc, byte[] code) {
         return (short) (((code[++pc] & 0xff) << 8) | (code[++pc] & 0xff));
     }
@@ -2677,5 +2613,4 @@ public final class LightScript implements LightScriptObject {
             }
         }
     }
-#endif /*__COMPILE_VM__*/
 }
