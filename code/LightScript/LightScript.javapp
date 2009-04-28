@@ -2454,6 +2454,7 @@ public final class LightScript implements LightScriptObject {
                             }
                             container = ((Hashtable)container).get("prototype");
                             if(!(container instanceof Hashtable)) {
+                                container = stack[sp];
                                 break;
                             }
                         }

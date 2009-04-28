@@ -108,30 +108,52 @@ class LightScriptStdLib implements LightScriptFunction {
             case DEFAULT_GETTER: {
                 Object key = args[argpos];
                 Object result = null;
-                // TODO: implement this more efficiently using a hashtable
-                if("length".equals(key)) {
-                    if(thisPtr instanceof Hashtable) {
+                Object prototype;
+                boolean lengthProperty = "length".equals(key);
+
+                // Select the right type,
+                // handle special length-property at the same time
+                if(thisPtr instanceof Hashtable) {
+                    if(lengthProperty) {
                         return new Integer(((Hashtable)thisPtr).size());
                     }
-                    if(thisPtr instanceof Stack) {
+                    prototype = closure[PROTOTYPE_OBJECT];
+                } else if(thisPtr instanceof Stack) {
+                    if(lengthProperty) {
                         return new Integer(((Stack)thisPtr).size());
                     }
-                    if(thisPtr instanceof String) {
+                    prototype = closure[PROTOTYPE_ARRAY];
+                } else if(thisPtr instanceof String) {
+                    if(lengthProperty) {
                         return new Integer(((String)thisPtr).length());
                     }
-                    if(thisPtr instanceof LightScriptFunction) {
+                    prototype = closure[PROTOTYPE_STRING];
+                } else if(thisPtr instanceof LightScriptFunction) {
+                    if(lengthProperty) {
                         return new Integer(((LightScriptFunction)thisPtr).getArgc());
                     }
+                    prototype = closure[PROTOTYPE_FUNCTION];
+                } else {
+                    prototype = closure[PROTOTYPE_OBJECT];
                 }
-                if("prxsototype".equals(key)) {
-                    if(thisPtr instanceof Hashtable || thisPtr instanceof LightScriptObject) {
-                        return closure[PROTOTYPE_OBJECT];
-                    }
-                    if(thisPtr instanceof LightScriptFunction) {
-                        return closure[PROTOTYPE_OBJECT];
-                    }
+
+                // If we try to get the prototype, it should be the prototype,
+                // and not the prototype of the prototype
+                if("prototype".equals(key)) {
+                    return prototype;
                 }
-                break;
+
+                result = ((Hashtable)prototype).get(key);
+
+                // Object prototype is prototype of all other prototypes
+                if(result == null && prototype != closure[PROTOTYPE_OBJECT]) {
+                    result = ((Hashtable)closure[PROTOTYPE_OBJECT]).get(key);
+                }
+
+                if(result == null) {
+                    result = LightScript.UNDEFINED;
+                }
+                return result;
             }
         }
         return LightScript.UNDEFINED;
@@ -143,7 +165,6 @@ class LightScriptStdLib implements LightScriptFunction {
 
         Hashtable objectPrototype = new Hashtable();
         objectPrototype.put("hasOwnProperty", new LightScriptStdLib(HAS_OWN_PROPERTY));
-        objectPrototype.put("prototype", objectPrototype);
         Hashtable object = clone(objectPrototype);
 
         // Create members for array
@@ -151,30 +172,30 @@ class LightScriptStdLib implements LightScriptFunction {
         arrayPrototype.put("push", new LightScriptStdLib(ARRAY_PUSH));
         arrayPrototype.put("pop", new LightScriptStdLib(ARRAY_POP));
         arrayPrototype.put("join", new LightScriptStdLib(ARRAY_JOIN));
-        arrayPrototype.put("prototype", arrayPrototype);
         Hashtable array = clone(arrayPrototype);
 
         Hashtable stringPrototype = clone(objectPrototype);
-        stringPrototype.put("prototype", stringPrototype);
         Hashtable string = clone(stringPrototype);
 
         Hashtable functionPrototype = clone(objectPrototype);
-        functionPrototype.put("prototype", functionPrototype);
         Hashtable function = clone(stringPrototype);
 
         // Special environment object, containing methods for array, ...
-        Object[] env = new Object[4];
-        env[0] = arrayPrototype;
-        env[1] = objectPrototype;
-        env[2] = stringPrototype;
-        env[3] = functionPrototype;
-        ls.set("(ENV)", env);
+        Object[] prototypes = new Object[4];
+        prototypes[PROTOTYPE_ARRAY] = arrayPrototype;
+        prototypes[PROTOTYPE_OBJECT] = objectPrototype;
+        prototypes[PROTOTYPE_STRING] = stringPrototype;
+        prototypes[PROTOTYPE_FUNCTION] = functionPrototype;
         ls.set("Object", object);
         ls.set("String", string);
         ls.set("Array", array);
         ls.set("Function", function);
 
+
+        LightScriptStdLib defaultGetter = new LightScriptStdLib(DEFAULT_GETTER);
+        defaultGetter.closure = prototypes;
+        ls.defaultGetter = defaultGetter;
+
         ls.defaultSetter = new LightScriptStdLib(DEFAULT_SETTER);
-        ls.defaultGetter = new LightScriptStdLib(DEFAULT_GETTER);
     }
 }
