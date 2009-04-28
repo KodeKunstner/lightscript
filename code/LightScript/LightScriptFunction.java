@@ -18,4 +18,8 @@ public interface LightScriptFunction {
      */
     public Object apply(Object thisPtr, Object[] args, int argpos, 
                         int argcount) throws LightScriptException;
+    /**
+     * Return the expected number of arguments.
+     */
+    public int getArgc();
 }

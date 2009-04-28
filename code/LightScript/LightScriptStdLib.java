@@ -1,9 +1,9 @@
 import java.util.Stack;
 import java.util.Hashtable; 
 
-class LightScriptStdLib implements LightScriptObject {
+class LightScriptStdLib implements LightScriptFunction {
     private int id;
-    private Object closure;
+    private Object closure[];
 
     // globally named functions
     private static final int PRINT = 0;
@@ -13,16 +13,23 @@ class LightScriptStdLib implements LightScriptObject {
 
     private static final String[] names = {"print", "gettype", "parseint", "clone"};
     // methods and other stuff added manually to lightscript
-    private static final int NOT_NAMED = 4;
-    private static final int HAS_OWN_PROPERTY = NOT_NAMED + 0;
-    private static final int ARRAY_PUSH = NOT_NAMED + 1;
-    private static final int ARRAY_POP = NOT_NAMED + 2;
-    private static final int ARRAY_JOIN = NOT_NAMED + 3;
+    private static final int GLOBALLY_NAMED = 4;
+    private static final int HAS_OWN_PROPERTY = GLOBALLY_NAMED + 0;
+    private static final int ARRAY_PUSH = GLOBALLY_NAMED + 1;
+    private static final int ARRAY_POP = GLOBALLY_NAMED + 2;
+    private static final int ARRAY_JOIN = GLOBALLY_NAMED + 3;
+    private static final int DEFAULT_SETTER = GLOBALLY_NAMED + 4;
+    private static final int DEFAULT_GETTER = GLOBALLY_NAMED + 5;
 
     private static final int[] argcs = {1, 1, 2, 1
         // not named
-        , 0, 1, 0, 1
+        , 0, 1, 0, 1, 2, 1
     };
+
+    private static final int PROTOTYPE_OBJECT = 0;
+    private static final int PROTOTYPE_ARRAY = 1;
+    private static final int PROTOTYPE_STRING = 2;
+    private static final int PROTOTYPE_FUNCTION = 3;
 
     private static Hashtable clone(Object o) {
         Hashtable result = new Hashtable();
@@ -30,14 +37,8 @@ class LightScriptStdLib implements LightScriptObject {
         return result;
     }
 
-    public Object get(Object key) {
-        if("length".equals(key)) {
-            return new Integer(argcs[id]);
-        }
-        return LightScript.UNDEFINED;
-    }
-
-    public void set(Object key, Object val) {
+    public int getArgc() {
+            return argcs[id];
     }
 
     private LightScriptStdLib(int id) {
@@ -99,8 +100,41 @@ class LightScriptStdLib implements LightScriptObject {
                 }
                 return sb.toString();
             }
+            case DEFAULT_SETTER: {
+                Object key = args[argpos];
+                Object val = args[argpos + 1];
+                break;
+            }
+            case DEFAULT_GETTER: {
+                Object key = args[argpos];
+                Object result = null;
+                // TODO: implement this more efficiently using a hashtable
+                if("length".equals(key)) {
+                    if(thisPtr instanceof Hashtable) {
+                        return new Integer(((Hashtable)thisPtr).size());
+                    }
+                    if(thisPtr instanceof Stack) {
+                        return new Integer(((Stack)thisPtr).size());
+                    }
+                    if(thisPtr instanceof String) {
+                        return new Integer(((String)thisPtr).length());
+                    }
+                    if(thisPtr instanceof LightScriptFunction) {
+                        return new Integer(((LightScriptFunction)thisPtr).getArgc());
+                    }
+                }
+                if("prxsototype".equals(key)) {
+                    if(thisPtr instanceof Hashtable || thisPtr instanceof LightScriptObject) {
+                        return closure[PROTOTYPE_OBJECT];
+                    }
+                    if(thisPtr instanceof LightScriptFunction) {
+                        return closure[PROTOTYPE_OBJECT];
+                    }
+                }
+                break;
+            }
         }
-        return null;
+        return LightScript.UNDEFINED;
     }
     public static void register(LightScript ls) {
         for(int i = 0; i < names.length; i++) {
@@ -139,5 +173,8 @@ class LightScriptStdLib implements LightScriptObject {
         ls.set("String", string);
         ls.set("Array", array);
         ls.set("Function", function);
+
+        ls.defaultSetter = new LightScriptStdLib(DEFAULT_SETTER);
+        ls.defaultGetter = new LightScriptStdLib(DEFAULT_GETTER);
     }
 }

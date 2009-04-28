@@ -1524,7 +1524,29 @@ would print \verb|42|.
 
 A method of a Java object can be called from LightScript if the object implements the \verb|LightScriptFunction| interface, which defines an \verb|apply| method.
 The interface is:
-\lstinputlisting{../code/LightScript/LightScriptFunction.java}
+\begin{lstlisting}
+public interface LightScriptFunction {
+    /** 
+     * Method callable from LightScript.
+     *
+     * @param thisPtr   The this LightScript object, 
+     *                  if apply was called as a method.
+     *
+     * @param args      An array that contains the parameters,
+     *                  this is READ ONLY.
+     *                  The first parameter is at args[argpos], and 
+     *                  the last parameter is at args[argpos + argcount - 1].
+     *
+     * @param argpos    The position of the first parameter.
+     *
+     * @param argcount  The number of parameters.
+     *
+     * @return          An object that is returned to LightScript
+     */
+    public Object apply(Object thisPtr, Object[] args, int argpos, 
+                        int argcount) throws LightScriptException;
+}
+\end{lstlisting}
 So, for example, a function that returns the current number of milliseconds could be implemented as:
 \begin{lstlisting}
 class MillisecondsFunction implements LightScriptFunction {

@@ -1,3 +1,6 @@
+1.1.497
+    Replaced the LightScriptFunction interface with a LightScriptObject
+    interface. 19361
 1.1.486
     Misc. improvements, and removed LightScriptObject class 19274
 1.1.480

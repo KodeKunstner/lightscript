@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.Hashtable;
 
 public class Main implements LightScriptFunction {
+    public int getArgc() { return 0; }
     public Object apply(Object thisPtr, Object[] args, int argpos, int argcount) throws LightScriptException {
         LightScriptFunction fn = (LightScriptFunction)args[argpos];
         args[argpos] = "X";
@@ -23,6 +24,9 @@ public class Main implements LightScriptFunction {
     }
 static class FunctionLibrary implements LightScriptFunction { 
     int id; // This tells which function the object represents
+    public int getArgc() {
+        return 0;
+    }
     public Object apply(Object thisPtr, Object[] args, int argpos, 
                         int argcount) throws LightScriptException {
         switch(id) {   

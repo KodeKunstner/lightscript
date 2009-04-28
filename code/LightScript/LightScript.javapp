@@ -180,7 +180,7 @@ import java.util.Stack;
 /*`\subsection{Variables}'*/
 /** Instances of the LightScript object, is an execution context,
   * where code can be parsed, compiled, and executed. */
-public final class LightScript {
+public final class LightScript implements LightScriptObject {
 
     /** Token used for separators (;,:), which are just discarded */
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
@@ -319,12 +319,6 @@ public final class LightScript {
 #endif /*__DEBUG__*/
     }
 
-    /** Needed to implement LightScriptObject */
-    public Object apply(Object thisPtr, Object[] args, int argpos, 
-                        int argcount) throws LightScriptException {
-        return UNDEFINED;
-    }
-
     /** Set a global value for this execution context */
     public void set(Object key, Object value) {
         Object[] box = (Object[])boxedGlobals.get(key);
@@ -345,6 +339,24 @@ public final class LightScript {
         }
     
     }
+    /** Default setter function, called when a property is set on
+     * an object which is neither a Stack, Hashtable nor LightScriptObject
+     *
+     * The apply method of the setter gets the container as thisPtr, 
+     * and takes the key and value as arguments
+     */
+    public LightScriptFunction defaultSetter;
+
+    /** Default getter function, called when subscripting an object
+     * which is not a Stack, Hashtable, String nor LightScriptObject
+     * or when the subscripting of any of those objects returns null.
+     * (non-integer on stacks/strings, keys not found in Hashtable or 
+     * its prototypes, when LightScriptObject.get returns null)
+     *
+     * The apply method of the getter gets the container as thisPtr, 
+     * and takes the key as argument
+     */
+    public LightScriptFunction defaultGetter;
 #else
     public void eval(String s) throws LightScriptException {
     }
@@ -492,7 +504,7 @@ public final class LightScript {
      * Analysis of variables in a function being compiled,
      * updated during the parsing.
      */
-    private static class Code implements LightScriptObject {
+    private class Code implements LightScriptFunction {
         public Object apply(Object thisPtr, Object[] args, 
                             int argpos, int argcount) 
                                 throws LightScriptException {
@@ -522,13 +534,8 @@ public final class LightScript {
         public Object[] closure;
         public int maxDepth;
 
-        public Object get(Object key) {
-            if("length".equals(key)) {
-                return new Integer(argc);
-            }
-            return UNDEFINED;
-        }
-        public void set(Object key, Object val) {
+        public int getArgc() {
+            return argc;
         }
 
         public Code(int argc, byte[] code, Object[] constPool, Object[] closure, int maxDepth) {
@@ -2114,7 +2121,7 @@ public final class LightScript {
     /**
      * evaluate some bytecode 
      */
-    private static Object execute(Code cl, Object[] stack, int argcount, Object thisPtr) throws LightScriptException {
+    private Object execute(Code cl, Object[] stack, int argcount, Object thisPtr) throws LightScriptException {
         int sp = argcount - 1;
 
         //System.out.println(stringify(cl));
@@ -2195,9 +2202,9 @@ public final class LightScript {
                         code = fn.code;
                         constPool = fn.constPool;
                         closure = fn.closure;
-                    } else if (o instanceof LightScriptObject) {
+                    } else if (o instanceof LightScriptFunction) {
                         try {
-                            Object result = ((LightScriptObject)o
+                            Object result = ((LightScriptFunction)o
                                 ).apply(thisPtr, stack, sp - argc + 1, argc);
                             sp -= argc + RET_FRAME_SIZE;
                             stack[sp] = result;
@@ -2412,7 +2419,9 @@ public final class LightScript {
                     Object val = stack[sp];
                     Object key = stack[--sp];
                     Object container = stack[--sp];
-                    if (container instanceof Stack) {
+                    if (container instanceof LightScriptObject) {
+                        ((LightScriptObject)container).set(key, val);
+                    } else if (container instanceof Stack) {
                         int pos = toInt(key);
                         Stack s = (Stack) container;
                         if(pos >= s.size()) {
@@ -2425,6 +2434,8 @@ public final class LightScript {
                         } else {
                             ((Hashtable) container).put(key, val);
                         }
+                    } else {
+                        defaultSetter.apply(container, stack, sp + 1, 2);
                     }
                     break;
                 }
@@ -2432,20 +2443,10 @@ public final class LightScript {
                     Object key = stack[sp];
                     Object container = stack[--sp];
                     Object result = null;
-                    if (container instanceof Stack) {
-                        if(key instanceof Integer) {
-                            int pos = ((Integer) key).intValue();
-                            Stack s = (Stack) container;
-                            result = 0 <= pos && pos < s.size()
-                                         ? s.elementAt(pos)
-                                         : null;
-                        } else if(key.equals("length")) {
-                            result = new Integer(((Stack)container).size());
-                        } else {
-                            result = ((Hashtable) ((Object[])
-                                ((Object[])closure[0])[0])[0]).get(key);
-                        }
-                    } else if (container instanceof Hashtable) {
+
+                    if (container instanceof LightScriptObject) {
+                        result = ((LightScriptObject)container).get(key);
+                    }  else if (container instanceof Hashtable) {
                         for(;;) {
                             result = ((Hashtable) container).get(key);
                             if(result != null) {
@@ -2456,36 +2457,24 @@ public final class LightScript {
                                 break;
                             }
                         }
+                    } else if(key instanceof Integer) {
+                        int pos = ((Integer) key).intValue();
 
-                        // Get object from default object prototype, 
-                        // if key not found
-                        if(result == null) {
-                            result = ((Hashtable) ((Object[])
-                                ((Object[])closure[0])[0])[1]).get(key);
-                        } 
-
-                    } else if (container instanceof String) {
-                        if(key instanceof Integer) {
-                            int pos = ((Integer) key).intValue();
+                        if (container instanceof Stack) {
+                            Stack s = (Stack) container;
+                            result = 0 <= pos && pos < s.size()
+                                         ? s.elementAt(pos)
+                                         : null;
+                        } else if (container instanceof String) {
                             String s = (String)container;
                             result = 0 <= pos && pos < s.length()
                                          ? s.substring(pos, pos+1)
                                          : null;
-                        } else if(key.equals("length")) {
-                            result = new Integer(((String)container).length());
-                        } else {
-                            result = ((Hashtable) ((Object[])
-                                ((Object[])closure[0])[0])[2]).get(key);
-                        }
-                    } else if (container instanceof LightScriptObject) {
-                        result = ((LightScriptObject)container).get(key);
-                        if(key == null) {
-                            result = ((Hashtable) ((Object[])
-                                ((Object[])closure[0])[0])[3]).get(key);
                         }
                     } 
+                    
                     if(result == null) {
-                        result = UNDEFINED;
+                        result = defaultGetter.apply(container, stack, sp + 1, 1);
                     }
                     stack[sp] = result;
                     break;
