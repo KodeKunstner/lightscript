@@ -1,11 +1,14 @@
-- new iterator
+- execute -> static again. 
+  - this-ptr/globals, prototypes etc. in closure, 
+  - this-ptr/globals is instanceof LightScriptStdLib which replaces global-hash-table.
+  - LightScriptStdLib should be static private class within LightScript
+- use __create_iterator in for-in, by remapping to while
 - Global object -> this
   - simplify function call compilation/implementation
-- simplify for compilation by using while
 - add new, delete
-- use clone, delete, and iterator from getter
-
 - script for automatic wrapper generation
 - api
 - make fixed point optional
+  - add optional floating point support
 - testsuite
+- ant Hecl-like build, rather than custom makefiles

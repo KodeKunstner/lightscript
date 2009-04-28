@@ -2396,14 +2396,15 @@ public final class LightScript implements LightScriptObject {
                     Object container = stack[--sp];
                     Object result = null;
 
+
+                    // "Object"
                     if (container instanceof LightScriptObject) {
                         result = ((LightScriptObject)container).get(key);
-
                     }  else if (container instanceof Hashtable) {
                         result = ((Hashtable) container).get(key);
                         if(result == null) {
                             Object prototype = ((Hashtable)container).get("prototype");
-
+                            // repeat case ID_SUBSCRIPT with prototype as container
                             if(prototype != null) {
                                 stack[sp] = prototype;
                                 sp += 1;
@@ -2412,6 +2413,7 @@ public final class LightScript implements LightScriptObject {
                             }
                         }
 
+                    // "Array"
                     } else if (container instanceof Stack) {
                         if(key instanceof Integer) {
                             int pos = ((Integer) key).intValue();
@@ -2425,6 +2427,7 @@ public final class LightScript implements LightScriptObject {
                             result = arrayPrototype.get(key);
                         }
 
+                    // "String"
                     } else if (container instanceof String) {
                         if(key instanceof Integer) {
                             int pos = ((Integer) key).intValue();
@@ -2438,6 +2441,7 @@ public final class LightScript implements LightScriptObject {
                             result = stringPrototype.get(key);
                         }
 
+                    // "Function"
                     } else if (container instanceof LightScriptFunction) {
                         if("length".equals(key)) {
                             result = new Integer(((LightScriptFunction)container).getArgc());
@@ -2445,10 +2449,12 @@ public final class LightScript implements LightScriptObject {
                             result = functionPrototype.get(key);
                         }
 
+                    // Other builtin types, by calling userdefined default getter
                     } else {
                         result = defaultGetter.apply(container, stack, sp + 1, 1);
                     } 
                     
+                    // prototype property or element within (super-)prototype
                     if(result == null) {
                         if("prototype".equals(key)) {
                             if(container instanceof LightScriptFunction) {

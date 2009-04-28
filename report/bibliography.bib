@@ -229,40 +229,30 @@
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @misc{tracemonkey,
-        author = {Mozilla},
-        title = {tracemonkey...},
-        howpublished = {\url{http://www.mozilla.org/...}},
+        author = {Brendan Eich},
+        title = {Brendan's Roadmap Updates: TraceMonkey: JsvaScript Lightspeed},
+        howpublished = {\url{http://weblogs.mozillazin.org/roadmap/archives/2008/08/tracemonkey_javascript_lightsp.html}},
 }
-@article{ trace-tree,
+@techreport{ trace-tree,
     author = {Andreas Gal and Michael Franz},
     title = {Incremental Dynamic Code Generation with Trace Trees},
-    journal ={},
-    volume = {},
-    number = {},
-    issn = {},
-    year = {},
-    pages = {},
+    year = {2006},
 }
-@article{ trace-tree2,
+@techreport{ trace-tree2,
     author = {Mason Chang and Michael Bebenita and Alexander Yermolovich and Andreas Gal},
     title = {Efficient Just-In-Time Execution of Dynamically Typed Languages Via Code Specialization Using Precise Runtime Type Inference},
-    journal ={},
-    volume = {},
-    number = {},
-    issn = {},
-    year = {},
-    pages = {},
+    year = {2007},
 }
 
 @misc{v8,
         author = {Google},
-        title = {v8...},
-        howpublished = {\url{http://www....}},
+        title = {V8 JavaScript Engine},
+        howpublished = {\url{http://code.google.com/p/v8}},
 }
 @misc{mojax,
         author = {Rodney Aiglstorfer},
         title = {MILScript Specification Export - mojax - mFoundry wiki},
-        howpublished = {\url{http://www....}},
+        howpublished = {\url{http://mfwiki.mfoundry.com/display/mojax/MILScript+Specification+Export}},
 }
 
 @misc{mbedthis,
@@ -273,75 +263,100 @@
 }
 
 @misc{ejscript,
-        author = {},
-        title = {},
+        author = {Embedthis Software},
+        title = {Ejscript},
         howpublished = {\url{http://www.ejscript.org/products/ejs/index.html }},
         year = {2009},
 }
 @misc{kahlua,
   author        = "Kristofer Karlsson",
-  title         = "Kahlua...",
-  howpublished = {\url{googlecode...}}
+  title         = "Kahlua -- a Lua Virtual Machine for Java",
+  howpublished = {\url{http://code.google.com/p/kahlua/}},
+  year = {2009}
 }
 @misc{norvig-jscheme,
   author        = "Peter Norvig",
-  title         = "JScheme",
-  howpublished = {\url{...}}
+  title         = "JScheme: Scheme implemented in Java",
+  howpublished = {\url{http://norvig.com/jscheme.html}},
+  year = {1998}
 }
 @article{ self,
     author = {David Ungar and Randall B. Smith},
     title = {Self: The Power of Simplicity},
     year = {1987},
+    journal = {SIGPLAN Not.},
+    volume = {22},
+    number = {12},
+    issn = {0362-1340},
+    pages = {227--242},
     publisher = {ACM},
 }
 @article{ register-vs-stack1,
     author = { Yunhe Shi and David Gregg and Andrew Beatty and M. Anton Ertl },
     title = {Virtual Machine Showdown: Stack Versus Registers},
-    year = {2005},
+    journal = {ACM Trans. Archit. Code Optim.},
+    volume = {4},
+    number = {4},
+    year = {2008},
+    pages = {1--36},
     publisher = {ACM},
 }
-@article{ register-vs-stack2,
+@inproceedings{ register-vs-stack2,
     author = { Brian Davis and Andrew Beatty and Kevin Casey and David Gregg and John Waldron},
     title = {The Case for Virtual Register Machines},
-    year = {2003},
-    publisher = {ACM},
+    booktitle = {In Interpreters, Virtual Machines and Emulators (IVME'03)},
+    year = {2002},
+    pages = {41--49},
+    publisher = {ACM Press},
 }
 @misc{dalvik-vm,
-  author        = "...",
-  title         = "dalvik vm",
-  howpublished = {\url{...}}
+  author        = "Dan Bornstein",
+  title         = "Dalvik VM Internals",
+  howpublished = {\url{http://sites.google.com/site/io/dalvik-vm-internals}},
 }
 @article{ llvm,
-    author = { },
-    title = { LLVM},
+    author = {Chris Lattner and Vikram Adve},
+    title = "{LLVM: A Compilation Framework for Lifelong Program Analysis \& Transformation}",
+    booktitle = "{Proceedings of the 2004 International Symposium on Code Generation and Optimization (CGO'04)}",
+    month = {Mar},
+    year = {2004},
 }
 @misc{parrot,
   author = {Fabian Fagerholm},
   title = {Perl 6 and the Parrot Virtal Machine},
-  howpublished = {\url{...}}
+  howpublished = {\url{www.parrot.org/files/Fagerholm-Parrot.pdf}}
+  year = 2005
 }
 @article{ lua-vm,
     author = { Roberto Ierusalimschy and Luiz Henrique de Figueiredo and Waldemar Celes},
     title = { The implementation of Lua 5.0},
+    journal = "Journal of Universal Computer Science",
+    year = "2005",
+    volume = "11",
+    number = "7",
+    pages = "1159-1176",
 }
 
-@book{ basics-of-compiler-design,
-    author = { Torben Mogensen},
-    title = {Basics of compiler design},
-}
 @article{ top-down-operator-precedence,
     author = { Vaughan R. Pratt},
     title = { Top Down Operator Precedence},
+    booktitle = {POPL '73: Proceedings of the 1st annual ACM SIGACT-SIGPLAN symposium on Principles of programming languages},
+    year = {1973},
+    pages = {41--51},
+    publisher = {ACM},
 }
 
 @book{beautiful-code,
-    author = { },
+    author = { Oram, Andy and Wilson, Greg},
     title = {Beautiful code},
+    isbn = {0596519947},
+    year = 2007,
+    title = {Beautiful Code: Leading Programmers Explain How They Think (Theory in Practice (O'Reilly))}
 }
 
 @misc{crockford-jslint,
   author = {Douglas Crockford},
-  title = {... jslint ...},
+  title = {JSLint, The JavaScript Verifier},
   howpublished = {\url{http://jslint.com}}
 }
 
@@ -357,72 +372,84 @@
 @misc{fscript,
   author = {Murlen},
   title = {FScript},
-  howpublished = {\url{http://fscript.sourceforge.net}}
+  howpublished = {\url{http://fscript.sourceforge.net}},
+  year = {2004}
 }
 @misc{hecl,
-  author = {David N. Welton ...},
-  title = {Hecl},
-  howpublished = {\url{http://...}}
+  author = {David N. Welton and Wolfgang Kechel},
+  title = {Hecl -- The Mobile Scripting Language},
+  howpublished = {\url{http://www.hecl.org/}},
+  year = {2009}
 }
 @misc{simkin,
   author = {Simon Whiteside},
-  title = {Simkin},
-  howpublished = {\url{http://www.simkin.co.uk/}}
+  title = {Simkin Scripting Language},
+  howpublished = {\url{http://simkin.co.uk/simkin_language.html}},
+  year = {2009}
 }
 @misc{cellularbasic,
-  author = {},
-  title = {CellularBASIC},
-  howpublished = {\url{}}
+  author = {Mustafa M. H. Elsheikh},
+  title = {CellularBASIC: On-phone Open Source Mobile BASIC Interpreter for J2ME},
+  howpublished = {\url{http://cellbasic.sourceforge.net/}},
+  year = {2006}
 }
 
 @misc{rhino,
         author = {Mozilla},
-        title = {rhino},
-        howpublished = {\url{http://www.mozilla.org/...}},
+        title = {Rhino -- JavaScript for Java},
+        howpublished = {\url{http://www.mozilla.org/rhino}},
+  year = {2007}
 }
 @misc{qt,
         author = {Nokia},
-        title = {QT},
-        howpublished = {\url{qt}},
+        title = {Qt - A cross-platform application and UI framework},
+        howpublished = {\url{http://www.qtsoftware.com/}},
 }
 @misc{webkit-src,
-        author = {},
-        title = {WebKit},
-        howpublished = {\url{}},
+        author = {WebKit.org},
+        title = {The WebKit Open Source Project},
+        howpublished = {\url{http://webkit.org/}},
+        year = 2009
 }
 @misc{squirrelfish-bench,
-        author = {},
-        title = {...article on webkit about new squirrelfish...},
-        howpublished = {\url{}},
+        author = {Maciej Stachowiak},
+        title = {Introducing SquirrelFish Extreme},
+        howpublished = {\url{http://webkit.org/blog/214/introducing-squirrelfish-extreme/}},
+        year = 2008
 }
 @misc{sunspider,
-        author = {},
-        title = {sunspider benchmarks},
-        howpublished = {\url{}},
+        author = {WebKit.org},
+        title = {{SunSpider JavaScript Benchmarks}},
+        howpublished = {\url{http://www2.webkit.org/perf/sunspirder-0.9/sunspider.html}},
+        year = 2007
 }
 @misc{shootout,
         author = {},
-        title = {The Great Language Shootout},
-        howpublished = {\url{}},
+        title = {The Computer Language Benchmarks Game},
+        howpublished = {\url{http://shootout.alioth.debian.org/}},
+        year = 2009
 }
 @misc{jsonml,
-        author = {},
-        title = {... xml in json ...},
-        howpublished = {\url{}},
+        author = {Stephen M. McKamey},
+        title = {JsonML (JSON Markup Language)},
+        howpublished = {\url{http://jsonml.org}},
 }
 @misc{canonhack,
         author = {},
-        title = {... custom firmware on canon cameras...},
-        howpublished = {\url{}},
+        title = {CHDK -- A wiki dedicated to the CHDK firmware add-on for Canon's Digic II, Digic III and Digic IV cameras},
+        howpublished = {\url{http://chdk.wikia.com/}},
+        year = {2009}
 }
 @misc{mototolahack,
-        author = {},
-        title = {... linux on motorola...},
-        howpublished = {\url{}},
+        author = {Harald Welte},
+        title = {OpenEZX},
+        howpublished = {\url{http://www.openezx.org/}},
+        year = {2009}
 }
 @misc{nintendodshack,
         author = {},
-        title = {... uclinux on nintendo ds...},
-        howpublished = {\url{}},
+        title = {DSLinux: the home of Linux on the DS},
+        howpublished = {\url{http://www.dslinux.org}},
+        year = {2008}
 }
 

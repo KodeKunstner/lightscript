@@ -31,3 +31,7 @@ iter = obj.__create_iterator();
 while((elem = iter()) != undefined) {
     print("Elem: " + elem);
 }
+
+a = {"foo": "bar"};
+b = {"prototype": a};
+print("b.foo: " + b.foo);
