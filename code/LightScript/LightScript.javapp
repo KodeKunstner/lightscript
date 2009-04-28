@@ -340,10 +340,18 @@ public final class LightScript implements LightScriptObject {
     
     }
 
+    /** Prototypes for Objects */
     public Hashtable objectPrototype;
+
+    /** Prototypes for Arrays*/
     public Hashtable arrayPrototype;
+
+    /** Prototypes for Functions */
     public Hashtable functionPrototype;
+
+    /** Prototypes for Strings*/
     public Hashtable stringPrototype;
+
     /** Default setter function, called when a property is set on
      * an object which is neither a Stack, Hashtable nor LightScriptObject
      *

@@ -24,3 +24,10 @@ for(i=0;i<10;++i) {
 y = {};
 print(y);
 print(({}).prototype);
+
+obj = ["foo", 1, "bar",2];
+print("HERE!!!!!");
+iter = obj.__create_iterator();
+while((elem = iter()) != undefined) {
+    print("Elem: " + elem);
+}

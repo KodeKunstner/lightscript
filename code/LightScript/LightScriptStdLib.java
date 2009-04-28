@@ -23,11 +23,16 @@ class LightScriptStdLib implements LightScriptFunction {
     private static final int DEFAULT_GETTER = GLOBALLY_NAMED + 5;
     private static final int NEW_ITERATOR = GLOBALLY_NAMED + 6;
     private static final int INTEGER_ITERATOR = GLOBALLY_NAMED + 7;
-    private static final int HASHTABLE_KEY_ITERATOR = GLOBALLY_NAMED + 8;
+    private static final int ENUMERATION_ITERATOR = GLOBALLY_NAMED + 8;
 
     private static final int[] argcs = {1, 1, 2, 1
         // not named
-        , 0, 1, 0, 1, 2, 1
+        // hasown, push, pop, join
+        , 0, 1, 0, 1 
+        // default- setter getter
+        , 2, 1
+        // new iter int-iter enum-iter
+        , 0, 0, 0
     };
 
     private static final int PROTOTYPE_OBJECT = 0;
@@ -122,10 +127,21 @@ class LightScriptStdLib implements LightScriptFunction {
                 // implementation like "return thisPtr[key]"
                 break;
             }
-            /*
             case NEW_ITERATOR: {
                 if(thisPtr instanceof Hashtable) {
-
+                    LightScriptStdLib result;
+                    result = new LightScriptStdLib(ENUMERATION_ITERATOR);
+                    result.closure = new Object[1];
+                    result.closure[0] = ((Hashtable)thisPtr).keys();
+                    return result;
+                }
+                if(thisPtr instanceof Stack) {
+                    LightScriptStdLib result;
+                    result = new LightScriptStdLib(INTEGER_ITERATOR);
+                    result.closure = new Object[2];
+                    result.closure[0] = new Integer(-1);
+                    result.closure[1] = new Integer(((Stack)thisPtr).size() - 1);
+                    return result;
                 }
                 break;
             }
@@ -141,13 +157,11 @@ class LightScriptStdLib implements LightScriptFunction {
             }
             case ENUMERATION_ITERATOR: {
                 Enumeration e = (Enumeration) closure[0];
-                if(!e.hasMoreElements) {
+                if(!e.hasMoreElements()) {
                     return LightScript.UNDEFINED;
                 }
                 return e.nextElement();
-                break;
             }
-            */
         }
         return LightScript.UNDEFINED;
     }
@@ -158,6 +172,7 @@ class LightScriptStdLib implements LightScriptFunction {
 
         Hashtable objectPrototype = new Hashtable();
         objectPrototype.put("hasOwnProperty", new LightScriptStdLib(HAS_OWN_PROPERTY));
+        objectPrototype.put("__create_iterator", new LightScriptStdLib(NEW_ITERATOR));
         Hashtable object = clone(objectPrototype);
 
         // Create members for array
