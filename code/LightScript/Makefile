@@ -6,7 +6,7 @@ run: Main.class test.js
 Main.class: $(source)
 	for file in *.javapp; do cpp -C $(CPPFLAGS) -P $$file `echo $$file | sed -e s/javapp/java/`; done
 	javac -source 1.2 *.java
-	for file in *.javapp; do rm `echo $$file | sed -e s/javapp/java/`; done
+	for file in *.javapp; do mv `echo $$file | sed -e s/javapp/java/` oldimp; done
 
 all: Main.class
 

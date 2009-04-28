@@ -339,6 +339,11 @@ public final class LightScript implements LightScriptObject {
         }
     
     }
+
+    public Hashtable objectPrototype;
+    public Hashtable arrayPrototype;
+    public Hashtable functionPrototype;
+    public Hashtable stringPrototype;
     /** Default setter function, called when a property is set on
      * an object which is neither a Stack, Hashtable nor LightScriptObject
      *
@@ -2419,8 +2424,10 @@ public final class LightScript implements LightScriptObject {
                     Object val = stack[sp];
                     Object key = stack[--sp];
                     Object container = stack[--sp];
+
                     if (container instanceof LightScriptObject) {
                         ((LightScriptObject)container).set(key, val);
+
                     } else if (container instanceof Stack) {
                         int pos = toInt(key);
                         Stack s = (Stack) container;
@@ -2428,6 +2435,7 @@ public final class LightScript implements LightScriptObject {
                             s.setSize(pos + 1);
                         }
                         s.setElementAt(val, pos);
+
                     } else if (container instanceof Hashtable) {
                         if (val == null) {
                             ((Hashtable) container).remove(key);
@@ -2446,36 +2454,74 @@ public final class LightScript implements LightScriptObject {
 
                     if (container instanceof LightScriptObject) {
                         result = ((LightScriptObject)container).get(key);
+
                     }  else if (container instanceof Hashtable) {
-                        for(;;) {
-                            result = ((Hashtable) container).get(key);
-                            if(result != null) {
-                                break;
-                            }
-                            container = ((Hashtable)container).get("prototype");
-                            if(!(container instanceof Hashtable)) {
-                                container = stack[sp];
+                        result = ((Hashtable) container).get(key);
+                        if(result == null) {
+                            Object prototype = ((Hashtable)container).get("prototype");
+
+                            if(prototype != null) {
+                                stack[sp] = prototype;
+                                sp += 1;
+                                pc -= 1;
                                 break;
                             }
                         }
-                    } else if(key instanceof Integer) {
-                        int pos = ((Integer) key).intValue();
 
-                        if (container instanceof Stack) {
+                    } else if (container instanceof Stack) {
+                        if(key instanceof Integer) {
+                            int pos = ((Integer) key).intValue();
                             Stack s = (Stack) container;
                             result = 0 <= pos && pos < s.size()
                                          ? s.elementAt(pos)
                                          : null;
-                        } else if (container instanceof String) {
+                        } else if("length".equals(key)) {
+                            result = new Integer(((Stack)container).size());
+                        } else {
+                            result = arrayPrototype.get(key);
+                        }
+
+                    } else if (container instanceof String) {
+                        if(key instanceof Integer) {
+                            int pos = ((Integer) key).intValue();
                             String s = (String)container;
                             result = 0 <= pos && pos < s.length()
                                          ? s.substring(pos, pos+1)
                                          : null;
+                        } else if("length".equals(key)) {
+                            result = new Integer(((String)container).length());
+                        } else {
+                            result = stringPrototype.get(key);
                         }
+
+                    } else if (container instanceof LightScriptFunction) {
+                        if("length".equals(key)) {
+                            result = new Integer(((LightScriptFunction)container).getArgc());
+                        } else {
+                            result = functionPrototype.get(key);
+                        }
+
+                    } else {
+                        result = defaultGetter.apply(container, stack, sp + 1, 1);
                     } 
                     
                     if(result == null) {
-                        result = defaultGetter.apply(container, stack, sp + 1, 1);
+                        if("prototype".equals(key)) {
+                            if(container instanceof LightScriptFunction) {
+                                result = functionPrototype;
+                            } else if(container instanceof Stack) {
+                                result = arrayPrototype;
+                            } else if(container instanceof String) {
+                                result = stringPrototype;
+                            } else {
+                                result = objectPrototype;
+                            }
+                        } else {
+                            result = objectPrototype.get(key);
+                            if(result == null) {
+                                result = UNDEFINED;
+                            }
+                        }
                     }
                     stack[sp] = result;
                     break;

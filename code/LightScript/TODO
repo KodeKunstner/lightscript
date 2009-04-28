@@ -1,16 +1,10 @@
-- static getter-setter interface and extend stdlib
-  Default-get function default set function
-  new iterator
-  ::: LightScript thing: APPLY, SET, GET!
-    - default object, for non-LightScript things
-    - LightScript a LightScript-thing
-        - with apply -> undefined, 
-        - set,get-> global values!
-        - default this.
-  - remove length special case from compiler
-  - add new, delete
-  - use clone, delete, and iterator from getter
-  - replace lightscript object with std-lib-functions on Hashtable
+- new iterator
+- Global object -> this
+  - simplify function call compilation/implementation
+- simplify for compilation by using while
+- add new, delete
+- use clone, delete, and iterator from getter
+
 - script for automatic wrapper generation
 - api
 - make fixed point optional

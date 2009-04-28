@@ -1,5 +1,6 @@
 import java.util.Stack;
 import java.util.Hashtable; 
+import java.util.Enumeration; 
 
 class LightScriptStdLib implements LightScriptFunction {
     private int id;
@@ -20,6 +21,9 @@ class LightScriptStdLib implements LightScriptFunction {
     private static final int ARRAY_JOIN = GLOBALLY_NAMED + 3;
     private static final int DEFAULT_SETTER = GLOBALLY_NAMED + 4;
     private static final int DEFAULT_GETTER = GLOBALLY_NAMED + 5;
+    private static final int NEW_ITERATOR = GLOBALLY_NAMED + 6;
+    private static final int INTEGER_ITERATOR = GLOBALLY_NAMED + 7;
+    private static final int HASHTABLE_KEY_ITERATOR = GLOBALLY_NAMED + 8;
 
     private static final int[] argcs = {1, 1, 2, 1
         // not named
@@ -54,20 +58,22 @@ class LightScriptStdLib implements LightScriptFunction {
                  break;
             }
             case TYPEOF: {
-                 Object o = args[argpos];
-                 if(o instanceof Hashtable) {
-                     return "object";
-                 } else if(o instanceof Stack) {
-                     return "array";
-                 } else if(o instanceof Integer) {
-                     return "number";
-                 } else if(o instanceof Boolean) {
-                     return "boolean";
-                 } else if(o == null) {
-                     return "undefined";
-                 } else {
-                     return "builtin";
-                 }
+                Object o = args[argpos];
+                if(o instanceof Hashtable) {
+                    return "object";
+                } else if(o instanceof Stack) {
+                    return "array";
+                } else if(o instanceof Integer) {
+                    return "number";
+                } else if(o == LightScript.UNDEFINED) {
+                    return "undefined";
+                } else if(o == LightScript.NULL) {
+                    return "null";
+                } else if(o == LightScript.TRUE || o == LightScript.FALSE) {
+                    return "boolean";
+                } else {
+                    return "builtin";
+                }
             }
             case PARSEINT: {
                 return Integer.valueOf((String)args[argpos], ((Integer)args[argpos +1]).intValue());
@@ -76,15 +82,20 @@ class LightScriptStdLib implements LightScriptFunction {
                 return clone((Hashtable)args[argpos]);
             }
             case HAS_OWN_PROPERTY: {
-                return ((Hashtable)thisPtr).contains(args[argpos])?LightScript.TRUE:null;
+                if(thisPtr instanceof Hashtable) {
+                    return ((Hashtable)thisPtr).contains(args[argpos])
+                            ? LightScript.TRUE
+                            : LightScript.FALSE;
+                }
+                break;
             }
             case ARRAY_PUSH: {
-                 ((Stack)thisPtr).push(args[argpos]);
+                ((Stack)thisPtr).push(args[argpos]);
                  break;
             }
             case ARRAY_POP: {
-                 ((Stack)thisPtr).pop();
-                 break;
+                ((Stack)thisPtr).pop();
+                break;
             }
             case ARRAY_JOIN: {
                 Stack s = (Stack) thisPtr;
@@ -103,58 +114,40 @@ class LightScriptStdLib implements LightScriptFunction {
             case DEFAULT_SETTER: {
                 Object key = args[argpos];
                 Object val = args[argpos + 1];
+                // implementation like "thisPtr[key] = val"
                 break;
             }
             case DEFAULT_GETTER: {
                 Object key = args[argpos];
-                Object result = null;
-                Object prototype;
-                boolean lengthProperty = "length".equals(key);
-
-                // Select the right type,
-                // handle special length-property at the same time
+                // implementation like "return thisPtr[key]"
+                break;
+            }
+            /*
+            case NEW_ITERATOR: {
                 if(thisPtr instanceof Hashtable) {
-                    if(lengthProperty) {
-                        return new Integer(((Hashtable)thisPtr).size());
-                    }
-                    prototype = closure[PROTOTYPE_OBJECT];
-                } else if(thisPtr instanceof Stack) {
-                    if(lengthProperty) {
-                        return new Integer(((Stack)thisPtr).size());
-                    }
-                    prototype = closure[PROTOTYPE_ARRAY];
-                } else if(thisPtr instanceof String) {
-                    if(lengthProperty) {
-                        return new Integer(((String)thisPtr).length());
-                    }
-                    prototype = closure[PROTOTYPE_STRING];
-                } else if(thisPtr instanceof LightScriptFunction) {
-                    if(lengthProperty) {
-                        return new Integer(((LightScriptFunction)thisPtr).getArgc());
-                    }
-                    prototype = closure[PROTOTYPE_FUNCTION];
-                } else {
-                    prototype = closure[PROTOTYPE_OBJECT];
-                }
 
-                // If we try to get the prototype, it should be the prototype,
-                // and not the prototype of the prototype
-                if("prototype".equals(key)) {
-                    return prototype;
                 }
-
-                result = ((Hashtable)prototype).get(key);
-
-                // Object prototype is prototype of all other prototypes
-                if(result == null && prototype != closure[PROTOTYPE_OBJECT]) {
-                    result = ((Hashtable)closure[PROTOTYPE_OBJECT]).get(key);
+                break;
+            }
+            case INTEGER_ITERATOR: {
+                if(closure[0].equals(closure[1])) {
+                    return LightScript.UNDEFINED;
                 }
-
-                if(result == null) {
-                    result = LightScript.UNDEFINED;
-                }
+                int current = ((Integer)closure[0]).intValue();
+                current = current + 1;
+                Object result = new Integer(current);
+                closure[0] = result;
                 return result;
             }
+            case ENUMERATION_ITERATOR: {
+                Enumeration e = (Enumeration) closure[0];
+                if(!e.hasMoreElements) {
+                    return LightScript.UNDEFINED;
+                }
+                return e.nextElement();
+                break;
+            }
+            */
         }
         return LightScript.UNDEFINED;
     }
@@ -180,22 +173,18 @@ class LightScriptStdLib implements LightScriptFunction {
         Hashtable functionPrototype = clone(objectPrototype);
         Hashtable function = clone(stringPrototype);
 
-        // Special environment object, containing methods for array, ...
-        Object[] prototypes = new Object[4];
-        prototypes[PROTOTYPE_ARRAY] = arrayPrototype;
-        prototypes[PROTOTYPE_OBJECT] = objectPrototype;
-        prototypes[PROTOTYPE_STRING] = stringPrototype;
-        prototypes[PROTOTYPE_FUNCTION] = functionPrototype;
+        ls.arrayPrototype = arrayPrototype;
+        ls.objectPrototype = objectPrototype;
+        ls.stringPrototype = stringPrototype;
+        ls.functionPrototype = functionPrototype;
+
         ls.set("Object", object);
         ls.set("String", string);
         ls.set("Array", array);
         ls.set("Function", function);
 
 
-        LightScriptStdLib defaultGetter = new LightScriptStdLib(DEFAULT_GETTER);
-        defaultGetter.closure = prototypes;
-        ls.defaultGetter = defaultGetter;
-
+        ls.defaultGetter = new LightScriptStdLib(DEFAULT_GETTER);
         ls.defaultSetter = new LightScriptStdLib(DEFAULT_SETTER);
     }
 }

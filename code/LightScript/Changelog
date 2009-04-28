@@ -1,3 +1,6 @@
+1.1.501
+    Support for default getter/setter functions for non-LightScriptObjects,
+    Improved implementation of prototypes. 19907
 1.1.497
     Replaced the LightScriptFunction interface with a LightScriptObject
     interface. 19361
