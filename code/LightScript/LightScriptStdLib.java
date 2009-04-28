@@ -1,7 +1,7 @@
 import java.util.Stack;
 import java.util.Hashtable; 
 
-class LightScriptStdLib implements LightScriptFunction {
+class LightScriptStdLib implements LightScriptObject {
     private int id;
     private Object closure;
 
@@ -30,6 +30,15 @@ class LightScriptStdLib implements LightScriptFunction {
         return result;
     }
 
+    public Object get(Object key) {
+        if("length".equals(key)) {
+            return new Integer(argcs[id]);
+        }
+        return LightScript.UNDEFINED;
+    }
+
+    public void set(Object key, Object val) {
+    }
 
     private LightScriptStdLib(int id) {
         this.id = id;

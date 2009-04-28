@@ -319,6 +319,12 @@ public final class LightScript {
 #endif /*__DEBUG__*/
     }
 
+    /** Needed to implement LightScriptObject */
+    public Object apply(Object thisPtr, Object[] args, int argpos, 
+                        int argcount) throws LightScriptException {
+        return UNDEFINED;
+    }
+
     /** Set a global value for this execution context */
     public void set(Object key, Object value) {
         Object[] box = (Object[])boxedGlobals.get(key);
@@ -486,7 +492,7 @@ public final class LightScript {
      * Analysis of variables in a function being compiled,
      * updated during the parsing.
      */
-    private static class Code implements LightScriptFunction {
+    private static class Code implements LightScriptObject {
         public Object apply(Object thisPtr, Object[] args, 
                             int argpos, int argcount) 
                                 throws LightScriptException {
@@ -515,6 +521,15 @@ public final class LightScript {
         public Object[] constPool;
         public Object[] closure;
         public int maxDepth;
+
+        public Object get(Object key) {
+            if("length".equals(key)) {
+                return new Integer(argc);
+            }
+            return UNDEFINED;
+        }
+        public void set(Object key, Object val) {
+        }
 
         public Code(int argc, byte[] code, Object[] constPool, Object[] closure, int maxDepth) {
             this.argc = argc;
@@ -2180,9 +2195,9 @@ public final class LightScript {
                         code = fn.code;
                         constPool = fn.constPool;
                         closure = fn.closure;
-                    } else if (o instanceof LightScriptFunction) {
+                    } else if (o instanceof LightScriptObject) {
                         try {
-                            Object result = ((LightScriptFunction)o
+                            Object result = ((LightScriptObject)o
                                 ).apply(thisPtr, stack, sp - argc + 1, argc);
                             sp -= argc + RET_FRAME_SIZE;
                             stack[sp] = result;
@@ -2462,11 +2477,9 @@ public final class LightScript {
                             result = ((Hashtable) ((Object[])
                                 ((Object[])closure[0])[0])[2]).get(key);
                         }
-                    } else if (container instanceof LightScriptFunction) {
-                        if(container instanceof Code &&
-                            key.equals("length")) {
-                            result = new Integer(((Code)container).argc);
-                        } else {
+                    } else if (container instanceof LightScriptObject) {
+                        result = ((LightScriptObject)container).get(key);
+                        if(key == null) {
                             result = ((Hashtable) ((Object[])
                                 ((Object[])closure[0])[0])[3]).get(key);
                         }
