@@ -70,21 +70,26 @@ LightScript is now a practical language for mobile development and will continue
 \renewcommand\abstractname{Resumé}
 \begin{abstract}
 I dette speciale er der udviklet to nye scriptingsprog til mobiltelefoner: Yolan og LightScript.
-De er udviklet i Java Micro Edition, der er den program\-udviklings\-platform der gør det muligt at køre på flest telefoner.
+De er udviklet i Java Micro Edition, der er den program\-udviklings\-platform, der gør det muligt at køre på flest telefoner.
 
-Størrelsen af det eksekverbare program er den mest begrænsende faktor for Java Micro Edition, og sprogene udviklet i dette speciale fylder mindre end eksisterende scriptingsprog.
-Udførselshastigheden er på niveau med større scripting\-sprogs\-implementationer,
-og betydeligt hurtigere end mange af de små scriptingsprog.
 
-Både Yolan og LightScript har funktioner som værdier, har dynamisk typesystem, har indbyggede hashtabeller, stakke, osv., og kan udføre program\-stumper der indlæses som kildekode under kørslen.
+Sprogene er optimerede med hensyn til størrelsen af det eksekverbare program, da denne er den mest begrænsende faktor på Java Micro Edition.
+Sprog\-ene udviklet i dette speciale er mindre end de eksisterende scriptingsprog.
+%Størrelsen af det eksekverbare program er den mest begrænsende faktor på Java Micro Edition,
+%hvilket .
+%hvilket der er taget højde for med sprogene udviklet i dette speciale fylder mindre end eksisterende scriptingsprog.
+Udførselshastigheden er på niveau med større scripting\-sprogs\-implementationer
+og er betydeligt hurtigere end mange af de eksisterende små scriptingsprog.
+
+Både Yolan og LightScript har funktioner som værdier, har dynamisk typesystem, har indbyggede hashtabeller, stakke, osv., og kan udføre program\-stumper, der indlæses som kildekode under kørslen.
 Begge sprog er fortolkede, da Java Micro Edition ikke understøtter indlæsning af ny kode under kørslen.
 
 Yolan er optimeret med henblik på programstørrelsen.
-Sproget har dynamisk virtkefelt, Lisp-inspireret syntaks, og bliver fortolket ved at gennemløbe syn\-taks\-træet og evaluere de enkelte knuder.
+Sproget har dynamisk virtkefelt, Lisp-inspireret syntaks, og det bliver fortolket ved at gennemløbe syn\-taks\-træet og evaluere de enkelte knuder.
 
 
-LightScript er kompatibelt med en delmængde af JavaScript, hvilket gør sproget mere tilgængeligt for andre. 
-Det har statisk virkefelt, understøtter ``closures'', undtagelser og objekt orienteret programmering.
+LightScript er kompatibelt med en delmængde af JavaScript, hvilket gør sproget lettere at gå i gang med at programmere i for andre. 
+Det har statisk virkefelt, understøtter ``closures'', undtagelser og objektorienteret programmering.
 Det oversættes til, og udføres på, en stakbaseret virtuel maskine.
 
 Yolan fylder cirka halvt så meget som LightScript, og de er omtrent lige hurtige, til trods for deres forskellige tilgange til programudførsel.
@@ -516,9 +521,8 @@ Rhino \cite{rhino} is an implementation of JavaScript on top of Java. The implem
 \index{SpiderMonkey}
 SpiderMonkey \cite{spidermonkey} is the JavaScript engine in Mozilla's browsers, and is also usable as an embeddable engine in other applications. Execution is based on a virtual machine, which either has a switch-based dispatch or direct threading, depending on what the compiler supports.
 
-%TODO: i am here wrgt articles
 \paragraph{TraceMonkey} 
-TraceMonkey is a branch of SpiderMonkey, which incooperates JIT compilation, with a JIT compiler based on trace trees \cite{trace-tree}, 
+TraceMonkey \cite{tracemonkey} is a branch of SpiderMonkey, which incooperates JIT compilation, with a JIT compiler based on trace trees \cite{trace-tree, trace-tree2}, 
 \index{TraceMonkey}
 which, rather than JIT-compiling the entire program,
 traces and then compiles the most executed paths through the program.
@@ -530,7 +534,7 @@ and less code needed to be compiled.
 While it is not directly connected with the Android platform, a JIT compiler is already in place targeting the ARM CPU, so it seems likely that it will also target mobile devices in the long term.
 
 A main focus and benefit of V8 is high execution speed.
-The design builds upon experience from Self/Smalltalk implementations \cite{articles-before-v8}.
+%The design builds upon experience from Self/Smalltalk implementations \cite{articles-before-v8}.
 It is designed for JIT compilation from the beginning, and it also does some class inference to optimise methods and property accesses.
 Specifically, whenever a property is added to a JavaScript object this creates an implicit class. When code is JIT'ed, a property access is compiled to a type check followed by fast code for accessesing the property, similar to that of more static, class based languages. This is possible due to the type check and implicit class, and it is much faster than a traditional JavaScript object property lookup.
 
@@ -644,9 +648,9 @@ A third approach to implementing a virtual machine is just to use the abstract s
 A language implementation must parse the source text into the abstract syntax tree that is manipulated by the rest of the compiler.
 
 Parsers often take quite a large amount of code, especially if they are generated by compiler-compilers.
-Generated lexers and LALR(1) parsers, generated by for example \cite{yacc, yacc2}, usually have quite large state tables.
+Generated lexers and LALR(1) parsers usually have quite large state tables.
 Recursive descent parsers seem to use a bit less code footprint that LALR parsers, but still require functions for all the grammar productions, which still takes quite a bit of space..
-Grammar-based parser generation and implementation have been extensively studied, for example in  \cite{basics-of-compiler-design, grammar}, and will not be discussed further.
+Grammar-based parser generation and implementation have been extensively studied, for example in  \cite{basics-of-compiler-design}, and will not be discussed further.
 
 Another approach, which is also very elegant, 
 but has recieved less attention is the
@@ -662,7 +666,7 @@ So a top-down operator precedence parser will be used for parsing in LightScript
 \subsubsection{Top-down operator precedence parsers}
 \label{tdop}
 Top-down operator precedence parsing combines recursive descent parsing with operator precedence, which simplifies the implementation significantly.
-It was first described thirty years ago \cite{top-down-operator-precedence}, but has not received much attention until lately \cite{beautiful-code, crockford-tdop}.
+It was first described thirty years ago \cite{top-down-operator-precedence}, but has not received much attention until lately \cite{beautiful-code, crockford-jslint}.
 
 
 A token may have two functions and a precedence, which are used to build the syntax tree when the token is encountered.
@@ -1447,7 +1451,7 @@ The implemented binary arithmetic operations are: multiplication \verb|*|, modul
 
 Comparison operators are \verb|<|, \verb|<=|, \verb|>|, \verb|>=|, \verb|!==|, \verb|===|, which works as usual. The equality operators do an actual comparison\footnote{This is equivalent with the Jave {\tt .equals}- method.} and not just a pointer comparison. 
 The type coerced equality operators from JavaScript \verb|!=| and \verb|==|, are omitted 
-as they have semantic issues, such as not being transitive \cite{javascriptnoeqeq}.
+as they have semantic issues, such as not being transitive \cite{javascript-good-parts}.
 
 The current assignment operators supported by the language are: \verb|=|, \verb|+=| and \verb|-=|.
 The remaining will be added in the next version.
@@ -1674,7 +1678,7 @@ So to have a more fair comparison, the size is measured of zip archives\footnote
 The code size benchmark compares the languages implemented in this project, Yolan and LightScript, to other scripting languages for mobile devices, FScriptMe, Kahlua, Hecl, Simkin, and CellularBasic, and to some general scripting languages,  JScheme, and Rhino.
 
 \index{FScriptME}
-FScriptME \cite{fscriptme} is the mobile edition of femto-script, which is ``an extremely simple scripting language'' \cite{fscript}. 
+FScriptME is the mobile edition of femto-script, which is ``an extremely simple scripting language'' \cite{fscript}. 
 Out of the box, it only supports strings and integers as data types -- no compound types -- which limits use somewhat, and it is still in beta, since 2002. 
 
 \index{Lua!Kahlua}
@@ -1697,7 +1701,7 @@ It includes a floating point support library which is not included in the measur
 
 \index{Lisp and Scheme!JScheme}
 \index{Scheme|see{Lisp and Scheme}}
-JScheme \cite{jscheme} is a small Scheme implementation. We benchmark an early version as later versions have a vastly larger code footprint. It depends on reflection, and therefore it does not run on Java Micro Edition, but it is included because the implementation is compact, and may be changed to target mobile devices.
+JScheme \cite{norvig-jscheme} is a small Scheme implementation. We benchmark an early version as later versions have a vastly larger code footprint. It depends on reflection, and therefore it does not run on Java Micro Edition, but it is included because the implementation is compact, and may be changed to target mobile devices.
 
 
 \index{Rhino}
@@ -1928,7 +1932,7 @@ Yolan and LightScript are pushing the edge of small scripting language implement
 
 \newpage
 \addcontentsline{toc}{chapter}{Index}
-\printindex
+%\printindex
 
 \end{document}
 
