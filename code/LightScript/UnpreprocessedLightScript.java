@@ -278,7 +278,7 @@ public final class LightScript implements LightScriptObject {
      * and takes the key as argument
      */
     #define EC_GETTER 6
-    #define EC_WRAPPER_GLOBALS 7
+    #define EC_WRAPPED_GLOBALS 7
 
     /**
      * context for execution
@@ -336,23 +336,12 @@ public final class LightScript implements LightScriptObject {
 
     /** Set a global value for this execution context */
     public void set(Object key, Object value) {
-        Object[] box = (Object[])((Hashtable)executionContext[EC_GLOBALS]).get(key);
-        if(box == null) {
-            box = new Object[1];
-            ((Hashtable)executionContext[EC_GLOBALS]).put(key, box);
-        }
-        box[0] = value;
+        ((LightScriptObject)executionContext[EC_WRAPPED_GLOBALS]).set(key, value);
     }
 
     /** Retrieve a global value from this execution context */
     public Object get(Object key) {
-        Object[] box = (Object[])((Hashtable)executionContext[EC_GLOBALS]).get(key);
-        if(box == null) {
-            return null;
-        } else {
-            return box[0];
-        }
-    
+        return ((LightScriptObject)executionContext[EC_WRAPPED_GLOBALS]).get(key);
     }
 
 /*`\subsection{Debugging}'*/
@@ -484,28 +473,29 @@ public final class LightScript implements LightScriptObject {
 
 
     /*`\subsubsection{StdLib}'*/
-    private static class StdLib implements LightScriptFunction {
+    private static class StdLib implements LightScriptFunction, LightScriptObject {
         private int id;
         private Object closure[];
     
         // globally named functions
-        #define FN_PRINT (0)
-        #define FN_TYPEOF (1)
-        #define FN_PARSEINT (2)
-        #define FN_CLONE (3)
+        #define STD_PRINT (0)
+        #define STD_TYPEOF (1)
+        #define STD_PARSEINT (2)
+        #define STD_CLONE (3)
     
         private static final String[] names = {"print", "gettype", "parseint", "clone"};
         // methods and other stuff added manually to lightscript
-        #define FN_GLOBALLY_NAMED (4)
-        #define FN_HAS_OWN_PROPERTY (FN_GLOBALLY_NAMED + 0)
-        #define FN_ARRAY_PUSH (FN_GLOBALLY_NAMED + 1)
-        #define FN_ARRAY_POP (FN_GLOBALLY_NAMED + 2)
-        #define FN_ARRAY_JOIN (FN_GLOBALLY_NAMED + 3)
-        #define FN_DEFAULT_SETTER (FN_GLOBALLY_NAMED + 4)
-        #define FN_DEFAULT_GETTER (FN_GLOBALLY_NAMED + 5)
-        #define FN_NEW_ITERATOR (FN_GLOBALLY_NAMED + 6)
-        #define FN_INTEGER_ITERATOR (FN_GLOBALLY_NAMED + 7)
-        #define FN_ENUMERATION_ITERATOR (FN_GLOBALLY_NAMED + 8)
+        #define STD_GLOBALLY_NAMED (4)
+        #define STD_HAS_OWN_PROPERTY (STD_GLOBALLY_NAMED + 0)
+        #define STD_ARRAY_PUSH (STD_GLOBALLY_NAMED + 1)
+        #define STD_ARRAY_POP (STD_GLOBALLY_NAMED + 2)
+        #define STD_ARRAY_JOIN (STD_GLOBALLY_NAMED + 3)
+        #define STD_DEFAULT_SETTER (STD_GLOBALLY_NAMED + 4)
+        #define STD_DEFAULT_GETTER (STD_GLOBALLY_NAMED + 5)
+        #define STD_NEW_ITERATOR (STD_GLOBALLY_NAMED + 6)
+        #define STD_INTEGER_ITERATOR (STD_GLOBALLY_NAMED + 7)
+        #define STD_ENUMERATION_ITERATOR (STD_GLOBALLY_NAMED + 8)
+        #define STD_GLOBAL_WRAPPER (STD_GLOBALLY_NAMED + 9)
     
         private static final int[] argcs = {1, 1, 2, 1
             // not named
@@ -515,7 +505,33 @@ public final class LightScript implements LightScriptObject {
             , 2, 1
             // new iter int-iter enum-iter
             , 0, 0, 0
+            // globalwrapper
+            , 0
         };
+
+        public void set(Object key, Object value) {
+            if(id == STD_GLOBAL_WRAPPER) {
+                Object[] box = (Object[])((Hashtable)closure[EC_GLOBALS]).get(key);
+                if(box == null) {
+                    box = new Object[1];
+                    ((Hashtable)closure[EC_GLOBALS]).put(key, box);
+                }
+                box[0] = value;
+            } 
+        }
+
+        public Object get(Object key) {
+            if(id == STD_GLOBAL_WRAPPER) {
+                Object[] box = (Object[])((Hashtable)closure[EC_GLOBALS]).get(key);
+                if(box == null) {
+                    return null;
+                } else {
+                    return box[0];
+                }
+            } else {
+                return null;
+            }
+        }
     
         private static Hashtable clone(Object o) {
             Hashtable result = new Hashtable();
@@ -535,11 +551,11 @@ public final class LightScript implements LightScriptObject {
                 throw new LightScriptException("Error: Wrong number of arguments");
             }
             switch(id) {
-                case FN_PRINT: {
+                case STD_PRINT: {
                      System.out.println(args[argpos]);
                      break;
                 }
-                case FN_TYPEOF: {
+                case STD_TYPEOF: {
                     Object o = args[argpos];
                     if(o instanceof Hashtable) {
                         return "object";
@@ -557,13 +573,13 @@ public final class LightScript implements LightScriptObject {
                         return "builtin";
                     }
                 }
-                case FN_PARSEINT: {
+                case STD_PARSEINT: {
                     return Integer.valueOf((String)args[argpos], ((Integer)args[argpos +1]).intValue());
                 }
-                case FN_CLONE: {
+                case STD_CLONE: {
                     return clone((Hashtable)args[argpos]);
                 }
-                case FN_HAS_OWN_PROPERTY: {
+                case STD_HAS_OWN_PROPERTY: {
                     if(thisPtr instanceof Hashtable) {
                         return ((Hashtable)thisPtr).contains(args[argpos])
                                 ? LightScript.TRUE
@@ -571,15 +587,15 @@ public final class LightScript implements LightScriptObject {
                     }
                     break;
                 }
-                case FN_ARRAY_PUSH: {
+                case STD_ARRAY_PUSH: {
                     ((Stack)thisPtr).push(args[argpos]);
                      break;
                 }
-                case FN_ARRAY_POP: {
+                case STD_ARRAY_POP: {
                     ((Stack)thisPtr).pop();
                     break;
                 }
-                case FN_ARRAY_JOIN: {
+                case STD_ARRAY_JOIN: {
                     Stack s = (Stack) thisPtr;
                     if(s.size() == 0) {
                         return "";
@@ -593,28 +609,28 @@ public final class LightScript implements LightScriptObject {
                     }
                     return sb.toString();
                 }
-                case FN_DEFAULT_SETTER: {
+                case STD_DEFAULT_SETTER: {
                     Object key = args[argpos];
                     Object val = args[argpos + 1];
                     // implementation like "thisPtr[key] = val"
                     break;
                 }
-                case FN_DEFAULT_GETTER: {
+                case STD_DEFAULT_GETTER: {
                     Object key = args[argpos];
                     // implementation like "return thisPtr[key]"
                     break;
                 }
-                case FN_NEW_ITERATOR: {
+                case STD_NEW_ITERATOR: {
                     if(thisPtr instanceof Hashtable) {
                         StdLib result;
-                        result = new StdLib(FN_ENUMERATION_ITERATOR);
+                        result = new StdLib(STD_ENUMERATION_ITERATOR);
                         result.closure = new Object[1];
                         result.closure[0] = ((Hashtable)thisPtr).keys();
                         return result;
                     }
                     if(thisPtr instanceof Stack) {
                         StdLib result;
-                        result = new StdLib(FN_INTEGER_ITERATOR);
+                        result = new StdLib(STD_INTEGER_ITERATOR);
                         result.closure = new Object[2];
                         result.closure[0] = new Integer(-1);
                         result.closure[1] = new Integer(((Stack)thisPtr).size() - 1);
@@ -622,7 +638,7 @@ public final class LightScript implements LightScriptObject {
                     }
                     break;
                 }
-                case FN_INTEGER_ITERATOR: {
+                case STD_INTEGER_ITERATOR: {
                     if(closure[0].equals(closure[1])) {
                         return LightScript.UNDEFINED;
                     }
@@ -632,12 +648,15 @@ public final class LightScript implements LightScriptObject {
                     closure[0] = result;
                     return result;
                 }
-                case FN_ENUMERATION_ITERATOR: {
+                case STD_ENUMERATION_ITERATOR: {
                     Enumeration e = (Enumeration) closure[0];
                     if(!e.hasMoreElements()) {
                         return LightScript.UNDEFINED;
                     }
                     return e.nextElement();
+                }
+                case STD_GLOBAL_WRAPPER: {
+                    break;
                 }
             }
             return LightScript.UNDEFINED;
@@ -657,22 +676,27 @@ public final class LightScript implements LightScriptObject {
             Hashtable functionPrototype = clone(objectPrototype);
             ls.executionContext[EC_FUNCTION_PROTOTYPE] = functionPrototype;
     
-            ls.executionContext[EC_SETTER] = new StdLib(FN_DEFAULT_SETTER);
+            ls.executionContext[EC_SETTER] = new StdLib(STD_DEFAULT_SETTER);
     
-            ls.executionContext[EC_GETTER] = new StdLib(FN_DEFAULT_GETTER);
+            ls.executionContext[EC_GETTER] = new StdLib(STD_DEFAULT_GETTER);
+
+            StdLib globalWrapper = new StdLib(STD_GLOBAL_WRAPPER);
+            globalWrapper.closure = ls.executionContext;
+            ls.executionContext[EC_WRAPPED_GLOBALS] = globalWrapper;
+
     
             for(int i = 0; i < names.length; i++) {
                 ls.set(names[i], new StdLib(i));
             }
     
-            objectPrototype.put("hasOwnProperty", new StdLib(FN_HAS_OWN_PROPERTY));
-            objectPrototype.put("__create_iterator", new StdLib(FN_NEW_ITERATOR));
+            objectPrototype.put("hasOwnProperty", new StdLib(STD_HAS_OWN_PROPERTY));
+            objectPrototype.put("__create_iterator", new StdLib(STD_NEW_ITERATOR));
             Hashtable object = clone(objectPrototype);
     
             // Create members for array
-            arrayPrototype.put("push", new StdLib(FN_ARRAY_PUSH));
-            arrayPrototype.put("pop", new StdLib(FN_ARRAY_POP));
-            arrayPrototype.put("join", new StdLib(FN_ARRAY_JOIN));
+            arrayPrototype.put("push", new StdLib(STD_ARRAY_PUSH));
+            arrayPrototype.put("pop", new StdLib(STD_ARRAY_POP));
+            arrayPrototype.put("join", new StdLib(STD_ARRAY_JOIN));
             Hashtable array = clone(arrayPrototype);
     
             Hashtable string = clone(stringPrototype);
