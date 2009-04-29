@@ -18,6 +18,11 @@ import java.util.Stack;
  * for better GC at performance price
  */
 #define __CLEAR_STACK__
+//#define __USE_FIXED_POINT__
+
+#ifndef __USE_FIXED_POINT__
+#  define toInt(x) ((Integer)x).intValue()
+#endif
 
 /* Identifiers, used both as node type,
  * and also used as opcode. 
@@ -831,7 +836,7 @@ public final class LightScript implements LightScriptObject {
                 pushc();
             } while (isAlphaNum());
 
-        // FixedPoint symbol !== , ===, <= , &&, ...
+        // Long symbol !== , ===, <= , &&, ...
         } else if (isSymb()) {
             do {
                 pushc();
@@ -2177,6 +2182,7 @@ public final class LightScript implements LightScriptObject {
         return (short) (((code[++pc] & 0xff) << 8) | (code[++pc] & 0xff));
     }
 
+#ifdef __USE_FIXED_POINT__
     /**
      * Transform a object to a fixed point number,
      * represented as a long with 32bit integer part
@@ -2196,6 +2202,7 @@ public final class LightScript implements LightScriptObject {
         throw new Error("object " + o + " not an integer");
 #endif
     }
+
     private static int toInt(Object o) {
         if(o instanceof Integer) {
             return ((Integer) o).intValue();
@@ -2248,6 +2255,7 @@ public final class LightScript implements LightScriptObject {
             return false;
         }
     }
+#endif //__USE_FIXED_POINT
     private static boolean toBool(Object o) {
         if(o == TRUE) {
             return true;
@@ -2474,7 +2482,11 @@ public final class LightScript implements LightScriptObject {
                     break;
                 }
                 case ID_NEG: {
+#ifdef __USE_FIXED_POINT__
                     stack[sp] = toNumObj(-toFixed(stack[sp]));
+#else
+                    stack[sp] = new Integer(-((Integer)(stack[sp])).intValue());
+#endif 
                     break;
                 }
                 case ID_ADD: {
@@ -2485,9 +2497,11 @@ public final class LightScript implements LightScriptObject {
                         int result = ((Integer) o).intValue();
                         result += ((Integer) o2).intValue();
                         stack[sp] = new Integer(result);
+#ifdef __USE_FIXED_POINT__
                     } else if( (o instanceof Integer || o instanceof FixedPoint) 
                            &&  (o2 instanceof Integer || o2 instanceof FixedPoint) ) {
                         stack[sp] = toNumObj(toFixed(o) + toFixed(o2) );
+#endif
                     } else {
                         stack[sp] = String.valueOf(o) + String.valueOf(o2);
                     }
@@ -2496,12 +2510,16 @@ public final class LightScript implements LightScriptObject {
                 case ID_SUB: {
                     Object o2 = stack[sp];
                     Object o1 = stack[--sp];
+#ifdef __USE_FIXED_POINT__
                     if(o1 instanceof Integer && o2 instanceof Integer) {
+#endif
                         stack[sp] = new Integer(((Integer)o1).intValue() 
                                     - ((Integer)o2).intValue());
+#ifdef __USE_FIXED_POINT__
                     } else {
                         stack[sp] = toNumObj(toFixed(o1) - toFixed(o2) );
                     }
+#endif
                     break;
                 }
                 case ID_SHIFT_RIGHT: {
@@ -2513,17 +2531,22 @@ public final class LightScript implements LightScriptObject {
                 case ID_MUL: {
                     Object o2 = stack[sp];
                     Object o1 = stack[--sp];
+#ifdef __USE_FIXED_POINT__
                     if(o1 instanceof Integer && o2 instanceof Integer) {
+#endif
                         stack[sp] = new Integer(((Integer)o1).intValue() 
                                     * ((Integer)o2).intValue());
+#ifdef __USE_FIXED_POINT__
                     } else {
                         stack[sp] = toNumObj((toFixed(o1) >> (long)16) * (toFixed(o2) >> (long)16));
                     }
+#endif
                     break;
                 }
                 case ID_DIV: {
                     Object o2 = stack[sp];
                     Object o1 = stack[--sp];
+#ifdef __USE_FIXED_POINT__
                     if(o1 instanceof Integer && o2 instanceof Integer) {
                         stack[sp] = toNumObj(
                                     ((long)((Integer)o1).intValue() << (long) 32)
@@ -2551,17 +2574,24 @@ public final class LightScript implements LightScriptObject {
                         l2 >>>= 33;
                         stack[sp] = toNumObj(l1/l2);
                     }
+#else // not __USE_FIXED_POINT__
+                    stack[sp] = new Integer(toInt(o1) / toInt(o2));
+#endif
                     break;
                 }
                 case ID_REM: {
                     Object o2 = stack[sp];
                     Object o1 = stack[--sp];
+#ifdef __USE_FIXED_POINT__
                     if(o1 instanceof Integer && o2 instanceof Integer) {
+#endif
                         stack[sp] = new Integer(((Integer)o1).intValue() 
                                     % ((Integer)o2).intValue());
+#ifdef __USE_FIXED_POINT__
                     } else {
                         stack[sp] = toNumObj(toFixed(o1) % (toFixed(o2)));
                     }
+#endif
                     break;
                 }
                 case ID_NOT_EQUALS: {
@@ -2707,9 +2737,11 @@ public final class LightScript implements LightScriptObject {
                     if (o1 instanceof Integer && o2 instanceof Integer) {
                         stack[sp] = ((Integer) o1).intValue() 
                             < ((Integer) o2).intValue() ? TRUE : FALSE;
+#ifdef __USE_FIXED_POINT__
                     } else if( (o1 instanceof Integer || o1 instanceof FixedPoint) 
                            &&  (o2 instanceof Integer || o2 instanceof FixedPoint) ) {
                         stack[sp] = toFixed(o1) < toFixed(o2) ? TRUE : FALSE;
+#endif
                     } else {
                         stack[sp] = o1.toString().compareTo(o2.toString()) 
                             < 0 ? TRUE : FALSE;
@@ -2722,9 +2754,11 @@ public final class LightScript implements LightScriptObject {
                     if (o1 instanceof Integer && o2 instanceof Integer) {
                         stack[sp] = ((Integer) o1).intValue() 
                             <= ((Integer) o2).intValue() ? TRUE : FALSE;
+#ifdef __USE_FIXED_POINT__
                     } else if( (o1 instanceof Integer || o1 instanceof FixedPoint) 
                            &&  (o2 instanceof Integer || o2 instanceof FixedPoint) ) {
                         stack[sp] = toFixed(o1) <= toFixed(o2) ? TRUE : FALSE;
+#endif
                     } else {
                         stack[sp] = o1.toString().compareTo(o2.toString()) 
                             <= 0 ? TRUE : FALSE;
