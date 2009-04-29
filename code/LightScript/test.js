@@ -1,7 +1,4 @@
 function() { print("42"); };
-"Hello world";
-;;;;;;
-;
-;
-;
+123 4;;
+"Hello world";;
 

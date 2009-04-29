@@ -1,4 +1,6 @@
 1.1.522
+    Support for incremental evaluation. 18979
+1.1.522
     Let eval return last value. 18969
 1.1.520
     Made StdLib global object 18765

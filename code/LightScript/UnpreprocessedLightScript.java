@@ -159,6 +159,14 @@ import java.util.Stack;
 /* Mask for the binding power / priority */
 #define MASK_BP (-1 << (2*SIZE_ID + 2 *SIZE_FN))
 
+/** The sep token, encoded as an integer */
+#define TOKEN_SEP ((((((((\
+                      0 << SIZE_FN)\
+                    | NUD_SEP) << SIZE_ID)\
+                    | ID_NONE) << SIZE_FN)\
+                    | LED_NONE) << SIZE_ID)\
+                    | ID_NONE)
+
 /** The end token, encoded as an integer */
 #define TOKEN_END ((((((((\
                       0 << SIZE_FN)\
@@ -308,12 +316,6 @@ public final class LightScript {
         executionContext = new Object[8];
         executionContext[EC_GLOBALS] = new Hashtable();
         StdLib.register(this);
-        if(emptyFunction == null) {
-            try {
-                emptyFunction = (Code) eval("function() undefined");
-            } catch(LightScriptException e) {
-            }
-        }
     }
 
     /** Shorthand for evaluating a string that contains LightScript code */
@@ -321,44 +323,57 @@ public final class LightScript {
         return eval(new ByteArrayInputStream(s.getBytes()));
     }
 
-    /** Parse and execute LightScript code read from an input stream */
-    public Object eval( InputStream is) throws LightScriptException {
-        Object result = UNDEFINED;
-#ifndef __SAFE_EXECUTE__
-        try {
-#endif
+    public void evalFrom(InputStream is) {
             this.is = is;
             sb = new StringBuffer();
             c = ' ';
             varsArgc = 0;
             nextToken();
-            while(tokenVal != EOF || token != TOKEN_END) {
-                // parse with every var in closure
-                varsUsed = varsLocals = varsBoxed = new Stack();
-                Object[] os = parse(0);
-                varsClosure = varsUsed;
-        
-                // compile
-                Code c = compile(os);
-                if(c != emptyFunction) {
+    }
 
-                    // create closure from globals
-                    for(int i = 0; i < c.closure.length; i ++) {
-                        Object box = ((Hashtable)executionContext[EC_GLOBALS]).get(c.closure[i]);
-                        if(box == null) {
-                            box = new Object[1];
-                            ((Hashtable)executionContext[EC_GLOBALS]).put(c.closure[i], box);
-                        }
-                        c.closure[i] = box;
-                    }
-                    result = execute(c, new Object[0], 0, null);
-                }
+    public Object evalNext() throws LightScriptException {
+#ifndef __SAFE_EXECUTE__
+        try {
+#endif
+            while(token == TOKEN_SEP) {
+                nextToken();
             }
+            if(tokenVal == EOF || token == TOKEN_END) {
+                return null;
+            }
+            // parse with every var in closure
+            varsUsed = varsLocals = varsBoxed = new Stack();
+            Object[] os = parse(0);
+            varsClosure = varsUsed;
+    
+            // compile
+            Code c = compile(os);
+            // create closure from globals
+            for(int i = 0; i < c.closure.length; i ++) {
+                Object box = ((Hashtable)executionContext[EC_GLOBALS]).get(c.closure[i]);
+                if(box == null) {
+                box = new Object[1];
+                    ((Hashtable)executionContext[EC_GLOBALS]).put(c.closure[i], box);
+                }
+                c.closure[i] = box;
+            }
+            return execute(c, new Object[0], 0, null);
 #ifndef __SAFE_EXECUTE__
         } catch(Error e) {
             throw new LightScriptException(e);
         }
 #endif /*__SAFE_EXECUTE__*/
+    }
+
+    /** Parse and execute LightScript code read from an input stream */
+    public Object eval( InputStream is) throws LightScriptException {
+        Object result, t = UNDEFINED;
+        evalFrom(is);
+        do {
+            result = t;
+            t = evalNext();
+        } while(t != null);
+
         return result;
     }
 
@@ -1579,7 +1594,6 @@ public final class LightScript {
         }
     }
 
-    private static Code emptyFunction = null;
     private Code compile(Object[] body) {
         constPool = new Stack();
         constPool.push(executionContext);
@@ -1610,10 +1624,6 @@ public final class LightScript {
         // compile
         curlyToBlock(body);
         compile(body, true);
-        int id = ((Integer) body[0]).intValue();
-        if(id == ID_SEP) {
-            return emptyFunction;
-        }
 
         // emit return code, including current stack depth to drop
         emit(ID_RETURN);
