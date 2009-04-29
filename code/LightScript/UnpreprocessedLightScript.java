@@ -1,3 +1,14 @@
+/*
+This software is released under the 
+GNU GENERAL PUBLIC LICENSE version 3
+(the actual license text can be retrieved
+ from the Free Software Foundation)
+
+Copyright, 2009, Rasmus Jensen, rasmus@lightscript.net
+
+Contact for other licensing options.
+*/
+
 import java.io.InputStream;
 import java.util.Enumeration;
 import java.io.ByteArrayInputStream;
