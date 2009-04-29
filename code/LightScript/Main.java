@@ -64,6 +64,6 @@ static class FunctionLibrary implements LightScriptFunction {
     */
 
 
-        ls.eval(is);
+        System.out.println("result: " + ls.eval(is));
     }
 }

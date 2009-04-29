@@ -29,7 +29,14 @@ import java.util.Stack;
  * for better GC at performance price
  */
 #define __CLEAR_STACK__
+/* Use fixed point arithmetics 
+ */
 //#define __USE_FIXED_POINT__
+
+/* If enabled, eval does not throw error
+ * on wrong code, but only LightScriptExceptions,
+ */
+#define __SAFE_EXECUTE__
 
 #ifndef __USE_FIXED_POINT__
 #  define toInt(x) ((Integer)x).intValue()
@@ -184,7 +191,7 @@ import java.util.Stack;
 /*`\subsection{Variables}'*/
 /** Instances of the LightScript object, is an execution context,
   * where code can be parsed, compiled, and executed. */
-public final class LightScript implements LightScriptObject {
+public final class LightScript {
 
     /** Token used for separators (;,:), which are just discarded */
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
@@ -301,16 +308,23 @@ public final class LightScript implements LightScriptObject {
         executionContext = new Object[8];
         executionContext[EC_GLOBALS] = new Hashtable();
         StdLib.register(this);
+        if(emptyFunction == null) {
+            try {
+                emptyFunction = (Code) eval("function() undefined");
+            } catch(LightScriptException e) {
+            }
+        }
     }
 
     /** Shorthand for evaluating a string that contains LightScript code */
-    public void eval(String s) throws LightScriptException {
-        eval(new ByteArrayInputStream(s.getBytes()));
+    public Object eval(String s) throws LightScriptException {
+        return eval(new ByteArrayInputStream(s.getBytes()));
     }
 
     /** Parse and execute LightScript code read from an input stream */
-    public void eval( InputStream is) throws LightScriptException {
-#ifndef __DEBUG__
+    public Object eval( InputStream is) throws LightScriptException {
+        Object result = UNDEFINED;
+#ifndef __SAFE_EXECUTE__
         try {
 #endif
             this.is = is;
@@ -326,23 +340,26 @@ public final class LightScript implements LightScriptObject {
         
                 // compile
                 Code c = compile(os);
-        
-                // create closure from globals
-                for(int i = 0; i < c.closure.length; i ++) {
-                    Object box = ((Hashtable)executionContext[EC_GLOBALS]).get(c.closure[i]);
-                    if(box == null) {
-                        box = new Object[1];
-                        ((Hashtable)executionContext[EC_GLOBALS]).put(c.closure[i], box);
+                if(c != emptyFunction) {
+
+                    // create closure from globals
+                    for(int i = 0; i < c.closure.length; i ++) {
+                        Object box = ((Hashtable)executionContext[EC_GLOBALS]).get(c.closure[i]);
+                        if(box == null) {
+                            box = new Object[1];
+                            ((Hashtable)executionContext[EC_GLOBALS]).put(c.closure[i], box);
+                        }
+                        c.closure[i] = box;
                     }
-                    c.closure[i] = box;
+                    result = execute(c, new Object[0], 0, null);
                 }
-                execute(c, new Object[0], 0, null);
             }
-#ifndef __DEBUG__
+#ifndef __SAFE_EXECUTE__
         } catch(Error e) {
             throw new LightScriptException(e);
         }
-#endif /*__DEBUG__*/
+#endif /*__SAFE_EXECUTE__*/
+        return result;
     }
 
     /** Set a global value for this execution context */
@@ -1562,6 +1579,7 @@ public final class LightScript implements LightScriptObject {
         }
     }
 
+    private static Code emptyFunction = null;
     private Code compile(Object[] body) {
         constPool = new Stack();
         constPool.push(executionContext);
@@ -1592,6 +1610,10 @@ public final class LightScript implements LightScriptObject {
         // compile
         curlyToBlock(body);
         compile(body, true);
+        int id = ((Integer) body[0]).intValue();
+        if(id == ID_SEP) {
+            return emptyFunction;
+        }
 
         // emit return code, including current stack depth to drop
         emit(ID_RETURN);
