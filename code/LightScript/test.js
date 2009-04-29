@@ -1,4 +1,6 @@
-function() { print("42"); };
-123 4;;
-"Hello world";;
-
+print("a");
+juuhuhuh;
+print("b");
+x = 1;
+x();
+print("c");

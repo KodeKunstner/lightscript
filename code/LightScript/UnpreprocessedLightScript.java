@@ -33,11 +33,6 @@ import java.util.Stack;
  */
 //#define __USE_FIXED_POINT__
 
-/* If enabled, eval does not throw error
- * on wrong code, but only LightScriptExceptions,
- */
-#define __SAFE_EXECUTE__
-
 #ifndef __USE_FIXED_POINT__
 #  define toInt(x) ((Integer)x).intValue()
 #endif
@@ -332,7 +327,8 @@ public final class LightScript {
     }
 
     public Object evalNext() throws LightScriptException {
-#ifndef __SAFE_EXECUTE__
+// if we debug, we want the real exception, with line number..
+#ifndef __DEBUG__
         try {
 #endif
             while(token == TOKEN_SEP) {
@@ -352,17 +348,19 @@ public final class LightScript {
             for(int i = 0; i < c.closure.length; i ++) {
                 Object box = ((Hashtable)executionContext[EC_GLOBALS]).get(c.closure[i]);
                 if(box == null) {
-                box = new Object[1];
+                    box = new Object[1];
+                    ((Object[])box)[0] = UNDEFINED;
                     ((Hashtable)executionContext[EC_GLOBALS]).put(c.closure[i], box);
                 }
                 c.closure[i] = box;
             }
             return execute(c, new Object[0], 0, null);
-#ifndef __SAFE_EXECUTE__
-        } catch(Error e) {
+// if we debug, we want the real exception, with line number..
+#ifndef __DEBUG__
+        } catch(Throwable e) {
             throw new LightScriptException(e);
         }
-#endif /*__SAFE_EXECUTE__*/
+#endif 
     }
 
     /** Parse and execute LightScript code read from an input stream */

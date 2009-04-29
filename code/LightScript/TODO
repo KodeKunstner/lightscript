@@ -7,3 +7,4 @@
 - add optional floating point support
 - testsuite
 - ant Hecl-like build, rather than custom makefiles
+- safe-mode, catch casts

@@ -9,17 +9,23 @@ public class Main {
      */
     public static void main(String[] args) throws Exception {
         InputStream is;
-        if("-".equals(args[0])) {
-            is = System.in;
-        } else {
+        if(args.length == 1) {
 	    is = new FileInputStream(new File(args[0]));
+        } else {
+            is = System.in;
         }
         LightScript ls = new LightScript();
         ls.evalFrom(is);
-        Object result = ls.evalNext();
-        while(result != null) {
-            System.out.println("> " + result);
-            result = ls.evalNext();
-        }
+        Object result = null;
+        do {
+            try {
+                result = ls.evalNext();
+            } catch(LightScriptException e) {
+                System.out.println(e);
+            }
+            if(args.length != 1 && result != null) {
+                System.out.println("-> " + result);
+            }
+        } while(result != null);
     }
 }
