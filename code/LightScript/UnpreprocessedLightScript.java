@@ -301,6 +301,18 @@ public final class LightScript {
     #define EC_GETTER 6
     #define EC_WRAPPED_GLOBALS 7
 
+    public LightScriptFunction defaultSetter() {
+        return (LightScriptFunction) executionContext[EC_SETTER];
+    }
+    public void defaultSetter(LightScriptFunction f) {
+        executionContext[EC_SETTER] = f;
+    }
+    public LightScriptFunction defaultGetter() {
+        return (LightScriptFunction) executionContext[EC_GETTER];
+    }
+    public void defaultGetter(LightScriptFunction f) {
+        executionContext[EC_GETTER] = f;
+    }
     /**
      * context for execution
      */
