@@ -1,12 +1,12 @@
-source = Main.java LightScript.javapp LightScriptException.java LightScriptFunction.java Makefile
-
+SOURCES = Main.java LightScriptException.java LightScriptFunction.java 
+DEPS = $(SOURCES) LightScript.in.java Makefile
 run: Main.class test.js
 	java Main test.js
 
-Main.class: $(source)
-	for file in *.javapp; do cpp -C $(CPPFLAGS) -P $$file `echo $$file | sed -e s/javapp/java/`; done
-	javac -source 1.2 *.java
-	for file in *.javapp; do mv `echo $$file | sed -e s/javapp/java/` oldimp; done
+Main.class: $(DEPS)
+	cpp -C -P LightScript.in.java > LightScript.java 
+	javac -source 1.2 $(SOURCES) LightScript.java
+	mv -f LightScript.java debugsrc
 
 all: Main.class
 
