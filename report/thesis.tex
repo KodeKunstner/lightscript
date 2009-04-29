@@ -504,7 +504,6 @@ where support for JIT compilation is also being developed.
 
 \index{SquirrelFish}
 The engine has been optimised a lot within the last year 
-%TODO:or-one-and-a-half-year-check-the-reference 
 \cite{squirrelfish-bench}: the earlier versions were performing evaluation by walking through the abstract syntax tree, and were at that time similar in performance to SpiderMonkey JavaScript implementation.
 The new version -- SquirrelFish -- is much faster, which means that it is similar in performance to TraceMonkey and V8 JavaScript implementations.
 
@@ -778,7 +777,6 @@ Or just identify variables that are used by in inner functions, and put those on
 %
 \chapter{Yolan}
 \label{yolan}
-%TODO: change math-mode to italics
 \index{Yolan}
 Yolan is an experiment in minimalism of language design and implementation. 
 The goal is to minimise the code footprint, while still having a practical scripting language with first-class functions.
@@ -808,7 +806,7 @@ The next paragraphs elaborate on the following design choices:
 CLDC 1.0 is the most limited device configuration and API for mobile devices. If the language is able to run this configuration, it will also be able to run on the other Java configurations, and then be able to run on most devices.
 
 \label{yolandesign}
-Use of standard Java classes instead of custom classes for builtin data types such as arrays or tables has three benefits: the code footprint is smaller, as these data types do not have to be reimplemented, it may be faster, as the builtins may be implemented natively, and it is more easily embeddable, as the developers already know the data types from standard Java. %<- TODO: is the issue the developers knowledge, or that host program is already manipulating values of these types
+Use of standard Java classes instead of custom classes for builtin data types such as arrays or tables has three benefits: the code footprint is smaller, as these data types do not have to be reimplemented, it may be faster, as the builtins may be implemented natively, and it is more easily embeddable, as the developers already know the data types from standard Java and the host program may be using those data structures already.
 Nevertheless, using the builtins gives less flexibility to the design of the behaviour of the data types in Yolan.
 
 Being able to load code at run-time is important for several reasons:
@@ -820,7 +818,7 @@ Being loaded as source code both gives more clarity, and make the scripts easier
 Functions should be first-class values, both to enable functional programming and increase the expressiveness of the language.
 
 
-If variables are looked up at every access at runtime, this is likely to be bottleneck for performance.  %<- TODO: reformulate
+Variable access happens very often, so if the scripting language does a full lookup of the variable name at each access, it will be a bottleneck for the performance.
 Instead the implementation must ensure that they are only resolved once for each place they are used in the source text.
 %The platform is already slow, so performancewise we probably can not afford not doing this optimisation.
 
@@ -1671,10 +1669,11 @@ A change toward more EcmaScript-like semantics by having cutom Java-classes for 
 \chapter{Benchmarks}
 \label{benchmark}
 \index{Benchmarks}
-%TODO: Julia: The chapter could have an introduction that gives an overview of the things you want to measure. Mention why the code footprint is important
-% TODO: Julia: In the benchmarks section, it would be good to say what is important about each benchmark.  Just giving a reference is not good enough, since the reader will probably not be industrious enough to go look it up.
-% TODO: Julia: In the results section, I missed to have some assessment of the number.  I see that it appears in chapter 6, but the reader really wants some interpretation of the numbers right away.  For example: Why do some languages do well?  Why do some not do well?  Why does lightscript sometimes do better than Yolan, and vice versa.  Why does lightscript do badly on Fannkuch?
-% TODO: Julia: If possible, it would be good to have a proper grammar of each language.  Reviewers tend to like that.  If you could make a semantics as well, but perhaps there is not time for that.
+The purpose of this chapter is to measure the performance of the newly developed languages, compared to existing scripting languages.
+The first part of the benchmark looks at the code footprint, as this is the major limitation on very low end mobile devices, where it may be limited to 64KB for host application and embedded scripting language combined. 
+The code footprint is compared to other scripting languages, in Section~5.1.1.
+In Section~5.1.2, we look at how the different parts of the LightScript implementation contribute to the code footprint, and finally, in Section~5.1.3, we look at the sizes of Yolan and LightScript when they are embedded in a mobile application where space optimisations are enabled.
+The second part of the benchmarking, Section~5.2, looks at the execution speed of the scripting languages.
 
 
 \section{Code footprint}
@@ -1751,7 +1750,7 @@ The languages developed in this thesis are smaller than other scripting language
 Yolan is approximately half the size of LightScript. 
 One of the reasons for this can be that most of the other languages are implemented with nice object oriented designs on top of Java. Yolan and LightScript has been implemented with code space optimisations in mind from the very beginning, and with a focus on the generated JVM code rather than just using the abstractions of Java.
 
-%TODO: julia-question: is there anything to say about FScriptME since it is small to
+FScriptME is also quite small, and looking at its source, it has few Java classes, and it relies on the standard Java classes for types. Another cause of the small code size, may be size of the language which only has strings and integers as datatypes. Approximately 80\% of the source code of FScriptME is its lexer and parser class. 
 
 \subsection{Details on the footprint of LightScript}
 The sizes of the different parts of the LightScript class are listed below.
@@ -1767,7 +1766,10 @@ Compiler & 5324 & 8413 & \\ \hline
 Virtual machine & 4589 & 7650 & \\ \hline
 Parser+Tokeniser & 3825 & 7093 & \\ \hline
 \end{tabular} \end{center}
-%TODO: why above results as they are
+
+There is nothing particular surprising about these result. 
+The code footprint is mainly split the three main parts: parser/tokeniser, compiler, and virtual machine, which are similar in size. Worth noticing is that the parser/tokeniser is the smallest of the three parts, indicating that a top-down-operator-precedence parser can be quite small. 
+
 
 \subsection{Optimised JAR-file footprint}
 \index{JAR-file}
@@ -1782,6 +1784,9 @@ In the following subsections, the benchmarked languages, and the actual benchmar
 %The source code for the benchmarks can be seen in appendix~\ref{benchmarksource}.
 %TODO: Julia running the benchmarks are tabulated I see that tabulation is all that is done, but it would be nicer to say "assessed" and then give a proper assessment there.
 
+% TODO: Julia: In the results section, I missed to have some assessment of the number.  I see that it appears in chapter 6, but the reader really wants some interpretation of the numbers right away.  For example: Why do some languages do well?  Why do some not do well?  Why does lightscript sometimes do better than Yolan, and vice versa.  Why does lightscript do badly on Fannkuch?
+% TODO: Julia: If possible, it would be good to have a proper grammar of each language.  Reviewers tend to like that.  If you could make a semantics as well, but perhaps there is not time for that.
+
 \subsection{Languages}
 The benchmarks are run on those languages from Section~\ref{codefootprint-languages} that have an approximated JAR size of less than 64K. They also run on two JavaScript interpreters: Rhino 1.6r7 and SpiderMonkey 1.7.0, which are described in Section~\ref{spidermonkey}. Both are the default versions installed on Ubuntu Linux.
 
@@ -1790,12 +1795,13 @@ The benchmarks are the following:
 
 \paragraph{Fibonacci:} Recursive calculation of the 30'th Fibonacci number
 \paragraph{Loops:} Nested loops with counters, 10.000.000 iterations
-\paragraph{Recursion:} Highly recursive benchmark, similar to the recursive control-flow benchmark from \cite{sunspider, shootout}. This uses a lot of stack space. On some of the languages where it fails, only the first part of it was implemented %TODO: not clear what meant by first part
+\paragraph{Recursion:} Recursive benchmark, similar to the ``controlflow-recursive''  benchmark from \cite{sunspider, shootout}. It runs the ack, fib and tak function, which are highly recursive and uses a lot of stack space. Many of the scripting language runs out of stack space when executing this benchmark.
+On some of the languages where it fails, only the first part (the Ackermann function) was implemented.
 \paragraph{Sieve:} Simple implementation of Erasthones sieve - not implemented in languages that have already shown to be very slow in earlier benchmarks
 \paragraph{For-in:} Nested loops across keys of a dictionary, 1.000.000 iterations - not implemented in languages that have already shown to be very slow in earlier benchmarks
 \paragraph{Primes:} Simple primality test by looking at the remainders of division - not implemented in languages that have already shown to be very slow in earlier benchmarks
-\paragraph{Exception:} Throw/catch 500.000 exceptions - only implemented for LightScript/JavaScript
-\paragraph{Fannkuch:} Access-fannkuch benchmark from \cite{sunspider, shootout} - only implementd for LightScript/JavaScript
+\paragraph{Exception:} Throw/catch 500.000 exceptions. It is only implemented for LightScript/JavaScript as Yolan does not support exceptions.
+\paragraph{Fannkuch:} The access-fannkuch benchmark from \cite{sunspider, shootout}, slightly modified to be able to run within LightScript -- postfix increments replaced by prefix increments, and a \verb|break| within a loop rewritten to a condition. This benchmark calculates and does a sequence of permutations of array elements.  It is also an example of how existing JavaScript code can be ported to LightScript, and is thus only implemented in LightScript/JavaScript.
 
 \subsection{Results}
 The measurements of the performance of the different scripting languages are shown below. The timings are seconds per benchmark. $\bot$ indicates that the benchmark does not complete due to running out of stack space.
@@ -1814,8 +1820,17 @@ The measurements of the performance of the different scripting languages are sho
 \hline \end{tabular}
 \end{center} 
 
+Rhino, SpiderMonkey, LightScript, Yolan and Kahlua are similar in speed, whereas JScheme, FscriptME and Hecl is a magnitude slower. 
+Rhino and LightScript are the only ones which can handle the very recursive benchmark, whereas the others run out of stack space.
+
+The results are discussed more in details in chapter 6.
+
 \chapter{Discussion and future work}
 \label{discussion}
+
+This chapter starts with discussion of the benchmark results, with a focus of the possible reasons for the execution speeds in Section~6.1, and the possible reasons for the code footprint sizes in Section~6.2.
+Section~6.3 then adds a discussion about the languages developed in the thesis, and finally Section~6.4 will look more into the future directions of LightScript
+
 \section{Performance}
 It is interesting to see that Rhino, SpiderMonkey, LightScript, Yolan, and Kahlua are all within the same magnitude of speed for all of the benchmarks, indicating that this is the speed obtainable with a simple interpreter for these kinds of scripting languages. Here it is also suprising, that Rhino and SpiderMonkey are not much faster, because Rhino compile to, and loads, Java classes at run-time, and SpiderMonkey is written in C rather than Java, which allows for using more advanced implementation techniques.
 
@@ -1836,7 +1851,7 @@ The third language in size, FScriptME, is a very minimalistic language, that doe
 The next two languages, in fourth and fifth place in size, are JScheme and Kahlua,
 having a simple or no parser, due to having Lisp-like syntax or being just a virtual machine.
 
-That the parser is likely to be a bottleneck can be seen in FScriptME, where the parser is 90\% of the implementation. In CellularBasic the source code of the lexer and parser is more than 100KB. 
+That the parser is likely to be a bottleneck can be seen in FScriptME, where the parser is 80\% of the implementation. In CellularBasic the source code of the lexer and parser is more than 100KB. 
 The cost of parser implementation may also have be an influence on Hecl not supporting Tcl-like \verb|expr| with infix binary operators, but instead Hecl only has comparisons and arithemetic operators written in Lisp-like prefix notation which are simpler to write parsers for.
 
 \section{Developed languages}
@@ -1941,7 +1956,193 @@ Yolan and LightScript are pushing the edge of small scripting language implement
 \appendix
 
 %\input{../code/bench/marks.tex}
-\input{thanks}
+\chapter{Thanks}
+\mbox{}\\
+Thanks to Julia for supervising this thesis, for giving me the freedom to go in the directions I chose, and for asking questions which saved me from choosing wrong roads. 
+Thanks for the immense feedback which has made me a better computer scientist and a better writer. Thanks.
+
+
+\mbox{}\\
+Thanks to MariAnne for hospitality and reading the thesis.\\
+Thanks to Lotte for turning my world upside down.\\
+Thanks to family, friends and colleagues 
+
+for bearing with me, while I worked on the thesis.\\
+Thanks to the computer scientists, mathematicians, and other giants
+
+on whose shoulders I try to climb to see further.\\
+And thanks to God, to whom the honour belongs. 
+
+\chapter{Grammar}
+This Chapter has the grammar for Yolan and LightScript.
+Literal characters are writen with single quotation mark.
+Ranges of possible characters are written within square brackets, such that \verb|[a-c]| means one of the characters a, b or c. Ranges can also be negated, such that \verb|[^a-cf]| means a character that is not a, b, c nor f. A range can also contain escaped characters: \verb|\0| means the character with unicode value 0, and \verb|\\| means the backslash character. \verb|\[|, \verb|\]|, and \verb|\-| means \verb|[|, \verb|]| and \verb|-|. \verb|\n|, \verb|\r|, and \verb|\t| means new line, carriage return, and tab.
+
+Grammar productions are defined with \verb|::=|, parentheses are used for grouping and \verb\|\ is means or. \verb|*| is notation for zero or more occurences of the previous element.
+
+\section{Yolan}
+\begin{verbatim}
+<empty expression>  ::= 
+
+<number>            ::= [0-9][0-9]*
+
+<identifier>        ::= [^\0- "0-9;\[\]] [^\0- \[\]]*
+
+<comment>           ::= ';' [^\0-\n]* [\0-\n]
+
+<string>            ::= '"' ( [^"] | '\' [\\"] )* '"'
+
+<white space>       ::= [\0- ] 
+                      | <white space> <comment>
+
+<white spaces>      ::= <white space>
+                      | <white space> <white spaces>
+
+<optional ws>       ::= <empty expression> 
+                      | <white spaces>
+
+<expressions>       ::= <expression>
+                      | <expression> <white spaces> <expression list>
+
+<expression list>   ::= <optional ws> <expressions> <optional ws>
+
+<expression>        ::= '[' <expression list> ']'
+                      | <identifier>
+                      | <string>
+                      | <number>
+
+<program>           ::= <expression list>
+\end{verbatim}
+
+\section{LightScript}
+The first section described the LightScript grammar via top down operator precedence functions.
+The second section describes the LightScript grammar as a traditional grammar.
+
+\subsection{Grammar for tokens}
+\begin{verbatim}
+<number>            ::= [0-9] [0-9]*
+
+<name>              ::= [_a-zA-Z] [_a-zA-Z0-9]*
+
+<string>            ::= '"' ( [^"] | '\' [\\"n] )* '"'
+
+<comment>           ::= '//' [^\n]* [\n]
+
+<white space>       ::= [ \n\r\t] 
+                      | <comment>
+                      | <white space> <white space>
+
+<long symbol>       ::= [=!<&|+*/\->%]
+
+<single symbol>     ::= [(),.:;?\[\\\]^{}~]
+
+<symbol>            ::= <long symbol> <long symbol>*
+                      | <single symbol>
+
+<literal>           ::= <number> | <string>
+
+<identifier>        ::= <name> | <symbol>
+
+<token>             ::= <literal> | <identifier>
+
+<program>           ::= ( <token> | <white space> )*
+\end{verbatim}
+
+\subsection{Top down operator precedence functions}
+\verb|<literal>|s are mapped to a syntax tree node which represent a literal value.
+If an \verb|<identifier>| is within the table below, the corresponding function are called in the top down operator precedence parser, otherwise the \verb|<identifier>| is just viewed as a reference to a variable.
+\begin{center}
+\begin{tabular}{lccr}
+Tokens & Null denominator & Left denominator & Precedence \\
+\verb|.| & & Infix & 7 \\
+\verb|( [| & List & Infix list & 7 \\
+\verb|/ * % >> /| & & Infix & 6 \\
+\verb|+| & & Infix & 5 \\
+\verb|-| & Prefix & Infix & 5 \\
+{\tt == === != !== } & & Infix & 4 \\
+{\tt <= < > >=} & & Infix & 4 \\
+\verb+&& || else in+  & & Right infix & 3 \\
+\verb|?|  & & Infix3 & 3 \\
+{\tt = += -= *= /= \%=} & & Right infix & 2 \\
+\verb|function|  & Function case& & \\
+\verb|: ; ,|  & Separator & & \\
+\verb|] ) }|& List end & & \\
+{\tt try catch do }  & Prefix2 & & \\
+{\tt for if while }  & Prefix2 & & \\
+{\tt ++ -- ! }  & Prefix & & \\
+{\tt return throw var}  & Prefix & & \\
+{\tt undefined null}  & Single & & \\
+{\tt true false this}  & Single & & \\
+literal identifier  & Single & & \\
+\verb|{|  & List & & \\
+\end{tabular}
+\end{center}
+``Infix'' joins the previous and the next expression in a left skewed tree, whereas ``Right infix'' joins the previous and next expression in a right skewed tree. ``Infix3'' creates a node which combines left expression and the next three right expressions. ``InfixList'' creates a node which takes the previous expression, and reads the next expressions until a ``List end'' is found.
+
+``List`` reads the next expression until a ``List end'' is found. ``Single'' creates a leaf in the syntax tree. ``Prefix'' create a node with the next read expression. ``Prefix2'' create a node with the two next expressions read. ``List end'' is a special node used for terminate lists. ``Separator''s are special nodes, that may be discarded during compilation. ``Function case'' handles \verb|function|s which is a ``Prefix2'' or ``Prefix3'' depending on whether the first parsed expression is a list or identifier. 
+
+\subsection{Grammar}
+\begin{verbatim}
+<prefix name>       ::= '-' | '++' | '--' | '!' 
+                      | 'return' | 'throw' | 'var' 
+
+<prefix2 name>      ::= 'try' | 'catch' | 'do' | 'for' | 'if' | 'while'
+
+<single>            ::= 'undefined' | 'null' | 'true' | 'false'
+                      | 'this' | <identifier> | <literal>
+
+<separator>         ::= ':' | ';' | ','
+
+<list start>        ::= '[' | '{' | '('
+
+<list end>          ::= ']' | '}' | ')'
+                      | <expr> <list end>
+
+<list>              ::= <list start> <list end>
+
+<function>          ::= 'function' <list> <expr>
+                      | 'function' <identifier> <list> <expr>
+
+<expr8>             ::= <prefix> <expr>
+                      | <prefix2> <expr> <expr>
+                      | <single>
+                      | <separator>
+                      | <list>
+                      | <function>
+
+<expr7>             ::= <expr8>
+                      | <expr7> '.' <expr8>
+                      | <expr7> ('(' | '[') <list end>
+
+<expr6 operator>    ::= '/' | '*' | '%' | '>>' | '/'
+
+<expr6>             ::= <expr7>
+                      | <expr6> <expr6 operator> <expr7>
+
+<expr5>             ::= <expr6>
+                      | <expr5> ('+' | '-') <expr6>
+
+<expr4 operator>    ::= '==' | '===' | '!=' | '!==' 
+                      | '<=' | '<' | '>' | '>='
+
+<expr4>             ::= <expr5>
+                      | <expr4> <expr4 operator> <expr5>
+
+
+<expr3 operator>    ::= '&&' | '||' | 'else' | 'in' 
+
+<expr3>             ::= <expr4>
+                      | <expr4> <expr3 operator> <expr3>
+                      | <expr3> '?' <expr3> <seperator> <expr3>
+
+<expr2 operator>    ::= '=' | '+=' | '-=' | '*=' | '/=' | '%='
+
+<expr>              ::= <expr3>
+                      | <expr3> <expr2 operator> <expr>
+
+<program>           ::= <expr>*
+
+\end{verbatim}
 
 \chapter{Source code of the Yolan class}
 \index{Yolan!source code}
