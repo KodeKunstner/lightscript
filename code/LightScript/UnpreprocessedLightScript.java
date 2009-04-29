@@ -249,21 +249,20 @@ public final class LightScript implements LightScriptObject {
       * they are boxed, in such that they can be passed
       * to the closure of af function, which will then
       * be able to modify it without looking it up here */
-    private static final int GLOBALS = 0;
-    private static final int OBJECT_PROTOTYPE = 1;
-    private static final int ARRAY_PROTOTYPE = 2;
-    private static final int FUNCTION_PROTOTYPE = 3;
-    private static final int STRING_PROTOTYPE = 4;
-    /** Index in executionContext for the default setter function, 
+    #define EC_GLOBALS 0
+    #define EC_OBJECT_PROTOTYPE 1
+    #define EC_ARRAY_PROTOTYPE 2
+    #define EC_FUNCTION_PROTOTYPE 3
+    #define EC_STRING_PROTOTYPE 4
+    /* Index in executionContext for the default setter function, 
      * which is called when a property is set on
      * an object which is neither a Stack, Hashtable nor LightScriptObject
      *
      * The apply method of the setter gets the container as thisPtr, 
      * and takes the key and value as arguments
      */
-
-    private static final int SETTER = 5;
-    /** Index in executionContext for the default getter function, 
+    #define EC_SETTER 5
+    /* Index in executionContext for the default getter function, 
      * called when subscripting an object
      * which is not a Stack, Hashtable, String nor LightScriptObject
      * or when the subscripting of any of those objects returns null.
@@ -273,7 +272,8 @@ public final class LightScript implements LightScriptObject {
      * The apply method of the getter gets the container as thisPtr, 
      * and takes the key as argument
      */
-    private static final int GETTER = 6;
+    #define EC_GETTER 6
+    #define EC_WRAPPER_GLOBALS 7
 
     /**
      * context for execution
@@ -282,8 +282,8 @@ public final class LightScript implements LightScriptObject {
 
     /** Constructor, loading standard library */
     public LightScript() {
-        executionContext = new Object[7];
-        executionContext[GLOBALS] = new Hashtable();
+        executionContext = new Object[8];
+        executionContext[EC_GLOBALS] = new Hashtable();
         StdLib.register(this);
     }
 
@@ -305,7 +305,6 @@ public final class LightScript implements LightScriptObject {
             while(tokenVal != EOF || token != TOKEN_END) {
                 // parse with every var in closure
                 varsUsed = varsLocals = varsBoxed = new Stack();
-                varsBoxed.push("(ENV)");
                 Object[] os = parse(0);
                 varsClosure = varsUsed;
         
@@ -314,10 +313,10 @@ public final class LightScript implements LightScriptObject {
         
                 // create closure from globals
                 for(int i = 0; i < c.closure.length; i ++) {
-                    Object box = ((Hashtable)executionContext[GLOBALS]).get(c.closure[i]);
+                    Object box = ((Hashtable)executionContext[EC_GLOBALS]).get(c.closure[i]);
                     if(box == null) {
                         box = new Object[1];
-                        ((Hashtable)executionContext[GLOBALS]).put(c.closure[i], box);
+                        ((Hashtable)executionContext[EC_GLOBALS]).put(c.closure[i], box);
                     }
                     c.closure[i] = box;
                 }
@@ -332,17 +331,17 @@ public final class LightScript implements LightScriptObject {
 
     /** Set a global value for this execution context */
     public void set(Object key, Object value) {
-        Object[] box = (Object[])((Hashtable)executionContext[GLOBALS]).get(key);
+        Object[] box = (Object[])((Hashtable)executionContext[EC_GLOBALS]).get(key);
         if(box == null) {
             box = new Object[1];
-            ((Hashtable)executionContext[GLOBALS]).put(key, box);
+            ((Hashtable)executionContext[EC_GLOBALS]).put(key, box);
         }
         box[0] = value;
     }
 
     /** Retrieve a global value from this execution context */
     public Object get(Object key) {
-        Object[] box = (Object[])((Hashtable)executionContext[GLOBALS]).get(key);
+        Object[] box = (Object[])((Hashtable)executionContext[EC_GLOBALS]).get(key);
         if(box == null) {
             return null;
         } else {
@@ -485,23 +484,23 @@ public final class LightScript implements LightScriptObject {
         private Object closure[];
     
         // globally named functions
-        private static final int PRINT = 0;
-        private static final int TYPEOF = 1;
-        private static final int PARSEINT = 2;
-        private static final int CLONE = 3;
+        #define FN_PRINT (0)
+        #define FN_TYPEOF (1)
+        #define FN_PARSEINT (2)
+        #define FN_CLONE (3)
     
         private static final String[] names = {"print", "gettype", "parseint", "clone"};
         // methods and other stuff added manually to lightscript
-        private static final int GLOBALLY_NAMED = 4;
-        private static final int HAS_OWN_PROPERTY = GLOBALLY_NAMED + 0;
-        private static final int ARRAY_PUSH = GLOBALLY_NAMED + 1;
-        private static final int ARRAY_POP = GLOBALLY_NAMED + 2;
-        private static final int ARRAY_JOIN = GLOBALLY_NAMED + 3;
-        private static final int DEFAULT_SETTER = GLOBALLY_NAMED + 4;
-        private static final int DEFAULT_GETTER = GLOBALLY_NAMED + 5;
-        private static final int NEW_ITERATOR = GLOBALLY_NAMED + 6;
-        private static final int INTEGER_ITERATOR = GLOBALLY_NAMED + 7;
-        private static final int ENUMERATION_ITERATOR = GLOBALLY_NAMED + 8;
+        #define FN_GLOBALLY_NAMED (4)
+        #define FN_HAS_OWN_PROPERTY (FN_GLOBALLY_NAMED + 0)
+        #define FN_ARRAY_PUSH (FN_GLOBALLY_NAMED + 1)
+        #define FN_ARRAY_POP (FN_GLOBALLY_NAMED + 2)
+        #define FN_ARRAY_JOIN (FN_GLOBALLY_NAMED + 3)
+        #define FN_DEFAULT_SETTER (FN_GLOBALLY_NAMED + 4)
+        #define FN_DEFAULT_GETTER (FN_GLOBALLY_NAMED + 5)
+        #define FN_NEW_ITERATOR (FN_GLOBALLY_NAMED + 6)
+        #define FN_INTEGER_ITERATOR (FN_GLOBALLY_NAMED + 7)
+        #define FN_ENUMERATION_ITERATOR (FN_GLOBALLY_NAMED + 8)
     
         private static final int[] argcs = {1, 1, 2, 1
             // not named
@@ -512,11 +511,6 @@ public final class LightScript implements LightScriptObject {
             // new iter int-iter enum-iter
             , 0, 0, 0
         };
-    
-        private static final int PROTOTYPE_OBJECT = 0;
-        private static final int PROTOTYPE_ARRAY = 1;
-        private static final int PROTOTYPE_STRING = 2;
-        private static final int PROTOTYPE_FUNCTION = 3;
     
         private static Hashtable clone(Object o) {
             Hashtable result = new Hashtable();
@@ -536,11 +530,11 @@ public final class LightScript implements LightScriptObject {
                 throw new LightScriptException("Error: Wrong number of arguments");
             }
             switch(id) {
-                case PRINT: {
+                case FN_PRINT: {
                      System.out.println(args[argpos]);
                      break;
                 }
-                case TYPEOF: {
+                case FN_TYPEOF: {
                     Object o = args[argpos];
                     if(o instanceof Hashtable) {
                         return "object";
@@ -558,13 +552,13 @@ public final class LightScript implements LightScriptObject {
                         return "builtin";
                     }
                 }
-                case PARSEINT: {
+                case FN_PARSEINT: {
                     return Integer.valueOf((String)args[argpos], ((Integer)args[argpos +1]).intValue());
                 }
-                case CLONE: {
+                case FN_CLONE: {
                     return clone((Hashtable)args[argpos]);
                 }
-                case HAS_OWN_PROPERTY: {
+                case FN_HAS_OWN_PROPERTY: {
                     if(thisPtr instanceof Hashtable) {
                         return ((Hashtable)thisPtr).contains(args[argpos])
                                 ? LightScript.TRUE
@@ -572,15 +566,15 @@ public final class LightScript implements LightScriptObject {
                     }
                     break;
                 }
-                case ARRAY_PUSH: {
+                case FN_ARRAY_PUSH: {
                     ((Stack)thisPtr).push(args[argpos]);
                      break;
                 }
-                case ARRAY_POP: {
+                case FN_ARRAY_POP: {
                     ((Stack)thisPtr).pop();
                     break;
                 }
-                case ARRAY_JOIN: {
+                case FN_ARRAY_JOIN: {
                     Stack s = (Stack) thisPtr;
                     if(s.size() == 0) {
                         return "";
@@ -594,28 +588,28 @@ public final class LightScript implements LightScriptObject {
                     }
                     return sb.toString();
                 }
-                case DEFAULT_SETTER: {
+                case FN_DEFAULT_SETTER: {
                     Object key = args[argpos];
                     Object val = args[argpos + 1];
                     // implementation like "thisPtr[key] = val"
                     break;
                 }
-                case DEFAULT_GETTER: {
+                case FN_DEFAULT_GETTER: {
                     Object key = args[argpos];
                     // implementation like "return thisPtr[key]"
                     break;
                 }
-                case NEW_ITERATOR: {
+                case FN_NEW_ITERATOR: {
                     if(thisPtr instanceof Hashtable) {
                         StdLib result;
-                        result = new StdLib(ENUMERATION_ITERATOR);
+                        result = new StdLib(FN_ENUMERATION_ITERATOR);
                         result.closure = new Object[1];
                         result.closure[0] = ((Hashtable)thisPtr).keys();
                         return result;
                     }
                     if(thisPtr instanceof Stack) {
                         StdLib result;
-                        result = new StdLib(INTEGER_ITERATOR);
+                        result = new StdLib(FN_INTEGER_ITERATOR);
                         result.closure = new Object[2];
                         result.closure[0] = new Integer(-1);
                         result.closure[1] = new Integer(((Stack)thisPtr).size() - 1);
@@ -623,7 +617,7 @@ public final class LightScript implements LightScriptObject {
                     }
                     break;
                 }
-                case INTEGER_ITERATOR: {
+                case FN_INTEGER_ITERATOR: {
                     if(closure[0].equals(closure[1])) {
                         return LightScript.UNDEFINED;
                     }
@@ -633,7 +627,7 @@ public final class LightScript implements LightScriptObject {
                     closure[0] = result;
                     return result;
                 }
-                case ENUMERATION_ITERATOR: {
+                case FN_ENUMERATION_ITERATOR: {
                     Enumeration e = (Enumeration) closure[0];
                     if(!e.hasMoreElements()) {
                         return LightScript.UNDEFINED;
@@ -647,33 +641,33 @@ public final class LightScript implements LightScriptObject {
         public static void register(LightScript ls) {
     
             Hashtable objectPrototype = new Hashtable();
-            ls.executionContext[OBJECT_PROTOTYPE] = objectPrototype;
+            ls.executionContext[EC_OBJECT_PROTOTYPE] = objectPrototype;
     
             Hashtable arrayPrototype = new Hashtable();
-            ls.executionContext[ARRAY_PROTOTYPE] = arrayPrototype;
+            ls.executionContext[EC_ARRAY_PROTOTYPE] = arrayPrototype;
     
             Hashtable stringPrototype = clone(objectPrototype);
-            ls.executionContext[STRING_PROTOTYPE] = stringPrototype;
+            ls.executionContext[EC_STRING_PROTOTYPE] = stringPrototype;
     
             Hashtable functionPrototype = clone(objectPrototype);
-            ls.executionContext[FUNCTION_PROTOTYPE] = functionPrototype;
+            ls.executionContext[EC_FUNCTION_PROTOTYPE] = functionPrototype;
     
-            ls.executionContext[SETTER] = new StdLib(DEFAULT_SETTER);
+            ls.executionContext[EC_SETTER] = new StdLib(FN_DEFAULT_SETTER);
     
-            ls.executionContext[GETTER] = new StdLib(DEFAULT_GETTER);
+            ls.executionContext[EC_GETTER] = new StdLib(FN_DEFAULT_GETTER);
     
             for(int i = 0; i < names.length; i++) {
                 ls.set(names[i], new StdLib(i));
             }
     
-            objectPrototype.put("hasOwnProperty", new StdLib(HAS_OWN_PROPERTY));
-            objectPrototype.put("__create_iterator", new StdLib(NEW_ITERATOR));
+            objectPrototype.put("hasOwnProperty", new StdLib(FN_HAS_OWN_PROPERTY));
+            objectPrototype.put("__create_iterator", new StdLib(FN_NEW_ITERATOR));
             Hashtable object = clone(objectPrototype);
     
             // Create members for array
-            arrayPrototype.put("push", new StdLib(ARRAY_PUSH));
-            arrayPrototype.put("pop", new StdLib(ARRAY_POP));
-            arrayPrototype.put("join", new StdLib(ARRAY_JOIN));
+            arrayPrototype.put("push", new StdLib(FN_ARRAY_PUSH));
+            arrayPrototype.put("pop", new StdLib(FN_ARRAY_POP));
+            arrayPrototype.put("join", new StdLib(FN_ARRAY_JOIN));
             Hashtable array = clone(arrayPrototype);
     
             Hashtable string = clone(stringPrototype);
@@ -941,7 +935,6 @@ public final class LightScript implements LightScriptObject {
                 // create new statistics
                 varsUsed = new Stack();
                 varsBoxed = new Stack();
-                varsBoxed.push("(ENV)");
                 varsLocals = new Stack();
 
                 // parse arguments
@@ -2610,7 +2603,7 @@ public final class LightScript implements LightScriptObject {
                             ((Hashtable) container).put(key, val);
                         }
                     } else {
-                        ((LightScriptFunction)executionContext[SETTER]).apply(container, stack, sp + 1, 2);
+                        ((LightScriptFunction)executionContext[EC_SETTER]).apply(container, stack, sp + 1, 2);
                     }
                     break;
                 }
@@ -2647,7 +2640,7 @@ public final class LightScript implements LightScriptObject {
                         } else if("length".equals(key)) {
                             result = new Integer(((Stack)container).size());
                         } else {
-                            result = ((Hashtable)executionContext[ARRAY_PROTOTYPE]).get(key);
+                            result = ((Hashtable)executionContext[EC_ARRAY_PROTOTYPE]).get(key);
                         }
 
                     // "String"
@@ -2661,7 +2654,7 @@ public final class LightScript implements LightScriptObject {
                         } else if("length".equals(key)) {
                             result = new Integer(((String)container).length());
                         } else {
-                            result = ((Hashtable)executionContext[STRING_PROTOTYPE]).get(key);
+                            result = ((Hashtable)executionContext[EC_STRING_PROTOTYPE]).get(key);
                         }
 
                     // "Function"
@@ -2669,28 +2662,28 @@ public final class LightScript implements LightScriptObject {
                         if("length".equals(key)) {
                             result = new Integer(((LightScriptFunction)container).getArgc());
                         } else {
-                            result = ((Hashtable)executionContext[FUNCTION_PROTOTYPE]).get(key);
+                            result = ((Hashtable)executionContext[EC_FUNCTION_PROTOTYPE]).get(key);
                         }
 
                     // Other builtin types, by calling userdefined default getter
                     } else {
-                        result = ((LightScriptFunction)executionContext[GETTER]).apply(container, stack, sp + 1, 1);
+                        result = ((LightScriptFunction)executionContext[EC_GETTER]).apply(container, stack, sp + 1, 1);
                     } 
                     
                     // prototype property or element within (super-)prototype
                     if(result == null) {
                         if("prototype".equals(key)) {
                             if(container instanceof LightScriptFunction) {
-                                result = (Hashtable)executionContext[FUNCTION_PROTOTYPE];
+                                result = (Hashtable)executionContext[EC_FUNCTION_PROTOTYPE];
                             } else if(container instanceof Stack) {
-                                result = (Hashtable)executionContext[ARRAY_PROTOTYPE];
+                                result = (Hashtable)executionContext[EC_ARRAY_PROTOTYPE];
                             } else if(container instanceof String) {
-                                result = (Hashtable)executionContext[STRING_PROTOTYPE];
+                                result = (Hashtable)executionContext[EC_STRING_PROTOTYPE];
                             } else {
-                                result = (Hashtable)executionContext[OBJECT_PROTOTYPE];
+                                result = (Hashtable)executionContext[EC_OBJECT_PROTOTYPE];
                             }
                         } else {
-                            result = ((Hashtable)executionContext[OBJECT_PROTOTYPE]).get(key);
+                            result = ((Hashtable)executionContext[EC_OBJECT_PROTOTYPE]).get(key);
                             if(result == null) {
                                 result = UNDEFINED;
                             }
