@@ -1,5 +1,5 @@
 SRC = Main.java LightScriptException.java LightScriptFunction.java LightScript.java
-LS_SRC = LightScript.in.java
+LS_SRC = UnpreprocessedLightScript.java
 DEPS = $(SRC) Makefile
 run: Main.class test.js
 	java Main test.js
