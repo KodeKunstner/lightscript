@@ -1785,7 +1785,6 @@ In the following subsections, the benchmarked languages, and the actual benchmar
 %TODO: Julia running the benchmarks are tabulated I see that tabulation is all that is done, but it would be nicer to say "assessed" and then give a proper assessment there.
 
 % TODO: Julia: In the results section, I missed to have some assessment of the number.  I see that it appears in chapter 6, but the reader really wants some interpretation of the numbers right away.  For example: Why do some languages do well?  Why do some not do well?  Why does lightscript sometimes do better than Yolan, and vice versa.  Why does lightscript do badly on Fannkuch?
-% TODO: Julia: If possible, it would be good to have a proper grammar of each language.  Reviewers tend to like that.  If you could make a semantics as well, but perhaps there is not time for that.
 
 \subsection{Languages}
 The benchmarks are run on those languages from Section~\ref{codefootprint-languages} that have an approximated JAR size of less than 64K. They also run on two JavaScript interpreters: Rhino 1.6r7 and SpiderMonkey 1.7.0, which are described in Section~\ref{spidermonkey}. Both are the default versions installed on Ubuntu Linux.
@@ -1974,16 +1973,15 @@ on whose shoulders I try to climb to see further.\\
 And thanks to God, to whom the honour belongs. 
 
 \chapter{Grammar}
-This Chapter has the grammar for Yolan and LightScript.
-Literal characters are writen with single quotation mark.
-Ranges of possible characters are written within square brackets, such that \verb|[a-c]| means one of the characters a, b or c. Ranges can also be negated, such that \verb|[^a-cf]| means a character that is not a, b, c nor f. A range can also contain escaped characters: \verb|\0| means the character with unicode value 0, and \verb|\\| means the backslash character. \verb|\[|, \verb|\]|, and \verb|\-| means \verb|[|, \verb|]| and \verb|-|. \verb|\n|, \verb|\r|, and \verb|\t| means new line, carriage return, and tab.
+This chapter describes the grammar for Yolan and LightScript.
+In order to reduce the code footprint of the parsers, the grammars are very lax, and are included to explain the implementation, and are not meant for learning how to program in the languages.
 
+Notation: Literal characters are writen with single quotation mark.
+Ranges of possible characters are written within square brackets, such that \verb|[a-c]| means one of the characters a, b or c. Ranges can also be negated, such that \verb|[^a-cf]| means a character that is not a, b, c nor f. A range can also contain escaped characters: \verb|\0| means the character with unicode value 0, and \verb|\\| means the backslash character. \verb|\[|, \verb|\]|, and \verb|\-| means \verb|[|, \verb|]| and \verb|-|. \verb|\n|, \verb|\r|, and \verb|\t| means new line, carriage return, and tab.
 Grammar productions are defined with \verb|::=|, parentheses are used for grouping and \verb\|\ is means or. \verb|*| is notation for zero or more occurences of the previous element.
 
 \section{Yolan}
 \begin{verbatim}
-<empty expression>  ::= 
-
 <number>            ::= [0-9][0-9]*
 
 <identifier>        ::= [^\0- "0-9;\[\]] [^\0- \[\]]*
@@ -1998,11 +1996,10 @@ Grammar productions are defined with \verb|::=|, parentheses are used for groupi
 <white spaces>      ::= <white space>
                       | <white space> <white spaces>
 
-<optional ws>       ::= <empty expression> 
-                      | <white spaces>
+<optional ws>       ::= <white spaces> |
 
 <expressions>       ::= <expression>
-                      | <expression> <white spaces> <expression list>
+                      | <expression> <white spaces> <expressions>
 
 <expression list>   ::= <optional ws> <expressions> <optional ws>
 
@@ -2015,8 +2012,23 @@ Grammar productions are defined with \verb|::=|, parentheses are used for groupi
 \end{verbatim}
 
 \section{LightScript}
-The first section described the LightScript grammar via top down operator precedence functions.
-The second section describes the LightScript grammar as a traditional grammar.
+
+The following sections describes the syntax accepted by LightScript 1.1.
+The language is very lax to minimise the code footprint of the parser.
+\emph{When programming in LightScript, the code should be written such that it is compatible with EcmaScript, and the following grammar should not be used for learning LightScript.} 
+This is only expository to give an impression of what the parser accepts, and thus how the syntax can be relaxed to reduce the code footprint.
+A example of how lax the syntax is, is demonstrated by the following EcmaScript/LightScript \verb|for|-loop:
+\begin{verbatim}
+for(x = 0; x < 10; ++x) { 
+    print(x); 
+}
+\end{verbatim}
+which also parses and executes in LightScript if written as ``{\tt for\verb|[|x=0,x<10:++x\verb"}" \verb|{| print(x\verb|]|)}''
+Correct LightScript code is the only that which is both accepted by the grammar of LightScript, and also is valid EcmaScript.
+
+The next three sections describes the grammar: 
+First there is the syntax of the tokens in Section~B.2.1,
+then there is a tabulation of the tokens as in the top down operator precedence parser, in Section~B.2.2, and the actual grammer is written in Section~B.2.3.
 
 \subsection{Grammar for tokens}
 \begin{verbatim}
@@ -2082,6 +2094,8 @@ literal identifier  & Single & & \\
 ``List`` reads the next expression until a ``List end'' is found. ``Single'' creates a leaf in the syntax tree. ``Prefix'' create a node with the next read expression. ``Prefix2'' create a node with the two next expressions read. ``List end'' is a special node used for terminate lists. ``Separator''s are special nodes, that may be discarded during compilation. ``Function case'' handles \verb|function|s which is a ``Prefix2'' or ``Prefix3'' depending on whether the first parsed expression is a list or identifier. 
 
 \subsection{Grammar}
+The following is the grammar accepted by LightScript. 
+This uses rules as defined in Section~B.2.1: \verb|<literal>| and \verb|<identifier>|, with the exception that \verb|<identifier>| should not include the tokens which is mentioned in the table in Section~B.2.2.
 \begin{verbatim}
 <prefix name>       ::= '-' | '++' | '--' | '!' 
                       | 'return' | 'throw' | 'var' 
@@ -2146,16 +2160,16 @@ literal identifier  & Single & & \\
 
 \chapter{Source code of the Yolan class}
 \index{Yolan!source code}
-\lstinputlisting{../code/Yolan/src/Yolan.java}
+\lstinputlisting{Yolan.java}
 
 \chapter{Source code of the LightScript class}
+The following is the source code for the \verb|LightScript.class| of version 1.1.509.
 \index{LightScript!source code}
-\lstinputlisting{../code/LightScript/LightScript.javapp}
+\lstinputlisting{LightScript.javapp}
 
 
-\newpage
-\addcontentsline{toc}{chapter}{Index}
+%\newpage
+%\addcontentsline{toc}{chapter}{Index}
 %\printindex
 
 \end{document}
-
