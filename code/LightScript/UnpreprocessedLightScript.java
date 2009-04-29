@@ -488,7 +488,7 @@ public final class LightScript {
     }
 
     /** Returns a new object array, with the seperator tokens removed */
-    private Object[] stripSep(Object[] os) {
+    private static Object[] stripSep(Object[] os) {
         Stack s = new Stack();
         for(int i = 0; i < os.length; i++) {
             if(os[i] != SEP_TOKEN) {
@@ -1587,7 +1587,7 @@ public final class LightScript {
         return pos;
     }
 
-    private void curlyToBlock(Object oexpr) {
+    private static void curlyToBlock(Object oexpr) {
         Object[] expr = (Object[]) oexpr;
         if (((Integer) expr[0]).intValue() == ID_CURLY) {
             expr[0] = new Integer(ID_BLOCK);
@@ -1651,7 +1651,7 @@ public final class LightScript {
         return result;
     }
 
-    private int childType(Object[] expr, int i) {
+    private static int childType(Object[] expr, int i) {
         return ((Integer) ((Object[]) expr[i])[0]).intValue();
     }
 

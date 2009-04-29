@@ -4,7 +4,6 @@
 - add new, delete
 - script for automatic wrapper generation
 - api
-- make fixed point optional
-  - add optional floating point support
+- add optional floating point support
 - testsuite
 - ant Hecl-like build, rather than custom makefiles
