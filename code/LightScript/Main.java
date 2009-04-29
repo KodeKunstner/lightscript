@@ -15,11 +15,10 @@ public class Main {
             is = System.in;
         }
         LightScript ls = new LightScript();
-        ls.evalFrom(is);
         Object result = null;
         do {
             try {
-                result = ls.evalNext();
+                result = ls.evalNext(is);
             } catch(LightScriptException e) {
                 System.out.println(e);
             }

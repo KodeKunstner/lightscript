@@ -1,4 +1,4 @@
-/*
+/**
 This software is released under the 
 GNU GENERAL PUBLIC LICENSE version 3
 (the actual license text can be retrieved
@@ -193,7 +193,11 @@ import java.util.Stack;
 
 /*`\subsection{Variables}'*/
 /** Instances of the LightScript object, is an execution context,
-  * where code can be parsed, compiled, and executed. */
+  * where code can be parsed, compiled, and executed. 
+  *
+  * @author Rasmus Jensen, rasmus@lightscript.net
+  * @version 1.1
+  */
 public final class LightScript {
 
     /** Token used for separators (;,:), which are just discarded */
@@ -202,11 +206,12 @@ public final class LightScript {
     /** The true truth value of results 
       * of tests/comparisons within LightScript */
     public static final Object TRUE = new StringBuffer("true");
-
+    /** The null value within LightScript */
+    public static final Object NULL = new StringBuffer("null");
+    /** The undefined value within LightScript */
+    public static final Object UNDEFINED = new StringBuffer("undefined");
     /** The false truth value of results 
       * of tests/comparisons within LightScript */
-    public static final Object NULL = new StringBuffer("null");
-    public static final Object UNDEFINED = new StringBuffer("undefined");
     public static final Object FALSE = new StringBuffer("false");
 
     /** Token string when reaching end of file, it can only occur
@@ -301,15 +306,23 @@ public final class LightScript {
     #define EC_GETTER 6
     #define EC_WRAPPED_GLOBALS 7
 
+    /** Get the default-setter function */
     public LightScriptFunction defaultSetter() {
         return (LightScriptFunction) executionContext[EC_SETTER];
     }
+    /** Set the default-setter function.
+     * The default setter function is called as a method on the object,
+     * with the key and the value as arguments. */
     public void defaultSetter(LightScriptFunction f) {
         executionContext[EC_SETTER] = f;
     }
+    /** Get the default-getter function */
     public LightScriptFunction defaultGetter() {
         return (LightScriptFunction) executionContext[EC_GETTER];
     }
+    /** Set the default-getter function. 
+     * The default getter function is called as a method on the object,
+     * with a single argument, which is the key */
     public void defaultGetter(LightScriptFunction f) {
         executionContext[EC_GETTER] = f;
     }
@@ -330,19 +343,19 @@ public final class LightScript {
         return eval(new ByteArrayInputStream(s.getBytes()));
     }
 
-    public void evalFrom(InputStream is) {
-            this.is = is;
-            sb = new StringBuffer();
-            c = ' ';
-            varsArgc = 0;
-            nextToken();
-    }
-
-    public Object evalNext() throws LightScriptException {
+    /** Evaluate the next statement from an input stream */
+    public Object evalNext(InputStream is) throws LightScriptException {
 // if we debug, we want the real exception, with line number..
 #ifndef __DEBUG__
         try {
 #endif
+            if(is != this.is) {
+                this.is = is;
+                sb = new StringBuffer();
+                c = ' ';
+                varsArgc = 0;
+                nextToken();
+            }
             while(token == TOKEN_SEP) {
                 nextToken();
             }
@@ -378,10 +391,9 @@ public final class LightScript {
     /** Parse and execute LightScript code read from an input stream */
     public Object eval( InputStream is) throws LightScriptException {
         Object result, t = UNDEFINED;
-        evalFrom(is);
         do {
             result = t;
-            t = evalNext();
+            t = evalNext(is);
         } while(t != null);
 
         return result;
