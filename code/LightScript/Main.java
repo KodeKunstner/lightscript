@@ -24,7 +24,7 @@ public class Main {
                 System.out.println(e);
             }
             if(args.length != 1 && result != null) {
-                System.out.println("-> " + result);
+                System.out.println(" -> " + result);
             }
         } while(result != null);
     }

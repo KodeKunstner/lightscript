@@ -13,8 +13,10 @@ Main.class: $(DEPS) $(SRC)
 all: Main.class
 
 clean:
-	rm -rf *.class *.class.gz LightScript.java doc
+	rm -rf *.class *.class.gz LightScript.java doc private-doc
 
 doc: $(SRC)
 	mv $(LS_SRC) $(LS_SRC).nodoc
-	javadoc -d doc -private $(SRC); mv $(LS_SRC).nodoc $(LS_SRC)
+	javadoc -d private-doc -private $(SRC); mv $(LS_SRC).nodoc $(LS_SRC)
+	mv $(LS_SRC) $(LS_SRC).nodoc
+	javadoc -d doc $(SRC); mv $(LS_SRC).nodoc $(LS_SRC)
