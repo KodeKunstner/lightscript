@@ -1,4 +1,4 @@
-source = Main.java LightScript.javapp LightScriptException.java LightScriptFunction.java LightScriptStdLib.java Makefile
+source = Main.java LightScript.javapp LightScriptException.java LightScriptFunction.java Makefile
 
 run: Main.class test.js
 	java Main test.js
