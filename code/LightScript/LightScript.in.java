@@ -870,7 +870,7 @@ public final class LightScript implements LightScriptObject {
 
     /** Read expressions until an end-token is reached.
       * @param s an accumulator stack where the expressions are appended
-      * @returns an array of parsed expressions, with s prepended 
+      * @return an array of parsed expressions, with s prepended 
       */
     private Object[] readList(Stack s) {
         while (token != TOKEN_END) {

@@ -1,17 +1,20 @@
-SOURCES = Main.java LightScriptException.java LightScriptFunction.java 
-DEPS = $(SOURCES) LightScript.in.java Makefile
+SRC = Main.java LightScriptException.java LightScriptFunction.java LightScript.java
+LS_SRC = LightScript.in.java
+DEPS = $(SRC) Makefile
 run: Main.class test.js
 	java Main test.js
 
-Main.class: $(DEPS)
-	cpp -C -P LightScript.in.java > LightScript.java 
-	javac -source 1.2 $(SOURCES) LightScript.java
-	mv -f LightScript.java debugsrc.java
+LightScript.java: $(LS_SRC)
+	cpp -C -P $(LS_SRC) > LightScript.java 
+
+Main.class: $(DEPS) $(SRC)
+	javac -source 1.2 $(SRC)
 
 all: Main.class
 
 clean:
-	rm -f *.class *.class.gz LightScript.java debugsrc.java
+	rm -rf *.class *.class.gz LightScript.java debugsrc.java doc
 
-doc: $(source)
-	cd doc && javadoc ../*.java
+doc: $(SRC)
+	mv $(LS_SRC) $(LS_SRC).nodoc
+	javadoc -d doc -private $(SRC); mv $(LS_SRC).nodoc $(LS_SRC)
