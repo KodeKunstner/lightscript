@@ -249,11 +249,11 @@ public final class LightScript implements LightScriptObject {
       * they are boxed, in such that they can be passed
       * to the closure of af function, which will then
       * be able to modify it without looking it up here */
-    public static final int GLOBALS = 0;
-    public static final int OBJECT_PROTOTYPE = 1;
-    public static final int ARRAY_PROTOTYPE = 2;
-    public static final int FUNCTION_PROTOTYPE = 3;
-    public static final int STRING_PROTOTYPE = 4;
+    private static final int GLOBALS = 0;
+    private static final int OBJECT_PROTOTYPE = 1;
+    private static final int ARRAY_PROTOTYPE = 2;
+    private static final int FUNCTION_PROTOTYPE = 3;
+    private static final int STRING_PROTOTYPE = 4;
     /** Index in executionContext for the default setter function, 
      * which is called when a property is set on
      * an object which is neither a Stack, Hashtable nor LightScriptObject
@@ -262,7 +262,7 @@ public final class LightScript implements LightScriptObject {
      * and takes the key and value as arguments
      */
 
-    public static final int SETTER = 5;
+    private static final int SETTER = 5;
     /** Index in executionContext for the default getter function, 
      * called when subscripting an object
      * which is not a Stack, Hashtable, String nor LightScriptObject
@@ -273,12 +273,12 @@ public final class LightScript implements LightScriptObject {
      * The apply method of the getter gets the container as thisPtr, 
      * and takes the key as argument
      */
-    public static final int GETTER = 6;
+    private static final int GETTER = 6;
 
     /**
      * context for execution
      */
-    public Object[] executionContext;
+    private Object[] executionContext;
 
     /** Constructor, loading standard library */
     public LightScript() {
