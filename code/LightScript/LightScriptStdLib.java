@@ -165,33 +165,43 @@ class LightScriptStdLib implements LightScriptFunction {
         }
         return LightScript.UNDEFINED;
     }
+
     public static void register(LightScript ls) {
+
+        Hashtable objectPrototype = new Hashtable();
+        ls.executionContext[ls.OBJECT_PROTOTYPE] = objectPrototype;
+
+        Hashtable arrayPrototype = new Hashtable();
+        ls.executionContext[ls.ARRAY_PROTOTYPE] = arrayPrototype;
+
+        Hashtable stringPrototype = clone(objectPrototype);
+        ls.executionContext[ls.STRING_PROTOTYPE] = stringPrototype;
+
+        Hashtable functionPrototype = clone(objectPrototype);
+        ls.executionContext[ls.FUNCTION_PROTOTYPE] = functionPrototype;
+
+        ls.executionContext[ls.SETTER] = new LightScriptStdLib(DEFAULT_SETTER);
+
+        ls.executionContext[ls.GETTER] = new LightScriptStdLib(DEFAULT_GETTER);
+
         for(int i = 0; i < names.length; i++) {
             ls.set(names[i], new LightScriptStdLib(i));
         }
 
-        Hashtable objectPrototype = new Hashtable();
         objectPrototype.put("hasOwnProperty", new LightScriptStdLib(HAS_OWN_PROPERTY));
         objectPrototype.put("__create_iterator", new LightScriptStdLib(NEW_ITERATOR));
         Hashtable object = clone(objectPrototype);
 
         // Create members for array
-        Hashtable arrayPrototype = new Hashtable();
         arrayPrototype.put("push", new LightScriptStdLib(ARRAY_PUSH));
         arrayPrototype.put("pop", new LightScriptStdLib(ARRAY_POP));
         arrayPrototype.put("join", new LightScriptStdLib(ARRAY_JOIN));
         Hashtable array = clone(arrayPrototype);
 
-        Hashtable stringPrototype = clone(objectPrototype);
         Hashtable string = clone(stringPrototype);
 
-        Hashtable functionPrototype = clone(objectPrototype);
         Hashtable function = clone(stringPrototype);
 
-        ls.arrayPrototype = arrayPrototype;
-        ls.objectPrototype = objectPrototype;
-        ls.stringPrototype = stringPrototype;
-        ls.functionPrototype = functionPrototype;
 
         ls.set("Object", object);
         ls.set("String", string);
@@ -199,7 +209,5 @@ class LightScriptStdLib implements LightScriptFunction {
         ls.set("Function", function);
 
 
-        ls.defaultGetter = new LightScriptStdLib(DEFAULT_GETTER);
-        ls.defaultSetter = new LightScriptStdLib(DEFAULT_SETTER);
     }
 }

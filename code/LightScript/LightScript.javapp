@@ -241,18 +241,49 @@ public final class LightScript implements LightScriptObject {
       * and Function ids for null/left denominator functions */
     private int token;
 
-    /** The globals variables in this execution context.
-      * they are boxed, in such that they can be passed
-      * to the closure of af function, which will then
-      * be able to modify it without looking it up here */
-    private Hashtable boxedGlobals;
 
 
 /*`\subsection{Public functions}'*/
 
+    /** The globals variables in this execution context.
+      * they are boxed, in such that they can be passed
+      * to the closure of af function, which will then
+      * be able to modify it without looking it up here */
+    public static final int GLOBALS = 0;
+    public static final int OBJECT_PROTOTYPE = 1;
+    public static final int ARRAY_PROTOTYPE = 2;
+    public static final int FUNCTION_PROTOTYPE = 3;
+    public static final int STRING_PROTOTYPE = 4;
+    /** Index in executionContext for the default setter function, 
+     * which is called when a property is set on
+     * an object which is neither a Stack, Hashtable nor LightScriptObject
+     *
+     * The apply method of the setter gets the container as thisPtr, 
+     * and takes the key and value as arguments
+     */
+
+    public static final int SETTER = 5;
+    /** Index in executionContext for the default getter function, 
+     * called when subscripting an object
+     * which is not a Stack, Hashtable, String nor LightScriptObject
+     * or when the subscripting of any of those objects returns null.
+     * (non-integer on stacks/strings, keys not found in Hashtable or 
+     * its prototypes, when LightScriptObject.get returns null)
+     *
+     * The apply method of the getter gets the container as thisPtr, 
+     * and takes the key as argument
+     */
+    public static final int GETTER = 6;
+
+    /**
+     * context for execution
+     */
+    public Object[] executionContext;
+
     /** Constructor, loading standard library */
     public LightScript() {
-        boxedGlobals = new Hashtable();
+        executionContext = new Object[7];
+        executionContext[GLOBALS] = new Hashtable();
         LightScriptStdLib.register(this);
     }
 
@@ -283,10 +314,10 @@ public final class LightScript implements LightScriptObject {
         
                 // create closure from globals
                 for(int i = 0; i < c.closure.length; i ++) {
-                    Object box = boxedGlobals.get(c.closure[i]);
+                    Object box = ((Hashtable)executionContext[GLOBALS]).get(c.closure[i]);
                     if(box == null) {
                         box = new Object[1];
-                        boxedGlobals.put(c.closure[i], box);
+                        ((Hashtable)executionContext[GLOBALS]).put(c.closure[i], box);
                     }
                     c.closure[i] = box;
                 }
@@ -301,17 +332,17 @@ public final class LightScript implements LightScriptObject {
 
     /** Set a global value for this execution context */
     public void set(Object key, Object value) {
-        Object[] box = (Object[])boxedGlobals.get(key);
+        Object[] box = (Object[])((Hashtable)executionContext[GLOBALS]).get(key);
         if(box == null) {
             box = new Object[1];
-            boxedGlobals.put(key, box);
+            ((Hashtable)executionContext[GLOBALS]).put(key, box);
         }
         box[0] = value;
     }
 
     /** Retrieve a global value from this execution context */
     public Object get(Object key) {
-        Object[] box = (Object[])boxedGlobals.get(key);
+        Object[] box = (Object[])((Hashtable)executionContext[GLOBALS]).get(key);
         if(box == null) {
             return null;
         } else {
@@ -319,37 +350,6 @@ public final class LightScript implements LightScriptObject {
         }
     
     }
-
-    /** Prototypes for Objects */
-    public Hashtable objectPrototype;
-
-    /** Prototypes for Arrays*/
-    public Hashtable arrayPrototype;
-
-    /** Prototypes for Functions */
-    public Hashtable functionPrototype;
-
-    /** Prototypes for Strings*/
-    public Hashtable stringPrototype;
-
-    /** Default setter function, called when a property is set on
-     * an object which is neither a Stack, Hashtable nor LightScriptObject
-     *
-     * The apply method of the setter gets the container as thisPtr, 
-     * and takes the key and value as arguments
-     */
-    public LightScriptFunction defaultSetter;
-
-    /** Default getter function, called when subscripting an object
-     * which is not a Stack, Hashtable, String nor LightScriptObject
-     * or when the subscripting of any of those objects returns null.
-     * (non-integer on stacks/strings, keys not found in Hashtable or 
-     * its prototypes, when LightScriptObject.get returns null)
-     *
-     * The apply method of the getter gets the container as thisPtr, 
-     * and takes the key as argument
-     */
-    public LightScriptFunction defaultGetter;
 
 /*`\subsection{Debugging}'*/
 
@@ -1321,6 +1321,7 @@ public final class LightScript implements LightScriptObject {
 
     private Code compile(Object[] body) {
         constPool = new Stack();
+        constPool.push(executionContext);
         code = new StringBuffer();
 
         // allocate space for local vars
@@ -2395,7 +2396,7 @@ public final class LightScript implements LightScriptObject {
                             ((Hashtable) container).put(key, val);
                         }
                     } else {
-                        defaultSetter.apply(container, stack, sp + 1, 2);
+                        ((LightScriptFunction)executionContext[SETTER]).apply(container, stack, sp + 1, 2);
                     }
                     break;
                 }
@@ -2432,7 +2433,7 @@ public final class LightScript implements LightScriptObject {
                         } else if("length".equals(key)) {
                             result = new Integer(((Stack)container).size());
                         } else {
-                            result = arrayPrototype.get(key);
+                            result = ((Hashtable)executionContext[ARRAY_PROTOTYPE]).get(key);
                         }
 
                     // "String"
@@ -2446,7 +2447,7 @@ public final class LightScript implements LightScriptObject {
                         } else if("length".equals(key)) {
                             result = new Integer(((String)container).length());
                         } else {
-                            result = stringPrototype.get(key);
+                            result = ((Hashtable)executionContext[STRING_PROTOTYPE]).get(key);
                         }
 
                     // "Function"
@@ -2454,28 +2455,28 @@ public final class LightScript implements LightScriptObject {
                         if("length".equals(key)) {
                             result = new Integer(((LightScriptFunction)container).getArgc());
                         } else {
-                            result = functionPrototype.get(key);
+                            result = ((Hashtable)executionContext[FUNCTION_PROTOTYPE]).get(key);
                         }
 
                     // Other builtin types, by calling userdefined default getter
                     } else {
-                        result = defaultGetter.apply(container, stack, sp + 1, 1);
+                        result = ((LightScriptFunction)executionContext[GETTER]).apply(container, stack, sp + 1, 1);
                     } 
                     
                     // prototype property or element within (super-)prototype
                     if(result == null) {
                         if("prototype".equals(key)) {
                             if(container instanceof LightScriptFunction) {
-                                result = functionPrototype;
+                                result = (Hashtable)executionContext[FUNCTION_PROTOTYPE];
                             } else if(container instanceof Stack) {
-                                result = arrayPrototype;
+                                result = (Hashtable)executionContext[ARRAY_PROTOTYPE];
                             } else if(container instanceof String) {
-                                result = stringPrototype;
+                                result = (Hashtable)executionContext[STRING_PROTOTYPE];
                             } else {
-                                result = objectPrototype;
+                                result = (Hashtable)executionContext[OBJECT_PROTOTYPE];
                             }
                         } else {
-                            result = objectPrototype.get(key);
+                            result = ((Hashtable)executionContext[OBJECT_PROTOTYPE]).get(key);
                             if(result == null) {
                                 result = UNDEFINED;
                             }
