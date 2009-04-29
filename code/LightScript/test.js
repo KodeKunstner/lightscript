@@ -35,3 +35,14 @@ while((elem = iter()) != undefined) {
 a = {"foo": "bar"};
 b = {"prototype": a};
 print("b.foo: " + b.foo);
+
+
+print(1 + 1 + "" + 1 + 1);
+a = 1;
+b = 2;
+c = 3;
+a = b = c;
+print("a:"+a+" b:"+b);
+
+print("Hello") || true || true;
+print(1 - 1 - 1);

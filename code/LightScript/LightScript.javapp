@@ -563,8 +563,8 @@ public final class LightScript implements LightScriptObject {
     /** Test if the current character could be a part of a multi character 
       * symbol, such as &&, ||, += and the like. */
     private boolean isSymb() {
-        return c == '=' || c == '!' || c == '<' || c == '&' 
-            || c == '|' || c == '+' || c == '-' || c == '>';
+        return c == '=' || c == '!' || c == '<' || c == '&' || c == '/' || c == '*' 
+            || c == '%' || c == '|' || c == '+' || c == '-' || c == '>';
     }
 
     /** Read the next toke from the input stream. 
@@ -850,7 +850,7 @@ public final class LightScript implements LightScriptObject {
             case LED_INFIX_SWAP:
                 return v(ledId, parse(bp), left);
             case LED_OPASSIGN:
-                return v(ID_SET, left, v(ledId, left, parse(bp)));
+                return v(ID_SET, left, v(ledId, left, parse(bp - 1)));
             case LED_INFIXR:
                 return v(ledId, left, parse(bp - 1));
             case LED_INFIX_LIST: {
@@ -880,6 +880,8 @@ public final class LightScript implements LightScriptObject {
                 if(parse(0) != SEP_TOKEN) {
                     throw new Error("infix if error");
                 }
+#else
+                parse(0);
 #endif
                 Object branch2 = parse(0);
                 return v(ID_IF, left, v(ID_ELSE, branch1, branch2));
@@ -1054,7 +1056,7 @@ public final class LightScript implements LightScriptObject {
             + (char) 3
             + (char) NUD_NONE
             + (char) ID_NONE
-            + (char) LED_INFIX
+            + (char) LED_INFIXR
             + (char) ID_IN
         + "?"
             + (char) 3
@@ -1066,7 +1068,7 @@ public final class LightScript implements LightScriptObject {
             + (char) 2
             + (char) NUD_NONE
             + (char) ID_NONE
-            + (char) LED_INFIX
+            + (char) LED_INFIXR
             + (char) ID_SET
         + "+="
             + (char) 2
@@ -1092,6 +1094,12 @@ public final class LightScript implements LightScriptObject {
             + (char) ID_NONE
             + (char) LED_OPASSIGN
             + (char) ID_DIV
+        + "%="
+            + (char) 2
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_OPASSIGN
+            + (char) ID_REM
         + "++"
             + (char) 1
             + (char) NUD_PREFIX
