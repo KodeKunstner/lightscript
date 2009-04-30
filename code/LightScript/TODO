@@ -1,10 +1,16 @@
-- use __create_iterator in for-in, by remapping to while
-- Global object -> this
-  - simplify function call compilation/implementation
-- add new, delete
-- script for automatic wrapper generation
-- api
-- add optional floating point support
-- testsuite
-- ant Hecl-like build, rather than custom makefiles
-- safe-mode, catch casts
+1.2:
+  - Global object -> this
+    - simplify function call compilation/implementation
+  - add new, delete, remove clone
+  - add more builtin ecmascript functions
+  - api
+
+1.4:
+  - script for automatic wrapper generation
+  - testsuite
+  - Add more optional libraries
+  - maybe add optional floating point support
+  - maybe ant Hecl-like build, rather than custom makefiles
+
+2.0:
+  - LightScript pretty-printer / compiler in LightScript

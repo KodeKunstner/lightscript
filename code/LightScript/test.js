@@ -1,8 +1,6 @@
-function f() {
+for(x in {"foo":1,"bar":2}) {
+    print(x);
 }
-print("f.length: " + f.length);
-print("f.prototype: " + f.prototype);
-function f(b, h, k) {
+for(x in ["foo","bar"]) {
+    print(x);
 }
-print("f.length: " + f.length);
-print("f.prototype: " + f.prototype);

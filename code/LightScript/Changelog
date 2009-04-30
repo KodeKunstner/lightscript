@@ -1,3 +1,8 @@
+1.1.531
+    Roadmap updates
+    Custom iterator functions
+    For-in works for Arrays
+    19125
 1.1.530
     Replaced Function interface by Object
     Improved API, and various updates.

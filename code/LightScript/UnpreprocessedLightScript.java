@@ -110,8 +110,9 @@ import java.util.Stack;
 #define ID_SET_LOCAL 69
 #define ID_SET_THIS 70
 #define ID_SWAP 71
-
 #define ID_DIV 72
+#define ID_NEW_ITER 73
+#define ID_JUMP_IF_UNDEFINED 74
 
 
 /* The function id for the null denominator functions */
@@ -305,7 +306,18 @@ public final class LightScript {
      */
     #define EC_GETTER 6
     #define EC_WRAPPED_GLOBALS 7
+    #define EC_NEW_ITER 8
 
+    /** Get the default iterator function */
+    public LightScriptObject defaultIterator() {
+        return (LightScriptObject) executionContext[EC_NEW_ITER];
+    }
+    /** Set the default-setter function.
+     * The default iterator function is called as a method on the object,
+     * and should return an iterator across that object. */
+    public void defaultIterator(LightScriptObject f) {
+        executionContext[EC_NEW_ITER] = f;
+    }
     /** Get the default-setter function */
     public LightScriptObject defaultSetter() {
         return (LightScriptObject) executionContext[EC_SETTER];
@@ -333,7 +345,7 @@ public final class LightScript {
 
     /** Constructor, loading standard library */
     public LightScript() {
-        executionContext = new Object[8];
+        executionContext = new Object[9];
         executionContext[EC_GLOBALS] = new Hashtable();
         StdLib.register(this);
     }
@@ -744,6 +756,8 @@ public final class LightScript {
     
             ls.executionContext[EC_GETTER] = new StdLib(STD_DEFAULT_GETTER);
 
+            ls.executionContext[EC_NEW_ITER] = new StdLib(STD_NEW_ITERATOR);
+
             StdLib globalWrapper = new StdLib(STD_GLOBAL_WRAPPER);
             globalWrapper.closure = ls.executionContext;
             ls.executionContext[EC_WRAPPED_GLOBALS] = globalWrapper;
@@ -754,7 +768,6 @@ public final class LightScript {
             }
     
             objectPrototype.put("hasOwnProperty", new StdLib(STD_HAS_OWN_PROPERTY));
-            objectPrototype.put("__create_iterator", new StdLib(STD_NEW_ITERATOR));
             Hashtable object = clone(objectPrototype);
     
             // Create members for array
@@ -2020,6 +2033,7 @@ public final class LightScript {
                     // evaluate b
                     compile(in[2], true);
 
+                    emit(ID_NEW_ITER);
                     pos0 = code.length();
                     // get next
                     emit(ID_NEXT);
@@ -2029,7 +2043,7 @@ public final class LightScript {
                     compileSet(name);
 
                     // exit if done
-                    emit(ID_JUMP_IF_FALSE);
+                    emit(ID_JUMP_IF_UNDEFINED);
                     pushShort(0);
                     pos1 = code.length();
                     addDepth(-1);
@@ -2855,6 +2869,15 @@ public final class LightScript {
                     pc += readShort(pc, code) + 2;
                     break;
                 }
+                case ID_JUMP_IF_UNDEFINED: {
+                    if (UNDEFINED != stack[sp]) {
+                        pc += 2;
+                    } else {
+                        pc += readShort(pc, code) + 2;
+                    }
+                    --sp;
+                    break;
+                }
                 case ID_JUMP_IF_FALSE: {
                     if (toBool(stack[sp])) {
                         pc += 2;
@@ -2933,19 +2956,13 @@ public final class LightScript {
                     sp -= TRY_FRAME_SIZE;
                     break;
                 }
+                case ID_NEW_ITER: {
+                    stack[sp] = ((LightScriptObject)executionContext[EC_NEW_ITER]).apply(stack[sp], stack, sp, 0);
+                    break;
+                }
                 case ID_NEXT: {
-                    Object o = stack[sp];
-                    if(o instanceof Hashtable) {
-                        o = ((Hashtable)o).keys();
-                        stack[sp] = o;
-                    }
-
-                    Enumeration e = (Enumeration)o;
-                    if(e.hasMoreElements()) {
-                        stack[++sp] = e.nextElement();
-                    } else {
-                        stack[++sp] = UNDEFINED;
-                    } 
+                    LightScriptObject iter = (LightScriptObject)stack[sp];
+                    stack[++sp] = iter.apply(thisPtr, stack, sp, 0);
                     break;
                 }
                 default: {
