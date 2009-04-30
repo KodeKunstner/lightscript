@@ -1,16 +1,34 @@
 1.2:
+  - Add floating-point support or emulation, remove fixed-point
+    - FloatingPoint class, optionally replaced by Double
+    - vm calls functions Object addFloat(Object, Object), mulFloat, ...
   - Global object -> this
     - simplify function call compilation/implementation
-  - add new, delete, remove clone
-  - add more builtin ecmascript functions
-  - api
+  - add new, delete. Remove clone
+  - add more builtin ecmascript functions, larger api
+  - add binary operators
+  - /* */ comments
+  - new build system
+    - maybe package
+  - README
+  - dist target to makefile
+    - distribute preprocessed source files
+
+1.3
+  - Move to hosted versioning system
 
 1.4:
   - script for automatic wrapper generation
   - testsuite
+  - documentation, examples
   - Add more optional libraries
-  - maybe add optional floating point support
-  - maybe ant Hecl-like build, rather than custom makefiles
+  - maybe add support for building with ant
 
 2.0:
-  - LightScript pretty-printer / compiler in LightScript
+  - Private development version
+
+2.2:
+  - LightScript pretty-printer/lint in LightScript
+
+2.4:
+  - LightScript compiler in LightScript, new virtual machine
