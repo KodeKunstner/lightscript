@@ -1,6 +1,8 @@
-print("a");
-juuhuhuh;
-print("b");
-x = 1;
-x();
-print("c");
+function f() {
+}
+print("f.length: " + f.length);
+print("f.prototype: " + f.prototype);
+function f(b, h, k) {
+}
+print("f.length: " + f.length);
+print("f.prototype: " + f.prototype);

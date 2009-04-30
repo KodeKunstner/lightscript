@@ -1,3 +1,7 @@
+1.1.530
+    Replaced Function interface by Object
+    Improved API, and various updates.
+    19091
 1.1.524
     Support for incremental evaluation. 18979
 1.1.522

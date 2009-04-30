@@ -307,23 +307,23 @@ public final class LightScript {
     #define EC_WRAPPED_GLOBALS 7
 
     /** Get the default-setter function */
-    public LightScriptFunction defaultSetter() {
-        return (LightScriptFunction) executionContext[EC_SETTER];
+    public LightScriptObject defaultSetter() {
+        return (LightScriptObject) executionContext[EC_SETTER];
     }
     /** Set the default-setter function.
      * The default setter function is called as a method on the object,
      * with the key and the value as arguments. */
-    public void defaultSetter(LightScriptFunction f) {
+    public void defaultSetter(LightScriptObject f) {
         executionContext[EC_SETTER] = f;
     }
     /** Get the default-getter function */
-    public LightScriptFunction defaultGetter() {
-        return (LightScriptFunction) executionContext[EC_GETTER];
+    public LightScriptObject defaultGetter() {
+        return (LightScriptObject) executionContext[EC_GETTER];
     }
     /** Set the default-getter function. 
      * The default getter function is called as a method on the object,
      * with a single argument, which is the key */
-    public void defaultGetter(LightScriptFunction f) {
+    public void defaultGetter(LightScriptObject f) {
         executionContext[EC_GETTER] = f;
     }
     /**
@@ -538,7 +538,7 @@ public final class LightScript {
 
 
     /*`\subsubsection{StdLib}'*/
-    private static class StdLib implements LightScriptFunction, LightScriptObject {
+    private static class StdLib implements LightScriptObject {
         private int id;
         private Object closure[];
     
@@ -593,7 +593,10 @@ public final class LightScript {
                 } else {
                     return box[0];
                 }
+            } else if("length".equals(key)) {
+                return new Integer(argcs[id]);
             } else {
+
                 return null;
             }
         }
@@ -602,10 +605,6 @@ public final class LightScript {
             Hashtable result = new Hashtable();
             result.put("prototype", o);
             return result;
-        }
-    
-        public int getArgc() {
-                return argcs[id];
         }
     
         private StdLib(int id) {
@@ -780,7 +779,7 @@ public final class LightScript {
      * Analysis of variables in a function being compiled,
      * updated during the parsing.
      */
-    private static class Code implements LightScriptFunction {
+    private static class Code implements LightScriptObject {
         public Object apply(Object thisPtr, Object[] args, 
                             int argpos, int argcount) 
                                 throws LightScriptException {
@@ -810,10 +809,18 @@ public final class LightScript {
         public Object[] closure;
         public int maxDepth;
 
-        public int getArgc() {
-            return argc;
+        public Object get(Object key) {
+            if("length".equals(key)) {
+                return new Integer(argc);
+            }
+            Hashtable prototype = (Hashtable)((Object[])constPool[0])[EC_FUNCTION_PROTOTYPE];
+            if("prototype".equals(key)) {
+                return prototype;
+            }
+            return prototype.get(key);
         }
-
+        public void set(Object key, Object val) {
+        }
         public Code(int argc, byte[] code, Object[] constPool, Object[] closure, int maxDepth) {
             this.argc = argc;
             this.code = code;
@@ -2463,9 +2470,9 @@ public final class LightScript {
                         constPool = fn.constPool;
                         executionContext = (Object[]) constPool[0];
                         closure = fn.closure;
-                    } else if (o instanceof LightScriptFunction) {
+                    } else if (o instanceof LightScriptObject) {
                         try {
-                            Object result = ((LightScriptFunction)o
+                            Object result = ((LightScriptObject)o
                                 ).apply(thisPtr, stack, sp - argc + 1, argc);
                             sp -= argc + RET_FRAME_SIZE;
                             stack[sp] = result;
@@ -2722,7 +2729,7 @@ public final class LightScript {
                             ((Hashtable) container).put(key, val);
                         }
                     } else {
-                        ((LightScriptFunction)executionContext[EC_SETTER]).apply(container, stack, sp + 1, 2);
+                        ((LightScriptObject)executionContext[EC_SETTER]).apply(container, stack, sp + 1, 2);
                     }
                     break;
                 }
@@ -2776,25 +2783,15 @@ public final class LightScript {
                             result = ((Hashtable)executionContext[EC_STRING_PROTOTYPE]).get(key);
                         }
 
-                    // "Function"
-                    } else if (container instanceof LightScriptFunction) {
-                        if("length".equals(key)) {
-                            result = new Integer(((LightScriptFunction)container).getArgc());
-                        } else {
-                            result = ((Hashtable)executionContext[EC_FUNCTION_PROTOTYPE]).get(key);
-                        }
-
                     // Other builtin types, by calling userdefined default getter
                     } else {
-                        result = ((LightScriptFunction)executionContext[EC_GETTER]).apply(container, stack, sp + 1, 1);
+                        result = ((LightScriptObject)executionContext[EC_GETTER]).apply(container, stack, sp + 1, 1);
                     } 
                     
                     // prototype property or element within (super-)prototype
                     if(result == null) {
                         if("prototype".equals(key)) {
-                            if(container instanceof LightScriptFunction) {
-                                result = (Hashtable)executionContext[EC_FUNCTION_PROTOTYPE];
-                            } else if(container instanceof Stack) {
+                            if(container instanceof Stack) {
                                 result = (Hashtable)executionContext[EC_ARRAY_PROTOTYPE];
                             } else if(container instanceof String) {
                                 result = (Hashtable)executionContext[EC_STRING_PROTOTYPE];

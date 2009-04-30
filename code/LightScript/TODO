@@ -8,4 +8,3 @@
 - testsuite
 - ant Hecl-like build, rather than custom makefiles
 - safe-mode, catch casts
-- maybe remove getArgc, add "length" property to code and stdlib
