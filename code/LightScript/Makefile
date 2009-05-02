@@ -1,8 +1,8 @@
-SRC = Main.java LightScriptException.java LightScript.java LightScriptObject.java
+SRC = Main.java LightScriptException.java LightScript.java LightScriptObject.java FloatingPoint.java
 LS_SRC = UnpreprocessedLightScript.java
 DEPS = $(SRC) Makefile
 run: Main.class test.js
-	java Main test.js
+	java FloatingPoint test.js
 
 LightScript.java: $(LS_SRC)
 	cpp -C -P $(LS_SRC) > LightScript.java 

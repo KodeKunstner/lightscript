@@ -4,15 +4,16 @@
     - vm calls functions Object addFloat(Object, Object), mulFloat, ...
   - Global object -> this
     - simplify function call compilation/implementation
+  - split Object into Object+Function again
   - add new, delete. Remove clone
   - add more builtin ecmascript functions, larger api
   - add binary operators
   - /* */ comments
-  - new build system
-    - maybe package
   - README
   - dist target to makefile
     - distribute preprocessed source files
+    - new build system
+    - maybe package
 
 1.3
   - Move to hosted versioning system
