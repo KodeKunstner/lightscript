@@ -186,7 +186,7 @@ import java.util.Stack;
                     | ID_NONE)
 
 /** Sizes of different kinds of stack frames */
-#define RET_FRAME_SIZE 4
+#define RET_FRAME_SIZE 5
 #define TRY_FRAME_SIZE 5
 
 
@@ -389,7 +389,7 @@ public final class LightScript {
                 }
                 c.closure[i] = box;
             }
-            return execute(c, new Object[0], 0, null);
+            return execute(c, new Object[0], 0, executionContext[EC_WRAPPED_GLOBALS]);
 // if we debug, we want the real exception, with line number..
 #ifndef __DEBUG__
         } catch(Throwable e) {
@@ -2043,9 +2043,6 @@ public final class LightScript {
                 emit(ID_SAVE_PC);
                 addDepth(RET_FRAME_SIZE);
 
-                // dummy space for PC, to be removec
-                emit(ID_DUP);
-                addDepth(1);
 
                 // evaluate parameters
                 for (int i = 2; i < expr.length; i++) {
@@ -2079,7 +2076,6 @@ public final class LightScript {
 
                 // call the function
                 emit(ID_CALL_FN);
-                addDepth(-1);
 #ifdef __DEBUG__
                 if (expr.length > 129) {
                     throw new Error("too many parameters");
@@ -2575,6 +2571,7 @@ public final class LightScript {
                     stack[++sp] = closure;
                     stack[++sp] = constPool;
                     stack[++sp] = code;
+                    ++sp;
                     break;
                 }
                 case ID_CALL_FN: {
@@ -2606,7 +2603,7 @@ public final class LightScript {
                         try {
                             Object result = ((LightScriptFunction)o
                                 ).apply(thisPtr, stack, sp - argc + 1, argc);
-                            sp -= argc + RET_FRAME_SIZE;
+                            sp -= argc + RET_FRAME_SIZE - 1;
                             stack[sp] = result;
                         } catch(LightScriptException e) {
                             if(exceptionHandler < 0) {
@@ -2982,7 +2979,6 @@ public final class LightScript {
                 }
                 case ID_SET_THIS: {
                     thisPtr = stack[sp];
-                    System.out.println("THIS:" + thisPtr);
                     --sp;
                     break;
                 }
