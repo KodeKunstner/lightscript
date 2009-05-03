@@ -30,9 +30,7 @@ import java.util.Stack;
  */
 #define __CLEAR_STACK__
 
-/* Use fixed point arithmetics 
- */
-#define __EMULATE_FLOATING_POINT__
+//#define __HAVE_DOUBLE__
 
 /* Identifiers, used both as node type,
  * and also used as opcode. 
@@ -495,62 +493,114 @@ public final class LightScript {
     }
 #endif
     /*`\subsection{Arithmetics}'*/
-#ifdef __EMULATE_FLOATING_POINT__
-#define FLOAT_CLASS FloatingPoint
+#ifndef __HAVE_DOUBLE__
+#define FRACTIONAL_CLASS FixedPoint
+    public static class FixedPoint {
+        public long val;
+        public FixedPoint(int i) {
+            val = (long)i << 32;
+        }
+        public FixedPoint(long l) {
+            val = l;
+        }
+        public String toString() {
+            long l = val;
+            StringBuffer sb = new StringBuffer();
+            if(l < 0) {
+                sb.append('-');
+                l = -l;
+            }
+            sb.append((int)(l >> 32));
+            l = (l & 0xffffffffL) + (1L<<31)/100000;
+            sb.append('.');
+            for(int i = 0; i < 5; i++) {
+                l *= 10;
+                sb.append(l >>> 32);
+                l = l & 0xffffffffL;
+            }
+            return sb.toString();
+        }
+    }
     static int toInt(Object o) {
         if(o instanceof Integer) {
             return ((Integer)o).intValue();
-        } else if(o instanceof FloatingPoint) {
-            return FloatingPoint.toInt(((FloatingPoint)o).val);
+        } else if(o instanceof FixedPoint) {
+            return (int)(((FixedPoint)o).val >> 32);
         } else /* String */ {
             return Integer.parseInt((String) o);
         }
     }
     static long toFp(Object o) {
-        if(o instanceof FloatingPoint) {
-            return ((FloatingPoint)o).val;
-        } else if(o instanceof Integer) {
+        if(o instanceof FixedPoint) {
+            return ((FixedPoint)o).val;
+        //} else if(o instanceof Integer) {
+        }  else { // TODO: maybe add support for string to fp
             return ((Integer)o).intValue();
-        } else /* string */ {
-            return FloatingPoint.fromString((String) o);
         }
     }
 
     static Object toNumObj(long d) {
-        int i = (int) d;
-        if(FloatingPoint.isIntegral(d)) {
-            return new Integer(FloatingPoint.toInt(d));
+        if(((int)d) == 0) {
+            return new Integer((int)(d >> 32));
         } else {
-            return new FloatingPoint(d);
+            return new FixedPoint(d);
         }
     }
 
     static Object fpNeg(long a) {
-        return toNumObj(FloatingPoint.neg(a));
+        return toNumObj(-a);
     }
     static Object fpAdd(long a, long b) {
-        return toNumObj(FloatingPoint.add(a, b));
+        return toNumObj(a + b);
     }
     static Object fpSub(long a, long b) {
-        return toNumObj(FloatingPoint.sub(a, b));
+        return toNumObj(a - b);
     }
     static Object fpMul(long a, long b) {
-        return toNumObj(FloatingPoint.mul(a, b));
+        long t = a & 0xffffffffL;
+        long result = (t * (b&0xffffffffL));
+        result = (result >>> 32) + ((result >>> 31) & 1);
+        result += t * (b >>> 32);
+        result += b * (a >>> 32);
+        return toNumObj(result);
     }
     static Object fpDiv(long a, long b) {
-        return toNumObj(FloatingPoint.div(a, b));
+        boolean neg = false;
+        if(a == 0) {
+            return toNumObj(0);
+        }
+        if(a < 0) {
+            neg = !neg;
+            a = -a;
+        }
+
+        int shift = 33;
+        do {
+            a <<= 1;
+            shift -= 1;
+        } while(a > 0 && shift > 0);
+        a >>>= 1;
+
+        b = b >> shift;
+
+        if(b == 0) {
+            a = ~0L >>> 1;
+        } else {
+            a /= b;
+        }
+        return toNumObj(neg ? -a : a);
     }
     static Object fpRem(long a, long b) {
-        return toNumObj(FloatingPoint.rem(a, b));
+        return toNumObj(a % b);
     }
     static boolean fpLess(long a, long b) {
-        return FloatingPoint.less(a, b);
+        return a < b;
     }
     static boolean fpLessEq(long a, long b) {
-        return FloatingPoint.lessEq(a, b);
+        return a <= b;
     }
-#else /* not __EMULATE_FLOATING_POINT__ */
-#define FLOAT_CLASS Double
+#else /* not __HAVE_DOUBLE__ */
+#define FRACTIONAL_CLASS Double
     static int toInt(Object o) {
         if(o instanceof Integer) {
             return ((Integer)o).intValue();
@@ -2642,8 +2692,8 @@ public final class LightScript {
                         int result = ((Integer) o).intValue();
                         result += ((Integer) o2).intValue();
                         stack[sp] = new Integer(result);
-                    } else if( (o instanceof Integer || o instanceof FLOAT_CLASS) 
-                           &&  (o2 instanceof Integer || o2 instanceof FLOAT_CLASS) ) {
+                    } else if( (o instanceof Integer || o instanceof FRACTIONAL_CLASS) 
+                           &&  (o2 instanceof Integer || o2 instanceof FRACTIONAL_CLASS) ) {
                     } else {
                         stack[sp] = String.valueOf(o) + String.valueOf(o2);
                     }
@@ -2827,8 +2877,8 @@ public final class LightScript {
                     if (o1 instanceof Integer && o2 instanceof Integer) {
                         stack[sp] = ((Integer) o1).intValue() 
                             < ((Integer) o2).intValue() ? TRUE : FALSE;
-                    } else if( (o1 instanceof Integer || o1 instanceof FLOAT_CLASS) 
-                           &&  (o2 instanceof Integer || o2 instanceof FLOAT_CLASS) ) {
+                    } else if( (o1 instanceof Integer || o1 instanceof FRACTIONAL_CLASS) 
+                           &&  (o2 instanceof Integer || o2 instanceof FRACTIONAL_CLASS) ) {
                         stack[sp] = fpLess(toFp(o1), toFp(o2)) ? TRUE : FALSE;
                     } else {
                         stack[sp] = o1.toString().compareTo(o2.toString()) 
@@ -2842,8 +2892,8 @@ public final class LightScript {
                     if (o1 instanceof Integer && o2 instanceof Integer) {
                         stack[sp] = ((Integer) o1).intValue() 
                             <= ((Integer) o2).intValue() ? TRUE : FALSE;
-                    } else if( (o1 instanceof Integer || o1 instanceof FLOAT_CLASS) 
-                           &&  (o2 instanceof Integer || o2 instanceof FLOAT_CLASS) ) {
+                    } else if( (o1 instanceof Integer || o1 instanceof FRACTIONAL_CLASS) 
+                           &&  (o2 instanceof Integer || o2 instanceof FRACTIONAL_CLASS) ) {
                         stack[sp] = fpLessEq(toFp(o1), toFp(o2)) ? TRUE : FALSE;
                     } else {
                         stack[sp] = o1.toString().compareTo(o2.toString()) 

@@ -1,3 +1,6 @@
+1.1.535
+    Added support for floating point on platforms where doubles are supported,
+    and mandatory fixed point otherwise.
 1.1.531
     Roadmap updates
     Custom iterator functions
