@@ -50,7 +50,7 @@ $(FP_VER)$(LS).java: $(DEPS)
 	    do echo "0i\npackage net.lightscript.f1;\n.\nwq\n" | ed -s $$foo;\
 	    done;
 clean:
-	rm -rf net doc/public* doc/private* *.class *.tar.gz
+	rm -rf net doc/public* doc/private* `find . -name "*.class"` *.tar.gz
 
 #
 #LightScript.java: $(LS_SRC)
