@@ -2043,6 +2043,15 @@ public final class LightScript {
                 emit(ID_SAVE_PC);
                 addDepth(RET_FRAME_SIZE);
 
+                // dummy space for PC, to be removec
+                emit(ID_DUP);
+                addDepth(1);
+
+                // evaluate parameters
+                for (int i = 2; i < expr.length; i++) {
+                    compile(expr[i], true);
+                }
+
                 // find the method/function
                 if(methodcall) {
                     Object[] subs = (Object[]) expr[1];
@@ -2067,13 +2076,10 @@ public final class LightScript {
                     compile(expr[1], true);
                 }
 
-                // evaluate parameters
-                for (int i = 2; i < expr.length; i++) {
-                    compile(expr[i], true);
-                }
 
                 // call the function
                 emit(ID_CALL_FN);
+                addDepth(-1);
 #ifdef __DEBUG__
                 if (expr.length > 129) {
                     throw new Error("too many parameters");
@@ -2573,7 +2579,8 @@ public final class LightScript {
                 }
                 case ID_CALL_FN: {
                     int argc = code[++pc];
-                    Object o = stack[sp - argc];
+                    Object o = stack[sp];
+                    --sp;
                     if(o instanceof Code) {
                         Code fn = (Code) o;
 
