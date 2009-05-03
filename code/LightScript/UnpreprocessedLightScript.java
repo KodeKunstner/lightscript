@@ -108,6 +108,8 @@ import java.util.Stack;
 #define ID_DIV 72
 #define ID_NEW_ITER 73
 #define ID_JUMP_IF_UNDEFINED 74
+#define ID_DELETE 75
+#define ID_NEW 76
 
 
 /* The function id for the null denominator functions */
@@ -310,27 +312,27 @@ public final class LightScript {
     /** Set the default-setter function.
      * The default iterator function is called as a method on the object,
      * and should return an iterator across that object. */
-    public void defaultIterator(LightScriptObject f) {
+    public void defaultIterator(LightScriptFunction f) {
         executionContext[EC_NEW_ITER] = f;
     }
     /** Get the default-setter function */
-    public LightScriptObject defaultSetter() {
-        return (LightScriptObject) executionContext[EC_SETTER];
+    public LightScriptFunction defaultSetter() {
+        return (LightScriptFunction) executionContext[EC_SETTER];
     }
     /** Set the default-setter function.
      * The default setter function is called as a method on the object,
      * with the key and the value as arguments. */
-    public void defaultSetter(LightScriptObject f) {
+    public void defaultSetter(LightScriptFunction f) {
         executionContext[EC_SETTER] = f;
     }
     /** Get the default-getter function */
-    public LightScriptObject defaultGetter() {
-        return (LightScriptObject) executionContext[EC_GETTER];
+    public LightScriptFunction defaultGetter() {
+        return (LightScriptFunction) executionContext[EC_GETTER];
     }
     /** Set the default-getter function. 
      * The default getter function is called as a method on the object,
      * with a single argument, which is the key */
-    public void defaultGetter(LightScriptObject f) {
+    public void defaultGetter(LightScriptFunction f) {
         executionContext[EC_GETTER] = f;
     }
     /**
@@ -540,7 +542,8 @@ public final class LightScript {
     }
 
     static Object toNumObj(long d) {
-        if(((int)d) == 0) {
+        int i = (int)d;
+        if(-32 < i && i < 32) {
             return new Integer((int)(d >> 32));
         } else {
             return new FixedPoint(d);
@@ -707,7 +710,7 @@ public final class LightScript {
 
 
     /*`\subsubsection{StdLib}'*/
-    private static class StdLib implements LightScriptObject {
+    private static class StdLib implements LightScriptFunction, LightScriptObject {
         private int id;
         private Object closure[];
     
@@ -949,7 +952,7 @@ public final class LightScript {
      * Analysis of variables in a function being compiled,
      * updated during the parsing.
      */
-    private static class Code implements LightScriptObject {
+    private static class Code implements LightScriptFunction, LightScriptObject {
         public Object apply(Object thisPtr, Object[] args, 
                             int argpos, int argcount) 
                                 throws LightScriptException {
@@ -1624,6 +1627,18 @@ public final class LightScript {
             + (char) 1
             + (char) NUD_VAR
             + (char) ID_VAR
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "delete"
+            + (char) 1
+            + (char) NUD_PREFIX
+            + (char) ID_DELETE
+            + (char) LED_NONE
+            + (char) ID_NONE
+        + "new"
+            + (char) 1
+            + (char) NUD_PREFIX
+            + (char) ID_NEW
             + (char) LED_NONE
             + (char) ID_NONE
         + "return"
@@ -2577,9 +2592,9 @@ public final class LightScript {
                         constPool = fn.constPool;
                         executionContext = (Object[]) constPool[0];
                         closure = fn.closure;
-                    } else if (o instanceof LightScriptObject) {
+                    } else if (o instanceof LightScriptFunction) {
                         try {
-                            Object result = ((LightScriptObject)o
+                            Object result = ((LightScriptFunction)o
                                 ).apply(thisPtr, stack, sp - argc + 1, argc);
                             sp -= argc + RET_FRAME_SIZE;
                             stack[sp] = result;
@@ -2793,7 +2808,7 @@ public final class LightScript {
                             ((Hashtable) container).put(key, val);
                         }
                     } else {
-                        ((LightScriptObject)executionContext[EC_SETTER]).apply(container, stack, sp + 1, 2);
+                        ((LightScriptFunction)executionContext[EC_SETTER]).apply(container, stack, sp + 1, 2);
                     }
                     break;
                 }
@@ -2849,7 +2864,7 @@ public final class LightScript {
 
                     // Other builtin types, by calling userdefined default getter
                     } else {
-                        result = ((LightScriptObject)executionContext[EC_GETTER]).apply(container, stack, sp + 1, 1);
+                        result = ((LightScriptFunction)executionContext[EC_GETTER]).apply(container, stack, sp + 1, 1);
                     } 
                     
                     // prototype property or element within (super-)prototype
@@ -3003,11 +3018,11 @@ public final class LightScript {
                     break;
                 }
                 case ID_NEW_ITER: {
-                    stack[sp] = ((LightScriptObject)executionContext[EC_NEW_ITER]).apply(stack[sp], stack, sp, 0);
+                    stack[sp] = ((LightScriptFunction)executionContext[EC_NEW_ITER]).apply(stack[sp], stack, sp, 0);
                     break;
                 }
                 case ID_NEXT: {
-                    LightScriptObject iter = (LightScriptObject)stack[sp];
+                    LightScriptFunction iter = (LightScriptFunction)stack[sp];
                     stack[++sp] = iter.apply(thisPtr, stack, sp, 0);
                     break;
                 }

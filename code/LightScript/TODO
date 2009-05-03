@@ -1,7 +1,6 @@
 1.2:
   - Global object -> this
     - simplify function call compilation/implementation
-  - split Object into Object+Function again
   - add new, delete. Remove clone
   - add more builtin ecmascript functions, larger api
   - add binary operators
