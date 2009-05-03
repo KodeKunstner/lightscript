@@ -1,6 +1,8 @@
+1.1.536
+    added support for /* ... */ comments. 20753
 1.1.535
     Added support for floating point on platforms where doubles are supported,
-    and mandatory fixed point otherwise.
+    and mandatory fixed point otherwise. 20691
 1.1.531
     Roadmap updates
     Custom iterator functions
