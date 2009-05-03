@@ -1,31 +1,60 @@
-SRC = Main.java LightScriptException.java LightScript.java LightScriptObject.java LightScriptFunction.java
-LS_SRC = LightScript.java
-DEPS = $(SRC) Makefile
+LS = LightScript
+DEPS = src/* Makefile
 
 SRCPATH = src/
-CLDC10PATH= net/lightscript/CLDC10/
-
-$(CLDC10PATH)$(LS_SRC): src/*
-	install -d $(CLDC10PATH)
-	cp src/* $(CLDC10PATH)
-	cpp -C -P src/$(LS_SRC) > $(CLDC10PATH)LightScript.java 
+INT_VER= net/lightscript/i1/
+FP_VER= net/lightscript/f1/
 
 run: Main.class test.js
 	java Main test.js
 
-LightScript.java: $(LS_SRC)
-	cpp -C -P $(LS_SRC) > LightScript.java 
+all: doc classes
 
-Main.class: $(DEPS) $(SRC)
-	javac -source 1.2 $(SRC)
+Main.class: $(FP_VER)$(LS).class
+	javac -source 1.2 Main.java
 
-all: Main.class
+doc: $(INT_VER)$(LS).java $(FP_VER)$(LS).java
+	javadoc -d doc/public/ net.lightscript.f1
+	javadoc -d doc/public-intonly/ net.lightscript.i1
+	javadoc -private -d doc/private net.lightscript.f1
+	javadoc -private -d doc/private-intonly net.lightscript.i1
 
+classes: $(INT_VER)$(LS).class $(FP_VER)$(LS).class
+
+$(INT_VER)$(LS).class: $(INT_VER)$(LS).java
+	javac -source 1.2 $(INT_VER)*.java
+
+$(FP_VER)$(LS).class: $(FP_VER)$(LS).java
+	javac -source 1.2 $(FP_VER)*.java
+
+$(INT_VER)$(LS).java: $(DEPS)
+	install -d $(INT_VER)
+	cp src/* $(INT_VER)
+	cpp -C -P src/$(LS).java > $(INT_VER)$(LS).java
+	for foo in $(INT_VER)/*.java; \
+	    do echo "0i\npackage net.lightscript.i1;\n.\nwq\n" | ed -s $$foo;\
+	    done;
+
+$(FP_VER)$(LS).java: $(DEPS)
+	install -d $(FP_VER)
+	cp src/* $(FP_VER)
+	cpp -C -P -D__HAVE_DOUBLE__ src/$(LS).java > $(FP_VER)$(LS).java
+	for foo in $(FP_VER)/*.java; \
+	    do echo "0i\npackage net.lightscript.f1;\n.\nwq\n" | ed -s $$foo;\
+	    done;
 clean:
-	rm -rf *.class *.class.gz LightScript.java doc private-doc
+	rm -rf net doc/public* doc/private* *.class
 
-doc: $(SRC)
-	mv $(LS_SRC) $(LS_SRC).nodoc
-	javadoc -d private-doc -private $(SRC); mv $(LS_SRC).nodoc $(LS_SRC)
-	mv $(LS_SRC) $(LS_SRC).nodoc
-	javadoc -d doc $(SRC); mv $(LS_SRC).nodoc $(LS_SRC)
+#
+#LightScript.java: $(LS_SRC)
+#	cpp -C -P $(LS_SRC) > LightScript.java 
+#
+#
+#all: Main.class
+#
+#
+#doc: $(SRC)
+#	mv $(LS_SRC) $(LS_SRC).nodoc
+#	javadoc -d private-doc -private $(SRC); mv $(LS_SRC).nodoc $(LS_SRC)
+#	mv $(LS_SRC) $(LS_SRC).nodoc
+#	javadoc -d doc $(SRC); mv $(LS_SRC).nodoc $(LS_SRC)
