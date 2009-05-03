@@ -2574,7 +2574,6 @@ public final class LightScript {
                 case ID_CALL_FN: {
                     int argc = code[++pc];
                     Object o = stack[sp - argc];
-                    thisPtr = stack[sp - argc - 1];
                     if(o instanceof Code) {
                         Code fn = (Code) o;
 
@@ -2600,8 +2599,7 @@ public final class LightScript {
                         try {
                             Object result = ((LightScriptFunction)o
                                 ).apply(thisPtr, stack, sp - argc + 1, argc);
-
-                            sp -= argc + 1 + RET_FRAME_SIZE;
+                            sp -= argc + RET_FRAME_SIZE;
                             stack[sp] = result;
                         } catch(LightScriptException e) {
                             if(exceptionHandler < 0) {
