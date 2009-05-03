@@ -1,6 +1,15 @@
 SRC = Main.java LightScriptException.java LightScript.java LightScriptObject.java LightScriptFunction.java
-LS_SRC = UnpreprocessedLightScript.java
+LS_SRC = LightScript.java
 DEPS = $(SRC) Makefile
+
+SRCPATH = src/
+CLDC10PATH= net/lightscript/CLDC10/
+
+$(CLDC10PATH)$(LS_SRC): src/*
+	install -d $(CLDC10PATH)
+	cp src/* $(CLDC10PATH)
+	cpp -C -P src/$(LS_SRC) > $(CLDC10PATH)LightScript.java 
+
 run: Main.class test.js
 	java Main test.js
 
