@@ -22,7 +22,7 @@ import java.util.Stack;
  * It also adds support for more readable printing of
  * id, etc.
  */
-//#define __DEBUG__
+#define __DEBUG__
 
 /* If enabled, wipe the stack on function exit,
  * to kill dangling pointers on execution stack,
@@ -110,6 +110,7 @@ import java.util.Stack;
 #define ID_JUMP_IF_UNDEFINED 74
 #define ID_DELETE 75
 #define ID_NEW 76
+#define ID_GLOBAL 77
 
 
 /* The function id for the null denominator functions */
@@ -185,7 +186,7 @@ import java.util.Stack;
                     | ID_NONE)
 
 /** Sizes of different kinds of stack frames */
-#define RET_FRAME_SIZE 3
+#define RET_FRAME_SIZE 4
 #define TRY_FRAME_SIZE 5
 
 
@@ -436,7 +437,7 @@ public final class LightScript {
         "INC_SP", "JUMP", "JUMP_IF_FALSE", "JUMP_IF_TRUE", "NEW_DICT", 
         "NEW_LIST", "NEXT", "POP", "PUSH", "PUT", "SAVE_PC", 
         "SET_BOXED", "SET_CLOSURE", "SET_LOCAL", "SET_THIS", "SWAP",
-        "DIV"
+        "DIV", "NEW_ITER", "JUMP_IF_UNDEFINED", "DELETE", "NEW", "GLOBAL"
     };
     
     /** Function that maps from ID to a string representation of the ID,
@@ -2038,11 +2039,6 @@ public final class LightScript {
                 expr = stripSep(expr);
                 boolean methodcall = (childType(expr, 1) == ID_SUBSCRIPT);
 
-                if(methodcall) {
-                    emit(ID_THIS);
-                    addDepth(1);
-                } 
-
                 // save program counter
                 emit(ID_SAVE_PC);
                 addDepth(RET_FRAME_SIZE);
@@ -2051,14 +2047,23 @@ public final class LightScript {
                 if(methodcall) {
                     Object[] subs = (Object[]) expr[1];
                     compile(subs[1], true);
+
                     emit(ID_DUP);
                     addDepth(1);
                     emit(ID_SET_THIS);
                     addDepth(-1);
+
                     compile(subs[2], true);
                     emit(ID_SUBSCRIPT);
                     addDepth(-1);
+
                 } else {
+
+                    emit(ID_GLOBAL);
+                    addDepth(1);
+                    emit(ID_SET_THIS);
+                    addDepth(-1);
+
                     compile(expr[1], true);
                 }
 
@@ -2076,11 +2081,7 @@ public final class LightScript {
 #endif
                 emit(expr.length - 2);
                 addDepth(2 - expr.length - RET_FRAME_SIZE);
-                if(methodcall) {
-                    emit(ID_SWAP);
-                    emit(ID_SET_THIS);
-                    addDepth(-1);
-                } 
+
                 hasResult = true;
                 break;
             }
@@ -2559,10 +2560,12 @@ public final class LightScript {
                     constPool = (Object[]) stack[--sp];
                     executionContext = (Object[]) constPool[0];
                     closure = (Object[]) stack[--sp];
+                    thisPtr = stack[--sp];
                     stack[sp] = result;
                     break;
                 }
                 case ID_SAVE_PC: {
+                    stack[++sp] = thisPtr;
                     stack[++sp] = closure;
                     stack[++sp] = constPool;
                     stack[++sp] = code;
@@ -2972,6 +2975,7 @@ public final class LightScript {
                 }
                 case ID_SET_THIS: {
                     thisPtr = stack[sp];
+                    System.out.println("THIS:" + thisPtr);
                     --sp;
                     break;
                 }
@@ -3024,6 +3028,10 @@ public final class LightScript {
                 case ID_NEXT: {
                     LightScriptFunction iter = (LightScriptFunction)stack[sp];
                     stack[++sp] = iter.apply(thisPtr, stack, sp, 0);
+                    break;
+                }
+                case ID_GLOBAL: {
+                    stack[++sp] = executionContext[EC_WRAPPED_GLOBALS];
                     break;
                 }
                 default: {
