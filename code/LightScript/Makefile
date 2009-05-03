@@ -6,8 +6,8 @@ SRCPATH = src/
 INT_VER= net/lightscript/i1/
 FP_VER= net/lightscript/f1/
 
-run: Main.class test.js
-	java Main test.js
+run: examples/Main.class examples/test.js
+	java examples/Main examples/test.js
 
 all: doc classes
 
@@ -17,10 +17,8 @@ backup: clean
 dist: clean all
 	tar cv --no-recursion `find . | grep -v svn` | gzip > dist.tar.gz 
 
-Main.class: $(FP_VER)$(LS).class
-
-Main.class: $(FP_VER)$(LS).class
-	javac -source 1.2 Main.java
+examples/Main.class: $(FP_VER)$(LS).class
+	javac -source 1.2 examples/Main.java
 
 doc: $(INT_VER)$(LS).java $(FP_VER)$(LS).java
 	javadoc -d doc/public/ net.lightscript.f1
