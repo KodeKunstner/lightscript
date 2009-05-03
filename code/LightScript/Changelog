@@ -1,3 +1,5 @@
+1.1.543
+    Packaging, changed directory structure, updated makefile
 1.1.538
     added error on yet new/delete
     split object/function

@@ -1,5 +1,6 @@
 LS = LightScript
 DEPS = src/* Makefile
+BACKUP=
 
 SRCPATH = src/
 INT_VER= net/lightscript/i1/
@@ -9,6 +10,14 @@ run: Main.class test.js
 	java Main test.js
 
 all: doc classes
+
+backup: clean
+	tar cv --no-recursion `find . | grep -v svn` | gzip > backup.tar.gz 
+
+dist: clean all
+	tar cv --no-recursion `find . | grep -v svn` | gzip > dist.tar.gz 
+
+Main.class: $(FP_VER)$(LS).class
 
 Main.class: $(FP_VER)$(LS).class
 	javac -source 1.2 Main.java
@@ -43,7 +52,7 @@ $(FP_VER)$(LS).java: $(DEPS)
 	    do echo "0i\npackage net.lightscript.f1;\n.\nwq\n" | ed -s $$foo;\
 	    done;
 clean:
-	rm -rf net doc/public* doc/private* *.class
+	rm -rf net doc/public* doc/private* *.class *.tar.gz
 
 #
 #LightScript.java: $(LS_SRC)

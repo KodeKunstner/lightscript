@@ -1,0 +1,15 @@
+LightScript is a subscript of EcmaScript,
+with a compact implementation running
+on low end mobile devices.
+
+./net/lightscript class files and generated Java source files,
+this is what is needed when embedding the scripting language.
+
+./src contains the actual source code, from which ./net/lightscript
+is generated. Some contains CPP-directives, and is thus not directly
+compilable, - use the Makefile
+
+./doc contains documentation, and generated javadoc
+
+./TODO to do list, and roadmap
+
