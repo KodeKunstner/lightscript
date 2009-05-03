@@ -1056,6 +1056,16 @@ public final class LightScript {
                     while (c != '\n' && c != -1) {
                         nextc();
                     }
+                } else if (c == '*') {
+                    for(;;) {
+                        nextc();
+                        if(c == '*') {
+                            nextc();
+                            if(c == '/') {
+                                break;
+                            }
+                        }
+                    }
                 } else {
                     resolveToken("/");
                     return;
