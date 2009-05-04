@@ -13,3 +13,37 @@ compilable, - use the Makefile
 
 ./TODO to do list, and roadmap
 
+Standard library:
+print(str)
+gettype(val)
+clone(obj)
+Array.prototype.pop()
+Array.prototype.join(sep)
+
+
+Array.prototype.push(val...)
+Object.constructor()
+Array.constructor()
+Array.concat(..)
+Array.prototype.slice(start,end)
+Array.prototype.sort(comparefn)
+String.prototype.slice(a, b)
+String.prototype.toLowerCase()
+String.prototype.toUpperCase()
+String.prototype.charCodeAt(pos)
+String.fromCharCode(c);
+String.concat(...)
+parseInt(str, radix)
+Number.MAX_VALUE
+Number.MIN_VALUE
+Math.PI
+Math.SQRT1_2
+Math.SQRT2
+Math.abs(x)
+Math.ceil(x)
+Math.floor(x)
+Math.max(x)
+Math.min(x)
+Math.random()
+Math.round()
+Math.sqrt()

@@ -19,6 +19,7 @@ dist: clean all
 
 examples/Main.class: $(FP_VER)$(LS).class
 	javac -source 1.2 examples/Main.java
+	ls -l $(FP_VER)$(LS).class
 
 doc: $(INT_VER)$(LS).java $(FP_VER)$(LS).java
 	javadoc -d doc/public/ net.lightscript.f1

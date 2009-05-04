@@ -109,7 +109,7 @@ import java.util.Stack;
 #define ID_NEW_ITER 73
 #define ID_JUMP_IF_UNDEFINED 74
 #define ID_DELETE 75
-//#define ID_NEW 76
+#define ID_NEW 76
 #define ID_GLOBAL 77
 #define ID_SHIFT_RIGHT 78
 #define ID_SHIFT_LEFT 79
@@ -1093,9 +1093,10 @@ public final class LightScript {
             return;
 
         // String
-        } else if (c == '"') {
+        } else if (c == '"' || c == '\'') {
+            int quote = c;
             nextc();
-            while (c != -1 && c != '"') {
+            while (c != -1 && c != quote) {
                 if (c == '\\') {
                     nextc();
                     if (c == 'n') {
@@ -1680,14 +1681,12 @@ public final class LightScript {
             + (char) ID_DELETE
             + (char) LED_NONE
             + (char) ID_NONE
-            /*
         + "new"
             + (char) 1
             + (char) NUD_PREFIX
             + (char) ID_NEW
             + (char) LED_NONE
             + (char) ID_NONE
-            */
         + "return"
             + (char) 1
             + (char) NUD_PREFIX
@@ -2003,18 +2002,16 @@ public final class LightScript {
                 hasResult = true;
                 break;
             }
-            /*
             case ID_NEW: {
                 int subtype = childType(expr, 1);
                 if(subtype != ID_CALL_FUNCTION) {
                     expr = v(ID_CALL_FUNCTION, expr);
                 }
-                expr[1] = v(ID_SUBSCRIPT, expr, v(ID_LITERAL, "__constructor"));
+                expr[1] = v(ID_SUBSCRIPT, expr, v(ID_LITERAL, "constructor"));
                 compile(expr, yieldResult);
                 hasResult = yieldResult;
                 break;
             }
-            */
             case ID_THIS: {
                 emit(id);
                 addDepth(1);
