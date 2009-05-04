@@ -1,7 +1,11 @@
+1.1.554
+    added delete. 21231
+1.1.553
+    this is global if not within methodcall
 1.1.548
     Packaging, changed directory structure, updated makefile
 1.1.538
-    added error on yet new/delete
+    added error on yet delete
     split object/function
     20839
 1.1.537

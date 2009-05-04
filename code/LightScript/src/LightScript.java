@@ -22,7 +22,7 @@ import java.util.Stack;
  * It also adds support for more readable printing of
  * id, etc.
  */
-#define __DEBUG__
+//#define __DEBUG__
 
 /* If enabled, wipe the stack on function exit,
  * to kill dangling pointers on execution stack,
@@ -73,7 +73,7 @@ import java.util.Stack;
 #define ID_NOT_EQUALS 35
 #define ID_REM 37
 #define ID_RETURN 38
-#define ID_SHIFT_RIGHT 39
+#define ID_SHIFT_RIGHT_ARITHMETIC 39
 #define ID_SUB 40
 #define ID_SUBSCRIPT 41
 #define ID_THIS 42
@@ -109,8 +109,14 @@ import java.util.Stack;
 #define ID_NEW_ITER 73
 #define ID_JUMP_IF_UNDEFINED 74
 #define ID_DELETE 75
-#define ID_NEW 76
+//#define ID_NEW 76
 #define ID_GLOBAL 77
+#define ID_SHIFT_RIGHT 78
+#define ID_SHIFT_LEFT 79
+#define ID_BITWISE_OR 81
+#define ID_BITWISE_XOR 82
+#define ID_BITWISE_AND 83
+#define ID_BITWISE_NOT 84
 
 
 /* The function id for the null denominator functions */
@@ -430,7 +436,7 @@ public final class LightScript {
         "OR", "ELSE", "SET", "IDENT", "BLOCK", "SEP", "IN", "FOR",
         "END", "CATCH", "DO", "INC", "DEC", "ADD", "EQUALS", 
         "NOT_USED_ANYMORE", "LESS", "LESS_EQUALS", "LITERAL", "MUL", "NEG", 
-        "NOT", "NOT_EQUALS", "NOT_USED_ANYMORE", "REM", "RETURN", "SHIFT_RIGHT", 
+        "NOT", "NOT_EQUALS", "NOT_USED_ANYMORE", "REM", "RETURN", ">>", 
         "SUB", "SUBSCRIPT", "THIS", "THROW", "TRY", "UNTRY", "BOX_IT", 
         "BUILD_FN", "CALL_FN", "DROP", "DUP", "NOT_USED_ANYMORE", 
         "GET_BOXED", "GET_BOXED_CLOSURE", "GET_CLOSURE", "GET_LOCAL", 
@@ -1443,7 +1449,15 @@ public final class LightScript {
             + (char) NUD_NONE
             + (char) ID_NONE
             + (char) LED_INFIX
+            + (char) ID_SHIFT_RIGHT_ARITHMETIC
+            /*
+        + ">>>"
+            + (char) 6 
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX
             + (char) ID_SHIFT_RIGHT
+            */
         + "/"
             + (char) 6
             + (char) NUD_NONE
@@ -1636,12 +1650,14 @@ public final class LightScript {
             + (char) ID_DELETE
             + (char) LED_NONE
             + (char) ID_NONE
+            /*
         + "new"
             + (char) 1
             + (char) NUD_PREFIX
             + (char) ID_NEW
             + (char) LED_NONE
             + (char) ID_NONE
+            */
         + "return"
             + (char) 1
             + (char) NUD_PREFIX
@@ -1909,7 +1925,7 @@ public final class LightScript {
             case ID_ADD:
             case ID_MUL:
             case ID_DIV:
-            case ID_SHIFT_RIGHT:
+            case ID_SHIFT_RIGHT_ARITHMETIC:
             case ID_REM:
             case ID_SUB:
             case ID_EQUALS:
@@ -1931,6 +1947,38 @@ public final class LightScript {
                 hasResult = true;
                 break;
             }
+            case ID_DELETE: {
+                Object[] expr2 = (Object[]) expr[1];
+                int subtype = ((Integer)expr2[0]).intValue();
+                if(subtype == ID_SUBSCRIPT) {
+                    compile(expr2[1], true);
+                    compile(expr2[2], true);
+#ifdef __DEBUG__
+                } else if(subtype != ID_IDENT) {
+                    throw new Error("Deleting non-var");
+#endif
+                } else {
+                    emit(ID_GLOBAL);
+                    addDepth(1);
+                    compile(expr2[1], true);
+                }
+                emit(id);
+                addDepth(-1);
+                hasResult = true;
+                break;
+            }
+            /*
+            case ID_NEW: {
+                int subtype = childType(expr, 1);
+                if(subtype != ID_CALL_FUNCTION) {
+                    expr = v(ID_CALL_FUNCTION, expr);
+                }
+                expr[1] = v(ID_SUBSCRIPT, expr, v(ID_LITERAL, "__constructor"));
+                compile(expr, yieldResult);
+                hasResult = yieldResult;
+                break;
+            }
+            */
             case ID_THIS: {
                 emit(id);
                 addDepth(1);
@@ -2742,7 +2790,7 @@ public final class LightScript {
                     }
                     break;
                 }
-                case ID_SHIFT_RIGHT: {
+                case ID_SHIFT_RIGHT_ARITHMETIC: {
                     int result = toInt(stack[sp]);
                     result = toInt(stack[--sp]) >> result;
                     stack[sp] = new Integer(result);
@@ -3035,6 +3083,22 @@ public final class LightScript {
                 }
                 case ID_GLOBAL: {
                     stack[++sp] = executionContext[EC_WRAPPED_GLOBALS];
+                    break;
+                }
+                case ID_DELETE: {
+                    Object key = stack[sp];
+                    Object container = stack[--sp];
+                    if(container instanceof Hashtable) {
+                        ((Hashtable)container).remove(key);
+                    } else if(container instanceof Stack && key instanceof Integer) {
+                        ((Stack)container).setElementAt(UNDEFINED, ((Integer)key).intValue());
+                    } else if(container instanceof LightScriptObject) {
+                        ((LightScriptObject)container).set(key, UNDEFINED);
+#ifdef __DEBUG__
+                    } else {
+                        throw new Error("deleting non-deletable");
+#endif
+                    }
                     break;
                 }
                 default: {
