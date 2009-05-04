@@ -443,7 +443,9 @@ public final class LightScript {
         "INC_SP", "JUMP", "JUMP_IF_FALSE", "JUMP_IF_TRUE", "NEW_DICT", 
         "NEW_LIST", "NEXT", "POP", "PUSH", "PUT", "SAVE_PC", 
         "SET_BOXED", "SET_CLOSURE", "SET_LOCAL", "SET_THIS", "SWAP",
-        "DIV", "NEW_ITER", "JUMP_IF_UNDEFINED", "DELETE", "NEW", "GLOBAL"
+        "DIV", "NEW_ITER", "JUMP_IF_UNDEFINED", "DELETE", "NEW", "GLOBAL",
+        "SHIFT_RIGHT", "SHIFT_LEFT", "BITWISE_OR", "BITWISE_XOR", "BITWISE_AND",
+        "ID_BITWISE_NOT"
     };
     
     /** Function that maps from ID to a string representation of the ID,
@@ -1450,14 +1452,42 @@ public final class LightScript {
             + (char) ID_NONE
             + (char) LED_INFIX
             + (char) ID_SHIFT_RIGHT_ARITHMETIC
-            /*
+        + "<<"
+            + (char) 6 
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX
+            + (char) ID_SHIFT_LEFT
+        + "|"
+            + (char) 3 
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX
+            + (char) ID_BITWISE_OR
+        + "^"
+            + (char) 3 
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX
+            + (char) ID_BITWISE_XOR
+        + "&"
+            + (char) 3 
+            + (char) NUD_NONE
+            + (char) ID_NONE
+            + (char) LED_INFIX
+            + (char) ID_BITWISE_AND
+        + "~"
+            + (char) 1
+            + (char) NUD_PREFIX
+            + (char) ID_BITWISE_NOT
+            + (char) LED_NONE
+            + (char) ID_NONE
         + ">>>"
             + (char) 6 
             + (char) NUD_NONE
             + (char) ID_NONE
             + (char) LED_INFIX
             + (char) ID_SHIFT_RIGHT
-            */
         + "/"
             + (char) 6
             + (char) NUD_NONE
@@ -1926,6 +1956,11 @@ public final class LightScript {
             case ID_MUL:
             case ID_DIV:
             case ID_SHIFT_RIGHT_ARITHMETIC:
+            case ID_SHIFT_RIGHT:
+            case ID_SHIFT_LEFT:
+            case ID_BITWISE_OR:
+            case ID_BITWISE_XOR:
+            case ID_BITWISE_AND:
             case ID_REM:
             case ID_SUB:
             case ID_EQUALS:
@@ -1940,6 +1975,7 @@ public final class LightScript {
                 hasResult = true;
                 break;
             }
+            case ID_BITWISE_NOT:
             case ID_NOT:
             case ID_NEG: {
                 compile(expr[1], true);
@@ -3099,6 +3135,45 @@ public final class LightScript {
                         throw new Error("deleting non-deletable");
 #endif
                     }
+                    break;
+                }
+                case ID_SHIFT_RIGHT: {
+                    int result = toInt(stack[sp]);
+                    result = toInt(stack[--sp]) >>> result;
+                    stack[sp] = new Integer(result);
+                    break;
+                }
+                case ID_SHIFT_LEFT: {
+                    int result = toInt(stack[sp]);
+                    result = toInt(stack[--sp]) << result;
+                    stack[sp] = new Integer(result);
+                    break;
+                }
+                case ID_BITWISE_OR:
+                {
+                    int result = toInt(stack[sp]);
+                    result = toInt(stack[--sp]) | result;
+                    stack[sp] = new Integer(result);
+                    break;
+                }
+                case ID_BITWISE_XOR:
+                {
+                    int result = toInt(stack[sp]);
+                    result = toInt(stack[--sp]) ^ result;
+                    stack[sp] = new Integer(result);
+                    break;
+                }
+                case ID_BITWISE_AND:
+                {
+                    int result = toInt(stack[sp]);
+                    result = toInt(stack[--sp]) & result;
+                    stack[sp] = new Integer(result);
+                    break;
+                }
+                case ID_BITWISE_NOT:
+                {
+                    int result = ~toInt(stack[sp]);
+                    stack[sp] = new Integer(result);
                     break;
                 }
                 default: {

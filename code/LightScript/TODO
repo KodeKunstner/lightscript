@@ -1,6 +1,5 @@
 1.2:
   - add more builtin ecmascript functions, larger api
-  - add binary operators
 
 1.3
   - Move to hosted versioning system
