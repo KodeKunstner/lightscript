@@ -3,7 +3,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Hashtable;
-import net.lightscript.f1.*;
+import net.lightscript.i1.*;
 
 public class Main {
     /**

@@ -5,6 +5,7 @@ BACKUP=
 SRCPATH = src/
 INT_VER= net/lightscript/i1/
 FP_VER= net/lightscript/f1/
+DEFAULT_VER=$(INT_VER)
 
 run: examples/Main.class examples/test.js
 	java examples/Main examples/test.js
@@ -17,9 +18,9 @@ backup: clean
 dist: clean all
 	tar cv --no-recursion `find . | grep -v svn` | gzip > dist.tar.gz 
 
-examples/Main.class: $(FP_VER)$(LS).class
+examples/Main.class: $(DEFAULT_VER)$(LS).class
 	javac -source 1.2 examples/Main.java
-	ls -l $(FP_VER)$(LS).class
+	ls -l $(DEFAULT_VER)$(LS).class
 
 doc: $(INT_VER)$(LS).java $(FP_VER)$(LS).java
 	javadoc -d doc/public/ net.lightscript.f1

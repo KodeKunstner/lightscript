@@ -546,7 +546,7 @@ public final class LightScript {
             return ((FixedPoint)o).val;
         //} else if(o instanceof Integer) {
         }  else { // TODO: maybe add support for string to fp
-            return ((Integer)o).intValue();
+            return (long)((Integer)o).intValue()<<32;
         }
     }
 
