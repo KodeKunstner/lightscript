@@ -23,6 +23,7 @@ import java.util.Stack;
  * id, etc.
  */
 //#define __DEBUG__
+//#define __PRINT_EXECUTED_INSTRUCTIONS__
 
 /* If enabled, wipe the stack on function exit,
  * to kill dangling pointers on execution stack,
@@ -2285,45 +2286,26 @@ public final class LightScript {
                     Object[] subs = (Object[]) expr[1];
                     compile(subs[1], true);
 
+                    emit(ID_DUP);
+                    addDepth(1);
+
                     compile(subs[2], true);
                     emit(ID_SUBSCRIPT);
                     addDepth(-1);
 
-                } else {
+                    emit(ID_SWAP);
 
+                } else {
                     compile(expr[1], true);
+
+                    emit(ID_GLOBAL);
+                    addDepth(1);
                 }
 
                 // evaluate parameters
                 for (int i = 2; i < expr.length; i++) {
                     compile(expr[i], true);
                 }
-
-                // find the method/function
-                /*
-                if(methodcall) {
-                    Object[] subs = (Object[]) expr[1];
-                    compile(subs[1], true);
-
-                    emit(ID_DUP);
-                    addDepth(1);
-                    emit(ID_SET_THIS);
-                    addDepth(-1);
-
-                    compile(subs[2], true);
-                    emit(ID_SUBSCRIPT);
-                    addDepth(-1);
-
-                } else {
-
-                    emit(ID_GLOBAL);
-                    addDepth(1);
-                    emit(ID_SET_THIS);
-                    addDepth(-1);
-
-                    compile(expr[1], true);
-                }
-                */
 
                 // call the function
                 emit(ID_CALL_FN);
@@ -2333,7 +2315,7 @@ public final class LightScript {
                 }
 #endif
                 emit(expr.length - 2);
-                addDepth(2 - expr.length - RET_FRAME_SIZE);
+                addDepth(1 - expr.length - RET_FRAME_SIZE);
 
                 hasResult = true;
                 break;
@@ -2783,11 +2765,11 @@ public final class LightScript {
 
         for (;;) {
             ++pc;
-            /*
+#ifdef __PRINT_EXECUTED_INSTRUCTIONS__
             System.out.println("pc:" + pc + " op:"  + idName(code[pc]) 
                              + " sp:" + sp + " stack.length:" + stack.length 
                              + " int:" + readShort(pc, code));
-            */
+#endif
             switch (code[pc]) {
                 case ID_INC_SP: {
                     sp += code[++pc];
@@ -2797,8 +2779,8 @@ public final class LightScript {
                     int arg = readShort(pc, code);
                     pc += 2;
                     Object result = stack[sp];
-                    sp -= arg - 1;
-                    if (sp == 1) {
+                    sp -= arg;
+                    if (sp == 0) {
                         return result;
                     }
 #ifdef __DEBUG__
@@ -2830,7 +2812,7 @@ public final class LightScript {
                 }
                 case ID_CALL_FN: {
                     int argc = code[++pc];
-                    Object o = stack[sp - argc];
+                    Object o = stack[sp - argc - 1];
                     if(o instanceof Code) {
                         Code fn = (Code) o;
 
@@ -2846,7 +2828,8 @@ public final class LightScript {
                             stack[sp - i] = UNDEFINED;
                         }
                         
-                        stack[sp - argc] = new Integer(pc);
+                        stack[sp - argc - 1] = new Integer(pc);
+                        thisPtr = stack[sp - argc];
                         pc = -1;
                         code = fn.code;
                         constPool = fn.constPool;
@@ -2856,7 +2839,7 @@ public final class LightScript {
                         try {
                             Object result = ((LightScriptFunction)o
                                 ).apply(stack, sp - argc, argc);
-                            sp -= argc + RET_FRAME_SIZE;
+                            sp -= argc + 1 + RET_FRAME_SIZE;
                             stack[sp] = result;
                         } catch(LightScriptException e) {
                             if(exceptionHandler < 0) {

@@ -1,4 +1,9 @@
+x = {};
+x.a = function() { print(this); };
+x.a();
+
 print("Hello");
+
 function f(j) {
     var i;
     for(i = 0; i < j; ++i) {
@@ -17,3 +22,4 @@ x.prototype.test = test;
 
 print(x);
 print(x.test());
+print(x.sort(c));
