@@ -2169,9 +2169,6 @@ public final class LightScript {
                     compile(expr[1], true);
                 }
                 */
-                //emit(ID_THIS);
-                //addDepth(1);
-
 
                 // call the function
                 emit(ID_CALL_FN);
@@ -2181,7 +2178,7 @@ public final class LightScript {
                 }
 #endif
                 emit(expr.length - 2);
-                addDepth(- expr.length - RET_FRAME_SIZE);
+                addDepth(2 - expr.length - RET_FRAME_SIZE);
 
                 hasResult = true;
                 break;
@@ -2656,9 +2653,14 @@ public final class LightScript {
 #endif
                         return result;
                     }
+                    /*
                     System.out.println("A" + sp + stack[sp - 1]);
+                    for(int i = 0; i <= sp; i++) {
+                        System.out.println(stack[i]);
+                    }
+                    */
                     pc = ((Integer) stack[--sp]).intValue();
-                    System.out.println("B");
+                    //System.out.println("B");
                     code = (byte[]) stack[--sp];
                     constPool = (Object[]) stack[--sp];
                     executionContext = (Object[]) constPool[0];
@@ -2676,8 +2678,6 @@ public final class LightScript {
                 }
                 case ID_CALL_FN: {
                     int argc = code[++pc];
-                    //--sp;
-                    System.out.println(sp);
                     Object o = stack[sp - argc];
                     if(o instanceof Code) {
                         Code fn = (Code) o;
