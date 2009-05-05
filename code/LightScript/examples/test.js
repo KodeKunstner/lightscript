@@ -5,5 +5,15 @@ function f(j) {
         print(i);
     }
 }
-f(10);
 
+x = [3, 6, 2, 3, 7, 1, 6, 4, 0, 9];
+function c(a, b) { return a - b; }
+function test() {
+    print("ABC");
+    print(this);
+    return "HERE";
+}
+x.prototype.test = test;
+
+print(x);
+print(x.test());

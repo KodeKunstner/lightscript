@@ -766,6 +766,7 @@ public final class LightScript {
         #define STD_STRING_CHARCODEAT (STD_GLOBALLY_NAMED + 15)
         #define STD_STRING_FROMCHARCODE (STD_GLOBALLY_NAMED + 16)
         #define STD_STRING_CONCAT (STD_GLOBALLY_NAMED + 17)
+        #define STD_STRING_SLICE (STD_GLOBALLY_NAMED + 18)
     
         private static final int[] argcs = {1, 1, 2, 1
             // not named
@@ -818,39 +819,42 @@ public final class LightScript {
             return result;
         }
     
-/*
-        public static void qsort(Object arr[], int first, int last, Order o) {
+        private static void qsort(Stack arr, int first, int last, LightScriptFunction cmp) throws LightScriptException {
+            Object args[] = {arr, null, null};
             while (first < last) {
                 int l = first;
                 int r = last;
-                Object pivot = arr[(l + r) / 2];
-                arr[(l + r) / 2] = arr[r];
-                arr[r] = pivot;
+                Object pivot = arr.elementAt((l + r) / 2);
+                arr.setElementAt(arr.elementAt(r), (l + r) / 2);
+                arr.setElementAt(pivot, r);
+
                 while (l < r) {
-                    while (o.leq(arr[l], pivot) && l < r) {
-                        l++;
-                    }
+                    --l;
+                    do {
+                        ++l;
+                        args[1] = arr.elementAt(l);
+                        args[2] = pivot;
+                    } while (((Integer)cmp.apply(args, 0, 2)).intValue() <= 0 && l < r);
                     if (l < r) {
-                        arr[r] = arr[l];
+                        arr.setElementAt(arr.elementAt(l), r);
                         r--;
                     }
-                    while (o.leq(pivot, arr[r]) && l < r) {
+                    ++r;
+                    do {
                         r--;
-                    }
+                        args[1] = pivot;
+                        args[2] = arr.elementAt(r);
+                    } while (((Integer)cmp.apply(args, 0, 2)).intValue() <= 0 && l < r);
                     if (l < r) {
-                        arr[l] = arr[r];
+                        arr.setElementAt(arr.elementAt(r), l);
                         l++;
                     }
                 }
-                arr[r] = pivot;
-                qsort(arr, l + 1, last, o);
+                arr.setElementAt(pivot, r);
+                qsort(arr, l + 1, last, cmp);
                 last = l - 1;
             }
         }
-*/
-        private static void sort(Stack s, LightScriptFunction f) {
-        }
-
 
         private StdLib(int id) {
             this.id = id;
@@ -1012,7 +1016,8 @@ public final class LightScript {
                     return result;
                 }
                 case STD_ARRAY_SORT: {
-                    sort((Stack)thisPtr, (LightScriptFunction)arg1);
+                    Stack s = (Stack)thisPtr;
+                    qsort(s, 0, s.size() - 1, (LightScriptFunction)arg1);
                     return thisPtr;
                 }
                 case STD_ARRAY_SLICE: {
@@ -1039,6 +1044,11 @@ public final class LightScript {
                         sb.append(args[argpos+i].toString());
                     }
                     return sb.toString();
+                }
+                case STD_STRING_SLICE: {
+                    int i = ((Integer)arg1).intValue();
+                    int j = ((Integer)arg2).intValue();
+                    return ((String)thisPtr).substring(i, j);
                 }
             }
             return LightScript.UNDEFINED;
@@ -1086,6 +1096,15 @@ public final class LightScript {
     
             Hashtable function = clone(stringPrototype);
     
+            objectPrototype.put("constructor", new StdLib(STD_OBJECT_CONSTRUCTOR));
+            arrayPrototype.put("constructor", new StdLib(STD_ARRAY_CONSTRUCTOR));
+            arrayPrototype.put("concat", new StdLib(STD_ARRAY_CONCAT));
+            arrayPrototype.put("sort", new StdLib(STD_ARRAY_SORT));
+            arrayPrototype.put("slice", new StdLib(STD_ARRAY_SLICE));
+            stringPrototype.put("slice", new StdLib(STD_STRING_SLICE));
+            stringPrototype.put("charCodeAt", new StdLib(STD_STRING_CHARCODEAT));
+            string.put("fromCharCode", new StdLib(STD_STRING_FROMCHARCODE));
+            string.put("concat", new StdLib(STD_STRING_CONCAT));
     
             ls.set("Object", object);
             ls.set("String", string);
