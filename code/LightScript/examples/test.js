@@ -1,3 +1,5 @@
-print("'Hello'");
-print('"World"');
-print(1/2*3);
+function f(a, b) {
+    return a + b;
+}
+print(f(1));
+

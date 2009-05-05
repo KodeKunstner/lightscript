@@ -22,7 +22,7 @@ import java.util.Stack;
  * It also adds support for more readable printing of
  * id, etc.
  */
-//#define __DEBUG__
+#define __DEBUG__
 
 /* If enabled, wipe the stack on function exit,
  * to kill dangling pointers on execution stack,
@@ -2122,8 +2122,22 @@ public final class LightScript {
 
                 // save program counter
                 emit(ID_SAVE_PC);
-                addDepth(RET_FRAME_SIZE);
+                addDepth(RET_FRAME_SIZE - 1);
 
+
+                // find the method/function
+                if(methodcall) {
+                    Object[] subs = (Object[]) expr[1];
+                    compile(subs[1], true);
+
+                    compile(subs[2], true);
+                    emit(ID_SUBSCRIPT);
+                    addDepth(-1);
+
+                } else {
+
+                    compile(expr[1], true);
+                }
 
                 // evaluate parameters
                 for (int i = 2; i < expr.length; i++) {
@@ -2652,7 +2666,6 @@ public final class LightScript {
                     stack[++sp] = closure;
                     stack[++sp] = constPool;
                     stack[++sp] = code;
-                    ++sp;
                     break;
                 }
                 case ID_CALL_FN: {
