@@ -192,7 +192,7 @@ import java.util.Stack;
                     | ID_NONE)
 
 /** Sizes of different kinds of stack frames */
-#define RET_FRAME_SIZE 5
+#define RET_FRAME_SIZE 4
 #define TRY_FRAME_SIZE 5
 
 
@@ -2122,7 +2122,7 @@ public final class LightScript {
 
                 // save program counter
                 emit(ID_SAVE_PC);
-                addDepth(RET_FRAME_SIZE - 1);
+                addDepth(RET_FRAME_SIZE);
 
 
                 // find the method/function
@@ -2177,7 +2177,7 @@ public final class LightScript {
                 }
 #endif
                 emit(expr.length - 2);
-                addDepth(2 - expr.length - RET_FRAME_SIZE);
+                addDepth(1 - expr.length - RET_FRAME_SIZE);
 
                 hasResult = true;
                 break;
@@ -2697,7 +2697,7 @@ public final class LightScript {
                         try {
                             Object result = ((LightScriptFunction)o
                                 ).apply(thisPtr, stack, sp - argc + 1, argc);
-                            sp -= argc + RET_FRAME_SIZE - 1;
+                            sp -= argc + RET_FRAME_SIZE;
                             stack[sp] = result;
                         } catch(LightScriptException e) {
                             if(exceptionHandler < 0) {
