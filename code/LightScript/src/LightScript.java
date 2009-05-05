@@ -808,63 +808,64 @@ public final class LightScript {
             this.id = id;
         }
         public Object apply(Object[] args, int argpos, int argcount) throws LightScriptException {
+            Object thisPtr = args[argpos];
+            Object arg1 = argcount < 1 ? UNDEFINED : args[argpos + 1];
+            Object arg2 = argcount < 2 ? UNDEFINED : args[argpos + 2];
             if(argcs[id] >= 0 && argcount != argcs[id]) {
                 throw new LightScriptException("Error: Wrong number of arguments");
             }
             switch(id) {
                 case STD_PRINT: {
-                     System.out.println(args[argpos+1]);
+                     System.out.println(arg1);
                      break;
                 }
                 case STD_TYPEOF: {
-                    Object o = args[argpos + 1];
-                    if(o instanceof Hashtable) {
+                    if(arg1 instanceof Hashtable) {
                         return "object";
-                    } else if(o instanceof Stack) {
+                    } else if(arg1 instanceof Stack) {
                         return "array";
-                    } else if(o instanceof Integer) {
+                    } else if(arg1 instanceof Integer) {
                         return "number";
-                    } else if(o == LightScript.UNDEFINED) {
+                    } else if(arg1 == LightScript.UNDEFINED) {
                         return "undefined";
-                    } else if(o == LightScript.NULL) {
+                    } else if(arg1 == LightScript.NULL) {
                         return "null";
-                    } else if(o == LightScript.TRUE || o == LightScript.FALSE) {
+                    } else if(arg1 == LightScript.TRUE || arg1 == LightScript.FALSE) {
                         return "boolean";
                     } else {
                         return "builtin";
                     }
                 }
                 case STD_PARSEINT: {
-                    return Integer.valueOf((String)args[argpos + 1], ((Integer)args[argpos + 2]).intValue());
+                    return Integer.valueOf(arg1.toString(), ((Integer)arg2).intValue());
                 }
                 case STD_CLONE: {
-                    return clone((Hashtable)args[argpos + 1]);
+                    return clone((Hashtable)arg1);
                 }
                 case STD_HAS_OWN_PROPERTY: {
-                    Object thisPtr = args[argpos];
                     if(thisPtr instanceof Hashtable) {
-                        return ((Hashtable)thisPtr).contains(args[argpos])
+                        return ((Hashtable)thisPtr).contains(arg1)
                                 ? LightScript.TRUE
                                 : LightScript.FALSE;
                     }
                     break;
                 }
                 case STD_ARRAY_PUSH: {
-                    ((Stack)args[argpos]).push(args[argpos+1]);
+                    ((Stack)thisPtr).push(arg1);
                      break;
                 }
                 case STD_ARRAY_POP: {
-                    ((Stack)args[argpos]).pop();
+                    ((Stack)thisPtr).pop();
                     break;
                 }
                 case STD_ARRAY_JOIN: {
-                    Stack s = (Stack) args[argpos];
+                    Stack s = (Stack) thisPtr;
                     if(s.size() == 0) {
                         return "";
                     }
                     StringBuffer sb = new StringBuffer();
                     sb.append(s.elementAt(0).toString());
-                    String sep = args[argpos + 1].toString();
+                    String sep = arg1.toString();
                     for(int i = 1; i < s.size(); i++) {
                         sb.append(sep);
                         sb.append(s.elementAt(i));
@@ -872,18 +873,26 @@ public final class LightScript {
                     return sb.toString();
                 }
                 case STD_DEFAULT_SETTER: {
-                    Object key = args[argpos + 1];
-                    Object val = args[argpos + 2];
+                    if(thisPtr instanceof Object[] && arg1 instanceof Integer) {
+                        ((Object[])thisPtr)[((Integer) arg1).intValue()] = arg2;
+                        break;
+                    }
                     // implementation like "thisPtr[key] = val"
                     break;
                 }
                 case STD_DEFAULT_GETTER: {
-                    Object key = args[argpos + 1];
+                    if(thisPtr instanceof Object[]) {
+                        if(arg1 instanceof Integer) {
+                            return ((Object[])thisPtr)[((Integer) arg1).intValue()];
+                        } else if("length".equals(arg1)) {
+                            return new Integer(((Object[])thisPtr).length);
+                        }
+                    }
+
                     // implementation like "return thisPtr[key]"
                     break;
                 }
                 case STD_NEW_ITERATOR: {
-                    Object thisPtr = args[argpos];
                     if(thisPtr instanceof Hashtable) {
                         StdLib result;
                         result = new StdLib(STD_ENUMERATION_ITERATOR);
@@ -980,8 +989,7 @@ public final class LightScript {
      * updated during the parsing.
      */
     private static class Code implements LightScriptFunction, LightScriptObject {
-        public Object apply(Object[] args, 
-                            int argpos, int argcount) 
+        public Object apply(Object[] args, int argpos, int argcount) 
                                 throws LightScriptException {
 #ifdef __DEBUG__
             if(argcount == argc) {
