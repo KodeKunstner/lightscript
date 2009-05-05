@@ -22,7 +22,7 @@ import java.util.Stack;
  * It also adds support for more readable printing of
  * id, etc.
  */
-#define __DEBUG__
+//#define __DEBUG__
 
 /* If enabled, wipe the stack on function exit,
  * to kill dangling pointers on execution stack,
@@ -395,7 +395,8 @@ public final class LightScript {
                 }
                 c.closure[i] = box;
             }
-            return execute(c, new Object[0], 0, executionContext[EC_WRAPPED_GLOBALS]);
+            Object stack[] = {executionContext[EC_WRAPPED_GLOBALS]};
+            return execute(c, stack, 0);
 // if we debug, we want the real exception, with line number..
 #ifndef __DEBUG__
         } catch(Throwable e) {
@@ -791,13 +792,14 @@ public final class LightScript {
         private StdLib(int id) {
             this.id = id;
         }
-        public Object apply(Object thisPtr, Object[] args, int argpos, int argcount) throws LightScriptException {
+        public Object apply(Object[] args, int argpos, int argcount) throws LightScriptException {
             if(argcs[id] >= 0 && argcount != argcs[id]) {
                 throw new LightScriptException("Error: Wrong number of arguments");
             }
+            Object thisPtr = args[argpos];
             switch(id) {
                 case STD_PRINT: {
-                     System.out.println(args[argpos]);
+                     System.out.println(args[argpos+1]);
                      break;
                 }
                 case STD_TYPEOF: {
@@ -962,7 +964,7 @@ public final class LightScript {
      * updated during the parsing.
      */
     private static class Code implements LightScriptFunction, LightScriptObject {
-        public Object apply(Object thisPtr, Object[] args, 
+        public Object apply(Object[] args, 
                             int argpos, int argcount) 
                                 throws LightScriptException {
 #ifdef __DEBUG__
@@ -970,14 +972,14 @@ public final class LightScript {
 #endif
                 Object stack[];
                 if(argpos != 0) {
-                    stack = new Object[argcount];
-                    for(int i = 0; i<argcount; i++) {
+                    stack = new Object[argcount + 1];
+                    for(int i = 0; i <= argcount; i++) {
                         stack[i] = args[argpos + i];
                     }
                 } else {
                     stack = args;
                 }
-                return execute(this, stack, argcount, thisPtr);
+                return execute(this, stack, argcount);
 #ifdef __DEBUG__
             } 
             else {
@@ -2607,8 +2609,8 @@ public final class LightScript {
     /**
      * evaluate some bytecode 
      */
-    private static Object execute(Code cl, Object[] stack, int argcount, Object thisPtr) throws LightScriptException {
-        int sp = argcount - 1;
+    private static Object execute(Code cl, Object[] stack, int argcount) throws LightScriptException {
+        int sp = argcount;
 
         //System.out.println(stringify(cl));
         int pc = -1;
@@ -2618,6 +2620,7 @@ public final class LightScript {
         Object[] executionContext = (Object[]) constPool[0];
         int exceptionHandler = - 1;
         stack = ensureSpace(stack, sp, cl.maxDepth);
+        Object thisPtr = stack[0];
 #ifdef __CLEAR_STACK__
         int usedStack = sp + cl.maxDepth;
 #endif
@@ -2639,28 +2642,21 @@ public final class LightScript {
                     pc += 2;
                     Object result = stack[sp];
                     sp -= arg - 1;
+                    if (sp == 1) {
+                        return result;
+                    }
+#ifdef __DEBUG__
+                    if(sp < 0) {
+                        throw new Error("Wrong stack discipline" 
+                                + sp);
+                    }
+#endif
 #ifdef __CLEAR_STACK__
                     for(int i = sp; i <= usedStack; i++) {
                         stack[i] = null;
                     }
 #endif
-                    if (sp <= 0) {
-#ifdef __DEBUG__
-                        if(sp < 0) {
-                            throw new Error("Wrong stack discipline" 
-                                + sp);
-                        }
-#endif
-                        return result;
-                    }
-                    /*
-                    System.out.println("A" + sp + stack[sp - 1]);
-                    for(int i = 0; i <= sp; i++) {
-                        System.out.println(stack[i]);
-                    }
-                    */
                     pc = ((Integer) stack[--sp]).intValue();
-                    //System.out.println("B");
                     code = (byte[]) stack[--sp];
                     constPool = (Object[]) stack[--sp];
                     executionContext = (Object[]) constPool[0];
@@ -2703,7 +2699,7 @@ public final class LightScript {
                     } else if (o instanceof LightScriptFunction) {
                         try {
                             Object result = ((LightScriptFunction)o
-                                ).apply(thisPtr, stack, sp - argc + 1, argc);
+                                ).apply(stack, sp - argc, argc);
                             sp -= argc + RET_FRAME_SIZE;
                             stack[sp] = result;
                         } catch(LightScriptException e) {
@@ -2916,7 +2912,7 @@ public final class LightScript {
                             ((Hashtable) container).put(key, val);
                         }
                     } else {
-                        ((LightScriptFunction)executionContext[EC_SETTER]).apply(container, stack, sp + 1, 2);
+                        ((LightScriptFunction)executionContext[EC_SETTER]).apply(stack, sp, 2);
                     }
                     break;
                 }
@@ -2972,7 +2968,7 @@ public final class LightScript {
 
                     // Other builtin types, by calling userdefined default getter
                     } else {
-                        result = ((LightScriptFunction)executionContext[EC_GETTER]).apply(container, stack, sp + 1, 1);
+                        result = ((LightScriptFunction)executionContext[EC_GETTER]).apply(stack, sp, 1);
                     } 
                     
                     // prototype property or element within (super-)prototype
@@ -3126,12 +3122,12 @@ public final class LightScript {
                     break;
                 }
                 case ID_NEW_ITER: {
-                    stack[sp] = ((LightScriptFunction)executionContext[EC_NEW_ITER]).apply(stack[sp], stack, sp, 0);
+                    stack[sp] = ((LightScriptFunction)executionContext[EC_NEW_ITER]).apply(stack, sp, 0);
                     break;
                 }
                 case ID_NEXT: {
                     LightScriptFunction iter = (LightScriptFunction)stack[sp];
-                    stack[++sp] = iter.apply(thisPtr, stack, sp, 0);
+                    stack[++sp] = iter.apply(stack, sp, 0);
                     break;
                 }
                 case ID_GLOBAL: {
