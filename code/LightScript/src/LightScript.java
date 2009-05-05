@@ -2145,6 +2145,7 @@ public final class LightScript {
                 }
 
                 // find the method/function
+                /*
                 if(methodcall) {
                     Object[] subs = (Object[]) expr[1];
                     compile(subs[1], true);
@@ -2167,6 +2168,9 @@ public final class LightScript {
 
                     compile(expr[1], true);
                 }
+                */
+                //emit(ID_THIS);
+                //addDepth(1);
 
 
                 // call the function
@@ -2177,7 +2181,7 @@ public final class LightScript {
                 }
 #endif
                 emit(expr.length - 2);
-                addDepth(1 - expr.length - RET_FRAME_SIZE);
+                addDepth(- expr.length - RET_FRAME_SIZE);
 
                 hasResult = true;
                 break;
@@ -2652,7 +2656,9 @@ public final class LightScript {
 #endif
                         return result;
                     }
+                    System.out.println("A" + sp + stack[sp - 1]);
                     pc = ((Integer) stack[--sp]).intValue();
+                    System.out.println("B");
                     code = (byte[]) stack[--sp];
                     constPool = (Object[]) stack[--sp];
                     executionContext = (Object[]) constPool[0];
@@ -2670,7 +2676,8 @@ public final class LightScript {
                 }
                 case ID_CALL_FN: {
                     int argc = code[++pc];
-                    --sp;
+                    //--sp;
+                    System.out.println(sp);
                     Object o = stack[sp - argc];
                     if(o instanceof Code) {
                         Code fn = (Code) o;
