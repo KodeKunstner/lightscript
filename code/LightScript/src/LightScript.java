@@ -796,14 +796,13 @@ public final class LightScript {
             if(argcs[id] >= 0 && argcount != argcs[id]) {
                 throw new LightScriptException("Error: Wrong number of arguments");
             }
-            Object thisPtr = args[argpos];
             switch(id) {
                 case STD_PRINT: {
                      System.out.println(args[argpos+1]);
                      break;
                 }
                 case STD_TYPEOF: {
-                    Object o = args[argpos];
+                    Object o = args[argpos + 1];
                     if(o instanceof Hashtable) {
                         return "object";
                     } else if(o instanceof Stack) {
@@ -821,12 +820,13 @@ public final class LightScript {
                     }
                 }
                 case STD_PARSEINT: {
-                    return Integer.valueOf((String)args[argpos], ((Integer)args[argpos +1]).intValue());
+                    return Integer.valueOf((String)args[argpos + 1], ((Integer)args[argpos + 2]).intValue());
                 }
                 case STD_CLONE: {
-                    return clone((Hashtable)args[argpos]);
+                    return clone((Hashtable)args[argpos + 1]);
                 }
                 case STD_HAS_OWN_PROPERTY: {
+                    Object thisPtr = args[argpos];
                     if(thisPtr instanceof Hashtable) {
                         return ((Hashtable)thisPtr).contains(args[argpos])
                                 ? LightScript.TRUE
@@ -835,21 +835,21 @@ public final class LightScript {
                     break;
                 }
                 case STD_ARRAY_PUSH: {
-                    ((Stack)thisPtr).push(args[argpos]);
+                    ((Stack)args[argpos]).push(args[argpos+1]);
                      break;
                 }
                 case STD_ARRAY_POP: {
-                    ((Stack)thisPtr).pop();
+                    ((Stack)args[argpos]).pop();
                     break;
                 }
                 case STD_ARRAY_JOIN: {
-                    Stack s = (Stack) thisPtr;
+                    Stack s = (Stack) args[argpos];
                     if(s.size() == 0) {
                         return "";
                     }
                     StringBuffer sb = new StringBuffer();
                     sb.append(s.elementAt(0).toString());
-                    String sep = args[argpos].toString();
+                    String sep = args[argpos + 1].toString();
                     for(int i = 1; i < s.size(); i++) {
                         sb.append(sep);
                         sb.append(s.elementAt(i));
@@ -857,17 +857,18 @@ public final class LightScript {
                     return sb.toString();
                 }
                 case STD_DEFAULT_SETTER: {
-                    Object key = args[argpos];
-                    Object val = args[argpos + 1];
+                    Object key = args[argpos + 1];
+                    Object val = args[argpos + 2];
                     // implementation like "thisPtr[key] = val"
                     break;
                 }
                 case STD_DEFAULT_GETTER: {
-                    Object key = args[argpos];
+                    Object key = args[argpos + 1];
                     // implementation like "return thisPtr[key]"
                     break;
                 }
                 case STD_NEW_ITERATOR: {
+                    Object thisPtr = args[argpos];
                     if(thisPtr instanceof Hashtable) {
                         StdLib result;
                         result = new StdLib(STD_ENUMERATION_ITERATOR);

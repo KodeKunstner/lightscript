@@ -1,5 +1,4 @@
 1.2:
-  - thisPtr on stack
   - add more builtin ecmascript functions, larger api
   - static apply functions for easier function call
 1.3
