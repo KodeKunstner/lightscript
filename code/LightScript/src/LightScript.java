@@ -758,6 +758,14 @@ public final class LightScript {
         #define STD_INTEGER_ITERATOR (STD_GLOBALLY_NAMED + 7)
         #define STD_ENUMERATION_ITERATOR (STD_GLOBALLY_NAMED + 8)
         #define STD_GLOBAL_WRAPPER (STD_GLOBALLY_NAMED + 9)
+        #define STD_OBJECT_CONSTRUCTOR (STD_GLOBALLY_NAMED + 10)
+        #define STD_ARRAY_CONSTRUCTOR (STD_GLOBALLY_NAMED + 11)
+        #define STD_ARRAY_CONCAT (STD_GLOBALLY_NAMED + 12)
+        #define STD_ARRAY_SORT (STD_GLOBALLY_NAMED + 13)
+        #define STD_ARRAY_SLICE (STD_GLOBALLY_NAMED + 14)
+        #define STD_STRING_CHARCODEAT (STD_GLOBALLY_NAMED + 15)
+        #define STD_STRING_FROMCHARCODE (STD_GLOBALLY_NAMED + 16)
+        #define STD_STRING_CONCAT (STD_GLOBALLY_NAMED + 17)
     
         private static final int[] argcs = {1, 1, 2, 1
             // not named
@@ -769,6 +777,12 @@ public final class LightScript {
             , 0, 0, 0
             // globalwrapper
             , 0
+            // object-constructor, array-constructor
+            , 0, -1
+            // array-concat, sort, slice, 
+            , -1, 1, 2
+            // charcodeat, fromcharcode, strconcat
+            , 1, 1, -1
         };
 
         public void set(Object key, Object value) {
@@ -804,6 +818,40 @@ public final class LightScript {
             return result;
         }
     
+/*
+        public static void qsort(Object arr[], int first, int last, Order o) {
+            while (first < last) {
+                int l = first;
+                int r = last;
+                Object pivot = arr[(l + r) / 2];
+                arr[(l + r) / 2] = arr[r];
+                arr[r] = pivot;
+                while (l < r) {
+                    while (o.leq(arr[l], pivot) && l < r) {
+                        l++;
+                    }
+                    if (l < r) {
+                        arr[r] = arr[l];
+                        r--;
+                    }
+                    while (o.leq(pivot, arr[r]) && l < r) {
+                        r--;
+                    }
+                    if (l < r) {
+                        arr[l] = arr[r];
+                        l++;
+                    }
+                }
+                arr[r] = pivot;
+                qsort(arr, l + 1, last, o);
+                last = l - 1;
+            }
+        }
+*/
+        private static void sort(Stack s, LightScriptFunction f) {
+        }
+
+
         private StdLib(int id) {
             this.id = id;
         }
@@ -929,6 +977,68 @@ public final class LightScript {
                 }
                 case STD_GLOBAL_WRAPPER: {
                     break;
+                }
+                case STD_OBJECT_CONSTRUCTOR: {
+                    if(thisPtr instanceof Hashtable) {
+                        Hashtable result = new Hashtable();
+                        Object prototype = ((Hashtable)thisPtr).get("prototype");
+                        if(prototype != null) {
+                            result.put("prototype", prototype);
+                        }
+                        return result;
+                    }
+                    break;
+                }
+                case STD_ARRAY_CONSTRUCTOR: {
+                    Stack result = new Stack();
+                    for(int i = 1; i <= argcount; ++i) {
+                        result.push(args[argpos+i]);
+                    }
+                    return result;
+                }
+                case STD_ARRAY_CONCAT: {
+                    Stack result = new Stack();
+                    for(int i = 1; i <= argcount; ++i) {
+                        Object o = args[argpos + i];
+                        if(o instanceof Stack) {
+                            Stack s = (Stack) o;
+                            for(int j = 0; j < s.size(); ++j) {
+                                result.push(s.elementAt(j));
+                            }
+                        } else {
+                            result.push(o);
+                        }
+                    }
+                    return result;
+                }
+                case STD_ARRAY_SORT: {
+                    sort((Stack)thisPtr, (LightScriptFunction)arg1);
+                    return thisPtr;
+                }
+                case STD_ARRAY_SLICE: {
+                    int i = ((Integer)arg1).intValue();
+                    int j = ((Integer)arg2).intValue();
+                    Stack result = new Stack();
+                    Stack s = (Stack)thisPtr;
+                    while(i < j) {
+                        result.push(s.elementAt(i));
+                        ++i;
+                    }
+                    return result;
+                }
+                case STD_STRING_CHARCODEAT: {
+                    return new Integer(((String)thisPtr).charAt(((Integer)arg1).intValue()));
+                }
+                case STD_STRING_FROMCHARCODE: {
+                    return String.valueOf((char)((Integer)arg1).intValue());
+                }
+                case STD_STRING_CONCAT: {
+                                        
+                    StringBuffer sb = new StringBuffer();
+                    for(int i = 1; i <= argcount; ++i) {
+                        sb.append(args[argpos+i].toString());
+                    }
+                    return sb.toString();
                 }
             }
             return LightScript.UNDEFINED;
