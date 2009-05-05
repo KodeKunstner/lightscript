@@ -1,0 +1,27 @@
+Builtin functions:
+
+    clone(x)
+    gettype(x)
+    parseint(x, y)
+    print(x)
+    Object
+    Object.prototype
+    Object.prototype.constructor()
+    Object.prototype.hasOwnProperty(x)
+    Array
+    Array.concat(...)
+    Array.prototype
+    Array.prototype.constructor(...)
+    Array.prototype.join(sep)
+    Array.prototype.pop()
+    Array.prototype.push(x)
+    Array.prototype.slice(x, y)
+    Array.prototype.sort(x)
+    Function
+    Function.prototype
+    String
+    String.concat(x)
+    String.fromCharCode(x)
+    String.prototype
+    String.prototype.charCodeAt(x)
+    String.prototype.slice(x, y)

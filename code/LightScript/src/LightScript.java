@@ -885,6 +885,8 @@ public final class LightScript {
                         return "null";
                     } else if(arg1 == LightScript.TRUE || arg1 == LightScript.FALSE) {
                         return "boolean";
+                    } else if(arg1 instanceof Object[]) {
+                        return "const_array";
                     } else {
                         return "builtin";
                     }
@@ -1099,7 +1101,7 @@ public final class LightScript {
     
             objectPrototype.put("constructor", new StdLib(STD_OBJECT_CONSTRUCTOR));
             arrayPrototype.put("constructor", new StdLib(STD_ARRAY_CONSTRUCTOR));
-            arrayPrototype.put("concat", new StdLib(STD_ARRAY_CONCAT));
+            array.put("concat", new StdLib(STD_ARRAY_CONCAT));
             arrayPrototype.put("sort", new StdLib(STD_ARRAY_SORT));
             arrayPrototype.put("slice", new StdLib(STD_ARRAY_SLICE));
             stringPrototype.put("slice", new StdLib(STD_STRING_SLICE));
