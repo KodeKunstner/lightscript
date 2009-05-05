@@ -203,7 +203,7 @@ import java.util.Stack;
   * where code can be parsed, compiled, and executed. 
   *
   * @author Rasmus Jensen, rasmus@lightscript.net
-  * @version 1.2
+  * @version 1.1
   */
 public final class LightScript {
 
@@ -523,7 +523,7 @@ public final class LightScript {
     /*`\subsection{Arithmetics}'*/
 #ifndef __HAVE_DOUBLE__
 #define FRACTIONAL_CLASS FixedPoint
-    public static class FixedPoint {
+    private static class FixedPoint {
         public long val;
         public FixedPoint(int i) {
             val = (long)i << 32;
