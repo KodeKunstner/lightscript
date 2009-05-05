@@ -203,7 +203,7 @@ import java.util.Stack;
   * where code can be parsed, compiled, and executed. 
   *
   * @author Rasmus Jensen, rasmus@lightscript.net
-  * @version 1.1
+  * @version 1.2
   */
 public final class LightScript {
 

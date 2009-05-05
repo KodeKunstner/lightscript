@@ -1,6 +1,4 @@
-1.2:
-  - add more builtin ecmascript functions, larger api
-1.3
+1.3:
   - Move to hosted versioning system
 
 1.4:
@@ -9,6 +7,9 @@
   - documentation, examples
   - Add more optional libraries
   - maybe add support for building with ant
+  - maybe in operator (already begun)
+  - maybe postfix ++ and --
+
 
 2.0:
   - Private development version
