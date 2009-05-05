@@ -1,3 +1,6 @@
+1.1.566
+    Better exception handling. 21732
+    Optional apply api on LS-class
 1.1.565
     New calling convention, updated function interface 21712
 1.1.557

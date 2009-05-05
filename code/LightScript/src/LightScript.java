@@ -31,6 +31,7 @@ import java.util.Stack;
 #define __CLEAR_STACK__
 
 //#define __HAVE_DOUBLE__
+//#define __APPLY_API__
 
 /* Identifiers, used both as node type,
  * and also used as opcode. 
@@ -354,6 +355,29 @@ public final class LightScript {
         StdLib.register(this);
     }
 
+#ifdef __APPLY_API__
+    /** Shorthands for executing a LightScript function */
+    public static Object apply(Object thisPtr, LightScriptFunction f) throws LightScriptException {
+        Object args[] = {thisPtr};
+        return f.apply(args, 0, 0);
+    }
+    /** Shorthands for executing a LightScript function */
+    public static Object apply(Object thisPtr, LightScriptFunction f, Object arg1) throws LightScriptException {
+        Object args[] = {thisPtr, arg1};
+        return f.apply(args, 0, 1);
+    }
+    /** Shorthands for executing a LightScript function */
+    public static Object apply(Object thisPtr, LightScriptFunction f, Object arg1, Object arg2) throws LightScriptException {
+        Object args[] = {thisPtr, arg1, arg2};
+        return f.apply(args, 0, 2);
+    }
+    /** Shorthands for executing a LightScript function */
+    public static Object apply(Object thisPtr, LightScriptFunction f, Object arg1, Object arg2, Object arg3) throws LightScriptException {
+        Object args[] = {thisPtr, arg1, arg2, arg3};
+        return f.apply(args, 0, 3);
+    }
+#endif /*__APPLY_API__ */
+
     /** Shorthand for evaluating a string that contains LightScript code */
     public Object eval(String s) throws LightScriptException {
         return eval(new ByteArrayInputStream(s.getBytes()));
@@ -362,9 +386,6 @@ public final class LightScript {
     /** Evaluate the next statement from an input stream */
     public Object evalNext(InputStream is) throws LightScriptException {
 // if we debug, we want the real exception, with line number..
-#ifndef __DEBUG__
-        try {
-#endif
             if(is != this.is) {
                 this.is = is;
                 sb = new StringBuffer();
@@ -397,12 +418,6 @@ public final class LightScript {
             }
             Object stack[] = {executionContext[EC_WRAPPED_GLOBALS]};
             return execute(c, stack, 0);
-// if we debug, we want the real exception, with line number..
-#ifndef __DEBUG__
-        } catch(Throwable e) {
-            throw new LightScriptException(e);
-        }
-#endif 
     }
 
     /** Parse and execute LightScript code read from an input stream */
@@ -2611,6 +2626,9 @@ public final class LightScript {
      * evaluate some bytecode 
      */
     private static Object execute(Code cl, Object[] stack, int argcount) throws LightScriptException {
+#ifndef __DEBUG__
+        try {
+#endif
         int sp = argcount;
 
         //System.out.println(stringify(cl));
@@ -3197,6 +3215,15 @@ public final class LightScript {
                 }
             }
         }
+// if we debug, we want the real exception, with line number..
+#ifndef __DEBUG__
+        } catch(Throwable e) {
+            if(e instanceof LightScriptException) {
+                throw (LightScriptException)e;
+            }
+            throw new LightScriptException(e);
+        }
+#endif 
     }
 }
 
