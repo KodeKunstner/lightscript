@@ -2670,8 +2670,8 @@ public final class LightScript {
                 }
                 case ID_CALL_FN: {
                     int argc = code[++pc];
-                    Object o = stack[sp];
                     --sp;
+                    Object o = stack[sp - argc];
                     if(o instanceof Code) {
                         Code fn = (Code) o;
 
