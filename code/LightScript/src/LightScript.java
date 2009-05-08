@@ -14,6 +14,7 @@ import java.util.Enumeration;
 import java.io.ByteArrayInputStream;
 import java.util.Hashtable;
 import java.util.Stack;
+import java.lang.Thread;
 
 /*`\section{Definitions, API, and utility functions}'*/
 
@@ -24,6 +25,7 @@ import java.util.Stack;
  */
 //#define __DEBUG__
 //#define __PRINT_EXECUTED_INSTRUCTIONS__
+//#define __DO_YIELD__
 
 /* If enabled, wipe the stack on function exit,
  * to kill dangling pointers on execution stack,
@@ -2803,6 +2805,9 @@ public final class LightScript {
                     closure = (Object[]) stack[--sp];
                     thisPtr = stack[--sp];
                     stack[sp] = result;
+#ifdef __DO_YIELD__
+                    Thread.yield();
+#endif
                     break;
                 }
                 case ID_SAVE_PC: {
@@ -2964,6 +2969,7 @@ public final class LightScript {
                         stack[sp] = new Integer(result);
                     } else if( (o instanceof Integer || o instanceof FRACTIONAL_CLASS) 
                            &&  (o2 instanceof Integer || o2 instanceof FRACTIONAL_CLASS) ) {
+                        stack[sp] = fpAdd(toFp(o), toFp(o2));
                     } else {
                         stack[sp] = String.valueOf(o) + String.valueOf(o2);
                     }
@@ -3173,6 +3179,9 @@ public final class LightScript {
                 }
                 case ID_JUMP: {
                     pc += readShort(pc, code) + 2;
+#ifdef __DO_YIELD__
+                    Thread.yield();
+#endif
                     break;
                 }
                 case ID_JUMP_IF_UNDEFINED: {
@@ -3180,6 +3189,9 @@ public final class LightScript {
                         pc += 2;
                     } else {
                         pc += readShort(pc, code) + 2;
+#ifdef __DO_YIELD__
+                    Thread.yield();
+#endif
                     }
                     --sp;
                     break;
@@ -3189,6 +3201,9 @@ public final class LightScript {
                         pc += 2;
                     } else {
                         pc += readShort(pc, code) + 2;
+#ifdef __DO_YIELD__
+                    Thread.yield();
+#endif
                     }
                     --sp;
                     break;

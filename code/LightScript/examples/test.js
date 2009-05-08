@@ -23,3 +23,13 @@ x.prototype.test = test;
 print(x);
 print(x.test());
 print(x.sort(c));
+
+for(x = -10;x<=10;++x) {
+    for(y = -9; y <= 9; y += 2) {
+        print(x + " / " + y + " = " + x/y);
+    }
+}
+
+print(1/4);
+print(1);
+print(1+1/4);

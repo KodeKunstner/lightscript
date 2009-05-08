@@ -54,6 +54,11 @@ $(FP_VER)$(LS).java: $(DEPS)
 clean:
 	rm -rf net doc/public* doc/private* `find . -name "*.class"` *.tar.gz
 
+examples/moby/moby.jar: examples/moby/*.java examples/moby/manifest examples/moby/*.jad
+	javac -classpath .:dependencies/midpapi10.jar examples/moby/*.java
+	jar -cvfm examples/in.jar examples/moby/manifest net/lightscript/i1/*.class examples/moby/*.class
+	java -jar dependencies/proguard.jar @examples/midlets.pro
+	mv examples/out.jar examples/moby/moby.jar
 #
 #LightScript.java: $(LS_SRC)
 #	cpp -C -P $(LS_SRC) > LightScript.java 
