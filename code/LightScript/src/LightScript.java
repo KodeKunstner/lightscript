@@ -15,6 +15,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Hashtable;
 import java.util.Stack;
 import java.lang.Thread;
+import java.util.Random;
 
 /*`\section{Definitions, API, and utility functions}'*/
 
@@ -33,7 +34,7 @@ import java.lang.Thread;
  */
 #define __CLEAR_STACK__
 
-//#define __HAVE_DOUBLE__
+#define __HAVE_DOUBLE__
 //#define __APPLY_API__
 
 /* Identifiers, used both as node type,
@@ -741,6 +742,11 @@ public final class LightScript {
     private static class StdLib implements LightScriptFunction, LightScriptObject {
         private int id;
         private Object closure[];
+#ifdef __DEBUG__
+        private static Random rnd = new Random(123);
+#else
+        private static Random rnd = new Random();
+#endif
     
         // globally named functions
         #define STD_PRINT (0)
@@ -770,6 +776,8 @@ public final class LightScript {
         #define STD_STRING_CONCAT (STD_GLOBALLY_NAMED + 17)
         #define STD_STRING_SLICE (STD_GLOBALLY_NAMED + 18)
         #define STD_CLONE (STD_GLOBALLY_NAMED + 19)
+        #define STD_RANDOM (STD_GLOBALLY_NAMED + 20)
+        #define STD_FLOOR (STD_GLOBALLY_NAMED + 21)
     
         private static final int[] argcs = {1, 1, 2
             // not named
@@ -787,8 +795,8 @@ public final class LightScript {
             , -1, 1, 2
             // charcodeat, fromcharcode, strconcat, string_slice
             , 1, 1, -1, 2
-            // clone
-            , 1
+            // clone, random, floor
+            , 1, 0, 1
         };
 
         public void set(Object key, Object value) {
@@ -1057,6 +1065,18 @@ public final class LightScript {
                     int j = ((Integer)arg2).intValue();
                     return ((String)thisPtr).substring(i, j);
                 }
+#ifdef __HAVE_DOUBLE__
+                case STD_RANDOM: {
+                    return new Double(rnd.nextDouble());
+                }
+#else 
+                case STD_RANDOM: {
+                    return new FixedPoint(0xffffffffl & rnd.nextInt());
+                }
+#endif /* __HAVE_DOUBLE */
+                case STD_FLOOR: {
+                    return new Integer(toInt(arg1));
+                }
             }
             return LightScript.UNDEFINED;
         }
@@ -1103,6 +1123,10 @@ public final class LightScript {
             Hashtable string = clone(stringPrototype);
     
             Hashtable function = clone(stringPrototype);
+
+            Hashtable math = clone(objectPrototype);
+            math.put("random", new StdLib(STD_RANDOM));
+            math.put("floor", new StdLib(STD_FLOOR));
     
             objectPrototype.put("constructor", new StdLib(STD_OBJECT_CONSTRUCTOR));
             arrayPrototype.put("constructor", new StdLib(STD_ARRAY_CONSTRUCTOR));
@@ -1118,6 +1142,7 @@ public final class LightScript {
             ls.set("String", string);
             ls.set("Array", array);
             ls.set("Function", function);
+            ls.set("Math", math);
         }
     }
     /*`\subsubsection{Code}'*/

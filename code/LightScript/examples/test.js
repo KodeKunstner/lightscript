@@ -1,8 +1,7 @@
 x = {};
 x.a = function() { print(this); };
-x.a();
+//x.a();
 
-print("Hello");
 
 function f(j) {
     var i;
@@ -18,9 +17,7 @@ function test() {
     print(this);
     return "HERE";
 }
-print("world");
 x.prototype.test = test;
-print("!");
 
 /*
 print(x);
@@ -41,5 +38,13 @@ print(1+1/4);
 x = {"foo": 1, "bar":2};
 y = Object.create(x);
 
-print(y);
-print(y.foo);
+//print(y);
+//print(y.foo);
+
+x = 0;
+for(i = 0; i < 1000; ++i) {
+    y = Math.floor(100 * Math.random()) + 1;
+    print(y);
+    x += y;
+}
+print("avg: " + x / 1000);
