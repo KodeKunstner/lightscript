@@ -18,8 +18,11 @@ function test() {
     print(this);
     return "HERE";
 }
+print("world");
 x.prototype.test = test;
+print("!");
 
+/*
 print(x);
 print(x.test());
 print(x.sort(c));
@@ -33,3 +36,10 @@ for(x = -10;x<=10;++x) {
 print(1/4);
 print(1);
 print(1+1/4);
+*/
+
+x = {"foo": 1, "bar":2};
+y = Object.create(x);
+
+print(y);
+print(y.foo);

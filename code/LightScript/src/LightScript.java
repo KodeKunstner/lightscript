@@ -746,11 +746,10 @@ public final class LightScript {
         #define STD_PRINT (0)
         #define STD_TYPEOF (1)
         #define STD_PARSEINT (2)
-        #define STD_CLONE (3)
     
-        private static final String[] names = {"print", "gettype", "parseint", "clone"};
+        private static final String[] names = {"print", "gettype", "parseint"};
         // methods and other stuff added manually to lightscript
-        #define STD_GLOBALLY_NAMED (4)
+        #define STD_GLOBALLY_NAMED (3)
         #define STD_HAS_OWN_PROPERTY (STD_GLOBALLY_NAMED + 0)
         #define STD_ARRAY_PUSH (STD_GLOBALLY_NAMED + 1)
         #define STD_ARRAY_POP (STD_GLOBALLY_NAMED + 2)
@@ -770,8 +769,9 @@ public final class LightScript {
         #define STD_STRING_FROMCHARCODE (STD_GLOBALLY_NAMED + 16)
         #define STD_STRING_CONCAT (STD_GLOBALLY_NAMED + 17)
         #define STD_STRING_SLICE (STD_GLOBALLY_NAMED + 18)
+        #define STD_CLONE (STD_GLOBALLY_NAMED + 19)
     
-        private static final int[] argcs = {1, 1, 2, 1
+        private static final int[] argcs = {1, 1, 2
             // not named
             // hasown, push, pop, join
             , 0, 1, 0, 1 
@@ -785,8 +785,10 @@ public final class LightScript {
             , 0, -1
             // array-concat, sort, slice, 
             , -1, 1, 2
-            // charcodeat, fromcharcode, strconcat
-            , 1, 1, -1
+            // charcodeat, fromcharcode, strconcat, string_slice
+            , 1, 1, -1, 2
+            // clone
+            , 1
         };
 
         public void set(Object key, Object value) {
@@ -1090,6 +1092,7 @@ public final class LightScript {
     
             objectPrototype.put("hasOwnProperty", new StdLib(STD_HAS_OWN_PROPERTY));
             Hashtable object = clone(objectPrototype);
+            object.put("create", new StdLib(STD_CLONE));
     
             // Create members for array
             arrayPrototype.put("push", new StdLib(STD_ARRAY_PUSH));
