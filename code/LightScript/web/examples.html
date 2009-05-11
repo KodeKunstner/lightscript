@@ -1,0 +1,44 @@
+<html>
+    <head>
+        <title> LightScript - examples</title>
+    </head>
+    <body>
+        <h1>Examples</h1>
+        <h4>Executing LightScript from Java</h4>
+        <p>
+        LightScript is executed via LightScript objects, which are responsible for the compilation of the script. So a minimal Java program calling LightScript needs to create a LightScript object, and the calling the LightScript objects eval method with the actual code:
+<pre>
+class Main {
+    public static void main(String args[]) throws LightScriptException {
+        LightScript ls = new LightScript();
+        ls.eval("print('Hello world');");
+    }
+}
+</pre>
+        Notice that the <tt>eval</tt> method can take any input stream as parameter, so
+<pre>
+        ls.eval("print('Hello world');");
+</pre>
+        could easily be replaced with:
+<pre>
+        ls.eval(new FileInputStream(new File("some/filename.js")));
+</pre>
+        to execute a given file instead.
+        </p>
+        <p>
+        The LightScript object also keeps track of global values, so if we want to pass values from Java to LightScript, visa versa, this can be done like:
+<pre>
+class Main {
+    public static void main(String args[]) throws LightScriptException {
+        LightScript ls = new LightScript();
+        ls.set("x", new Integer(6));
+        ls.eval("str = 'The answer is: ' + x * 7;");
+        System.out.println(ls.get("str"));
+    }
+}
+</pre>
+        which would print: <tt>The answer is: 42</tt>
+        </p>
+
+    </body>
+</html>
