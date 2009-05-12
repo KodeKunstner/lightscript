@@ -16,7 +16,7 @@ backup: clean
 	tar cv --no-recursion `find . | grep -v svn` | gzip > backup.tar.gz 
 
 dist: clean all
-	tar cv --no-recursion `find . | grep -v svn` | gzip > dist.tar.gz 
+	tar cv --no-recursion `find Makefile src README COPYING | grep -v svn` | gzip > dist.tar.gz 
 
 examples/Main.class: $(DEFAULT_VER)$(LS).class
 	javac -source 1.2 examples/Main.java
