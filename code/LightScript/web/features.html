@@ -9,12 +9,16 @@
             <li><a href="#javascript">JavaScript/EcmaScript compatibility</a></li>
             <li><a href="#java">Good integration with Java</a></li>
             <li><a href="#performance">Support for very low-end phones - optional fixed point numbers, small size and good performance</a></li>
-            <li><a href="#oopAndClosures">High level language constructs: objects and prototypical inheritance, closures and first class functions</a></li>
             <li><a href="#compilerVirtualMachine">Integrated compiler and virtual machine, supporting on-line on-device execution of source code at run-time</a></li>
         </ul>
         Other features include:
         <ul>
             <li>Runs on Jave SE, Java Micro Edition including CLDC/1.0, MIDP/1.0, and possibly also Android</li>
+            <li>Objects and prototypical inheritance</li>
+            <li>Closures and first class functions</li>
+            <li>Static scope</li>
+            <li>Dynamic type system</li>
+            <li>Exceptions</li>
             <li>Open source</li>
             <li>...</li>
         </ul>
@@ -26,9 +30,9 @@
         </ul>
         <h4><a name="javascript"><!-- --></a>JavaScript/EcmaScript compatibility</h4>
         <p>
-        LightScript is a subscript of JavaScript, with some extra library functions added.
+        LightScript is a subset of JavaScript, with some extra library functions added.
         It can thus be executed on top of existing JavaScript implementations, which are already deployed with most browsers, including on smarphones -- a notable example here is the iPhone, which disallows third-party scripting languages, but includes support for JavaScript via WebKit, and thus allows LightScript to be executed on that platform nonetheless.
-        Another benefit of being a JavaScript subset, is that it is easier to get started on for existing web-``developers'' and advanced users who already have some exposure to JavaScript, and thus the familarity may remove the mental barriers of learning a new language, as LightScript can be peceived as a flavor of an existing known language.
+        Another benefit of being a JavaScript subset, is that it is easier to get started on for webdevelopers and advanced users who already have some exposure to JavaScript, and thus the familarity may remove the mental barriers of learning a new language, as LightScript can be peceived as a flavor of an existing known language.
         </p>
         <h4><a name="java"><!-- --></a>Java integration</h4>
         <p>
@@ -49,10 +53,6 @@
         </p>
         <p>
         In this way LightScript allows scripting where it would otherwise not be possible.
-        </p>
-        <h4><a name="oopAndClosures"><!-- --></a>Objects and first class functions</h4>
-        <p>
-        TODO
         </p>
         <h4><a name="compilerVirtualMachine"><!-- --></a>Compiler and virtual machine, and on-line on-device execution</h4>
         <p>

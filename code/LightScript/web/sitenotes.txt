@@ -1,4 +1,4 @@
-- Features
+- Features (done)
   - Overview list
     - Features
     - Limitations
@@ -26,10 +26,9 @@
 - Download
 (- Development tips)
 (- License)
-- Roadmap and history
+- Roadmap and history (done)
 - News
 - About
   - Summary of features
   - Short sample code
   - Short sample embedding
-

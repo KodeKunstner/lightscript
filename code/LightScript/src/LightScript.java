@@ -828,7 +828,7 @@ public final class LightScript {
     
         private static Hashtable clone(Object o) {
             Hashtable result = new Hashtable();
-            result.put("prototype", o);
+            result.put("__proto__", o);
             return result;
         }
     
@@ -1000,9 +1000,9 @@ public final class LightScript {
                 case STD_OBJECT_CONSTRUCTOR: {
                     if(thisPtr instanceof Hashtable) {
                         Hashtable result = new Hashtable();
-                        Object prototype = ((Hashtable)thisPtr).get("prototype");
+                        Object prototype = ((Hashtable)thisPtr).get("__proto__");
                         if(prototype != null) {
-                            result.put("prototype", prototype);
+                            result.put("__proto__", prototype);
                         }
                         return result;
                     }
@@ -1184,7 +1184,7 @@ public final class LightScript {
                 return new Integer(argc);
             }
             Hashtable prototype = (Hashtable)((Object[])constPool[0])[EC_FUNCTION_PROTOTYPE];
-            if("prototype".equals(key)) {
+            if("__proto__".equals(key)) {
                 return prototype;
             }
             return prototype.get(key);
@@ -3103,7 +3103,7 @@ public final class LightScript {
                     }  else if (container instanceof Hashtable) {
                         result = ((Hashtable) container).get(key);
                         if(result == null) {
-                            Object prototype = ((Hashtable)container).get("prototype");
+                            Object prototype = ((Hashtable)container).get("__proto__");
                             // repeat case ID_SUBSCRIPT with prototype as container
                             if(prototype != null) {
                                 stack[sp] = prototype;
@@ -3148,7 +3148,7 @@ public final class LightScript {
                     
                     // prototype property or element within (super-)prototype
                     if(result == null) {
-                        if("prototype".equals(key)) {
+                        if("__proto__".equals(key)) {
                             if(container instanceof Stack) {
                                 result = (Hashtable)executionContext[EC_ARRAY_PROTOTYPE];
                             } else if(container instanceof String) {
