@@ -1,0 +1,71 @@
+<html>
+    <head>
+        <title>Roadmap and history</title>
+    </head>
+    <body>
+        <p>
+        The version number consist of a major version number, a minor version number and a revision number.
+        The major version number is incremented at major rewrites and redesign.
+        The minor version number is incremented with milestones and expansions of language/added functionality, it uses an even/odd strategy, such that even minor versions get bugfixes, and the odd minor versions are development versions where the new features are added.
+        The revision number correspond to the svn version, and is incremented on each commit.
+        </p>
+        <p>
+        The current version is version 1.2, which is a stable/bugfix release.
+        </p>
+
+        <h3>Roadmap</h3>
+        <ul>
+            <li>Version 1.2 - stable release <ul>
+                <li>More documentation</li>
+                <li>More example code<ul>
+                    <li>Including reusable wrappers for standard Java libraries</li>
+                </ul></li>
+                <li>More exhaustive test code</li>
+            </ul></li>
+            <li>Version 1.3 - development version <ul>
+                <li>Support for automatic generation of wrappers for Java objects</li>
+                <li>Add more traditional object syntax, in addition to the self-like protypical approach</li>
+                <li>Move to publicly hosted version control</li>
+                <li>Restructure the source structure and build system <ul>
+                    <li>Maybe change from make/cpp to ant</li>
+                    <li>Replace the seperate packages for integer-only/floating point, with a single package and seperate classes, if it can be done elegantly without to much overhead (currently some parts of the implementations are intertwined for optimisation reasons and preprocessed to different versions of the full implementation within different packages)</li>
+                </ul></li>
+                <li>...</li>
+            </ul></li>
+            <li>Later versions <ul>
+                <li>Lint/prettyprinter for easier development</li>
+                <li>Maybe port LightScript to C and embedded systems (Lego NXT as first target platform)</li>
+                <li>...</li>
+            </ul></li>
+
+        </ul>
+        <h3>History</h3>
+        <ul>
+            <li>Version 1.1 - development version <ul>
+                <li>More operators, larger built-in library</li>
+                <li>Support for fractional numbers, fixed-point on integer-only platforms, and otherwise floats.</li>
+                <li>Changing the <tt>this</tt> semantics to be more EcmaScript-compliant, better implementation of functions/method-calls</li>
+                <li>Distinction between <tt>false</tt>, <tt>undefined</tt> and <tt>false</tt></li>
+                <li>Optional stack clearing, yielding better GC costing a bit of runtime performance</li>
+                <li>Optional forced interpreter thread preemption, allowing it to run nicely in multithreaded programs on JVM's with cooperative multitasking</li>
+                <li>Variable number of arguments to functions</li>
+                <li>Generalisation of <tt>for</tt>-<tt>in</tt> loops, using <tt>LightScriptFunction</tt>s as generators, rather than Java <tt>Enumeration</tt>s</li>
+                <li>Added <tt>LightScriptObject</tt> interface for easy wrapping of Java classes, where it is possible to make changes to the source.</li>
+                <li>Custom getter/setter functions, making it possible to make <em>any</em> kind of Java object behave as an object within LightScript</li>
+                <li>More kinds of string quoting and comments</li>
+                <li>Optimised JAR-size approximately 15KB.</li>
+            </ul></li>
+            <li>Version 1.0 - thesis version<ul>
+                <li>Closures, first class functions</li>
+                <li>Objects with prototypical inheritance</li>
+                <li>Parser, compiler, and virtual machine</li>
+                <li>Dynamic type system, static scope</li>
+                <li>Supports loading and execution of source code at run time</li>
+                <li>Subject of the thesis: ``Design and Implementation of a Scripting Language for Mobile Devices''</li>
+                <li>Second iteration, based on earlier prototypes of mobile languages, virtual machines and top-down-operator-precedense parsers</li>
+                <li>Performance similar to SpiderMonkey, Rhino and Kahlua, and much faster than JScheme, Hecl and FScriptME</li>
+                <li>Optimised JAR-size approximately 11KB, and thus smaller code footprint than existing languages<li>
+            </ul></li>
+        </ul>
+    </body>
+</html>

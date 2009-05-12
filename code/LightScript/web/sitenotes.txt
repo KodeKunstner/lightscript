@@ -8,7 +8,8 @@
     - Support for very low-end mobile phones, via small size and good performance.
     - High level language constructs: objects and prototypical inheritance, closures and first class functions.
     - Integrated compiler and virtual machine, leading to on-device execution/loading of source code at run-time.
-- Examples
+- Code examples
+- Embedding examples
   - Executing LightScript from Java
   - LightScript: Hello world
   - Embedding LightScript within Java
@@ -26,21 +27,9 @@
 (- Development tips)
 (- License)
 - Roadmap and history
-  - Roadmap
-    - 1.2 Stable version. 
-      - Bugfixes
-      - Applications using LightScript
-      - Optional libraries
-      - Documentation, examples, and polish.
-    - 1.3 Development version.
-      - Automatic wrapper generation
-      - Implementation of LightScript libraries within JavaScript, and interactive LightScript demo
-    - Version 2
-      - LightScript error checking / linting program written within LightScript
-      - Porting LightScript to embedded C devices
-  - History:
-    - 1.1 Development version, focus on better JavaScript compatibility, more features and refactoring.
-    - 1.0 Thesis version
 - News
 - About
-  - Summary
+  - Summary of features
+  - Short sample code
+  - Short sample embedding
+
