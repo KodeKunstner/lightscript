@@ -26,86 +26,8 @@
 \maketitle
 
 \begin{comment}
-
-- Goal:  what, why, how
-  - The mobile landscape
-  - Goal
-  - Plan
-- The developed languages
-  - Yolan - intro
-    - Common design and features
-    - Yolan-specific design and features
-  - LightScript
-    - EcmaScript subset - why, what, and what not
-    - LightScript design and features
-  - Benchmarks
-    - Approximated JAR size
-    - Speed
-- Conclusion and further work
-  - Recent updates, LightScript 1.2
-  - Further directions
-    - More libraries and applications
-    - Linting and pretty printing
-    - Version for embedded devices
-    - Zooming interfaces
-  - Conclusion
-
-
-- The mobile landscape
-  - Phones and smartphones 
-  - Symbian, Windows Mobile, iPhone, Android, RIM, other Linux'es, other proprietary operating systems
-  - Java Micro Edition
-    - CLDC, MIDP, APIs
-    - No dynamic code loading
-    - No reflection
-
-------------------------------------------
-
-- Introduction
-  - Speech structure
-    - Introduction: goal, mobile landscape
-    - Body
-  - The mobile landscape
-    - Phones vs. smartphones
-    - Java Micro Edition 
-    - Scripting languages
-  - Goal: A scripting language that runs on low-end mobile phones
-    - portable, embeddable, low memory footprint
-    - expressiveness - first class functions, easy use of maps and stacks
-    - loading of scripts at run time
-    - a practical tool
-
-  - Approach
-    - bottom up, incremental developement
-    - series of prototypes: parsers, compilers, virtual machines, forth dialects, mobile experiments, Yolan, LightScript
-    - research, reimplement, reevaluate, repeat
-    - direction kept in mind -- EcmaScript-like language for mobile devices
-- Body
-  - Yolan
-    - Runs on CLDC 1.0+
-    - Has standard Java classes for built in types, support for hashtables, stacks, ...
-    - Scripts can be loaded as source code at run time
-    - Functions are first class values
-    - Fast variable access. Online execution
-    - Integer only. Single false value 
-  - Yolan
-    - Lazy Java interface
-    - Lisp like syntax. Dynamic scoping
-    - Evaluation by walking through the syntax tree. Simple optimisations at execution time. Single class.
-    - Sets the bar for code footprint $\approx$ 5KB
-    - A stepping stone / pilot plant for LightScript
-  - LightScript - introduction
-  - JavaScript/EcmaScript
-  - Implementation
-    - Imperative top down operator precedence parser
-    - Compiler
-    - Stack based virtual machine
-  - LightScript 1.0
-    - Closures, lexical scoping, subset of EcmaScript, object, prototypical inheritance, exceptions, scripts loadable at run time 
-    - Code footprint $\approx$ 11KB
-
-- Conclusion
-
+> talk about programming within the language vs creating the glue between 
+> the language and Java. 
 \end{comment}
 
 \begin{slide}
@@ -141,10 +63,11 @@
             Problem
 	\\ \mbox{}}
 	\begin{itemize} \setlength{\itemsep}{10mm}
-            \item Existing scripting languages are very limited, or not existing, on low-end mobile phones
+            \item Scripting languages are very limited, or not existing, on low-end mobile phones
 	\end{itemize}
 	\begin{itemize} \setlength{\itemsep}{3mm}
             \item Mobile platforms are heterogenous
+            \item Low end phones have very limited resources, especially with regard to code footprint
             \item Run time loading of programs is generally not possible
             \item Development targeting low-end phones is not very expressive
 	\end{itemize}
@@ -170,7 +93,7 @@
 	\\ \mbox{}}
 	\begin{itemize} \setlength{\itemsep}{5mm}
             \item Bottom up, incremental development
-            \item A series of prototypes: parsers, compilers, virtual machines, a Forth dialect, experiments with mobile programming, \emph{Yolan}, \emph{LightScript}
+            \item A series of prototypes: parsers, compilers, virtual machines, \\ a Forth dialect, experiments with mobile programming, \\ \emph{Yolan}, \emph{LightScript}
 	\end{itemize}
 \end{slide}
 
@@ -185,31 +108,66 @@
 \begin{itemize}\addtolength{\itemsep}{-\baselineskip}
 \item Introduction 
 \item Developed languages 
-        \begin{itemize}
-            \item Yolan 
-            \item LightScript 
-            \item Benchmarks 
+        \begin{itemize}\addtolength{\itemsep}{-\baselineskip}
+            \item Overview
+            \item Common design choices and features
+            \item Yolan
+            \item LightScript
+            \item Benchmarks
         \end{itemize}
 \item Conclusion and further work 
 \end{itemize}
 \end{slide}
 
 \begin{slide}
-	{\large Yolan }
-	\begin{itemize} \setlength{\itemsep}{-2mm}
+	\begin{itemize} 
+	\item Yolan
+	\begin{itemize} \setlength{\itemsep}{-3mm}
+            \item Lisp-like syntax, dynamic scope
+            \item First class functions
+            \item Arrays, Hashtables/Objects 
+            \item Evaluation by walking the syntax tree
+            \item 5~KB footprint
+        \end{itemize}
+	\item LightScript
+	\begin{itemize} \setlength{\itemsep}{-3mm}
+            \item JavaScript/EcmaScript subset, static scope
+            \item First class functions with closures
+            \item Arrays, Hashtables/Objects with prototypes
+            \item Parser, compiler, virtual machine
+            \item 11~KB footprint
+	\end{itemize}
+	\end{itemize}
+\end{slide}
+
+\begin{slide}
+	{\large Common design choices and features \\ \mbox{}}
+	\begin{itemize} 
+\setlength{\itemsep}{3mm}
             \item Standard Java classes for built in types: hashtables, stacks, ...
             \item Scripts can be loaded as source code at run time
             \item Online execution
+            \item Runs on CLDC 1.0+
             \item Fast variable access
+            \item Integer only
+            \item Single false value
         \end{itemize}
-	\begin{itemize} \setlength{\itemsep}{-2mm}
+\end{slide}
+
+\begin{slide}
+	{\large Yolan \\ \mbox{} }
+	\begin{itemize} 
+\setlength{\itemsep}{3mm}
+            \item Lisp-like syntax 
             \item Evaluation by walking through the syntax tree, with optimisations at execution time
             \item Single class with static run-time
-            \item Lisp-like syntax, and dynamic scope
-            \item A stepping stone towards -- and mostly deprecated by -- LightScript. Still practical when code footprint is critical
+            \item Dynamic scope
+            \item A stepping stone towards -- and mostly deprecated by -- LightScript. 
+                %Still practical when code footprint is critical
             \item Interesting for benchmarking, and due to tiny code footprint $\approx$~5KB
 	\end{itemize}
 \end{slide}
+
 
 \begin{slide}
 	{\large 
@@ -231,7 +189,7 @@
         \end{itemize}
 \end{slide}
 
-\begin{comment}
+\begin{slide}
 	{\large 
             Benchmarks: Approximate JAR Sizes
 	\\ \mbox{}}
@@ -242,7 +200,7 @@
         \end{tabular}
         \begin{tabular}{|c|r|} \hline
         FScriptME & 17K \\ \hline
-        Jscheme & 29K \\ \hline
+        JScheme & 29K \\ \hline
         Kahlua & 39K \\ \hline
         Hecl & 54K \\ \hline
         Simkin & 81K \\ \hline
@@ -250,23 +208,13 @@
         Rhino & 397K \\ \hline
         \end{tabular}
         \end{center}
-\end{comment}
+\end{slide}
 
 \begin{slide}
 	{\large 
-            Benchmarks: code footprint approximation, and\\ 
-            \mbox{} \hspace{5em} execution~speed
-            }
+            Benchmarks: Speed
+        }
 
-Yolan:~7K,
-~        LightScript~1.0:~14K,\\ 
-~        FScriptME:~17K,
-~        Jscheme:~29K,
-~        Kahlua:~39K,
-~        Hecl:~54K, \\
-~        Simkin:~81K,
-~        CellularBasic:~83K,
-~        Rhino:~397K
         \begin{center} \begin{tabular}{|r|r|r|r|r|r|r|r|rr|} \hline
         & \multicolumn{2}{|l|}{Fibonacci} & \multicolumn{2}{|l|}{Recursion} & \multicolumn{2}{|l|}{For-in} & \multicolumn{2}{|l}{Exceptions} & \\
         & & \multicolumn{2}{|l|}{Loops} & \multicolumn{2}{|l|}{Sieve} & \multicolumn{2}{|l|}{Primes} & \multicolumn{2}{|l|}{Fannkuch} \\
@@ -330,26 +278,12 @@ Yolan:~7K,
 %	\\ \mbox{}
         }
 	\begin{itemize} \setlength{\itemsep}{0mm}
-            \item There are \emph{now} practical scripting languages running on the lowest end mobile phones
+            \item There are now practical scripting languages running on the lowest end mobile phones
 	\end{itemize}
 	\begin{itemize} \setlength{\itemsep}{-2mm}
             \item LightScript can be used to cross the gaps between the heterogenous platforms, as it is targeted low-end phones, and it also runs on high end mobile devices by subsetting EcmaScript
             \item Yolan and LightScript support execution of source code loaded at runtime
             \item LightScript is expressive, having closures, prototypical objects, array and object literals, dynamic typing, ... This opens up for easier and faster development on mobile devices
-	\end{itemize}
-\end{slide}
-
-\begin{slide}
-	{\large 
-            Problem
-	\\ \mbox{}}
-	\begin{itemize} \setlength{\itemsep}{10mm}
-            \item Existing scripting languages are very limited, or not existing, on low-end mobile phones
-	\end{itemize}
-	\begin{itemize} \setlength{\itemsep}{3mm}
-            \item Mobile platforms are heterogenous
-            \item Run time loading of programs is generally not possible
-            \item Development targeting low-end phones is not very expressive
 	\end{itemize}
 \end{slide}
 
