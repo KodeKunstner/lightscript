@@ -1,0 +1,179 @@
+\documentclass[10pt]{article} 
+%\usepackage[paperheight=220mm,paperwidth=170mm]{geometry}
+%\usepackage[paperheight=150mm,paperwidth=200mm]{geometry}
+%\usepackage{geometry}
+\usepackage{a4} 
+\usepackage{makeidx}
+%\usepackage[danish]{babel} 
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{graphicx} 
+\usepackage{verbatim} 
+\usepackage{fancyhdr}
+\usepackage{listings} 
+%\usepackage[colorlinks,pagebackref]{hyperref}
+\usepackage[colorlinks, linkcolor=black, anchorcolor=black, citecolor=black, men
+ucolor=black, pagecolor=black, urlcolor=black]{hyperref}
+%\usepackage{backref}
+\usepackage{url}
+\frenchspacing
+\makeindex
+\pagestyle{plain}
+\lstset{language=python}
+\lstset{escapeinside=~~}
+%\addtolength{\voffset}{-40pt}
+%\addtolength{\textheight}{100pt}
+
+% node in tt
+\newcommand{\n}[1]{{\tt #1}}
+
+% children in tt em
+\newcommand{\ch}[1]{{\tt\em #1}}
+
+% properties em
+\newcommand{\p}[1]{{\em #1}}
+
+% curly brackets
+\newcommand{\lb}[0]{\verb|{|}
+\newcommand{\rb}[0]{\verb|}|}
+
+\title{LightScript$^{2}$}
+\author{Rasmus Jensen\footnote{rasmus@lightscript.net}}
+\begin{document}
+
+\maketitle
+\section{Language introduction}
+\subsection{Design motivation}
+\subsection{Scope}
+\subsection{Syntaxes}
+\subsubsection{LightScript}
+\subsubsection{MoPy}
+\subsection{Backends}
+\subsubsection{JavaScript 1.7}
+\subsubsection{EcmaScript}
+\subsubsection{Virtual machine}
+7-register strongly typed virtual machine for easy compilation to native x84 and arm-thumb. register 0 is used for state-pointer on arm, and stack-pointer on x86.
+register 1/2/3 are for parameter passing/return, and thus implicit source and destination for some operations
+
+
+types: any, string, int, float, object, array, function
+\paragraph{Java implementation}
+\paragraph{C implementation}
+\paragraph{Native code gen}
+\subsubsection{Java - compiled}
+\section{Abstract syntax tree nodes}
+\subsection{Object properties}
+\subsubsection{\em nodetype}
+The kind of AST node, for example \n{for} loop, \n{this} reference, or \n{string} literal. 
+\subsubsection{\em datatype}
+Static type information for the node. Not yet used, but will be in future versions.
+\subsubsection{\em children}
+Child nodes 
+\subsubsection{\em comment}
+Comment applicable to this node and following sibling nodes until next comment. This will typically be rendered as:
+\begin{verbatim}
+    ... precedingSiblingNode;
+
+    // text in
+    // comment
+    statementFromThisNode;
+    statementFollowingSiblingNode;
+\end{verbatim}
+with an empty line before the comment.
+
+\subsubsection{Position: \em begin end}
+\p{begin} and \p{end} refer to the position of the beginning and end of this node in a parsed file. Used for error reporting, an may be dummy values, if not a parsed file.
+The positions are objects, TODO: define position objects.
+
+\subsection{Superobject properties}
+\subsubsection{\em version}
+The language version of the node, currently ``2.0.0''.
+
+\subsection{Control flow}
+\subsubsection{\tt begin \em stmt1 stmt2 ...}
+Sequenced statements, semantically equivalent to \verb|{| \ch{stmt1} \verb|;| \ch{stmt2} \verb|;| ... \verb|}|
+\subsubsection{\tt for \em element sequence statements}
+
+For each \ch{element} in the \ch{sequence} object, execute the \ch{statements}.
+The \ch{sequence} is enumerated similarly to Python, such that the \ch{element}s are the individual values of a list, or the keys of a dictionary. 
+
+In new versions of JavaScript, the semantic equivalent would be: {\tt for(\ch{element} in LightScriptIterator(\ch{sequence})) \ch{statements}},
+which in old versions of JavaScript can be implemented as: 
+{\tt try \verb|{| {\em iter} = LightScriptIterator({\em sequence}); for(;;) \verb|{| 
+    {\em element} = {\em iter}.next();
+    {\em statements}
+\verb|}| \verb|}| catch(e) \verb|{| if(e !== StopIteration) throw e; \verb|}|}, where \ch{iter} is a local temporary variable name.
+
+\subsubsection{\tt and \em stmt1 stmt2}
+Equivalent to: \ch{stmt1} \verb|&&| \ch{stmt2}
+\subsubsection{\tt or \em stmt1 stmt2}
+Equivalent to: \ch{stmt1} \verb]||] \ch{stmt2}
+\subsubsection{\tt while \em cond body}
+Equivalent to: \verb|while(|\ch{cond}\verb|)| \ch{stmt2}
+\subsubsection{\tt cond \em cond1 body1 ... condn bodyn elsebody}
+Conditional, if-elif-else. Last \ch{elsebody} is optional, and if omitted there wille be no else branch.
+This is equivalent to:
+\begin{verbatim}
+if(cond1) {
+    body1
+} else if( ...
+...
+} else if(condn) {
+    bodyn
+} else {
+    elsebody
+}
+\end{verbatim}
+\subsubsection{\tt try \em body varname except-body}
+Equivalent to: \verb|try{| \ch{body} \verb|}catch(| \ch{varname} \verb|){| \ch{except-body} \verb|}|
+Notice that varname may only be used locally within \ch{except-body} and not anywhere else in the local scope.
+\subsubsection{\tt return \em value}
+Equivalent to: \verb|return| \ch{value}
+\subsubsection{\tt throw \em value}
+Equivalent to: \verb|throw| \ch{value}
+\subsubsection{\tt function \em name params locals body}
+\subsubsection{\tt assign \em name value}
+
+\subsection{Literal values}
+\subsubsection{\tt array \em val1 val2 ...}
+\subsubsection{\tt dictionary \em key1 val1 key2 val2 ...}
+\subsubsection{Simple values: \tt string number} 
+{\tt string}, {\tt number}
+\subsubsection{Constant values: \tt true false undefined}
+\n{true}, \n{false}, \n{undefined}
+
+\subsection{References}
+\subsubsection{\tt varname}
+\p{scope}
+\subsubsection{Special values: \tt this global}
+\n{this} \n{global}
+\subsubsection{\tt nil}
+\subsubsection{\tt get} 
+Array/object/string subscripting
+\subsubsection{\tt put} 
+Subscript assignment
+
+\subsection{Builtin functions}
+The following operations first evaluate all their arguments, and then execute the function and return the result. They can all be used as expressions.
+\subsubsection{Unary functions}
+Unary functions are usually written with prefix notation, for example \verb|!False|.
+\paragraph{\tt clone} Prototypal object creation
+\paragraph{\tt not} Logical negation
+\paragraph{\tt neg} Arithmetic negation
+\paragraph{\tt len} Get the length of an array/string/... use this instead of \verb|blah.length|, to avoid magic properties.
+\paragraph{\tt str} Convert to string
+\paragraph{\tt num} Convert to number
+\subsubsection{Binary functions}
+Binary functions are usually written with infix notation, for example \verb|6 * 7|.
+\paragraph{\tt add} Numeral addition or string join. Notice that LightScript requires the operands to have same type for easier future updates to the languag
+\paragraph{\tt sub mul div rem} Subtraction, multiplication, floating division, or remainder, only for numbers
+\paragraph{\tt less leq geq greater} Comparison, operands must have same type and be either strings or numbers
+\paragraph{\tt eq neq} Equality test, works for any type
+
+\section{JavaScript code definitions used}
+\verbatiminput{ls2lib.js}
+
+\end{document}
