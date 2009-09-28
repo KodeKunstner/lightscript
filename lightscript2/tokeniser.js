@@ -138,13 +138,13 @@ tokenise = function(inputstream) {
                 return new_token("string", s, quote);
     
             // Number
-            } else if(one_of(digits) || (one_of(".-") && within(peek(1,1), digits))) {
+            } else if(one_of(digits)) {
                 s = pop();
                 subtype = "int";
     
                 // normal or hexadecimal
                 if(peek() !== 'x') {
-                    while(one_of(".-e" + digits)) {
+                    while(one_of(".e" + digits)) {
                         if(peek() == ".") {
                             subtype = "float";
                         }

@@ -4,13 +4,15 @@ if(global.StopIteration === undefined) {
     global.StopIteration = "StopIteration exception"
 }
 
+LightScript = {}
+
 LightScriptIterator = (function(){
-    function LightScriptArrayIterator(seq) {
+    var ArrayIterator = function(seq) {
         this.pos = -1;
         this.seq= seq;
     }
-    LightScriptArrayIterator.prototype.__iterator__ = function() { return this; };
-    LightScriptArrayIterator.prototype.next = function() { 
+    ArrayIterator.prototype.__iterator__ = function() { return this; };
+    ArrayIterator.prototype.next = function() { 
         var pos = ++this.pos;
         var seq = this.seq;
         if(pos < seq.length) {
@@ -24,7 +26,7 @@ LightScriptIterator = (function(){
         if(seq.__iterator__ !== undefined) {
             return seq.__iterator__();
         } else if(seq instanceof Array || typeof(seq) === "string") {
-            return new LightScriptArrayIterator(seq);
+            return new ArrayIterator(seq);
         } else {
             var keys = [];
             var elem;

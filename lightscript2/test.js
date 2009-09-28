@@ -1,9 +1,12 @@
 load("ls2lib.js");
 load("stdin.js");
-load("token.js");
 load("tokeniser.js");
+load("parser.js");
 
-tokens = tokenise(stdin);
-for(token in tokens) {
-    print(token.val);
+while(c = parse()) {
+    print(c.val);
 }
+//tokens = tokenise(stdin);
+//for(token in tokens) {
+    //print(token.val);
+//}
