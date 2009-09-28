@@ -118,7 +118,7 @@ tokenise = function(inputstream) {
                     s += pop();
                 }
                 pop(3);
-                return new_token("string", s);
+                return new_token("string", s, '"""');
     
             // String
             } else if(one_of("'\"")) {
