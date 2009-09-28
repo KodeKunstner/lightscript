@@ -8,29 +8,75 @@ LightScript version 2.0.0
         - position in file
         - comment (line above, lasting until next comment)
 
+    Sexpr:
+        - true false undefined
+        - this global ()
+        - (number num)
+        - (string str)
+        - (array elem1 ...) 
+        - (dict key1 val1 ...)
+        - (begin stmt1 ...)
+        - (function (name arg1 ...) (locals ...) (begin ...))
+        - (for name list (begin ...))
+        - (while cond (begin ...))
+        - (cond cond1 (begin ...) cond2 (begin ...) (begin ...))
+        - (try (begin ...) var (begin ...))
+        - (put seq key value)
+        - (get seq key)
+        - (call object method param1 param2 ...) 
+            - (call () function param1 param2 ...)
+        - (throw object)
+        - (return object)
+        - (comment str)
+        - not, neg, add, sub, mul, div, rem, less, leq, eq, geq, greater, ...
+        - len, clone
+
+    Combined parser and prettyprinter:
+        "function": {
+            "lbp": function() {
+                ...
+            }
+            "nud": function() { 
+                ...
+             },
+             "prettyprint": function(indent) {
+                ...
+             }
+        }
+
+        infix("equals", "==", 50);
+
     Node types:
         - literal
-            - subtype: (string, boolean, number, void, array, dictionary)
+            - subtype: (string, boolean, number, undefined)
+            - val
+        - initialisation
+            - subtype: (array, dictionary)
+            - children: ([elem0, elem1, ...], [key0, val0, key1, val1, ...])
         - function definition
-            - name
             - docstring
             - locals
-        - for
+            - children: [name, code-block, params]
+        - for-in
+            - children: [elem, list, code-block]
         - while
-        - cond
+            - children: [condition, code-block]
+        - if-else
+            - children: [cond0, block0, cond1, block1, ..., optional-else-block]
+        - code-block
         - try-except
-        - raise
-        - return
-        - set (x = blah)
+            - children: [try-block, name, except-block]
         - put (x.foo = blah)
-        - get (x.foo)
-        - comparisons (< > === <= >=)
-        - this
-        - identifier / variable-resolve
-        - method call
-        - function call
-        - operator
-            - subtype: (+, -, *, /)
+        - set (x = blah)
+        - var-name
+            - scope: (local, outer)
+        - method call 
+        - special-name
+            - subtype: (global, this, void)
+        - exit
+            - subtype: throw, return
+        - builtin pure function
+            - subtype: (!, -, subscript, +, -, *, /, <, >, ==, !=, <=, >=)
 
     Builtin functions
         - str(obj)

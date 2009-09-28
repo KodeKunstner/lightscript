@@ -21,7 +21,7 @@ LightScriptArrayIterator.prototype.next = function() {
 
 function LightScriptIterator(seq) {
     if(seq.__iterator__ !== undefined) {
-        return seq.___iterator__();
+        return seq.__iterator__();
     } else if(seq instanceof Array || typeof(seq) === "string") {
         return new LightScriptArrayIterator(seq);
     } else {
@@ -32,8 +32,4 @@ function LightScriptIterator(seq) {
         }
         return LightScriptIterator(keys);
     }
-}
-
-for(c in LightScriptIterator("Hello world")) {
-    print(c);
 }

@@ -73,14 +73,8 @@ tokenise = function(inputstream) {
         start = current_position();
     }
     
-    function new_token(type, val) {
-        var result = {
-            "type": type, 
-            "val": val,
-            "start": start,
-            "end": current_position(),
-            "newline": newline,
-            "comment": comment };
+    function new_token(type, val, subtype) {
+        var result = Token(type, val, subtype, start, current_position, newline, comment);
         newline = false;
         comment = "";
         return result;
@@ -89,11 +83,11 @@ tokenise = function(inputstream) {
     function next() {
         var whitespace = " \t\r";
         var single_symbol = "(){}[].:;,";
-        var joined_symbol = "=+-*/<>%!";
-        var ident = "_$qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM";
+        var joined_symbol = "=+-*/<>%!|&";
+        var ident = "_qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM";
         var digits = "0123456789";
         var hexdigits = digits + "abcdefABCDEF";
-        var s, c, quote;
+        var s, c, quote, subtype;
     
         // repeat until token parsed
         while(true) {
@@ -115,7 +109,6 @@ tokenise = function(inputstream) {
                     s += pop();
                 }
                 comment = comment + s + "\n";
-                print("Comment: " + comment);
     
             // Unescaped string
             } else if(starts_with('"""')) {
@@ -142,24 +135,32 @@ tokenise = function(inputstream) {
     
                 // remove end-quote
                 pop();
-                return new_token("string", s);
+                return new_token("string", s, quote);
     
             // Number
             } else if(one_of(digits) || (one_of(".-") && within(peek(1,1), digits))) {
                 s = pop();
+                subtype = "int";
     
                 // normal or hexadecimal
                 if(peek() !== 'x') {
                     while(one_of(".-e" + digits)) {
+                        if(peek() == ".") {
+                            subtype = "float";
+                        }
+                        if(peek() == "e") {
+                            subtype = "scientific";
+                        }
                         s += pop();
                     }
                 } else {
+                    subtype = "hexadecimal";
                     s = pop(2);
                     while(one_of(hexdigit)) {
                         s += pop();
                     }
                 }
-                return new_token("number", s);
+                return new_token("number", s, subtype);
     
             // Symbol
             } else if(one_of(single_symbol)) {
