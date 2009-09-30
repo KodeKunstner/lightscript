@@ -66,7 +66,10 @@ token_prototype.readlist = function(list) {
     try {
         while(token.val !== this.rparen) {
             // TODO: handle end of file
-            list.push(parse());
+            var t = parse();
+            if(t.id !== "separator") {
+                list.push(t);
+            }
         }
     token = next_token()
     } catch(e) {
@@ -179,6 +182,18 @@ var tok = function(id) {
     return token_handler[id];
 }
 
+var block = function(node) {
+    if(node.id !== "dict") {
+        var result = Token("identifier", "begin").nud();
+        result.id = "begin";
+        result.children = [node];
+        return result;
+    } else {
+        node.id = "begin";
+        return node;
+    }
+}
+
 // Default nuds/leds
 tok("(symbol)").nud_op = function() { this.syntax_error(this.val + " is not af prefix function"); }
 
@@ -230,7 +245,7 @@ l("=", infix, 100, function() {
             this.children.unshift(this.children[0].children[0]);
             this.children[1] = this.children[1].children[1];
         } else {
-            this.id = "call";
+            this.id = "set";
         }
         return this;
 });
@@ -239,28 +254,56 @@ l("+=", infix, 100, "TODO:op=");
 //l(",", infixr, 40, "separator");
 
 // Nuds
-n("(", paren, "TODO:paren");
-n("{", paren, "TODO:curly");
+n("(", paren, function() {
+        
+        if(this.children.length === 1) {
+            return this.children[0];
+        } else {
+            this.id = "paren";
+            this.children = this.children.filter(function(o) { 
+                print("HERE!");
+                if(o.id !== "separator") {
+                    return true;
+                }
+                if(o.val !== ",") {
+                    o.syntax_error("Unexpected seperator in (...) list");
+                }
+                return false;
+            });
+        }
+        return this;
+});
+n("{", paren, "dict");
 n("[", paren, "list");
 n("var", prefix, "TODO:var");
 n("return", prefix, "return");
 n("-", prefix, "neg");
 n("!", prefix, "not");
-n("function", prefix2, "TODO:function");
+n("function", prefix2, function() {
+        this.id = "function";
+        this.children[1] = block(this.children[1]);
+        return this;
+});
 n("if", prefix2, function() {
         this.id = "cond";
         if(this.children[1].id === "else") {
             var tmp = this.children[1];
-            this.children[1] = tmp.children[0];
+            this.children[1] = block(tmp.children[0]);
             if(tmp.children[1].id == "cond") {
                 this.children = this.children.concat(tmp.children[1].children);
             } else {
-                this.children.push(tmp.children[1]);
+                this.children.push(block(tmp.children[1]));
             }
+        } else {
+            this.children[1] = block(this.children[1]);
         }
         return this;
 });
-n("while", prefix2, "while");
+n("while", prefix2, function() {
+        this.id = "while";
+        this.children[1] = block(this.children[1]);
+        return this;
+});
 n(";", atom, "separator");
 n(":", atom, "separator");
 n(",", atom, "separator");
@@ -272,7 +315,8 @@ n("false", atom, "false");
 n("True", atom, "true");
 n("False", atom, "false");
 
-var TOKEN_UNDEFINED = Token("identifier", "undefined", undefined).nud();
+var TOKEN_VOID = Token("identifier", "undefined", undefined).nud();
+TOKEN_VOID.id = "void";
 
 // Test code, just run on standard in while in development
 var tokens = tokenise(stdin);
@@ -302,10 +346,23 @@ var parser = {
 };
 
 function() {
-if(a) {
-} else if(b) {
-} else if(c) {
-} else {
-}
+    A();
+    B(b);
+    C(c,c);
+    D(d,d,d);
+    E(e,e,e,e);
+};
+
+function() {
+    if(1) {
+    A();
+    } else if(2) {
+    B(b);
+    } else if(3) {
+    C(c,c);
+    } else {
+    D(d,d,d);
+    E(e,e,e,e);
+    }
 };
 
