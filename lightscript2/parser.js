@@ -1,39 +1,25 @@
 function Token(type, val, subtype, start, end, newline, comment) {
     var token, nud, led, bp;
+    var token_type = tok("(" + type + ")");
+    if(token_type === undefined) {
+        throw "internal error, unsupported token type: " + type;
+    }
 
-    // set nud/led/bp based on type
-    if(type === "string" || type === "number") {
-        nud = default_nud;
-        led = syntax_error("infix string");
-        bp = 0;
-    } else  {
-        nud = nuds[val];
-        led = leds[val] || syntax_error("unsupported infix symbol");
-        bp = bps[val] || 0;
-        if(type === "symbol") {
-            nud = nud || syntax_error("unsupported prefix symbol");
-        } else if(type === "identifier") {
-            nud = nud || default_nud;
-        } else {
-            throw "Unexpected token type";
-        }
+    if((type === "symbol" || type === "identifier") && token_handler[val] !== undefined) {
+        token_type = token_handler[val];
     }
 
     // create token object
-    token = Object.create(token_prototype);
+    token = Object.create(token_type);
     token.type = type;
     token.val = val;
     token.start = start;
     token.end = end;
     token.newline = newline;
     token.comment = comment;
-    token.nud = nud;
-    token.led = led;
-    token.bp = bp;
     return token;
 };
 
-token_prototype = {};
 
 default_nud = function() { 
     this.children = [];
@@ -46,89 +32,78 @@ syntax_error = function(str) {
     }
 };
 
+token_prototype = {};
+token_prototype.bp = 0;
 token_prototype.readlist = function(list, lparen) {
     while(token.val !== lparen) {
 
         // TODO: handle end of file
         list.push(parse());
     }
-    this.end = token.end;
     token = next_token()
     return list;
 }
 
+
 infix = function(id, name, bp) {
     bp = bp || 0;
-    bps[name] = bp;
-    leds[name] = function(left) {
-        this.id = id;
-        this.subtype = "infix";
+    tok(name).bp = bp;
+    tok(name).lid = id;
+    tok(name).led = function(left) {
         var children = [left, parse(bp)];
         this.children = children;
-        this.start = children[0].start;
-        this.end = children[1].end;
         return this;
     };
 };
 
 infixr = function(id, name, bp) {
     bp = bp || 0;
-    bps[name] = bp;
-    leds[name] = function(left) {
-        this.id = id;
-        this.subtype = "infixr";
+    tok(name).bp = bp;
+    tok(name).lid = id;
+    tok(name).led = function(left) {
         var children = [left, parse(bp - 1)];
         this.children = children
-        this.start = children[0].start;
-        this.end = children[1].end;
         return this;
     };
 };
 
 infixparen = function(id, name, lparen, bp) {
     bp = bp || 0;
-    bps[name] = bp;
-    leds[name] = function(left) {
-        this.id = id;
-        this.subtype = "infixparen";
+    tok(name).bp = bp;
+    tok(name).lid = id;
+    tok(name).led = function(left) {
         this.children = this.readlist([left], lparen);
-        this.start = this.children[0].start;
         return this;
     }
 }
 
 paren = function(id, name, lparen) {
-    nuds[name] = function() {
-        this.id = id;
-        this.subtype = "paren";
+    tok(name).nid = id;
+    tok(name).nud = function() {
         this.children = this.readlist([], lparen);
         return this;
     }
 }
 
 function prefix(id, name) { 
-    nuds[name] = function() {
-        this.id = id;
-        this.subtype = "prefix";
+    tok(name).nid = id;
+    tok(name).nud = function() {
         this.children = [parse()];
-        this.end = this.children[0].end;
         return this;
     }
 }
 function prefix2(id, name) {
-    nuds[name] = function() {
-        this.id = id;
-        this.subtype = "prefix";
+    tok(name).nid = id;
+    tok(name).nud = function() {
         this.children = [parse(), parse()];
-        this.end = this.children[1].end;
         return this;
     }
 }
 
 function atom(id, name) { 
-    nuds[name] = function() {
-        this.id = id;
-        this.subtype = "prefix";
+    tok(name).nid = id;
+    tok(name).ntype = "atom";
+    tok(name).nud = function() {
         this.children = [];
         return this;
     }
@@ -136,9 +111,23 @@ function atom(id, name) {
 // \end TODO
 
 
-var nuds = {};
-var bps = {};
-var leds = {};
+var token_handler = {};
+function tok(id) {
+    if(token_handler[id] === undefined) {
+        token_handler[id] = Object.create(token_prototype);
+    }
+    return token_handler[id];
+}
+
+// Default nuds/leds
+tok("(string)").nud = default_nud;
+tok("(string)").led = syntax_error("infix string");
+tok("(number)").nud = default_nud;
+tok("(number)").led = syntax_error("infix number");
+tok("(identifier)").nud = default_nud;
+tok("(identifier)").led = syntax_error("unsupported infix identifier");
+tok("(symbol)").nud = syntax_error("unsupported prefix symbol");
+tok("(symbol)").led = syntax_error("unsupported infix symbol");
 
 infix("subscript", ".", 700);
 infixparen("apply", "(", ")", 600);
