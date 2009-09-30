@@ -35,10 +35,10 @@ syntax_error = function(str) {
 token_prototype = {};
 token_prototype.bp = 0;
 token_prototype.readlist = function(list) {
-    if(this.lparen === undefined) {
+    if(this.rparen === undefined) {
         throw "Error: no end-paren-type for '" + this.token_type + "' in line " + this.start.line;
     }
-    while(token.val !== this.lparen) {
+    while(token.val !== this.rparen) {
 
         // TODO: handle end of file
         list.push(parse());
@@ -81,41 +81,41 @@ infixr = function(left) {
 }
 
 infixparen = function(left) {
-        this.children = this.readlist([left], this.lparen);
+        this.children = this.readlist([left], this.rparen);
         return this;
 }
 
-paren = function(id, name, lparen) {
-    tok(name).nid = id;
-    tok(name).nud = function() {
-        this.children = this.readlist([], lparen);
-        return this;
+nud = function(name, op, gen_id) {
+    if(typeof(id) === "string") {
+        tok(name).nud_op = op;
+        tok(name).nid = gen_id;
+        tok(name).nud = function() {
+            this.id = this.nid;
+            return this.nud_op();
+        }
+    } else {
+        tok(name).nud = op;
     }
 }
 
-function prefix(id, name) { 
-    tok(name).nid = id;
-    tok(name).nud = function() {
+prefix = function() {
         this.children = [parse()];
         return this;
     }
-}
-function prefix2(id, name) {
-    tok(name).nid = id;
-    tok(name).nud = function() {
+prefix2 = function() {
         this.children = [parse(), parse()];
         return this;
     }
-}
 
-function atom(id, name) { 
-    tok(name).nid = id;
-    tok(name).ntype = "atom";
-    tok(name).nud = function() {
+atom = function() {
         this.children = [];
         return this;
     }
-}
+
+paren = function() {
+        this.children = this.readlist([], this.rparen);
+        return this;
+    }
 
 
 var token_handler = {};
@@ -137,12 +137,15 @@ tok("(identifier)").led = syntax_error("unsupported infix identifier");
 tok("(symbol)").nud = syntax_error("unsupported prefix symbol");
 tok("(symbol)").led = syntax_error("unsupported infix symbol");
 
+// Define what opposing parentheses matches
+tok("(").rparen = ")";
+tok("[").rparen = "]";
+tok("{").rparen = "}";
+
+// Leds
 led(".", infix, 700, "subscript");
 led("(", infixparen, 600, "apply");
-tok("(").lparen = ")";
 led("[", infixparen, 600, "subscript");
-tok("[").lparen = "]";
-tok("{").lparen = "}";
 led("*", infix, 500, "mul");
 led("/", infix, 500, "div");
 led("%", infix, 500, "rem");
@@ -154,6 +157,8 @@ led("!=", infix, 300, "neq");
 led("!==", infix, 300, "neq");
 led("<=", infix, 300, "leq");
 led("<", infix, 300, "less");
+led(">=", infix, 300, "geq");
+led(">", infix, 300, "greater");
 led("&&", infixr, 200, "and");
 led("||", infixr, 200, "or");
 led("else", infixr, 200);
@@ -161,24 +166,26 @@ led("=", infix, 100, "set");
 led("+=", infix, 100);
 led(",", infix, 50);
 led(":", infix, 50);
-paren(undefined, "(", ")", 0);
-paren("dict", "{", "}", 0);
-paren("list", "[", "]", 0);
-atom(undefined, ";");
-prefix(undefined, "var");
-prefix("return", "return");
-prefix("neg", "-");
-prefix("not", "!");
-prefix2("function", "function");
-prefix2("if", "if");
-prefix2("while", "while");
-atom("nil", "undefined");
-atom("nil", "null");
-atom("nil", "None");
-atom("true", "true");
-atom("false", "false");
-atom("true", "True");
-atom("false", "False");
+
+// Nuds
+nud("(", paren);
+nud("{", paren, "dict");
+nud("[", paren, "list");
+nud("var", prefix);
+nud("return", prefix, "return");
+nud("-", prefix, "neg");
+nud("!", prefix, "not");
+nud("function", prefix2, "function");
+nud("if", prefix2, "if");
+nud("while", prefix2, "while");
+nud(";", atom);
+nud("undefined", atom, "nil");
+nud("null", atom, "nil");
+nud("None", atom, "nil");
+nud("true", atom, "true");
+nud("false", atom, "false");
+nud("True", atom, "true");
+nud("False", atom, "false");
 
 tokens = tokenise(stdin);
 
