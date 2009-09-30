@@ -250,26 +250,20 @@ l("=", infix, 100, function() {
         return this;
 });
 l("+=", infix, 100, "TODO:op=");
-//l(":", infixr, 60, "separator");
-//l(",", infixr, 40, "separator");
+// TODO: Below, should these be represented and worked with as linked lists,
+// or just thrown away while making lists. Currently just thrown away to get
+// implementation up and running, but later use as linked-list for tuples 
+// etc.
+//l(":", infixr, 60, "colon");
+//l(",", infixr, 40, "tuple");
 
 // Nuds
 n("(", paren, function() {
-        
+        // TODO should only be paren and not list later on.
         if(this.children.length === 1) {
             return this.children[0];
         } else {
             this.id = "paren";
-            this.children = this.children.filter(function(o) { 
-                print("HERE!");
-                if(o.id !== "separator") {
-                    return true;
-                }
-                if(o.val !== ",") {
-                    o.syntax_error("Unexpected seperator in (...) list");
-                }
-                return false;
-            });
         }
         return this;
 });
