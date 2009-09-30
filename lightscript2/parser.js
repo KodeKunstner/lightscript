@@ -34,8 +34,11 @@ syntax_error = function(str) {
 
 token_prototype = {};
 token_prototype.bp = 0;
-token_prototype.readlist = function(list, lparen) {
-    while(token.val !== lparen) {
+token_prototype.readlist = function(list) {
+    if(this.lparen === undefined) {
+        throw "Error: no end-paren-type for '" + this.token_type + "' in line " + this.start.line;
+    }
+    while(token.val !== this.lparen) {
 
         // TODO: handle end of file
         list.push(parse());
@@ -44,37 +47,42 @@ token_prototype.readlist = function(list, lparen) {
     return list;
 }
 
-
-infix = function(id, name, bp) {
-    bp = bp || 0;
-    tok(name).bp = bp;
-    tok(name).lid = id;
-    tok(name).led = function(left) {
-        var children = [left, parse(bp)];
-        this.children = children;
-        return this;
-    };
-};
-
-infixr = function(id, name, bp) {
-    bp = bp || 0;
-    tok(name).bp = bp;
-    tok(name).lid = id;
-    tok(name).led = function(left) {
-        var children = [left, parse(bp - 1)];
-        this.children = children
-        return this;
-    };
-};
-
-infixparen = function(id, name, lparen, bp) {
-    bp = bp || 0;
-    tok(name).bp = bp;
-    tok(name).lid = id;
-    tok(name).led = function(left) {
-        this.children = this.readlist([left], lparen);
-        return this;
+function led(name, op, bp, gen_id) {
+    if(bp !== undefined) {
+        tok(name).bp = bp;
     }
+    if(typeof(gen_id) === "function") {
+        tok(name).led_op = op;
+        tok(name).lupdate = gen_id;
+        tok(name).led = function(left) {
+            var new_this = this.led_op(left);
+            return new_this.lupdate();
+        }
+    } else if(typeof(gen_id) === "string") {
+        tok(name).led_op = op;
+        tok(name).lid = gen_id;
+        tok(name).led = function(left) {
+            this.id = this.lid;
+            return this.led_op(left);
+        }
+    } else {
+        tok(name).led = op;
+    }
+}
+
+infix = function(left) {
+        this.children = [left, parse(this.bp)]; 
+        return this;
+}
+
+infixr = function(left) {
+        this.children = [left, parse(this.bp - 1)]; 
+        return this;
+}
+
+infixparen = function(left) {
+        this.children = this.readlist([left], this.lparen);
+        return this;
 }
 
 paren = function(id, name, lparen) {
@@ -108,13 +116,13 @@ function atom(id, name) {
         return this;
     }
 }
-// \end TODO
 
 
 var token_handler = {};
 function tok(id) {
     if(token_handler[id] === undefined) {
         token_handler[id] = Object.create(token_prototype);
+        token_handler[id].token_type = id;
     }
     return token_handler[id];
 }
@@ -129,27 +137,30 @@ tok("(identifier)").led = syntax_error("unsupported infix identifier");
 tok("(symbol)").nud = syntax_error("unsupported prefix symbol");
 tok("(symbol)").led = syntax_error("unsupported infix symbol");
 
-infix("subscript", ".", 700);
-infixparen("apply", "(", ")", 600);
-infixparen("subscript", "[", "]", 600);
-infix("mul", "*", 500);
-infix("div", "/", 500);
-infix("rem", "%", 500);
-infix("add", "+", 400);
-infix("sum", "-", 400);
-infix("eq", "===", 300);
-infix("eq", "==", 300);
-infix("neq", "!=", 300);
-infix("neq", "!==", 300);
-infix("leq", "<=", 300);
-infix("less", "<", 300);
-infixr("and", "&&", 200);
-infixr("or", "||", 200);
-infixr(undefined, "else", 200);
-infix("set", "=", 100);
-infix("+=", 100);
-infix(undefined, ",", 50);
-infix(undefined, ":", 50);
+led(".", infix, 700, "subscript");
+led("(", infixparen, 600, "apply");
+tok("(").lparen = ")";
+led("[", infixparen, 600, "subscript");
+tok("[").lparen = "]";
+tok("{").lparen = "}";
+led("*", infix, 500, "mul");
+led("/", infix, 500, "div");
+led("%", infix, 500, "rem");
+led("+", infix, 400, "add");
+led("-", infix, 400, "sum");
+led("===", infix, 300, "eq");
+led("==", infix, 300, "eq");
+led("!=", infix, 300, "neq");
+led("!==", infix, 300, "neq");
+led("<=", infix, 300, "leq");
+led("<", infix, 300, "less");
+led("&&", infixr, 200, "and");
+led("||", infixr, 200, "or");
+led("else", infixr, 200);
+led("=", infix, 100, "set");
+led("+=", infix, 100);
+led(",", infix, 50);
+led(":", infix, 50);
 paren(undefined, "(", ")", 0);
 paren("dict", "{", "}", 0);
 paren("list", "[", "]", 0);
