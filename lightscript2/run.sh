@@ -1,2 +1,2 @@
 #!/bin/sh
-js test.js < tokeniser.js
+js test.js < parser.js

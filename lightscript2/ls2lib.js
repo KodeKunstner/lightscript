@@ -4,6 +4,16 @@ if(global.StopIteration === undefined) {
     global.StopIteration = "StopIteration exception"
 }
 
+if(Object.create === undefined) {
+    Object.create = function(obj) {
+        F = function() {};
+        F.prototype = obj;
+        return new F();
+    }
+} else if(typeof(Object.create) !== "function") {
+    throw "Error: Object.create is not the cloning function";
+}
+
 LightScript = {}
 
 LightScriptIterator = (function(){
