@@ -20,7 +20,6 @@ function Token(type, val, subtype, start, end, newline, comment) {
     return token;
 };
 
-
 default_nud = function() { 
     this.children = [];
     return this; 
@@ -81,7 +80,7 @@ infixr = function(left) {
 }
 
 infixparen = function(left) {
-        this.children = this.readlist([left], this.rparen);
+        this.children = this.readlist([left]);
         return this;
 }
 
@@ -99,23 +98,24 @@ nud = function(name, op, gen_id) {
 }
 
 prefix = function() {
-        this.children = [parse()];
-        return this;
-    }
+    this.children = [parse()];
+    return this;
+}
+
 prefix2 = function() {
-        this.children = [parse(), parse()];
-        return this;
-    }
+    this.children = [parse(), parse()];
+    return this;
+}
 
 atom = function() {
-        this.children = [];
-        return this;
-    }
+    this.children = [];
+    return this;
+}
 
 paren = function() {
-        this.children = this.readlist([], this.rparen);
-        return this;
-    }
+    this.children = this.readlist([]);
+    return this;
+}
 
 
 var token_handler = {};
@@ -142,8 +142,10 @@ tok("(").rparen = ")";
 tok("[").rparen = "]";
 tok("{").rparen = "}";
 
-// Leds
+// TODO: change variable name to string, and add flag.
 led(".", infix, 700, "subscript");
+
+// Leds
 led("(", infixparen, 600, "apply");
 led("[", infixparen, 600, "subscript");
 led("*", infix, 500, "mul");
@@ -187,6 +189,7 @@ nud("false", atom, "false");
 nud("True", atom, "true");
 nud("False", atom, "false");
 
+// Test code, just run on standard in while in development
 tokens = tokenise(stdin);
 
 function next_token() {
@@ -194,15 +197,15 @@ function next_token() {
         return token;
 }
 
-token = tokens.next();
+next_token();
 parse = function(rbp) {
     rbp = rbp || 0;
     var t = token;
-    token = next_token();
+    next_token();
     var left = t.nud();
     while(rbp < token.bp) {
         t = token;
-        token = next_token();
+        next_token();
         left = t.led(left);
     }
     return left
