@@ -12,10 +12,11 @@ function Token(type, val, subtype, start, end, newline, comment) {
     // create token object
     token = Object.create(token_type);
     token.type = type;
+    token.id = token.type;
     token.val = val;
     token.start = start;
     token.end = end;
-    if(comment != "") {
+    if(typeof(comment) === "string" && comment !== "") {
         token.comment = comment;
     }
     if(newline) {
@@ -40,6 +41,20 @@ token_prototype.newline= false;
 token_prototype.children = [];
 
 // Utility functions
+token_prototype.to_string = function() {
+    if(this.id === "string") {
+        return '"' + this.val + '"';
+    } 
+    if(this.id === "identifier" || this.id === "number") {
+        return this.val
+    } 
+    var result = "(" + this.id;
+
+    for(child in LightScriptIterator(this.children)) {
+        result += " " + child.to_string();
+    }
+    return result + ")";
+}
 token_prototype.syntax_error = function(msg) {
     throw "Syntax error at line " + this.start.line + ": " + msg;
 }
@@ -173,13 +188,25 @@ tok("[").rparen = "]";
 tok("{").rparen = "}";
 
 // Leds
-l(".", infix, 700, "subscript", function() {
+l(".", infix, 700, function() {
+        this.id = "subscript";
         var key = this.children[1];
-        assert(key.type === "identifier");
-        key.type = "string";
+        if(key.type !== "identifier") {
+            this.syntax_error("unexpected entity within dot-notation");
+        }
+        key.id = "string";
         key.subtype= "dot_identifier";
+        return this;
 });
-l("(", infixparen, 600, "apply");
+l("(", infixparen, 600, function() {
+        if(this.children[0].id == "subscript") {
+            this.subtype = "method"
+        } else {
+            this.subtype = "function"
+        }
+        this.id = "call";
+        return this;
+});
 l("[", infixparen, 600, "subscript");
 l("*", infix, 500, "mul");
 l("/", infix, 500, "div");
@@ -196,24 +223,47 @@ l(">=", infix, 300, "geq");
 l(">", infix, 300, "greater");
 l("&&", infixr, 200, "and");
 l("||", infixr, 200, "or");
-l("else", infixr, 200);
-l("=", infix, 100, "set");
-l("+=", infix, 100);
-l(",", infix, 50);
-l(":", infix, 50);
+l("else", infixr, 100, "else");
+l("=", infix, 100, function() {
+        if(this.children[0].id == "subscript") {
+            this.id = "put"
+            this.children.unshift(this.children[0].children[0]);
+            this.children[1] = this.children[1].children[1];
+        } else {
+            this.id = "call";
+        }
+        return this;
+});
+l("+=", infix, 100, "TODO:op=");
+//l(":", infixr, 60, "separator");
+//l(",", infixr, 40, "separator");
 
 // Nuds
-n("(", paren);
-n("{", paren, "dict");
+n("(", paren, "TODO:paren");
+n("{", paren, "TODO:curly");
 n("[", paren, "list");
-n("var", prefix);
+n("var", prefix, "TODO:var");
 n("return", prefix, "return");
 n("-", prefix, "neg");
 n("!", prefix, "not");
-n("function", prefix2, "function");
-n("if", prefix2, "if");
+n("function", prefix2, "TODO:function");
+n("if", prefix2, function() {
+        this.id = "cond";
+        if(this.children[1].id === "else") {
+            var tmp = this.children[1];
+            this.children[1] = tmp.children[0];
+            if(tmp.children[1].id == "cond") {
+                this.children = this.children.concat(tmp.children[1].children);
+            } else {
+                this.children.push(tmp.children[1]);
+            }
+        }
+        return this;
+});
 n("while", prefix2, "while");
-n(";", atom);
+n(";", atom, "separator");
+n(":", atom, "separator");
+n(",", atom, "separator");
 n("undefined", atom, "nil");
 n("null", atom, "nil");
 n("None", atom, "nil");
@@ -221,6 +271,8 @@ n("true", atom, "true");
 n("false", atom, "false");
 n("True", atom, "true");
 n("False", atom, "false");
+
+var TOKEN_UNDEFINED = Token("identifier", "undefined", undefined).nud();
 
 // Test code, just run on standard in while in development
 var tokens = tokenise(stdin);
@@ -248,3 +300,12 @@ var parser = {
     "__iterator__": function() { return this; },
     "next": parse
 };
+
+function() {
+if(a) {
+} else if(b) {
+} else if(c) {
+} else {
+}
+};
+
