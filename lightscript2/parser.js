@@ -28,6 +28,19 @@ function Token(type, val, subtype, start, end, newline, comment) {
     return token;
 };
 
+function Node(type, arg) {
+    var result = Object.create(token_prototype);
+    if(typeof(arg) ==="string") {
+        result.val = arg;
+    } else if(arg instanceof Array) {
+        result.children = arg;
+    } else {
+        throw "Internal Error in Node";
+    }
+    result.id = type;
+    return result;
+}
+
 var token_prototype = {};
 token_prototype.bp = 0;
 token_prototype.led_op = function() { 
@@ -49,15 +62,15 @@ token_prototype.to_string = function() {
         return this.val
     } 
     var result = "(" + this.id;
-
     for(child in LightScriptIterator(this.children)) {
         result += " " + child.to_string();
     }
     return result + ")";
-}
+};
+
 token_prototype.syntax_error = function(msg) {
     throw "Syntax error at line " + this.start.line + ": " + msg;
-}
+};
 
 token_prototype.readlist = function(list) {
     if(this.rparen === undefined) {
@@ -80,7 +93,7 @@ token_prototype.readlist = function(list) {
         }
     }
     return list;
-}
+};
 
 token_prototype.led = function(left) {
     var obj = this;
@@ -93,7 +106,7 @@ token_prototype.led = function(left) {
     } else {
         return obj;
     }
-}
+};
 
 token_prototype.nud = function(left) {
     var obj = this;
@@ -106,7 +119,7 @@ token_prototype.nud = function(left) {
     } else {
         return obj;
     }
-}
+};
 
 var l = function(name, op, bp, gen_id) {
     tok(name).led_op = op;
@@ -123,7 +136,7 @@ var l = function(name, op, bp, gen_id) {
         tok(name).lid = gen_id;
     }
 
-}
+};
 
 var n = function(name, op, gen_id) {
     tok(name).nud_op = op;
@@ -135,42 +148,42 @@ var n = function(name, op, gen_id) {
     if(typeof(gen_id) === "string") {
         tok(name).nid = gen_id;
     } 
-}
+};
 
 var infix = function(left) {
         this.children = [left, parse(this.bp)]; 
         return this;
-}
+};
 
 var infixr = function(left) {
         this.children = [left, parse(this.bp - 1)]; 
         return this;
-}
+};
 
 var infixparen = function(left) {
         this.children = this.readlist([left]);
         return this;
-}
+};
 
 var prefix = function() {
     this.children = [parse()];
     return this;
-}
+};
 
 var prefix2 = function() {
     this.children = [parse(), parse()];
     return this;
-}
+};
 
 var atom = function() {
     this.children = [];
     return this;
-}
+};
 
 var paren = function() {
     this.children = this.readlist([]);
     return this;
-}
+};
 
 
 var token_handler = {};
@@ -180,10 +193,10 @@ var tok = function(id) {
         token_handler[id].token_type = id;
     }
     return token_handler[id];
-}
+};
 
 var block = function(node) {
-    if(node.id !== "dict") {
+    if(node.id !== "dictionary") {
         var result = Token("identifier", "begin").nud();
         result.id = "begin";
         result.children = [node];
@@ -192,15 +205,16 @@ var block = function(node) {
         node.id = "begin";
         return node;
     }
-}
+};
 
 // Default nuds/leds
-tok("(symbol)").nud_op = function() { this.syntax_error(this.val + " is not af prefix function"); }
+tok("(symbol)").nud_op = function() { this.syntax_error(this.val + " is not af prefix function"); };
 
 // Define what opposing parentheses matches
 tok("(").rparen = ")";
 tok("[").rparen = "]";
 tok("{").rparen = "}";
+tok("var").rparen = ";";
 
 // Leds
 l(".", infix, 700, function() {
@@ -214,12 +228,7 @@ l(".", infix, 700, function() {
         return this;
 });
 l("(", infixparen, 600, function() {
-        if(this.children[0].id == "subscript") {
-            this.subtype = "method"
-        } else {
-            this.subtype = "function"
-        }
-        this.id = "call";
+        this.id = "apply";
         return this;
 });
 l("[", infixparen, 600, "subscript");
@@ -258,25 +267,105 @@ l("+=", infix, 100, "TODO:op=");
 //l(",", infixr, 40, "tuple");
 
 // Nuds
-n("(", paren, function() {
-        // TODO should only be paren and not list later on.
-        if(this.children.length === 1) {
-            return this.children[0];
-        } else {
-            this.id = "paren";
-        }
-        return this;
-});
-n("{", paren, "dict");
-n("[", paren, "list");
-n("var", prefix, "TODO:var");
+// TODO: "for" "try" "catch" 
+n("(", paren, "paren");
+n("{", paren, "dictionary");
+n("[", paren, "array");
+n("var", paren, "local");
 n("return", prefix, "return");
 n("-", prefix, "neg");
 n("!", prefix, "not");
+n("throw", prefix, "throw");
+n("typeof", prefix, "typeof");
 n("function", prefix2, function() {
         this.id = "function";
         this.children[1] = block(this.children[1]);
-        return this;
+        var result = this;
+        if(this.children[0].id === "apply") {
+            var fn_name = this.children[0].children[0];
+            var result = Token("set");
+            result.children = [fn_name, this];
+            this.children[0].children.shift(1);
+            this.children[0].id = "paren";
+        }
+
+        // Resolve scope
+        var params = [];
+        var locals = [];
+        var globals = [];
+        this.params = params;
+        this.locals = locals;
+        this.globals = globals;
+        for(param in LightScriptIterator(this.children[0].children)) {
+            assert(param.id === "identifier");
+            params.push(param.val);
+        }
+        var resolve_scope = function(node) {
+            if(node.id === "local") {
+                var varname;
+                for(varname in LightScriptIterator(node.children)) {
+                    if(varname.id === "identifier") {
+                        if(!LightScriptContains(varname.val, params)) {
+                            if(!LightScriptContains(varname.val, locals)) {
+                                locals.push(varname.val);
+                            }
+                        }
+                    } else if(varname.id === "set") {
+                        assert(varname.children[0].id === "identifier");
+                        if(!LightScriptContains(varname.children[0].val, params)) {
+                            if(!LightScriptContains(varname.children[0].val, locals)) {
+                                locals.push(varname.children[0].val);
+                            }
+                        }
+                        resolve_scope(varname.children[1]);
+                    }
+                }
+                node.id = "begin";
+            } else if(node.id === "identifier") {
+                if(!LightScriptContains(node.val,params)) {
+                    if(!LightScriptContains(node.val,locals)) {
+                        if(!LightScriptContains(node.val, globals)) {
+                            globals.push(node.val);
+                        }
+                    }
+                }
+            } else if(node.id === "function") {
+                var elem;
+                for(elem in LightScriptIterator(node.globals)) {
+                    if(!LightScriptContains(elem.val,params)) {
+                        if(!LightScriptContains(elem.val,locals)) {
+                            if(!LightScriptContains(elem.val, globals)) {
+                                globals.push(elem.val);
+                            }
+                        }
+                    }
+                }
+            } else {
+                var elem;
+                for(elem in LightScriptIterator(node.children)) {
+                    resolve_scope(elem);
+                }
+            }
+        }
+        assert(this.children.length === 2);
+        resolve_scope(this.children[1]);
+        var i = 0; 
+        while(i<locals.length) {
+            locals[i] = Node("identifier", locals[i]);
+            i += 1;
+        }
+        i = 0; 
+        while(i<globals.length) {
+            globals[i] = Node("identifier", globals[i]);
+            i += 1;
+        }
+        i = 0; 
+        while(i<params.length) {
+            params[i] = Node("identifier", params[i]);
+            i += 1;
+        }
+        this.children = [this.children[0], Node("paren", locals), Node("paren", globals), this.children[1]];
+        return result;
 });
 n("if", prefix2, function() {
         this.id = "cond";
@@ -302,12 +391,14 @@ n(";", atom, "separator");
 n(":", atom, "separator");
 n(",", atom, "separator");
 n("undefined", atom, "nil");
+n("this", atom, "this");
 n("null", atom, "nil");
 n("None", atom, "nil");
 n("true", atom, "true");
 n("false", atom, "false");
 n("True", atom, "true");
 n("False", atom, "false");
+n("global", atom, "global");
 
 var TOKEN_VOID = Token("identifier", "undefined", undefined).nud();
 TOKEN_VOID.id = "void";
@@ -338,25 +429,10 @@ var parser = {
     "__iterator__": function() { return this; },
     "next": parse
 };
-
-function() {
-    A();
-    B(b);
-    C(c,c);
-    D(d,d,d);
-    E(e,e,e,e);
-};
-
-function() {
-    if(1) {
-    A();
-    } else if(2) {
-    B(b);
-    } else if(3) {
-    C(c,c);
-    } else {
-    D(d,d,d);
-    E(e,e,e,e);
+function f() {
+    function g(a) {
+        var b;
+        c;
     }
-};
-
+}
+;

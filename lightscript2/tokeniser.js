@@ -11,17 +11,8 @@ tokenise = function(inputstream) {
         return list.length;
     }
     
-    function within(elem, list) {
-        for(var e in LightScriptIterator(list)) {
-            if(e === elem) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
     function one_of(str) {
-        return within(peek(), str);
+        return LightScriptContains(peek(), str);
     }
     
     function starts_with(str) {

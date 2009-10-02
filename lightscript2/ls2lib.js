@@ -47,3 +47,18 @@ LightScriptIterator = (function(){
         }
     }
 })();
+
+function LightScriptContains(elem, list) {
+    for(var e in LightScriptIterator(list)) {
+        if(e === elem) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function assert(val) {
+    if(!val) {
+        throw("assert error");
+    }
+}
