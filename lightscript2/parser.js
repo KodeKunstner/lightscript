@@ -342,6 +342,7 @@ tok('function').nud = function() {
     } else if(args[0] !== "list(") {
         return ['parse-error', 'function', result];
     }
+    // todo: scope analysis
     args[0] = 'arglist'
     return result;
 }
@@ -372,8 +373,7 @@ parse = function(rbp) {
 //
 // dump
 //
-
-
+// TODO: prettyprinter
 t = block(readlist(['list{']));
 i = 0;
 while(i<t.length) {
