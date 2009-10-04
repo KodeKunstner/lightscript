@@ -1,28 +1,9 @@
 load('stdmob.js');
-var char_is = function(str) {
-    return f(x) !== -1;
-//    return str.indexOf(c) !== -1;
-};
 
-////////////////////////
-// fetch_tokeniser
-////
-//
-// String constants
-var symb = '=!<>&|/*+-%';
-var num = '1234567890';
-var alpha = '_qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
-var alphanum = alpha + num;
-var whitespace = ' \n\r\t';
-
-// current character
+// Tokeniser
 var c = ' ';
-
-// resulting string
 var str = "";
-
-// functions to access current character and string
-var char_is = function(str) {
+function char_is(str) {
     return str.indexOf(c) !== -1;
 };
 var skip_char = function() {
@@ -32,85 +13,71 @@ var push_char = function() {
     str += c;
     skip_char();
 }
-var get_string = function() {
+var pop_string = function() {
     var result = str;
     str = "";
     return result;
 }
-
+var symb = '=!<>&|/*+-%';
+var num = "1234567890";
+var alphanum = num + '_qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
 next_token = function() {
-        // Skip whitespaces
-	while(char_is(whitespace)) {
+    while(char_is(' \n\r\t')) {
             skip_char();
-	}
-
-	// String
-	if(c === '\'' || c === '"') {
+    }
+    if(c === '\'' || c === '"') {
                 var quote = c;
                 skip_char();
-		while(c !== undefined && c !== quote) {
-			if(c === '\\') {
+        while(c !== undefined && c !== quote) {
+            if(c === '\\') {
                                 skip_char();
-				if(c === 'n') {
-					c = '\n';
-				} else if(c === 't') {
-					c = '\t';
-				}
-			}
+                if(c === 'n') {
+                    c = '\n';
+                } else if(c === 't') {
+                    c = '\t';
+                }
+            }
                         push_char();
-		}
+        }
                 skip_char();
-                return fetch_token("(string)", get_string());
-
-	// Read number [0-9]*
-	} else if(char_is(num)) {
-		while(char_is(num)) {
+                return fetch_token("(string)", pop_string());
+    } else if(char_is(num)) {
+        while(char_is(num)) {
                         push_char();
-		}
-                return fetch_token("(num)", get_string());
-
-	// read identifier [_a-zA-Z][_a-zA-Z0-9]*
-	} else if(char_is(alphanum)) {
-		while(char_is(alphanum)) {
+        }
+                return fetch_token("(num)", pop_string());
+    } else if(char_is(alphanum)) {
+        while(char_is(alphanum)) {
                         push_char();
-		}
-                return fetch_token(get_string());
+        }
+                return fetch_token(pop_string());
 
-        // read comment
-	// read multi character symbol
-	} else if(char_is(symb)) {
+        // read comment or multi character symbol
+    } else if(char_is(symb)) {
                 if(c === '/') {
                     push_char();
                     if(c === '/') {
                         skip_char();
-
-                        // clear the string
-                        get_string();
-
-                        // read the rest of the line
+                        pop_string();
                         while(c !== undefined && c !== '\n') {
                             push_char();
                         }
-                        return fetch_token("(comment)", get_string());
+                        return fetch_token("(comment)", pop_string());
                     }
                 }
-		while(char_is(symb)) {
+        while(char_is(symb)) {
                         push_char();
-		}
-                return fetch_token(get_string());
-	
-        // end of stream
-	} else  if(c === undefined) {
+        }
+                return fetch_token(pop_string());
+    } else if(c === undefined) {
             return fetch_token("(eof)");
-
-	// single symbol
-	} else  {
+    } else  {
             push_char();
-            return fetch_token(get_string());
-	}
+            return fetch_token(pop_string());
+    }
 };
 
-
+// Token creation
 super_token = {
     "nud": function() { 
         return ["parse-error", "undefined-nud", this.id, this.val]; 
@@ -120,7 +87,6 @@ super_token = {
         return ["parse-error", "undefined-led", this.id, this.val, left]; 
     }
 }
-
 token_types = {};
 var tok = function(name) {
     var result = token_types[name];
@@ -131,7 +97,6 @@ var tok = function(name) {
     }
     return result;
 };
-
 var fetch_token = function(type, val) {
     var obj = token_types[type];
     if(obj === undefined) {
@@ -144,69 +109,68 @@ var fetch_token = function(type, val) {
         obj.val = val;
     }
     return obj;
-}
-
-// functions for defining operator precedence and type
-infix = function(id, bp) {
-	tok(id).bp = bp;
-	tok(id).led = function(left) {
-		return [this.id, left, parse(this.bp)];
-	};
 };
 
-infixr = function(id, bp) {
-	tok(id).bp = bp;
-	tok(id).led = function(left) {
-		return [this.id, left, parse(this.bp - 1)];
-	};
+// Operator constructors
+var infix = function(id, bp) {
+    tok(id).bp = bp;
+    tok(id).led = function(left) {
+        return [this.id, expr(left), expr(parse(this.bp))];
+    };
 };
-
-infixlist = function(id, bp) {
-	tok(id).bp = bp;
-	tok(id).led = function(left) {
-		return readlist(['apply' + this.id, left]);
-	};
+var infixr = function(id, bp) {
+    tok(id).bp = bp;
+    tok(id).led = function(left) {
+        return [this.id, expr(left), expr(parse(this.bp - 1))];
+    };
 };
-
-
-readlist = function(acc) {
-        while(!token.end) {
-            acc.push(parse());
-	}
-        token = next_token();
-	return acc;
+var infixlist = function(id, bp) {
+    tok(id).bp = bp;
+    tok(id).led = function(left) {
+        return readlist(['apply' + this.id, left]);
+    };
 };
-
-end = function(id) {
+var readlist = function(acc) {
+    while(!token.end) {
+        var t = parse();
+        if(!t.sep) {
+            acc.push(t);
+        } 
+    }
+    token = next_token();
+    return acc;
+};
+var end = function(id) {
         tok(id).end = true;
-	tok(id).nud = function() {
-		return ['(end)', this.id];
-	}
+    tok(id).nud = function() {
+        return ['(end)', this.id];
+    }
 };
 
 list = function(id) {
         tok(id).nud = function() {
-		return readlist(['list' + this.id]);
-	}
+        return readlist(['list' + this.id]);
+    }
 };
 
 atom = function(id) {
-	tok(id).nud = function() {
-		return [this.id];
-	}
+    tok(id).nud = function() {
+        return [this.id];
+    }
+};
+sep = function(id) {
+    tok(id).sep = true;
+    tok(id).nud = function() {
+        return ['(sep)', this.id];
+    }
 };
 
 prefix = function(id) {
-	tok(id).nud = function() {
-		return [this.id, parse()];
-	}
+    tok(id).nud = function() {
+        return [this.id, expr(parse())];
+    }
 };
 
-prefix2 = function(id) {
-	tok(id).nud = function() {
-		return [this.id, parse(), parse()];
-	}
-};
 
 literal = function(id) {
     tok(id).nud = function() {
@@ -214,62 +178,195 @@ literal = function(id) {
     }
 }
 
-//
+opassign = function(id) {
+    var op = id.substring(0, id.length - 1);
+    tok(id).bp = 100;
+    tok(id).led = function(left) {
+                left = expr(left);
+        return ['=', left, [op, left, expr(parse(this.bp))]];
+    };
+}
+function tailmap(fn, list) {
+    var i = 1;
+    while(i < list.length) {
+        list[i] = fn(list[i]);
+        ++i;
+    }
+}
+function expr(node) {
+    var type = node[0]
+    if(type === 'list(') {
+        if(node.length !== 2) {
+            return ['parse-error', 'expression', node];
+        } else {
+            return expr(node[1]);
+        }
+    } else if(type === 'list[') {
+        node[0] = 'array';
+        tailmap(expr, node);
+    } else if(type === 'list{') {
+        node[0] = 'dictionary';
+        tailmap(expr, node);
+    } else if(type === 'apply(') {
+        node[0] = 'call';
+        tailmap(expr, node);
+    } else if(type === 'apply[') {
+        if(node.length !== 3) {
+            return ['parse-error', 'expression', node];
+        }
+        node[0] = 'subscript';
+        node[1] = expr(node[1]);
+    } else if(type === '.') {
+        node[0] = 'subscript';
+        if(node[2][0] !== '(identifier)') {
+            return ['parse-error', 'expression', node];
+        } else {
+            node[2][0] = '(string)';
+        }
+    } else if(type == '=') {
+        if(node[1][0] === 'subscript') {
+            node.unshift('put');
+            node[1] = node[2][1];
+            node[2] = node[2][2];
+        } else {
+            node[0] = 'set';
+        }
+    } 
+    return node;
+}
+function block(node) {
+    if(node[0] !== 'list{') {
+        return expr(node[0]);
+    }
+    var result = ['begin'];
+    var i = 1;
+    while(i < node.length) {
+        // skip separators
+        if(node[i][0] === '(sep)') {
+
+        // join comments
+        } else if(node[i][0] === '(comment)' && result[result.length - 1][0] === '(comment)') {
+            result[result.length-1][1] += '\n' + node[i][1];
+        } else {
+            result.push(expr(node[i]));
+        }
+        ++i;
+    }
+    return result;
+}
+
 // Definition of operator precedence and type
-//
 infix('.', 700);
 infixlist('(', 600);
 infixlist('[', 600);
 infix('*', 500);
 infix('%', 500);
+infix('/', 500);
 infix('+', 400);
 infix('-', 400);
 infix('===', 300);
+infix('==', 300);
+tok('==').id = '===';
 infix('!==', 300);
+infix('!=', 300);
+tok('==').id = '===';
 infix('<=', 300);
 infix('<', 300);
+infix('>=', 300);
+infix('>', 300);
 infixr('&&', 200);
 infixr('||', 200);
-infixr('else', 200);
 infix('=', 100);
+opassign('+=');
+opassign('-=');
+opassign('*=');
+opassign('/=');
+opassign('%=');
 end(']');
 end(')');
 end('}');
 end('(eof)');
-atom(':');
-atom(';');
-atom(',');
+sep(':');
+sep(';');
+sep(',');
 list('(');
 list('{');
 list('[');
+
+// TODO: var
 prefix('var');
 prefix('return');
 prefix('-');
 prefix('!');
-prefix2('function');
-prefix2('if');
-prefix2('while');
+prefix('throw');
 atom('undefined');
+atom('null');
+tok('null').id = 'undefined';
 atom('true');
 atom('false');
 literal('(identifier)');
 literal('(string)');
 literal('(num)');
 literal('(comment)');
+tok('else').bp = 200;
+// TODO: try-catch
+tok('else').led = function(left) {
+    return [this.id, left, parse(this.bp - 1)];
+};
+tok('while').nud = function() {
+    return ['while', expr(parse()), block(parse())];
+}
+tok('if').nud = function() {
+    var cond = parse();
+    var body = parse();
+    var result;
+    if(body[0] === 'else') {
+        if(body[2][0] === 'cond') {
+            result = body[2];
+            result.unshift('cond', expr(cond));
+            result[2] = block(body[1]);
+            return result;
+        }
+        return ['cond', expr(cond), block(body[1]), block(body[2])];
+    } else {
+        return ['cond', expr(cond), block(body)];
+    }
+}
+tok('function').nud = function() {
+    var args = parse();
+    var result = ['function', args, block(parse())];
+    if(args[0] === "apply(") {
+        var name = args[1];
+        args.shift();
+        result =  ['=', name, result];
+    } else if(args[0] !== "list(") {
+        return ['parse-error', 'function', result];
+    }
+    args[0] = 'arglist'
+    return result;
+}
+tok('--').nud = function() {
+    var t = parse();
+    return ['=', t, ['-', t, 1]];
+}
+tok('++').nud = function() {
+    var t = parse();
+    return ['=', t, ['+', t, 1]];
+}
 
-// The core parser
+// Core parser
 token = next_token();
 parse = function(rbp) {
-        rbp = rbp || 0;
-	var t = token;
-	token = next_token();
-	var left = t.nud();
-	while(rbp < token.bp) {
-		t = token;
-		token = next_token();
-		left = t.led(left);
-	}
-	return left
+    rbp = rbp || 0;
+    var t = token;
+    token = next_token();
+    var left = t.nud();
+    while(rbp < token.bp && !t.sep) {
+        t = token;
+        token = next_token();
+        left = t.led(left);
+    }
+    return left
 };
 
 //
@@ -277,8 +374,9 @@ parse = function(rbp) {
 //
 
 
-x = parse();
-while(x[0] !== "(end)") {
-    println(x);
-    x = parse();
+t = block(readlist(['list{']));
+i = 0;
+while(i<t.length) {
+    println(t[i]);
+    ++i;
 }
