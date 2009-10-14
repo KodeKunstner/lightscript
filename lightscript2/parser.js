@@ -6,14 +6,15 @@ var str = "";
 function char_is(str) {
     return str.indexOf(c) !== -1;
 };
-var skip_char = function() {
+var skip_char, push_char, pop_string;
+skip_char = function() {
     c = getch();
 }
-var push_char = function() {
+push_char = function() {
     str += c;
     skip_char();
 }
-var pop_string = function() {
+pop_string = function() {
     var result = str;
     str = "";
     return result;
@@ -77,26 +78,17 @@ next_token = function() {
     }
 };
 
-// Token creation
-super_token = {
-    "nud": function() { 
-        return ["parse-error", "undefined-nud", this.id, this.val]; 
-    },
-    "bp": 0,
-    "led": function(left) { 
-        return ["parse-error", "undefined-led", this.id, this.val, left]; 
-    }
-}
-token_types = {};
-var tok = function(name) {
-    var result = token_types[name];
-    if(result === undefined) {
-        result = Object.create(super_token);
-        result.id = name;
-        token_types[name] = result;
+var filter = function(fn, list) {
+    var result = [];
+    for(var i = 0; i < list.length; ++i) {
+        if(fn(list[i])) {
+            result.push(list[i]);
+        }
     }
     return result;
-};
+}
+
+// Token creation
 var fetch_token = function(type, val) {
     var obj = token_types[type];
     if(obj === undefined) {
@@ -111,6 +103,27 @@ var fetch_token = function(type, val) {
     return obj;
 };
 
+super_token = {
+    "nud": function() { 
+        return ["parse-error", "undefined-nud", this.id, this.val]; 
+    },
+    "bp": 0,
+    "led": function(left) { 
+        return ["parse-error", "undefined-led", this.id, this.val, left]; 
+    }
+};
+
+token_types = {};
+var tok = function(name) {
+    var result = token_types[name];
+    if(result === undefined) {
+        result = Object.create(super_token);
+        result.id = name;
+        token_types[name] = result;
+    }
+    return result;
+};
+
 // Operator constructors
 var infix = function(id, bp) {
     tok(id).bp = bp;
@@ -118,20 +131,23 @@ var infix = function(id, bp) {
         return [this.id, expr(left), expr(parse(this.bp))];
     };
 };
+
 var infixr = function(id, bp) {
     tok(id).bp = bp;
     tok(id).led = function(left) {
         return [this.id, expr(left), expr(parse(this.bp - 1))];
     };
 };
-var infixlist = function(id, bp) {
+
+var infixlist = function(id, endsymb, bp) {
     tok(id).bp = bp;
+    tok(id).endsymb = endsymb;
     tok(id).led = function(left) {
-        return readlist(['apply' + this.id, left]);
+        return readlist(['apply' + this.id, left], this.endsymb);
     };
 };
-var readlist = function(acc) {
-    while(!token.end) {
+var readlist = function(acc, endsymb) {
+    while(token.id !== endsymb && token.id !== "(eof)") {
         var t = parse();
         if(!t.sep) {
             acc.push(t);
@@ -140,16 +156,11 @@ var readlist = function(acc) {
     token = next_token();
     return acc;
 };
-var end = function(id) {
-        tok(id).end = true;
-    tok(id).nud = function() {
-        return ['(end)', this.id];
-    }
-};
 
-list = function(id) {
-        tok(id).nud = function() {
-        return readlist(['list' + this.id]);
+var list = function(id, endsymb) {
+    tok(id).endsymb = endsymb;
+    tok(id).nud = function() {
+        return readlist(['list' + this.id], this.endsymb);
     }
 };
 
@@ -257,8 +268,8 @@ function block(node) {
 
 // Definition of operator precedence and type
 infix('.', 700);
-infixlist('(', 600);
-infixlist('[', 600);
+infixlist('(', ')', 600);
+infixlist('[', ']', 600);
 infix('*', 500);
 infix('%', 500);
 infix('/', 500);
@@ -282,25 +293,27 @@ opassign('-=');
 opassign('*=');
 opassign('/=');
 opassign('%=');
-end(']');
-end(')');
-end('}');
-end('(eof)');
 sep(':');
 sep(';');
 sep(',');
-list('(');
-list('{');
-list('[');
-
-// TODO: var
-prefix('var');
+list('(', ')');
+list('{', '}');
+list('[', ']');
+tok('var').nud = function() {
+    return filter( function(x) { 
+            return x[0] !== "(sep)" && x[1] !== ",";
+        }, readlist(['var'], ';'));
+}
 prefix('return');
 prefix('-');
 prefix('!');
 prefix('throw');
 atom('undefined');
 atom('null');
+atom(']');
+atom(')');
+atom('}');
+atom('(eof)');
 tok('null').id = 'undefined';
 atom('true');
 atom('false');
@@ -374,7 +387,7 @@ parse = function(rbp) {
 // dump
 //
 // TODO: prettyprinter
-t = block(readlist(['list{']));
+t = block(readlist(['list{'], '}'));
 i = 0;
 while(i<t.length) {
     println(t[i]);
