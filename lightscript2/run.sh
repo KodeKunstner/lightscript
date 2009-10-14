@@ -1,2 +1,2 @@
 #!/bin/sh
-js parser.js < parser.js
+js parser2.js < parser2.js
