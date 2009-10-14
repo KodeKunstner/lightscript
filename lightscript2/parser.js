@@ -1,4 +1,32 @@
-load('stdmob.js');
+Object.create = function(obj) {
+    var F = function() { };
+    F.prototype = obj;
+    return new F();
+}
+
+
+getch = (function() {
+    var line = "";
+    var pos;
+    var newl= 0;
+    return function() {
+        ++pos;
+        if(line[pos] !== undefined) {
+            newl= 0;
+            return line[pos];
+        } else {
+            pos = -1;
+            line = readline();
+            ++newl;
+            if(newl > 10) {
+                return undefined;
+            } else {
+                return "\n";
+            } 
+        }
+    }
+})();
+
 
 // Tokeniser
 var c = ' ';
@@ -53,7 +81,7 @@ next_token = function() {
         }
                 return fetch_token(pop_string());
 
-        // read comment or multi character symbol
+    // read comment or multi character symbol
     } else if(char_is(symb)) {
                 if(c === '/') {
                     push_char();
@@ -361,11 +389,11 @@ tok('function').nud = function() {
 }
 tok('--').nud = function() {
     var t = parse();
-    return ['=', t, ['-', t, 1]];
+    return ['=', t, ['-', t, ['(num)', '1']]];
 }
 tok('++').nud = function() {
     var t = parse();
-    return ['=', t, ['+', t, 1]];
+    return ['=', t, ['+', t, ['(num)', '1']]];
 }
 
 // Core parser
@@ -383,13 +411,29 @@ parse = function(rbp) {
     return left
 };
 
+// TODO: renaming of ops
+
 //
 // dump
 //
 // TODO: prettyprinter
 t = block(readlist(['list{'], '}'));
 i = 0;
+var list_to_str = function(t) {
+    if(t instanceof Array) {
+        var result = "( ";
+        for(var i = 0; i < t.length; ++i) {
+            result += list_to_str(t[i]) + " ";
+        }
+        return result + ")";
+    } else if(typeof(t) === "string") {
+        return "'" + t + "'"
+    } else {
+        print("ERROR: wrong type for listprint - " + t);
+    }
+}
+
 while(i<t.length) {
-    println(t[i]);
+    print(list_to_str(t[i]));
     ++i;
 }
