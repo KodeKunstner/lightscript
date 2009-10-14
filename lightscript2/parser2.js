@@ -29,6 +29,20 @@ getch = (function() {
     }
 })();
 
+function deepcopy(o) {
+    if(typeof(o) === "string") {
+        return o;
+    } 
+    var i, result;
+    result = [];
+    i = 0;
+    while(i < o.length) {
+        result.push(deepcopy(o[i]));
+        ++i;
+    }
+    return result;
+}
+
 
 /////////////////////////////////////////////
 // Tokeniser
@@ -235,8 +249,7 @@ var opassign = function(id) {
     tok(id).op = id.substring(0, id.length - 1);
     tok(id).bp = 100;
     tok(id).led = function(left) {
-        left = left;
-        return ['=', left, [this.op, left, parse(this.bp)]];
+        return ['=', left, [this.op, deepcopy(left), parse(this.bp)]];
     };
 };
 
@@ -244,7 +257,7 @@ var prefixop = function(id){
     tok(id).op = id.substring(0, id.length - 1);
     tok(id).nud = function() {
         var t = parse();
-        return ['=', t, [this.op, t, ['(num)', '1']]];
+        return ['=', t, [this.op, deepcopy(t), ['(num)', '1']]];
     };
 };
 
@@ -274,6 +287,7 @@ tok('>').id = '<';
 infixr('&&', 200);
 infixr('||', 200);
 infix('=', 100);
+infix('in', 50);
 opassign('+=');
 opassign('-=');
 opassign('*=');
@@ -306,6 +320,7 @@ literal('(comment)');
 infixr('else', 200);
 prefix2('while');
 prefix2('if');
+prefix2('for');
 prefix2('function');
 prefix2('try');
 prefix2('catch');
@@ -332,6 +347,43 @@ parse = function(rbp) {
 //////////////////////////////////////////
 // Change parsetree into valid lightscript parse tree
 //
+
+var block = function(node) {
+    var i, j, result;
+    if(node[0] !== 'list{') {
+        return expr(node);
+    }
+    result = ['begin'];
+    i = 1;
+    while(i < node.length) {
+        if(node[i][0] === '(comment)' && result[result.length - 1][0] === 'comment') {
+            result[result.length-1][1] += '\n' + node[i][1];
+        } else {
+            var t = expr(node[i]);
+            if(t[0] === 'begin') {
+                j = 1;
+                while(j < t.length) {
+                    result.push(t[j]);
+                    ++j;
+                };
+            } else {
+                result.push(t);
+            }
+        }
+        ++i;
+    }
+    return result;
+};
+
+
+var mapexpr = function(node) {
+    var i = 1;
+    while(i<node.length) {
+        node[i] = expr(node[i]);
+        ++i;
+    }
+};
+
 var simple_mappings = {
     '+': 'add',
     '*': 'mul',
@@ -344,29 +396,26 @@ var simple_mappings = {
     '<=': 'leq',
     '&&': 'and',
     '||': 'or',
+    'apply[': 'subscript',
+    'apply(': 'call',
+    'in': 'in',
+    'list[': 'array',
+    'list{': 'dict',
     '(identifier)': 'id',
     '(num)': 'num',
     '(string)': 'str',
-    '(comment)': 'comment'
+    '(comment)': 'comment',
+    'return': 'return',
+    'arglist': 'arglist',
+    'undefined': 'undefined',
+    'true': 'true',
+    'false': 'false'
 };
 
-var block = function(node) {
-    var i, result;
-    result = ['begin'];
-    i = 1;
-    while(i < node.length) {
-        if(node[i][0] === '(comment)' && result[result.length - 1][0] === 'comment') {
-            result[result.length-1][1] += '\n' + node[i][1];
-        } else {
-            result.push(expr(node[i]));
-        }
-        ++i;
-    }
-    return result;
-};
+locals = {};
 
 var expr = function(node) {
-    var i, type;
+    var type, result, i, t;
     if(typeof(node) === "string") {
         return node;
     }
@@ -374,34 +423,122 @@ var expr = function(node) {
     type = node[0];
 
     if(simple_mappings[type] !== undefined) {
+        mapexpr(node);
         node[0] = simple_mappings[type];
-
+        return node;
     } else if(type === '-') {
+        mapexpr(node);
         if(node.length === 2) {
             node[0] = 'neg';
         } else {
             node[0] = 'sub';
         }
-
-    } else if(type === '-') {
+        return node;
+    } else if(type === 'listvar') {
+        result = ["list{"];
+        i = 1;
+        while(i < node.length) {
+            if(node[i][0] === '(identifier)') {
+                locals[node[i][1]] = true;
+            } else if(node[i][0] === '=' && node[i][1][0] === '(identifier)') {
+                locals[node[i][1][1]] = true;
+                result.push(node[i]);
+            } else {
+                node.unshift("parse-error");
+                return node;
+            }
+            ++i;
+        }
+        return block(result);
+    } else if(type === 'function') {
+        var prevlocals = locals;
+        locals = {}
+        if(node[1][0] === 'apply(') {
+            result = ['set', expr(node[1][1]), node];
+            node[1].shift();
+            node[1][0] = 'arglist';
+        } else if(node[1][0] == 'list(') {
+            result = node;
+            node[1][0] = 'arglist';
+        } else {
+            return ['parse-error', node];
+        }
+        mapexpr(node[1]);
+        node[3] = block(node[2]);
+        node[2] = ['locals'];
+        for(name in locals) {
+            node[2].push(name);
+        }
+        locals = prevlocals;
+        return (result);
+    } else if(type === 'while') {
+        node[1] = expr(node[1]);
+        node[2] = block(node[2]);
+        return node;
+    } else if(type === 'list(') {
+        if(node.length !== 2) {
+            return ['parse-error', 'expr', node];
+        }
+        return expr(node[1]);
+    } else if(type === 'for') {
+        node[1] = expr(node[1]);
+        node[2] = block(node[2]);
+        if(node[1][0] !== 'in') {
+            return ['parse-error', node];
+        }
+        return ['for', node[1][1], node[1][2], node[2]];
+    } else if(type === 'else') {
+        node[1] = block(node[1]);
+        node[2] = block(node[2]);
+        return node;
+    } else if(type === '.') {
+        mapexpr(node);
+        node[0] = 'subscript';
+        if(node[2][0] !== 'id') {
+            return ['parse-error', 'expr', node];
+        } else {
+            node[2][0] = 'str';
+        }
+        return node;
+    } else if(type === '=') {
+        mapexpr(node);
+        if(node[1][0] === 'subscript') {
+            node.unshift('put');
+            node[1] = node[2][1];
+            node[2] = node[2][2];
+        } else {
+            node[0] = 'set';
+        }
+        return node;
+    } else if(type === 'if') {
+        node[0] = 'cond';
+        node[1] = expr(node[1]);
+        node[2] = block(node[2]);
+        if(node[2][0] === 'else') {
+            t = node[2][2];
+            node[2] = node[2][1];
+            if(t[0] === 'cond') {
+                i = 1;
+                while(i < t.length) {
+                    node.push(t[i]);
+                    ++i;
+                }
+            } else {
+                node.push(t);
+            }
+        } 
+        return node;
     } 
-
-    i = 1;
-    while(i<node.length) {
-        node[i] = expr(node[i]);
-        ++i;
-    }
+    node.unshift('unsupported-node');
+    node.unshift('parse-error');
     return node;
 };
 
 
-// TODO: renaming of ops
-
 //
 // dump
 //
-// TODO: prettyprinter
-t = readlist([undefined], '');
+t = readlist(['list{'], '');
 t = block(t);
 i = 0;
 
@@ -431,4 +568,16 @@ t = [];
 for(x in heads) {
     t.push(x);
 }
+print();
 print(t.sort().join("\n"));
+
+if(1) { "A"; } else if(2) { "B" } else {"C"};
+(1);
+print();
+//for(x in locals) {
+    //print(x);
+//}
+function A() {
+};
+function () {
+};
