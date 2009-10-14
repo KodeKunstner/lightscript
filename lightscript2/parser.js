@@ -4,6 +4,18 @@ Object.create = function(obj) {
     return new F();
 }
 
+var filter = function(fn, list) {
+    var result = [];
+    var i = 0;
+    while(i < list.length) {
+        if(fn(list[i])) {
+            result.push(list[i]);
+        }
+        ++i;
+    }
+    return result;
+}
+
 
 getch = (function() {
     var line = "";
@@ -105,16 +117,6 @@ next_token = function() {
             return fetch_token(pop_string());
     }
 };
-
-var filter = function(fn, list) {
-    var result = [];
-    for(var i = 0; i < list.length; ++i) {
-        if(fn(list[i])) {
-            result.push(list[i]);
-        }
-    }
-    return result;
-}
 
 // Token creation
 var fetch_token = function(type, val) {
@@ -231,7 +233,12 @@ function tailmap(fn, list) {
         list[i] = fn(list[i]);
         ++i;
     }
-}
+};
+var skip_commas = function(list) {
+    return filter(function(e) {
+                return e[0] !== '(sep)' || e[1] !== ',';
+            }, list);
+};
 function expr(node) {
     var type = node[0]
     if(type === 'list(') {
@@ -244,9 +251,10 @@ function expr(node) {
         node[0] = 'array';
         tailmap(expr, node);
     } else if(type === 'list{') {
-        node[0] = 'dictionary';
+        node[0] = 'dict';
         tailmap(expr, node);
     } else if(type === 'apply(') {
+        node = skip_commas(node);
         node[0] = 'call';
         tailmap(expr, node);
     } else if(type === 'apply[') {
@@ -255,6 +263,7 @@ function expr(node) {
         }
         node[0] = 'subscript';
         node[1] = expr(node[1]);
+        node[2] = expr(node[2]);
     } else if(type === '.') {
         node[0] = 'subscript';
         if(node[2][0] !== '(identifier)') {
@@ -374,7 +383,8 @@ tok('if').nud = function() {
     }
 }
 tok('function').nud = function() {
-    var args = parse();
+    var args = skip_commas(parse());
+
     var result = ['function', args, block(parse())];
     if(args[0] === "apply(") {
         var name = args[1];
@@ -384,7 +394,7 @@ tok('function').nud = function() {
         return ['parse-error', 'function', result];
     }
     // todo: scope analysis
-    args[0] = 'arglist'
+    args[0] = 'arglist';
     return result;
 }
 tok('--').nud = function() {
@@ -419,21 +429,29 @@ parse = function(rbp) {
 // TODO: prettyprinter
 t = block(readlist(['list{'], '}'));
 i = 0;
+
+var heads = { } ;
+
 var list_to_str = function(t) {
-    if(t instanceof Array) {
-        var result = "( ";
-        for(var i = 0; i < t.length; ++i) {
-            result += list_to_str(t[i]) + " ";
+    if(typeof(t) === "string") {
+        return "'" + t + "'"
+    } else  {
+        var result = "(" + t[0];
+        heads[t[0]] = true;
+        var i = 1; 
+        while(i < t.length) {
+            result += " " + list_to_str(t[i]);
+            ++i;
         }
         return result + ")";
-    } else if(typeof(t) === "string") {
-        return "'" + t + "'"
-    } else {
-        print("ERROR: wrong type for listprint - " + t);
     }
-}
+};
 
 while(i<t.length) {
     print(list_to_str(t[i]));
     ++i;
+}
+
+for(x in heads) {
+    print(x);
 }
