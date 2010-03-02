@@ -208,7 +208,7 @@ import java.util.Random;
   * @author Rasmus Jensen, rasmus@lightscript.net
   * @version 1.1
   */
-public final class LightScript {
+public final class LightScript implements LightScriptObject {
 
     /** Token used for separators (;,:), which are just discarded */
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
