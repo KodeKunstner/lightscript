@@ -44,7 +44,7 @@ y = Object.create(x);
 x = 0;
 for(i = 0; i < 1000; ++i) {
     y = Math.floor(100 * Math.random()) + 1;
-    print(y);
+//    print(y);
     x += y;
 }
-print("avg: " + x / 1000);
+//print("avg: " + x / 1000);

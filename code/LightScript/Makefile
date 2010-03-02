@@ -52,7 +52,7 @@ $(FP_VER)$(LS).java: $(DEPS)
 	    do echo "0i\npackage net.lightscript.f1;\n.\nwq\n" | ed -s $$foo;\
 	    done;
 clean:
-	rm -rf net doc/public* doc/private* `find . -name "*.class"` *.tar.gz
+	rm -rf $(FP_VER) $(INT_VER) doc/public* doc/private* `find . -name "*.class"` *.tar.gz
 
 examples/moby/moby.jar: examples/moby/*.java examples/moby/manifest examples/moby/*.jad
 	javac -classpath .:dependencies/midpapi10.jar examples/moby/*.java

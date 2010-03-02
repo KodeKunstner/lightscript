@@ -4,7 +4,7 @@ GNU GENERAL PUBLIC LICENSE version 3
 (the actual license text can be retrieved
  from the Free Software Foundation)
 
-Copyright, 2009, Rasmus Jensen, rasmus@lightscript.net
+Copyright, 2009-2010, Rasmus Jensen, rasmus@lightscript.net
 
 Contact for other licensing options.
 */
@@ -24,7 +24,7 @@ import java.util.Random;
  * It also adds support for more readable printing of
  * id, etc.
  */
-//#define __DEBUG__
+#define __DEBUG__
 //#define __PRINT_EXECUTED_INSTRUCTIONS__
 //#define __DO_YIELD__
 
@@ -34,8 +34,8 @@ import java.util.Random;
  */
 #define __CLEAR_STACK__
 
-#define __HAVE_DOUBLE__
-//#define __APPLY_API__
+//#define __HAVE_DOUBLE__
+#define __APPLY_API__
 
 /* Identifiers, used both as node type,
  * and also used as opcode. 
