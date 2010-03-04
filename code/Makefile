@@ -52,13 +52,20 @@ $(FP_VER)$(LS).java: $(DEPS)
 	    do echo "0i\npackage net.lightscript.f1;\n.\nwq\n" | ed -s $$foo;\
 	    done;
 clean:
-	rm -rf $(FP_VER) $(INT_VER) doc/public* doc/private* `find . -name "*.class"` *.tar.gz
+	rm -rf $(FP_VER) $(INT_VER) doc/public* doc/private* `find . -name "*.class"` *.tar.gz examples/*.jar examples/*/*.jar
 
 examples/moby/moby.jar: examples/moby/*.java examples/moby/manifest examples/moby/*.jad
-	javac -classpath .:dependencies/midpapi10.jar examples/moby/*.java
+	javac -source 1.2 -classpath .:dependencies/midpapi10.jar examples/moby/*.java
 	jar -cvfm examples/in.jar examples/moby/manifest net/lightscript/i1/*.class examples/moby/*.class
 	java -jar dependencies/proguard.jar @examples/midlets.pro
 	mv examples/out.jar examples/moby/moby.jar
+
+examples/mob2/mob2.jar: examples/mob2/*.java examples/mob2/manifest examples/mob2/*.jad
+	javac -source 1.2 -classpath .:dependencies/midpapi10.jar examples/mob2/*.java
+	jar -cvfm examples/in.jar examples/mob2/manifest com/solsort/mobile/*.class examples/mob2/*.class
+	java -jar dependencies/proguard.jar @examples/midlets.pro
+	mv examples/out.jar examples/mob2/mob2.jar
+ex: examples/mob2/mob2.jar examples/moby/moby.jar
 #
 #LightScript.java: $(LS_SRC)
 #	cpp -C -P $(LS_SRC) > LightScript.java 

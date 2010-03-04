@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+MIDlet-1: examples.mob2.Mob2, ,examples.mob2.Mob2
+MIDlet-Vendor: Vendor
+MIDlet-Name: Mob2
+MIDlet-Version: 1.0
+MicroEdition-Configuration: CLDC-1.0
+MicroEdition-Profile: MIDP-1.0
+

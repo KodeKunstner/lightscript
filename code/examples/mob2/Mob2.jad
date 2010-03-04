@@ -1,0 +1,8 @@
+MIDlet-1: Main, , Main
+MIDlet-Jar-Size: 10158
+MIDlet-Jar-URL: Mob2.jar
+MIDlet-Name: Mob2
+MIDlet-Vendor: Vendor
+MIDlet-Version: 1.0
+MicroEdition-Configuration: CLDC-1.0
+MicroEdition-Profile: MIDP-1.0
