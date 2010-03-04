@@ -18,7 +18,7 @@ import java.util.Stack;
 import java.lang.Thread;
 import java.util.Random;
 
-/*`\section{Definitions, API, and utility functions}'*/
+/*`\subsection{Variables}'*/
 /** Instances of the LightScript object, is an execution context,
   * where code can be parsed, compiled, and executed. 
   *
@@ -26,6 +26,24 @@ import java.util.Random;
   * @version 1.1
   */
 public final class LightScript {
+
+
+/*`\section{Definitions, API, and utility functions}'*/
+
+/* If debugging is enabled, more tests are run during run-time,
+ * and errors may be caught in a more readable way.
+ * It also adds support for more readable printing of
+ * id, etc.
+ */
+    private static final boolean DEBUG_ENABLED = true;
+    private static final boolean __PRINT_EXECUTED_INSTRUCTIONS__ = false;
+    private static final boolean __DO_YIELD__ = true;
+
+/* If enabled, wipe the stack on function exit,
+ * to kill dangling pointers on execution stack,
+ * for better GC at performance price
+ */
+    private static final boolean __CLEAR_STACK__ = true;
 
 /* Identifiers, used both as node type,
  * and also used as opcode. 
@@ -191,8 +209,6 @@ public final class LightScript {
     private static final int TRY_FRAME_SIZE = 5;
 
 
-/*`\subsection{Variables}'*/
-
     /** Token used for separators (;,:), which are just discarded */
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
 
@@ -342,7 +358,6 @@ public final class LightScript {
         StdLib.register(this);
     }
 
-//#ifdef __APPLY_API__
     /** Shorthands for executing a LightScript function */
     public static Object apply(Object thisPtr, LightScriptFunction f) throws LightScriptException {
         Object args[] = {thisPtr};
@@ -363,7 +378,6 @@ public final class LightScript {
         Object args[] = {thisPtr, arg1, arg2, arg3};
         return f.apply(args, 0, 3);
     }
-//#endif /*__APPLY_API__ */
 
     /** Shorthand for evaluating a string that contains LightScript code */
     public Object eval(String s) throws LightScriptException {
@@ -430,11 +444,78 @@ public final class LightScript {
 
 /*`\subsection{Debugging}'*/
 
-    //private static final int idName =(...) "";
-    private static String stringify(Object o) {
-        return o.toString();
+    /** Mapping from ID to name of ID */
+    private static final String[] idNames = {
+        "", "", "", "", "PAREN", "LIST_LITERAL", "CURLY", "VAR", 
+        "BUILD_FUNCTION", "IF", "WHILE", "CALL_FUNCTION", "AND",
+        "OR", "ELSE", "SET", "IDENT", "BLOCK", "SEP", "IN", "FOR",
+        "END", "CATCH", "DO", "INC", "DEC", "ADD", "EQUALS", 
+        "NOT_USED_ANYMORE", "LESS", "LESS_EQUALS", "LITERAL", "MUL", "NEG", 
+        "NOT", "NOT_EQUALS", "NOT_USED_ANYMORE", "REM", "RETURN", ">>", 
+        "SUB", "SUBSCRIPT", "THIS", "THROW", "TRY", "UNTRY", "BOX_IT", 
+        "BUILD_FN", "CALL_FN", "DROP", "DUP", "NOT_USED_ANYMORE", 
+        "GET_BOXED", "GET_BOXED_CLOSURE", "GET_CLOSURE", "GET_LOCAL", 
+        "INC_SP", "JUMP", "JUMP_IF_FALSE", "JUMP_IF_TRUE", "NEW_DICT", 
+        "NEW_LIST", "NEXT", "POP", "PUSH", "PUT", "SAVE_PC", 
+        "SET_BOXED", "SET_CLOSURE", "SET_LOCAL", "SET_THIS", "SWAP",
+        "DIV", "NEW_ITER", "JUMP_IF_UNDEFINED", "DELETE", "NEW", "GLOBAL",
+        "SHIFT_RIGHT", "SHIFT_LEFT", "BITWISE_OR", "BITWISE_XOR", "BITWISE_AND",
+        "ID_BITWISE_NOT"
+    };
+    
+    /** Function that maps from ID to a string representation of the ID,
+      * robust for integers which is not IDs */
+    private static String idName(int id) {
+        return "" + id + ((id > 0 && id < idNames.length) ? idNames[id] : "");
     }
 
+    /** A toString, that also works nicely on arrays, and LightScript code */
+    private static String stringify(Object o) {
+        if(DEBUG_ENABLED) {
+        if (o == null) {
+            return "null";
+        } else if (o instanceof Object[]) {
+            StringBuffer sb = new StringBuffer();
+            Object[] os = (Object[]) o;
+            sb.append("[");
+            if (os.length > 0 && os[0] instanceof Integer) {
+                int id = ((Integer) os[0]).intValue();
+                sb.append(idName(id));
+            } else if (os.length > 0) {
+                sb.append(os[0]);
+            }
+            for (int i = 1; i < os.length; i++) {
+                sb.append(" " + stringify(os[i]));
+            }
+            sb.append("]");
+            return sb.toString();
+        } else if (o instanceof Code) {
+            Code c = (Code) o;
+            StringBuffer sb = new StringBuffer();
+            sb.append("closure" + c.argc + "{\n\tcode:");
+            for (int i = 0; i < c.code.length; i++) {
+                sb.append(" ");
+                sb.append(idName(c.code[i]));
+            }
+            sb.append("\n\tclosure:");
+            for (int i = 0; i < c.closure.length; i++) {
+                sb.append(" " + i + ":");
+                sb.append(stringify(c.closure[i]));
+            }
+            sb.append("\n\tconstPool:");
+            for (int i = 0; i < c.constPool.length; i++) {
+                sb.append(" " + i + ":");
+                sb.append(stringify(c.constPool[i]));
+            }
+            sb.append("\n}");
+            return sb.toString();
+        } else {
+            return o.toString();
+        }
+        } else {
+        return o.toString();
+        }
+    }
     /*`\subsection{Arithmetics}'*/
     private static class FixedPoint {
         public long val;
@@ -1058,9 +1139,7 @@ public final class LightScript {
     private static class Code implements LightScriptFunction, LightScriptObject {
         public Object apply(Object[] args, int argpos, int argcount) 
                                 throws LightScriptException {
-/*#ifdef __DEBUG__
-            if(argcount == argc) {
-#endif*/
+            if(!DEBUG_ENABLED || argcount == argc) {
                 Object stack[];
                 if(argpos != 0) {
                     stack = new Object[argcount + 1];
@@ -1071,12 +1150,9 @@ public final class LightScript {
                     stack = args;
                 }
                 return execute(this, stack, argcount);
-/*#ifdef __DEBUG__
-            } 
-            else {
+            } else {
                 throw new LightScriptException("Wrong number of arguments");
             }
-#endif*/
         }
         public int argc;
         public byte[] code;
@@ -1334,21 +1410,21 @@ public final class LightScript {
                 if (((Integer) args[0]).intValue() == ID_PAREN) {
                     for (int i = 1; i < args.length; i++) {
                         Object[] os = (Object[]) args[i];
-/*#ifdef __DEBUG__
+        if(DEBUG_ENABLED) {
                         if (((Integer) os[0]).intValue() != ID_IDENT) {
                             throw new Error("parameter not variable name" 
                                             + stringify(args));
                         }
-#endif*/
+        }
                         varsLocals.push(os[1]);
                     }
                 } else {
-/*#ifdef __DEBUG__
+        if(DEBUG_ENABLED) {
                     if (((Integer) args[0]).intValue() != ID_CALL_FUNCTION) {
                         throw new Error("parameter not variable name" 
                                         + stringify(args));
                     }
-#endif*/
+        }
                     varsArgc--;
                     fnName = (String)varsUsed.elementAt(0);
                     varsUsed.removeElementAt(0);
@@ -1405,25 +1481,25 @@ public final class LightScript {
                     stackAdd(varsLocals, expr[1]);
                 } else {
                     Object[] expr2 = (Object[]) expr[1];
-/*#ifdef __DEBUG__
+        if(DEBUG_ENABLED) {
                     if (type == ID_SET 
                     && ((Integer) expr2[0]).intValue() == ID_IDENT) {
-#endif*/
                         stackAdd(varsLocals, expr2[1]);
-/*#ifdef __DEBUG__
                     } 
                     else {
                         throw new Error("Error in var");
                     }
-#endif*/
+        } else {
+                        stackAdd(varsLocals, expr2[1]);
+        }
                 }
                 return v(nudId, expr);
             default:
-/*#ifdef __DEBUG__
+        if(DEBUG_ENABLED) {
                 throw new Error("Unknown token: " + token+ ", val: " + val);
-#else*/
+        } else {
                 return null;
-//#endif
+        }
         }
     }
 
@@ -1454,34 +1530,34 @@ public final class LightScript {
                 varsUsed= null;
                 Object[] right = parse(bp);
                 varsUsed = t;
-/*#ifdef __DEBUG__
+        if(DEBUG_ENABLED) {
                 if(((Integer)right[0]).intValue() != ID_IDENT) {
                     throw new Error("right side of dot not a string: " 
                                     + stringify(right));
                 }
-#endif*/
+        }
 
                 right[0] = new Integer(ID_LITERAL);
                 return v(ID_SUBSCRIPT, left, right);
             }
             case LED_INFIX_IF: {
                 Object branch1 = parse(0);
-/*#ifdef __DEBUG__
+        if(DEBUG_ENABLED) {
                 if(parse(0) != SEP_TOKEN) {
                     throw new Error("infix if error");
                 }
-#else*/
+        } else {
                 parse(0);
-//#endif
+        }
                 Object branch2 = parse(0);
                 return v(ID_IF, left, v(ID_ELSE, branch1, branch2));
             }
             default:
-/*#ifdef __DEBUG__
+        if(DEBUG_ENABLED) {
                 throw new Error("Unknown led token: " + token);
-#else  */
+        } else {  
                 return null;
-//#endif
+        }
         }
     }
     private static Hashtable idMapping;
@@ -1927,13 +2003,11 @@ public final class LightScript {
         }
     }
 
-/*#ifdef __DEBUG__
     private void assertLength(Object[] list, int len) {
         if (list.length != len) {
             throw new Error("Wrong number of parameters:" + stringify(list));
         }
     }
-#endif*/
 
     private void emit(int opcode) {
         code.append((char) opcode);
@@ -2079,10 +2153,8 @@ public final class LightScript {
                 if(subtype == ID_SUBSCRIPT) {
                     compile(expr2[1], true);
                     compile(expr2[2], true);
-/*#ifdef __DEBUG__
-                } else if(subtype != ID_IDENT) {
+                } else if(DEBUG_ENABLED && subtype != ID_IDENT) {
                     throw new Error("Deleting non-var");
-#endif*/
                 } else {
                     emit(ID_GLOBAL);
                     addDepth(1);
@@ -2139,11 +2211,11 @@ public final class LightScript {
                     pushShort(pos);
                 } else {
                     pos = varsLocals.indexOf(name);
-/*#ifdef __DEBUG__
+        if(DEBUG_ENABLED) {
                     if (pos == -1) {
                         throw new Error("Unfound var: " + stringify(expr));
                     }
-#endif*/
+        }
                     if (varsBoxed.contains(name)) {
                         emit(ID_GET_BOXED);
                     } else {
@@ -2163,19 +2235,17 @@ public final class LightScript {
                     compile(expr[1], yieldResult);
                     hasResult = yieldResult;
                 } else {
-/*#ifdef __DEBUG__
+        if(DEBUG_ENABLED) {
                     throw new Error("Error in var statement: " 
                                     + stringify(expr));
-#else*/
+        } else {
                     return;
-//#endif
+        }
                 }
                 break;
             }
             case ID_SET: {
-/*#ifdef __DEBUG__
                 assertLength(expr, 3);
-#endif*/
                 int targetType = childType(expr, 1);
                 hasResult = true;
                 if (targetType == ID_IDENT) {
@@ -2190,21 +2260,21 @@ public final class LightScript {
                     emit(ID_PUT);
                     addDepth(-2);
                 } 
-/*#ifdef __DEBUG__
                 else {
+        if(DEBUG_ENABLED) {
                     throw new Error("Uncompilable assignment operator: " 
                                     + stringify(expr));
                 }
-#endif*/
+        }
                 break;
             }
             case ID_PAREN: {
-/*#ifdef __DEBUG__
+        if(DEBUG_ENABLED) {
                 if (expr.length != 2) {
                     throw new Error("Unexpected content of parenthesis: " 
                                     + stringify(expr));
                 }
-#endif*/
+        }
                 compile(expr[1], yieldResult);
                 hasResult = yieldResult;
                 break;
@@ -2246,11 +2316,11 @@ public final class LightScript {
 
                 // call the function
                 emit(ID_CALL_FN);
-/*#ifdef __DEBUG__
+        if(DEBUG_ENABLED) {
                 if (expr.length > 129) {
                     throw new Error("too many parameters");
                 }
-#endif*/
+        }
                 emit(expr.length - 2);
                 addDepth(1 - expr.length - RET_FRAME_SIZE);
 
@@ -2379,11 +2449,11 @@ public final class LightScript {
                         // var name
                         name = ((Object[])name)[1];
                     }
-/*#ifdef __DEBUG__
+        if(DEBUG_ENABLED) {
                     if(!(name instanceof String)) {
                         throw new Error("for-in has no var");
                     }
-#endif*/
+        }
 
                     // evaluate b
                     compile(in[2], true);
@@ -2426,9 +2496,7 @@ public final class LightScript {
                 break;
             }
             case ID_AND: {
-/*#ifdef __DEBUG__
                 assertLength(expr, 3);
-#endif*/
                 int pos0, pos1, len;
 
                 compile(expr[1], true);
@@ -2454,9 +2522,7 @@ public final class LightScript {
                 break;
             }
             case ID_OR: {
-/*#ifdef __DEBUG__
                 assertLength(expr, 3);
-#endif*/
                 int pos0, pos1, len;
 
                 compile(expr[1], true);
@@ -2630,11 +2696,11 @@ public final class LightScript {
                 return;
             }
             default:
-/*#ifdef __DEBUG__
+        if(DEBUG_ENABLED) {
                 throw new Error("Uncompilable expression: " + stringify(expr));
-#else*/
+        } else {
                 return;
-//#endif
+        }
         }
 
         if (hasResult && !yieldResult) {
@@ -2661,14 +2727,14 @@ public final class LightScript {
         if(o instanceof String) {
             return !((String)o).equals("");
         }
-/*#ifdef DEBUG
+        if(DEBUG_ENABLED) {
         if(o instanceof Integer) {
-#endif*/
             return ((Integer)o).intValue() != 0;
-/*#ifdef DEBUG
         }
         throw new Error("unhandled toBool case for:" + o.toString());
-#endif*/
+        } else {
+            return ((Integer)o).intValue() != 0;
+        }
     }
     private static Object[] ensureSpace(Object[] stack, int sp, int maxDepth) {
         if (stack.length <= maxDepth + sp + 1) {
@@ -2686,9 +2752,9 @@ public final class LightScript {
      * evaluate some bytecode 
      */
     private static Object execute(Code cl, Object[] stack, int argcount) throws LightScriptException {
-/*#ifndef __DEBUG__
+        //if(!DEBUG_ENABLED) {
         try {
-#endif*/
+        //}
         int sp = argcount;
 
         //System.out.println(stringify(cl));
@@ -2700,17 +2766,18 @@ public final class LightScript {
         int exceptionHandler = - 1;
         stack = ensureSpace(stack, sp, cl.maxDepth);
         Object thisPtr = stack[0];
-//#ifdef __CLEAR_STACK__
-        int usedStack = sp + cl.maxDepth;
-//#endif
+        int usedStack;
+        if(__CLEAR_STACK__) {
+        usedStack = sp + cl.maxDepth;
+        }
 
         for (;;) {
             ++pc;
-/*#ifdef __PRINT_EXECUTED_INSTRUCTIONS__
+        if(__PRINT_EXECUTED_INSTRUCTIONS__) {
             System.out.println("pc:" + pc + " op:"  + idName(code[pc]) 
                              + " sp:" + sp + " stack.length:" + stack.length 
                              + " int:" + readShort(pc, code));
-#endif*/
+        }
             switch (code[pc]) {
                 case ID_INC_SP: {
                     sp += code[++pc];
@@ -2724,17 +2791,17 @@ public final class LightScript {
                     if (sp == 0) {
                         return result;
                     }
-/*#ifdef __DEBUG__
+        if(DEBUG_ENABLED) {
                     if(sp < 0) {
                         throw new Error("Wrong stack discipline" 
                                 + sp);
                     }
-#endif*/
-//#ifdef __CLEAR_STACK__
+        }
+        if(__CLEAR_STACK__) {
                     for(int i = sp; i <= usedStack; i++) {
                         stack[i] = null;
                     }
-//#endif
+        }
                     pc = ((Integer) stack[--sp]).intValue();
                     code = (byte[]) stack[--sp];
                     constPool = (Object[]) stack[--sp];
@@ -2742,7 +2809,9 @@ public final class LightScript {
                     closure = (Object[]) stack[--sp];
                     thisPtr = stack[--sp];
                     stack[sp] = result;
+        if(__DO_YIELD__) {
                     Thread.yield();
+        }
                     break;
                 }
                 case ID_SAVE_PC: {
@@ -2760,9 +2829,9 @@ public final class LightScript {
 
                         int deltaSp = fn.argc - argc;
                         stack = ensureSpace(stack, sp, fn.maxDepth + deltaSp);
-//#ifdef __CLEAR_STACK__
+        if(__CLEAR_STACK__) {
                         usedStack = sp + fn.maxDepth + deltaSp;
-//#endif
+        }
                         sp += deltaSp;
                         argc = fn.argc;
 
@@ -2799,10 +2868,10 @@ public final class LightScript {
                             }
                             break;
                         }
-/*#ifdef __DEBUG__
                     } else {
+        if(DEBUG_ENABLED) {
                         throw new Error("Unknown function:" + o);
-#endif*/
+        }
                     }
                     break;
                 }
@@ -3114,7 +3183,9 @@ public final class LightScript {
                 }
                 case ID_JUMP: {
                     pc += readShort(pc, code) + 2;
+        if(__DO_YIELD__) {
                     Thread.yield();
+        }
                     break;
                 }
                 case ID_JUMP_IF_UNDEFINED: {
@@ -3122,7 +3193,9 @@ public final class LightScript {
                         pc += 2;
                     } else {
                         pc += readShort(pc, code) + 2;
-                        Thread.yield();
+        if(__DO_YIELD__) {
+                    Thread.yield();
+        }
                     }
                     --sp;
                     break;
@@ -3132,7 +3205,9 @@ public final class LightScript {
                         pc += 2;
                     } else {
                         pc += readShort(pc, code) + 2;
-                        Thread.yield();
+        if(__DO_YIELD__) {
+                    Thread.yield();
+        }
                     }
                     --sp;
                     break;
@@ -3228,10 +3303,10 @@ public final class LightScript {
                         ((Stack)container).setElementAt(UNDEFINED, ((Integer)key).intValue());
                     } else if(container instanceof LightScriptObject) {
                         ((LightScriptObject)container).set(key, UNDEFINED);
-/*#ifdef __DEBUG__
                     } else {
+        if(DEBUG_ENABLED) {
                         throw new Error("deleting non-deletable");
-#endif*/
+        }
                     }
                     break;
                 }
@@ -3275,21 +3350,20 @@ public final class LightScript {
                     break;
                 }
                 default: {
-/*#ifdef __DEBUG__
+        if(DEBUG_ENABLED) {
                     throw new Error("Unknown opcode: " + code[pc]);
-#endif*/
+        }
                 }
             }
         }
 // if we debug, we want the real exception, with line number..
-/*#ifndef __DEBUG__
-        } catch(Throwable e) {
-            if(e instanceof LightScriptException) {
-                throw (LightScriptException)e;
-            }
+        } catch(Error e) {
+        if(!DEBUG_ENABLED) {
             throw new LightScriptException(e);
+        } else {
+            throw e;
         }
-#endif */
+        } 
     }
 }
 

@@ -22,11 +22,13 @@ examples/Main.class: $(DEFAULT_VER)$(LS).class
 	javac -source 1.2 examples/Main.java
 	ls -l $(DEFAULT_VER)$(LS).class
 
-doc: $(INT_VER)$(LS).java $(FP_VER)$(LS).java
-	javadoc -d doc/public/ net.lightscript.f1
-	javadoc -d doc/public-intonly/ net.lightscript.i1
-	javadoc -private -d doc/private net.lightscript.f1
-	javadoc -private -d doc/private-intonly net.lightscript.i1
+doc: . com/solsort/mobile $(INT_VER)$(LS).java $(FP_VER)$(LS).java
+	javadoc -d doc/public com.solsort.mobile
+	javadoc -private -d doc/private com.solsort.mobile
+	javadoc -d doc/old-public/ net.lightscript.f1
+	javadoc -d doc/old-public-intonly/ net.lightscript.i1
+	javadoc -private -d doc/old-private net.lightscript.f1
+	javadoc -private -d doc/old-private-intonly net.lightscript.i1
 
 classes: $(INT_VER)$(LS).class $(FP_VER)$(LS).class
 
@@ -52,7 +54,7 @@ $(FP_VER)$(LS).java: $(DEPS)
 	    do echo "0i\npackage net.lightscript.f1;\n.\nwq\n" | ed -s $$foo;\
 	    done;
 clean:
-	rm -rf $(FP_VER) $(INT_VER) doc/public* doc/private* `find . -name "*.class"` *.tar.gz examples/*.jar examples/*/*.jar
+	rm -rf $(FP_VER) $(INT_VER) com/solsort/mobile/*.class doc/public* doc/private* doc/old-* `find . -name "*.class"` *.tar.gz examples/*.jar examples/*/*.jar
 
 examples/moby/moby.jar: examples/moby/*.java examples/moby/manifest examples/moby/*.jad
 	javac -source 1.2 -classpath .:dependencies/midpapi10.jar examples/moby/*.java
@@ -65,17 +67,5 @@ examples/mob2/mob2.jar: examples/mob2/*.java examples/mob2/manifest examples/mob
 	jar -cvfm examples/in.jar examples/mob2/manifest com/solsort/mobile/*.class examples/mob2/*.class
 	java -jar dependencies/proguard.jar @examples/midlets.pro
 	mv examples/out.jar examples/mob2/mob2.jar
+
 ex: examples/mob2/mob2.jar examples/moby/moby.jar
-#
-#LightScript.java: $(LS_SRC)
-#	cpp -C -P $(LS_SRC) > LightScript.java 
-#
-#
-#all: Main.class
-#
-#
-#doc: $(SRC)
-#	mv $(LS_SRC) $(LS_SRC).nodoc
-#	javadoc -d private-doc -private $(SRC); mv $(LS_SRC).nodoc $(LS_SRC)
-#	mv $(LS_SRC) $(LS_SRC).nodoc
-#	javadoc -d doc $(SRC); mv $(LS_SRC).nodoc $(LS_SRC)
