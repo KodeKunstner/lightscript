@@ -1,4 +1,9 @@
 - Switch from LightScriptObject-interface to LightScriptClass-class
-  - Dispatch on .getClass(), and a prototype table
+  - Dispatch on .getClass(), and a class table
+- More apis
 - Testsuite
-- Actual applications
+- Include applications
+- Documentation in readme as markdown
+  - including benchmarks from thesis
+- Website for project
+- Error-logging with upload to server.
