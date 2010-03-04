@@ -116,6 +116,12 @@ public final class Util {
     }
     private static Hashtable cookies = new Hashtable();
 
+    /**
+     * @todo extract to other class, get LightScriptFunction as callback
+     * @param url
+     * @return
+     * @throws IOException
+     */
     public static InputStream openUrl(String url) throws IOException {
         HttpConnection con = (HttpConnection) Connector.open(url);
 

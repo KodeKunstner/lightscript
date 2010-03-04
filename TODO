@@ -1,5 +1,58 @@
 - Switch from LightScriptObject-interface to LightScriptClass-class
   - Dispatch on .getClass(), and a class table
+
+a la:
+
+class LightScript ... {
+...
+    Hashtable classes;
+    LightScriptClass defaultClass;
+    Object subscript(Object obj, Object key) {
+        Object o = classes.get(obj.getClass());
+        if(o != null) {
+            o = ((LightScriptClass)o).get(obj, key);
+        } 
+        if(o != null) {
+            return o;
+        }
+        o = defaultClass.get(obj, key);
+        if(o != null) {
+            return o;
+        }
+        return UNDEFINED;
+    }
+    Object subscriptAssign(Object obj, Object key, Object val) {
+        Object o = classes.get(obj.getClass());
+        LightScriptClass thisClass;
+        if(o == null) {
+           thisClass = defaultClass;
+        } else {
+           thisClass = (LightScriptClass)o;
+        }
+        return thisClass.set(obj, key, val);
+    }
+    boolean toBool(Object obj) {
+        if(obj == TRUE) {
+            return true;
+        }
+        if(obj == UNDEFINED || obj == FALSE || obj == null || obj == NULL) {
+            return false;
+        }
+
+        Object o = classes.get(obj.getClass());
+        LightScriptClass thisClass;
+        if(o == null) {
+           thisClass = defaultClass;
+        } else {
+           thisClass = (LightScriptClass)o;
+        }
+        return thisClass.toBool(obj);
+    }
+...
+...
+}
+
+
 - More apis
 - Testsuite
 - Include applications
