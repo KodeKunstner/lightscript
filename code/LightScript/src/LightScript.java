@@ -956,6 +956,8 @@ public final class LightScript {
                             return ((Object[])thisPtr)[((Integer) arg1).intValue()];
                         } else if("length".equals(arg1)) {
                             return new Integer(((Object[])thisPtr).length);
+                        } else if(((Hashtable)closure[0]).containsKey(arg1)) {
+                            return ((Hashtable)closure[0]).get(arg1);
                         }
                     }
 
@@ -1150,7 +1152,11 @@ public final class LightScript {
     
             ls.executionContext[EC_SETTER] = new StdLib(STD_DEFAULT_SETTER);
     
-            ls.executionContext[EC_GETTER] = new StdLib(STD_DEFAULT_GETTER);
+
+            StdLib defaultGetter = new StdLib(STD_DEFAULT_GETTER);
+            defaultGetter.closure = new Object[1];
+            defaultGetter.closure[0] = objectPrototype;
+            ls.executionContext[EC_GETTER] = defaultGetter;
 
             ls.executionContext[EC_NEW_ITER] = new StdLib(STD_NEW_ITERATOR);
 
@@ -1286,7 +1292,7 @@ public final class LightScript {
     /** Test if the current character is alphanumeric */
     private boolean isAlphaNum() {
         return isNum() || c == '_' || ('a' <= c && c <= 'z') 
-                                   || ('A' <= c && c <= 'Z');
+                       || c == '$' || ('A' <= c && c <= 'Z');
     }
 
     /** Test if the current character could be a part of a multi character 
