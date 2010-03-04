@@ -1,7 +1,8 @@
 package com.solsort.mobile;
 
 public interface LightScriptFunction {
-    /** 
+
+    /**
      * Method callable from LightScript.
      *
      * @param args      An array that contains the parameters,
@@ -16,6 +17,6 @@ public interface LightScriptFunction {
      *
      * @return          An object that is returned to LightScript
      */
-    public Object apply(Object[] args, int argpos, int argcount) 
-                    throws LightScriptException;
+    public Object apply(Object[] args, int argpos, int argcount)
+            throws LightScriptException;
 }

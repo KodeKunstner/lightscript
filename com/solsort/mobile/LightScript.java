@@ -1,4 +1,5 @@
 package com.solsort.mobile;
+
 /**
 This software is released under the 
 AFFERO GENERAL PUBLIC LICENSE version 3
@@ -10,46 +11,44 @@ http://www.gnu.org/licenses/agpl-3.0.html)
 Copyright, 2009-2010, Rasmus Jensen, rasmus@solsort.com
 
 Contact for other licensing options.
-*/
-
+ */
 import java.io.InputStream;
 import java.util.Enumeration;
 import java.io.ByteArrayInputStream;
 import java.util.Hashtable;
 import java.util.Stack;
-import java.lang.Thread;
 import java.util.Random;
 
 /*`\subsection{Variables}'*/
 /** Instances of the LightScript object, is an execution context,
-  * where code can be parsed, compiled, and executed. 
-  *
-  * @author Rasmus Jensen, rasmus@lightscript.net
-  * @version 1.2
-  */
+ * where code can be parsed, compiled, and executed.
+ *
+ * @author Rasmus Jensen, rasmus@lightscript.net
+ * @version 1.2
+ */
 public final class LightScript {
 
 
-/*`\section{Definitions, API, and utility functions}'*/
+    /*`\section{Definitions, API, and utility functions}'*/
 
-/* If debugging is enabled, more tests are run during run-time,
- * and errors may be caught in a more readable way.
- * It also adds support for more readable printing of
- * id, etc.
- */
+    /* If debugging is enabled, more tests are run during run-time,
+     * and errors may be caught in a more readable way.
+     * It also adds support for more readable printing of
+     * id, etc.
+     */
     private static final boolean DEBUG_ENABLED = true;
     private static final boolean __PRINT_EXECUTED_INSTRUCTIONS__ = false;
     private static final boolean __DO_YIELD__ = true;
 
-/* If enabled, wipe the stack on function exit,
- * to kill dangling pointers on execution stack,
- * for better GC at performance price
- */
+    /* If enabled, wipe the stack on function exit,
+     * to kill dangling pointers on execution stack,
+     * for better GC at performance price
+     */
     private static final boolean __CLEAR_STACK__ = true;
 
-/* Identifiers, used both as node type,
- * and also used as opcode. 
- */
+    /* Identifiers, used both as node type,
+     * and also used as opcode.
+     */
     private static final int ID_NONE = 127;
     private static final int ID_TRUE = 0;
     private static final int ID_FALSE = 1;
@@ -132,9 +131,7 @@ public final class LightScript {
     private static final int ID_BITWISE_XOR = 82;
     private static final int ID_BITWISE_AND = 83;
     private static final int ID_BITWISE_NOT = 84;
-
-
-/* The function id for the null denominator functions */
+    /* The function id for the null denominator functions */
     private static final int NUD_NONE = 13;
     private static final int NUD_IDENT = 1;
     private static final int NUD_LITERAL = 2;
@@ -149,7 +146,7 @@ public final class LightScript {
     private static final int NUD_CATCH = 11;
     private static final int NUD_CONST = 12;
 
-/* The function id for the null denominator functions */
+    /* The function id for the null denominator functions */
     private static final int LED_NONE = 8;
     private static final int LED_DOT = 1;
     private static final int LED_INFIX = 2;
@@ -159,97 +156,77 @@ public final class LightScript {
     private static final int LED_OPASSIGN = 6;
     private static final int LED_INFIX_SWAP = 7;
 
-/* Tokens objects are encoded as integers */
-
-/** The number of bits per denominator function */
+    /* Tokens objects are encoded as integers */
+    /** The number of bits per denominator function */
     private static final int SIZE_FN = 4;
-
-/** The number of bits per id */
+    /** The number of bits per id */
     private static final int SIZE_ID = 7;
 
-/* Masks for function/id */
-    private static final int MASK_ID = ((1<<SIZE_ID) - 1);
-    private static final int MASK_FN = ((1<<SIZE_FN) - 1);
+    /* Masks for function/id */
+    private static final int MASK_ID = ((1 << SIZE_ID) - 1);
+    private static final int MASK_FN = ((1 << SIZE_FN) - 1);
 
-/* Mask for the binding power / priority */
-    private static final int MASK_BP = (-1 << (2*SIZE_ID + 2 *SIZE_FN));
-
-/** The sep token, encoded as an integer */
-    private static final int TOKEN_SEP = ((((((((
-                      0 << SIZE_FN)
-                    | NUD_SEP) << SIZE_ID)
-                    | ID_NONE) << SIZE_FN)
-                    | LED_NONE) << SIZE_ID)
-                    | ID_NONE);
-
-/** The end token, encoded as an integer */
-    private static final int TOKEN_END = ((((((((
-                      0 << SIZE_FN)
-                    | NUD_END) << SIZE_ID)
-                    | ID_NONE) << SIZE_FN)
-                    | LED_NONE) << SIZE_ID)
-                    | ID_NONE);
-
-/** The token used for literals, encoded as an integer */
-    private static final int TOKEN_LITERAL = ((((((((
-                      0 << SIZE_FN)
-                    | NUD_LITERAL) << SIZE_ID)
-                    | ID_NONE) << SIZE_FN)
-                    | LED_NONE) << SIZE_ID)
-                    | ID_NONE);
-
-/** The token used for identifiers, encoded as an integer */
-    private static final int TOKEN_IDENT = ((((((((
-                      0 << SIZE_FN)
-                    | NUD_IDENT) << SIZE_ID)
-                    | ID_NONE) << SIZE_FN)
-                    | LED_NONE) << SIZE_ID)
-                    | ID_NONE);
-
-/** Sizes of different kinds of stack frames */
+    /* Mask for the binding power / priority */
+    private static final int MASK_BP = (-1 << (2 * SIZE_ID + 2 * SIZE_FN));
+    /** The sep token, encoded as an integer */
+    private static final int TOKEN_SEP = ((((((((0 << SIZE_FN)
+            | NUD_SEP) << SIZE_ID)
+            | ID_NONE) << SIZE_FN)
+            | LED_NONE) << SIZE_ID)
+            | ID_NONE);
+    /** The end token, encoded as an integer */
+    private static final int TOKEN_END = ((((((((0 << SIZE_FN)
+            | NUD_END) << SIZE_ID)
+            | ID_NONE) << SIZE_FN)
+            | LED_NONE) << SIZE_ID)
+            | ID_NONE);
+    /** The token used for literals, encoded as an integer */
+    private static final int TOKEN_LITERAL = ((((((((0 << SIZE_FN)
+            | NUD_LITERAL) << SIZE_ID)
+            | ID_NONE) << SIZE_FN)
+            | LED_NONE) << SIZE_ID)
+            | ID_NONE);
+    /** The token used for identifiers, encoded as an integer */
+    private static final int TOKEN_IDENT = ((((((((0 << SIZE_FN)
+            | NUD_IDENT) << SIZE_ID)
+            | ID_NONE) << SIZE_FN)
+            | LED_NONE) << SIZE_ID)
+            | ID_NONE);
+    /** Sizes of different kinds of stack frames */
     private static final int RET_FRAME_SIZE = 4;
     private static final int TRY_FRAME_SIZE = 5;
-
-
     /** Token used for separators (;,:), which are just discarded */
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
-
     /** The true truth value of results 
-      * of tests/comparisons within LightScript */
+     * of tests/comparisons within LightScript */
     public static final Object TRUE = new StringBuffer("true");
     /** The null value within LightScript */
     public static final Object NULL = new StringBuffer("null");
     /** The undefined value within LightScript */
     public static final Object UNDEFINED = new StringBuffer("undefined");
     /** The false truth value of results 
-      * of tests/comparisons within LightScript */
+     * of tests/comparisons within LightScript */
     public static final Object FALSE = new StringBuffer("false");
-
     /** Token string when reaching end of file, it can only occur
-      * at end of file, as it would otherwise be parsed as three
-      * tokens: "(", "EOF", and ")". */
+     * at end of file, as it would otherwise be parsed as three
+     * tokens: "(", "EOF", and ")". */
     private static final String EOF = "(EOF)";
-
     /** This stack is used during compilation to build the constant pool 
-      * of the compiled function. The constant pool contains the constants 
-      * that are used during execution of the function */
+     * of the compiled function. The constant pool contains the constants
+     * that are used during execution of the function */
     private Stack constPool;
 
     /* Used to keep track of stack depth during compilation, to be able to
      * resolve variables */
     private int maxDepth;
     private int depth;
-
     /** This stringbuffer is used as a dynamically sized bytevector
-      * where opcodes are added, during the compilation */
+     * where opcodes are added, during the compilation */
     private StringBuffer code;
-
     /** The stream which we are parsing */
     private InputStream is;
-
     /** the just read character */
     private int c;
-
     /** the buffer for building the tokens */
     private StringBuffer sb;
 
@@ -257,45 +234,34 @@ public final class LightScript {
      * Sets of variable names for keeping track of which variables
      * are used where and how, in order to know whether they should
      * be boxed, and be placed on the stack or in closures. */
-
     /** The variables used within a function */
     private Stack varsUsed;
-
     /** The variables that needs to be boxed */
     private Stack varsBoxed;
-
     /** The local variables (arguments, and var-defined) */
     private Stack varsLocals;
-
     /** The variables in the closure */
     private Stack varsClosure;
-
     /** The number of arguments to the function, corresponds to the first
-      * names in varsLocals */
+     * names in varsLocals */
     private int varsArgc;
-
     /** The value of the just read token.
-      * used if the token is an identifier or literal.
-      * possible types are String and Integer */
+     * used if the token is an identifier or literal.
+     * possible types are String and Integer */
     private Object tokenVal;
-
     /** The integer encoded token object, including priority, IDs
-      * and Function ids for null/left denominator functions */
+     * and Function ids for null/left denominator functions */
     private int token;
-
-
-
-/*`\subsection{Public functions}'*/
-
+    /*`\subsection{Public functions}'*/
     /** The globals variables in this execution context.
-      * they are boxed, in such that they can be passed
-      * to the closure of af function, which will then
-      * be able to modify it without looking it up here */
-        private static final int EC_GLOBALS = 0;
-        private static final int EC_OBJECT_PROTOTYPE = 1;
-        private static final int EC_ARRAY_PROTOTYPE = 2;
-        private static final int EC_FUNCTION_PROTOTYPE = 3;
-        private static final int EC_STRING_PROTOTYPE = 4;
+     * they are boxed, in such that they can be passed
+     * to the closure of af function, which will then
+     * be able to modify it without looking it up here */
+    private static final int EC_GLOBALS = 0;
+    private static final int EC_OBJECT_PROTOTYPE = 1;
+    private static final int EC_ARRAY_PROTOTYPE = 2;
+    private static final int EC_FUNCTION_PROTOTYPE = 3;
+    private static final int EC_STRING_PROTOTYPE = 4;
     /* Index in executionContext for the default setter function, 
      * which is called when a property is set on
      * an object which is neither a Stack, Hashtable nor LightScriptObject
@@ -303,7 +269,7 @@ public final class LightScript {
      * The apply method of the setter gets the container as thisPtr, 
      * and takes the key and value as arguments
      */
-        private static final int EC_SETTER = 5;
+    private static final int EC_SETTER = 5;
     /* Index in executionContext for the default getter function, 
      * called when subscripting an object
      * which is not a Stack, Hashtable, String nor LightScriptObject
@@ -314,35 +280,40 @@ public final class LightScript {
      * The apply method of the getter gets the container as thisPtr, 
      * and takes the key as argument
      */
-        private static final int EC_GETTER = 6;
-        private static final int EC_WRAPPED_GLOBALS = 7;
-        private static final int EC_NEW_ITER = 8;
+    private static final int EC_GETTER = 6;
+    private static final int EC_WRAPPED_GLOBALS = 7;
+    private static final int EC_NEW_ITER = 8;
 
     /** Get the default iterator function */
     public LightScriptObject defaultIterator() {
         return (LightScriptObject) executionContext[EC_NEW_ITER];
     }
+
     /** Set the default-setter function.
      * The default iterator function is called as a method on the object,
      * and should return an iterator across that object. */
     public void defaultIterator(LightScriptFunction f) {
         executionContext[EC_NEW_ITER] = f;
     }
+
     /** Get the default-setter function */
     public LightScriptFunction defaultSetter() {
         return (LightScriptFunction) executionContext[EC_SETTER];
     }
+
     /** Set the default-setter function.
      * The default setter function is called as a method on the object,
      * with the key and the value as arguments. */
     public void defaultSetter(LightScriptFunction f) {
         executionContext[EC_SETTER] = f;
     }
+
     /** Get the default-getter function */
     public LightScriptFunction defaultGetter() {
         return (LightScriptFunction) executionContext[EC_GETTER];
     }
-    /** Set the default-getter function. 
+
+    /** Set the default-getter function.
      * The default getter function is called as a method on the object,
      * with a single argument, which is the key */
     public void defaultGetter(LightScriptFunction f) {
@@ -365,16 +336,19 @@ public final class LightScript {
         Object args[] = {thisPtr};
         return f.apply(args, 0, 0);
     }
+
     /** Shorthands for executing a LightScript function */
     public static Object apply(Object thisPtr, LightScriptFunction f, Object arg1) throws LightScriptException {
         Object args[] = {thisPtr, arg1};
         return f.apply(args, 0, 1);
     }
+
     /** Shorthands for executing a LightScript function */
     public static Object apply(Object thisPtr, LightScriptFunction f, Object arg1, Object arg2) throws LightScriptException {
         Object args[] = {thisPtr, arg1, arg2};
         return f.apply(args, 0, 2);
     }
+
     /** Shorthands for executing a LightScript function */
     public static Object apply(Object thisPtr, LightScriptFunction f, Object arg1, Object arg2, Object arg3) throws LightScriptException {
         Object args[] = {thisPtr, arg1, arg2, arg3};
@@ -389,155 +363,159 @@ public final class LightScript {
     /** Evaluate the next statement from an input stream */
     public Object evalNext(InputStream is) throws LightScriptException {
 // if we debug, we want the real exception, with line number..
-            if(is != this.is) {
-                this.is = is;
-                sb = new StringBuffer();
-                c = ' ';
-                varsArgc = 0;
-                nextToken();
+        if (is != this.is) {
+            this.is = is;
+            sb = new StringBuffer();
+            c = ' ';
+            varsArgc = 0;
+            nextToken();
+        }
+        while (token == TOKEN_SEP) {
+            nextToken();
+        }
+        if (tokenVal == EOF || token == TOKEN_END) {
+            return null;
+        }
+        // parse with every var in closure
+        varsUsed = varsLocals = varsBoxed = new Stack();
+        Object[] os = parse(0);
+        varsClosure = varsUsed;
+
+        // compile
+        Code c = compile(os);
+        // create closure from globals
+        for (int i = 0; i < c.closure.length; i++) {
+            Object box = ((Hashtable) executionContext[EC_GLOBALS]).get(c.closure[i]);
+            if (box == null) {
+                box = new Object[1];
+                ((Object[]) box)[0] = UNDEFINED;
+                ((Hashtable) executionContext[EC_GLOBALS]).put(c.closure[i], box);
             }
-            while(token == TOKEN_SEP) {
-                nextToken();
-            }
-            if(tokenVal == EOF || token == TOKEN_END) {
-                return null;
-            }
-            // parse with every var in closure
-            varsUsed = varsLocals = varsBoxed = new Stack();
-            Object[] os = parse(0);
-            varsClosure = varsUsed;
-    
-            // compile
-            Code c = compile(os);
-            // create closure from globals
-            for(int i = 0; i < c.closure.length; i ++) {
-                Object box = ((Hashtable)executionContext[EC_GLOBALS]).get(c.closure[i]);
-                if(box == null) {
-                    box = new Object[1];
-                    ((Object[])box)[0] = UNDEFINED;
-                    ((Hashtable)executionContext[EC_GLOBALS]).put(c.closure[i], box);
-                }
-                c.closure[i] = box;
-            }
-            Object stack[] = {executionContext[EC_WRAPPED_GLOBALS]};
-            return execute(c, stack, 0);
+            c.closure[i] = box;
+        }
+        Object stack[] = {executionContext[EC_WRAPPED_GLOBALS]};
+        return execute(c, stack, 0);
     }
 
     /** Parse and execute LightScript code read from an input stream */
-    public Object eval( InputStream is) throws LightScriptException {
+    public Object eval(InputStream is) throws LightScriptException {
         Object result, t = UNDEFINED;
         do {
             result = t;
             t = evalNext(is);
-        } while(t != null);
+        } while (t != null);
 
         return result;
     }
 
     /** Set a global value for this execution context */
     public void set(Object key, Object value) {
-        ((LightScriptObject)executionContext[EC_WRAPPED_GLOBALS]).set(key, value);
+        ((LightScriptObject) executionContext[EC_WRAPPED_GLOBALS]).set(key, value);
     }
 
     /** Retrieve a global value from this execution context */
     public Object get(Object key) {
-        return ((LightScriptObject)executionContext[EC_WRAPPED_GLOBALS]).get(key);
+        return ((LightScriptObject) executionContext[EC_WRAPPED_GLOBALS]).get(key);
     }
 
-/*`\subsection{Debugging}'*/
-
+    /*`\subsection{Debugging}'*/
     /** Mapping from ID to name of ID */
     private static final String[] idNames = {
-        "", "", "", "", "PAREN", "LIST_LITERAL", "CURLY", "VAR", 
+        "", "", "", "", "PAREN", "LIST_LITERAL", "CURLY", "VAR",
         "BUILD_FUNCTION", "IF", "WHILE", "CALL_FUNCTION", "AND",
         "OR", "ELSE", "SET", "IDENT", "BLOCK", "SEP", "IN", "FOR",
-        "END", "CATCH", "DO", "INC", "DEC", "ADD", "EQUALS", 
-        "NOT_USED_ANYMORE", "LESS", "LESS_EQUALS", "LITERAL", "MUL", "NEG", 
-        "NOT", "NOT_EQUALS", "NOT_USED_ANYMORE", "REM", "RETURN", ">>", 
-        "SUB", "SUBSCRIPT", "THIS", "THROW", "TRY", "UNTRY", "BOX_IT", 
-        "BUILD_FN", "CALL_FN", "DROP", "DUP", "NOT_USED_ANYMORE", 
-        "GET_BOXED", "GET_BOXED_CLOSURE", "GET_CLOSURE", "GET_LOCAL", 
-        "INC_SP", "JUMP", "JUMP_IF_FALSE", "JUMP_IF_TRUE", "NEW_DICT", 
-        "NEW_LIST", "NEXT", "POP", "PUSH", "PUT", "SAVE_PC", 
+        "END", "CATCH", "DO", "INC", "DEC", "ADD", "EQUALS",
+        "NOT_USED_ANYMORE", "LESS", "LESS_EQUALS", "LITERAL", "MUL", "NEG",
+        "NOT", "NOT_EQUALS", "NOT_USED_ANYMORE", "REM", "RETURN", ">>",
+        "SUB", "SUBSCRIPT", "THIS", "THROW", "TRY", "UNTRY", "BOX_IT",
+        "BUILD_FN", "CALL_FN", "DROP", "DUP", "NOT_USED_ANYMORE",
+        "GET_BOXED", "GET_BOXED_CLOSURE", "GET_CLOSURE", "GET_LOCAL",
+        "INC_SP", "JUMP", "JUMP_IF_FALSE", "JUMP_IF_TRUE", "NEW_DICT",
+        "NEW_LIST", "NEXT", "POP", "PUSH", "PUT", "SAVE_PC",
         "SET_BOXED", "SET_CLOSURE", "SET_LOCAL", "SET_THIS", "SWAP",
         "DIV", "NEW_ITER", "JUMP_IF_UNDEFINED", "DELETE", "NEW", "GLOBAL",
         "SHIFT_RIGHT", "SHIFT_LEFT", "BITWISE_OR", "BITWISE_XOR", "BITWISE_AND",
         "ID_BITWISE_NOT"
     };
-    
+
     /** Function that maps from ID to a string representation of the ID,
-      * robust for integers which is not IDs */
+     * robust for integers which is not IDs */
     private static String idName(int id) {
         return "" + id + ((id > 0 && id < idNames.length) ? idNames[id] : "");
     }
 
     /** A toString, that also works nicely on arrays, and LightScript code */
     private static String stringify(Object o) {
-        if(DEBUG_ENABLED) {
-        if (o == null) {
-            return "null";
-        } else if (o instanceof Object[]) {
-            StringBuffer sb = new StringBuffer();
-            Object[] os = (Object[]) o;
-            sb.append("[");
-            if (os.length > 0 && os[0] instanceof Integer) {
-                int id = ((Integer) os[0]).intValue();
-                sb.append(idName(id));
-            } else if (os.length > 0) {
-                sb.append(os[0]);
+        if (DEBUG_ENABLED) {
+            if (o == null) {
+                return "null";
+            } else if (o instanceof Object[]) {
+                StringBuffer sb = new StringBuffer();
+                Object[] os = (Object[]) o;
+                sb.append("[");
+                if (os.length > 0 && os[0] instanceof Integer) {
+                    int id = ((Integer) os[0]).intValue();
+                    sb.append(idName(id));
+                } else if (os.length > 0) {
+                    sb.append(os[0]);
+                }
+                for (int i = 1; i < os.length; i++) {
+                    sb.append(" " + stringify(os[i]));
+                }
+                sb.append("]");
+                return sb.toString();
+            } else if (o instanceof Code) {
+                Code c = (Code) o;
+                StringBuffer sb = new StringBuffer();
+                sb.append("closure" + c.argc + "{\n\tcode:");
+                for (int i = 0; i < c.code.length; i++) {
+                    sb.append(" ");
+                    sb.append(idName(c.code[i]));
+                }
+                sb.append("\n\tclosure:");
+                for (int i = 0; i < c.closure.length; i++) {
+                    sb.append(" " + i + ":");
+                    sb.append(stringify(c.closure[i]));
+                }
+                sb.append("\n\tconstPool:");
+                for (int i = 0; i < c.constPool.length; i++) {
+                    sb.append(" " + i + ":");
+                    sb.append(stringify(c.constPool[i]));
+                }
+                sb.append("\n}");
+                return sb.toString();
+            } else {
+                return o.toString();
             }
-            for (int i = 1; i < os.length; i++) {
-                sb.append(" " + stringify(os[i]));
-            }
-            sb.append("]");
-            return sb.toString();
-        } else if (o instanceof Code) {
-            Code c = (Code) o;
-            StringBuffer sb = new StringBuffer();
-            sb.append("closure" + c.argc + "{\n\tcode:");
-            for (int i = 0; i < c.code.length; i++) {
-                sb.append(" ");
-                sb.append(idName(c.code[i]));
-            }
-            sb.append("\n\tclosure:");
-            for (int i = 0; i < c.closure.length; i++) {
-                sb.append(" " + i + ":");
-                sb.append(stringify(c.closure[i]));
-            }
-            sb.append("\n\tconstPool:");
-            for (int i = 0; i < c.constPool.length; i++) {
-                sb.append(" " + i + ":");
-                sb.append(stringify(c.constPool[i]));
-            }
-            sb.append("\n}");
-            return sb.toString();
         } else {
             return o.toString();
         }
-        } else {
-        return o.toString();
-        }
     }
     /*`\subsection{Arithmetics}'*/
+
     private static class FixedPoint {
+
         public long val;
+
         public FixedPoint(int i) {
-            val = (long)i << 32;
+            val = (long) i << 32;
         }
+
         public FixedPoint(long l) {
             val = l;
         }
+
         public String toString() {
             long l = val;
             StringBuffer sb = new StringBuffer();
-            if(l < 0) {
+            if (l < 0) {
                 sb.append('-');
                 l = -l;
             }
-            sb.append((int)(l >> 32));
-            l = (l & 0xffffffffL) + (1L<<31)/100000;
+            sb.append((int) (l >> 32));
+            l = (l & 0xffffffffL) + (1L << 31) / 100000;
             sb.append('.');
-            for(int i = 0; i < 5; i++) {
+            for (int i = 0; i < 5; i++) {
                 l *= 10;
                 sb.append(l >>> 32);
                 l = l & 0xffffffffL;
@@ -545,28 +523,30 @@ public final class LightScript {
             return sb.toString();
         }
     }
+
     static int toInt(Object o) {
-        if(o instanceof Integer) {
-            return ((Integer)o).intValue();
-        } else if(o instanceof FixedPoint) {
-            return (int)(((FixedPoint)o).val >> 32);
+        if (o instanceof Integer) {
+            return ((Integer) o).intValue();
+        } else if (o instanceof FixedPoint) {
+            return (int) (((FixedPoint) o).val >> 32);
         } else /* String */ {
             return Integer.parseInt((String) o);
         }
     }
+
     static long toFp(Object o) {
-        if(o instanceof FixedPoint) {
-            return ((FixedPoint)o).val;
-        //} else if(o instanceof Integer) {
-        }  else { // TODO: maybe add support for string to fp
-            return (long)((Integer)o).intValue()<<32;
+        if (o instanceof FixedPoint) {
+            return ((FixedPoint) o).val;
+            //} else if(o instanceof Integer) {
+        } else { // TODO: maybe add support for string to fp
+            return (long) ((Integer) o).intValue() << 32;
         }
     }
 
     static Object toNumObj(long d) {
-        int i = (int)d;
-        if(-32 < i && i < 32) {
-            return new Integer((int)(d >> 32));
+        int i = (int) d;
+        if (-32 < i && i < 32) {
+            return new Integer((int) (d >> 32));
         } else {
             return new FixedPoint(d);
         }
@@ -575,26 +555,30 @@ public final class LightScript {
     static Object fpNeg(long a) {
         return toNumObj(-a);
     }
+
     static Object fpAdd(long a, long b) {
         return toNumObj(a + b);
     }
+
     static Object fpSub(long a, long b) {
         return toNumObj(a - b);
     }
+
     static Object fpMul(long a, long b) {
         long t = a & 0xffffffffL;
-        long result = (t * (b&0xffffffffL));
+        long result = (t * (b & 0xffffffffL));
         result = (result >>> 32) + ((result >>> 31) & 1);
         result += t * (b >>> 32);
         result += b * (a >>> 32);
         return toNumObj(result);
     }
+
     static Object fpDiv(long a, long b) {
         boolean neg = false;
-        if(a == 0) {
+        if (a == 0) {
             return toNumObj(0);
         }
-        if(a < 0) {
+        if (a < 0) {
             neg = !neg;
             a = -a;
         }
@@ -603,24 +587,27 @@ public final class LightScript {
         do {
             a <<= 1;
             shift -= 1;
-        } while(a > 0 && shift > 0);
+        } while (a > 0 && shift > 0);
         a >>>= 1;
 
         b = b >> shift;
 
-        if(b == 0) {
+        if (b == 0) {
             a = ~0L >>> 1;
         } else {
             a /= b;
         }
         return toNumObj(neg ? -a : a);
     }
+
     static Object fpRem(long a, long b) {
         return toNumObj(a % b);
     }
+
     static boolean fpLess(long a, long b) {
         return a < b;
     }
+
     static boolean fpLessEq(long a, long b) {
         return a <= b;
     }
@@ -651,8 +638,8 @@ public final class LightScript {
     /** Returns a new object array, with the seperator tokens removed */
     private static Object[] stripSep(Object[] os) {
         Stack s = new Stack();
-        for(int i = 0; i < os.length; i++) {
-            if(os[i] != SEP_TOKEN) {
+        for (int i = 0; i < os.length; i++) {
+            if (os[i] != SEP_TOKEN) {
                 s.push(os[i]);
             }
         }
@@ -663,7 +650,7 @@ public final class LightScript {
 
     /** Push a value into a stack if it is not already there */
     private static void stackAdd(Stack s, Object val) {
-        if(s == null) {
+        if (s == null) {
             return;
         }
         int pos = s.indexOf(val);
@@ -673,102 +660,88 @@ public final class LightScript {
         }
     }
 
-/*`\subsection{Utility classes}'*/
-
-
+    /*`\subsection{Utility classes}'*/
     /*`\subsubsection{StdLib}'*/
     private static class StdLib implements LightScriptFunction, LightScriptObject {
+
         private int id;
         private Object closure[];
         private static Random rnd = new Random();
-    
         // globally named functions
-            private static final int STD_PRINT = (0);
-            private static final int STD_TYPEOF = (1);
-            private static final int STD_PARSEINT = (2);
-    
+        private static final int STD_PRINT = (0);
+        private static final int STD_TYPEOF = (1);
+        private static final int STD_PARSEINT = (2);
         private static final String[] names = {"print", "gettype", "parseint"};
         // methods and other stuff added manually to lightscript
-            private static final int STD_GLOBALLY_NAMED = (3);
-            private static final int STD_HAS_OWN_PROPERTY = (STD_GLOBALLY_NAMED + 0);
-            private static final int STD_ARRAY_PUSH = (STD_GLOBALLY_NAMED + 1);
-            private static final int STD_ARRAY_POP = (STD_GLOBALLY_NAMED + 2);
-            private static final int STD_ARRAY_JOIN = (STD_GLOBALLY_NAMED + 3);
-            private static final int STD_DEFAULT_SETTER = (STD_GLOBALLY_NAMED + 4);
-            private static final int STD_DEFAULT_GETTER = (STD_GLOBALLY_NAMED + 5);
-            private static final int STD_NEW_ITERATOR = (STD_GLOBALLY_NAMED + 6);
-            private static final int STD_INTEGER_ITERATOR = (STD_GLOBALLY_NAMED + 7);
-            private static final int STD_ENUMERATION_ITERATOR = (STD_GLOBALLY_NAMED + 8);
-            private static final int STD_GLOBAL_WRAPPER = (STD_GLOBALLY_NAMED + 9);
-            private static final int STD_OBJECT_CONSTRUCTOR = (STD_GLOBALLY_NAMED + 10);
-            private static final int STD_ARRAY_CONSTRUCTOR = (STD_GLOBALLY_NAMED + 11);
-            private static final int STD_ARRAY_CONCAT = (STD_GLOBALLY_NAMED + 12);
-            private static final int STD_ARRAY_SORT = (STD_GLOBALLY_NAMED + 13);
-            private static final int STD_ARRAY_SLICE = (STD_GLOBALLY_NAMED + 14);
-            private static final int STD_STRING_CHARCODEAT = (STD_GLOBALLY_NAMED + 15);
-            private static final int STD_STRING_FROMCHARCODE = (STD_GLOBALLY_NAMED + 16);
-            private static final int STD_STRING_CONCAT = (STD_GLOBALLY_NAMED + 17);
-            private static final int STD_STRING_SLICE = (STD_GLOBALLY_NAMED + 18);
-            private static final int STD_CLONE = (STD_GLOBALLY_NAMED + 19);
-            private static final int STD_RANDOM = (STD_GLOBALLY_NAMED + 20);
-            private static final int STD_FLOOR = (STD_GLOBALLY_NAMED + 21);
-            private static final int STD_TO_STRING = (STD_GLOBALLY_NAMED + 22);
-    
-        private static final int[] argcs = {1, 1, 2
-            // not named
-            // hasown, push, pop, join
-            , 0, 1, 0, 1 
-            // default- setter getter
-            , 2, 1
-            // new iter int-iter enum-iter
-            , 0, 0, 0
-            // globalwrapper
-            , 0
-            // object-constructor, array-constructor
-            , 0, -1
-            // array-concat, sort, slice, 
-            , -1, 1, 2
-            // charcodeat, fromcharcode, strconcat, string_slice
-            , 1, 1, -1, 2
-            // clone, random, floor
-            , 1, 0, 1,
-            // toString
-            0
+        private static final int STD_GLOBALLY_NAMED = (3);
+        private static final int STD_HAS_OWN_PROPERTY = (STD_GLOBALLY_NAMED + 0);
+        private static final int STD_ARRAY_PUSH = (STD_GLOBALLY_NAMED + 1);
+        private static final int STD_ARRAY_POP = (STD_GLOBALLY_NAMED + 2);
+        private static final int STD_ARRAY_JOIN = (STD_GLOBALLY_NAMED + 3);
+        private static final int STD_DEFAULT_SETTER = (STD_GLOBALLY_NAMED + 4);
+        private static final int STD_DEFAULT_GETTER = (STD_GLOBALLY_NAMED + 5);
+        private static final int STD_NEW_ITERATOR = (STD_GLOBALLY_NAMED + 6);
+        private static final int STD_INTEGER_ITERATOR = (STD_GLOBALLY_NAMED + 7);
+        private static final int STD_ENUMERATION_ITERATOR = (STD_GLOBALLY_NAMED + 8);
+        private static final int STD_GLOBAL_WRAPPER = (STD_GLOBALLY_NAMED + 9);
+        private static final int STD_OBJECT_CONSTRUCTOR = (STD_GLOBALLY_NAMED + 10);
+        private static final int STD_ARRAY_CONSTRUCTOR = (STD_GLOBALLY_NAMED + 11);
+        private static final int STD_ARRAY_CONCAT = (STD_GLOBALLY_NAMED + 12);
+        private static final int STD_ARRAY_SORT = (STD_GLOBALLY_NAMED + 13);
+        private static final int STD_ARRAY_SLICE = (STD_GLOBALLY_NAMED + 14);
+        private static final int STD_STRING_CHARCODEAT = (STD_GLOBALLY_NAMED + 15);
+        private static final int STD_STRING_FROMCHARCODE = (STD_GLOBALLY_NAMED + 16);
+        private static final int STD_STRING_CONCAT = (STD_GLOBALLY_NAMED + 17);
+        private static final int STD_STRING_SLICE = (STD_GLOBALLY_NAMED + 18);
+        private static final int STD_CLONE = (STD_GLOBALLY_NAMED + 19);
+        private static final int STD_RANDOM = (STD_GLOBALLY_NAMED + 20);
+        private static final int STD_FLOOR = (STD_GLOBALLY_NAMED + 21);
+        private static final int STD_TO_STRING = (STD_GLOBALLY_NAMED + 22);
+        private static final int[] argcs = {1, 1, 2 // not named
+            , 0, 1, 0, 1 // hasown, push, pop, join
+            , 2, 1 // default- setter getter
+            , 0, 0, 0 // new iter int-iter enum-iter
+            , 0 // globalwrapper
+            , 0, -1 // object-constructor, array-constructor
+            , -1, 1, 2 // array-concat, sort, slice,
+            , 1, 1, -1, 2 // charcodeat, fromcharcode, strconcat, string_slice
+            , 1, 0, 1 // clone, random, floor
+            , 0// toString
         };
 
         public void set(Object key, Object value) {
-            if(id == STD_GLOBAL_WRAPPER) {
-                Object[] box = (Object[])((Hashtable)closure[EC_GLOBALS]).get(key);
-                if(box == null) {
+            if (id == STD_GLOBAL_WRAPPER) {
+                Object[] box = (Object[]) ((Hashtable) closure[EC_GLOBALS]).get(key);
+                if (box == null) {
                     box = new Object[1];
-                    ((Hashtable)closure[EC_GLOBALS]).put(key, box);
+                    ((Hashtable) closure[EC_GLOBALS]).put(key, box);
                 }
                 box[0] = value;
-            } 
+            }
         }
 
         public Object get(Object key) {
-            if(id == STD_GLOBAL_WRAPPER) {
-                Object[] box = (Object[])((Hashtable)closure[EC_GLOBALS]).get(key);
-                if(box == null) {
+            if (id == STD_GLOBAL_WRAPPER) {
+                Object[] box = (Object[]) ((Hashtable) closure[EC_GLOBALS]).get(key);
+                if (box == null) {
                     return null;
                 } else {
                     return box[0];
                 }
-            } else if("length".equals(key)) {
+            } else if ("length".equals(key)) {
                 return new Integer(argcs[id]);
             } else {
 
                 return null;
             }
         }
-    
+
         private static Hashtable clone(Object o) {
             Hashtable result = new Hashtable();
             result.put("__proto__", o);
             return result;
         }
-    
+
         private static void qsort(Stack arr, int first, int last, LightScriptFunction cmp) throws LightScriptException {
             Object args[] = {arr, null, null};
             while (first < last) {
@@ -784,7 +757,7 @@ public final class LightScript {
                         ++l;
                         args[1] = arr.elementAt(l);
                         args[2] = pivot;
-                    } while (((Integer)cmp.apply(args, 0, 2)).intValue() <= 0 && l < r);
+                    } while (((Integer) cmp.apply(args, 0, 2)).intValue() <= 0 && l < r);
                     if (l < r) {
                         arr.setElementAt(arr.elementAt(l), r);
                         r--;
@@ -794,7 +767,7 @@ public final class LightScript {
                         r--;
                         args[1] = pivot;
                         args[2] = arr.elementAt(r);
-                    } while (((Integer)cmp.apply(args, 0, 2)).intValue() <= 0 && l < r);
+                    } while (((Integer) cmp.apply(args, 0, 2)).intValue() <= 0 && l < r);
                     if (l < r) {
                         arr.setElementAt(arr.elementAt(r), l);
                         l++;
@@ -809,89 +782,90 @@ public final class LightScript {
         private StdLib(int id) {
             this.id = id;
         }
+
         public Object apply(Object[] args, int argpos, int argcount) throws LightScriptException {
             Object thisPtr = args[argpos];
             Object arg1 = argcount < 1 ? UNDEFINED : args[argpos + 1];
             Object arg2 = argcount < 2 ? UNDEFINED : args[argpos + 2];
-            if(argcs[id] >= 0 && argcount != argcs[id]) {
+            if (argcs[id] >= 0 && argcount != argcs[id]) {
                 throw new LightScriptException("Error: Wrong number of arguments");
             }
-            switch(id) {
+            switch (id) {
                 case STD_PRINT: {
-                     System.out.println(arg1);
-                     break;
+                    System.out.println(arg1);
+                    break;
                 }
                 case STD_TYPEOF: {
-                    if(arg1 instanceof Hashtable) {
+                    if (arg1 instanceof Hashtable) {
                         return "object";
-                    } else if(arg1 instanceof Stack) {
+                    } else if (arg1 instanceof Stack) {
                         return "array";
-                    } else if(arg1 instanceof Integer) {
+                    } else if (arg1 instanceof Integer) {
                         return "number";
-                    } else if(arg1 == LightScript.UNDEFINED) {
+                    } else if (arg1 == LightScript.UNDEFINED) {
                         return "undefined";
-                    } else if(arg1 == LightScript.NULL) {
+                    } else if (arg1 == LightScript.NULL) {
                         return "null";
-                    } else if(arg1 == LightScript.TRUE || arg1 == LightScript.FALSE) {
+                    } else if (arg1 == LightScript.TRUE || arg1 == LightScript.FALSE) {
                         return "boolean";
-                    } else if(arg1 instanceof Object[]) {
+                    } else if (arg1 instanceof Object[]) {
                         return "const_array";
                     } else {
                         return "builtin";
                     }
                 }
                 case STD_PARSEINT: {
-                    return Integer.valueOf(arg1.toString(), ((Integer)arg2).intValue());
+                    return Integer.valueOf(arg1.toString(), ((Integer) arg2).intValue());
                 }
                 case STD_CLONE: {
-                    return clone((Hashtable)arg1);
+                    return clone((Hashtable) arg1);
                 }
                 case STD_HAS_OWN_PROPERTY: {
-                    if(thisPtr instanceof Hashtable) {
-                        return ((Hashtable)thisPtr).contains(arg1)
+                    if (thisPtr instanceof Hashtable) {
+                        return ((Hashtable) thisPtr).contains(arg1)
                                 ? LightScript.TRUE
                                 : LightScript.FALSE;
                     }
                     break;
                 }
                 case STD_ARRAY_PUSH: {
-                    ((Stack)thisPtr).push(arg1);
-                     break;
+                    ((Stack) thisPtr).push(arg1);
+                    break;
                 }
                 case STD_ARRAY_POP: {
-                    ((Stack)thisPtr).pop();
+                    ((Stack) thisPtr).pop();
                     break;
                 }
                 case STD_ARRAY_JOIN: {
                     Stack s = (Stack) thisPtr;
-                    if(s.size() == 0) {
+                    if (s.size() == 0) {
                         return "";
                     }
                     StringBuffer sb = new StringBuffer();
                     sb.append(s.elementAt(0).toString());
                     String sep = arg1.toString();
-                    for(int i = 1; i < s.size(); i++) {
+                    for (int i = 1; i < s.size(); i++) {
                         sb.append(sep);
                         sb.append(s.elementAt(i));
                     }
                     return sb.toString();
                 }
                 case STD_DEFAULT_SETTER: {
-                    if(thisPtr instanceof Object[] && arg1 instanceof Integer) {
-                        ((Object[])thisPtr)[((Integer) arg1).intValue()] = arg2;
+                    if (thisPtr instanceof Object[] && arg1 instanceof Integer) {
+                        ((Object[]) thisPtr)[((Integer) arg1).intValue()] = arg2;
                         break;
                     }
                     // implementation like "thisPtr[key] = val"
                     break;
                 }
                 case STD_DEFAULT_GETTER: {
-                    if(thisPtr instanceof Object[]) {
-                        if(arg1 instanceof Integer) {
-                            return ((Object[])thisPtr)[((Integer) arg1).intValue()];
-                        } else if("length".equals(arg1)) {
-                            return new Integer(((Object[])thisPtr).length);
-                        } else if(((Hashtable)closure[0]).containsKey(arg1)) {
-                            return ((Hashtable)closure[0]).get(arg1);
+                    if (thisPtr instanceof Object[]) {
+                        if (arg1 instanceof Integer) {
+                            return ((Object[]) thisPtr)[((Integer) arg1).intValue()];
+                        } else if ("length".equals(arg1)) {
+                            return new Integer(((Object[]) thisPtr).length);
+                        } else if (((Hashtable) closure[0]).containsKey(arg1)) {
+                            return ((Hashtable) closure[0]).get(arg1);
                         }
                     }
 
@@ -899,28 +873,28 @@ public final class LightScript {
                     break;
                 }
                 case STD_NEW_ITERATOR: {
-                    if(thisPtr instanceof Hashtable) {
+                    if (thisPtr instanceof Hashtable) {
                         StdLib result;
                         result = new StdLib(STD_ENUMERATION_ITERATOR);
                         result.closure = new Object[1];
-                        result.closure[0] = ((Hashtable)thisPtr).keys();
+                        result.closure[0] = ((Hashtable) thisPtr).keys();
                         return result;
                     }
-                    if(thisPtr instanceof Stack) {
+                    if (thisPtr instanceof Stack) {
                         StdLib result;
                         result = new StdLib(STD_INTEGER_ITERATOR);
                         result.closure = new Object[2];
                         result.closure[0] = new Integer(-1);
-                        result.closure[1] = new Integer(((Stack)thisPtr).size() - 1);
+                        result.closure[1] = new Integer(((Stack) thisPtr).size() - 1);
                         return result;
                     }
                     break;
                 }
                 case STD_INTEGER_ITERATOR: {
-                    if(closure[0].equals(closure[1])) {
+                    if (closure[0].equals(closure[1])) {
                         return LightScript.UNDEFINED;
                     }
-                    int current = ((Integer)closure[0]).intValue();
+                    int current = ((Integer) closure[0]).intValue();
                     current = current + 1;
                     Object result = new Integer(current);
                     closure[0] = result;
@@ -928,7 +902,7 @@ public final class LightScript {
                 }
                 case STD_ENUMERATION_ITERATOR: {
                     Enumeration e = (Enumeration) closure[0];
-                    if(!e.hasMoreElements()) {
+                    if (!e.hasMoreElements()) {
                         return LightScript.UNDEFINED;
                     }
                     return e.nextElement();
@@ -937,10 +911,10 @@ public final class LightScript {
                     break;
                 }
                 case STD_OBJECT_CONSTRUCTOR: {
-                    if(thisPtr instanceof Hashtable) {
+                    if (thisPtr instanceof Hashtable) {
                         Hashtable result = new Hashtable();
-                        Object prototype = ((Hashtable)thisPtr).get("__proto__");
-                        if(prototype != null) {
+                        Object prototype = ((Hashtable) thisPtr).get("__proto__");
+                        if (prototype != null) {
                             result.put("__proto__", prototype);
                         }
                         return result;
@@ -949,18 +923,18 @@ public final class LightScript {
                 }
                 case STD_ARRAY_CONSTRUCTOR: {
                     Stack result = new Stack();
-                    for(int i = 1; i <= argcount; ++i) {
-                        result.push(args[argpos+i]);
+                    for (int i = 1; i <= argcount; ++i) {
+                        result.push(args[argpos + i]);
                     }
                     return result;
                 }
                 case STD_ARRAY_CONCAT: {
                     Stack result = new Stack();
-                    for(int i = 1; i <= argcount; ++i) {
+                    for (int i = 1; i <= argcount; ++i) {
                         Object o = args[argpos + i];
-                        if(o instanceof Stack) {
+                        if (o instanceof Stack) {
                             Stack s = (Stack) o;
-                            for(int j = 0; j < s.size(); ++j) {
+                            for (int j = 0; j < s.size(); ++j) {
                                 result.push(s.elementAt(j));
                             }
                         } else {
@@ -970,39 +944,39 @@ public final class LightScript {
                     return result;
                 }
                 case STD_ARRAY_SORT: {
-                    Stack s = (Stack)thisPtr;
-                    qsort(s, 0, s.size() - 1, (LightScriptFunction)arg1);
+                    Stack s = (Stack) thisPtr;
+                    qsort(s, 0, s.size() - 1, (LightScriptFunction) arg1);
                     return thisPtr;
                 }
                 case STD_ARRAY_SLICE: {
-                    int i = ((Integer)arg1).intValue();
-                    int j = ((Integer)arg2).intValue();
+                    int i = ((Integer) arg1).intValue();
+                    int j = ((Integer) arg2).intValue();
                     Stack result = new Stack();
-                    Stack s = (Stack)thisPtr;
-                    while(i < j) {
+                    Stack s = (Stack) thisPtr;
+                    while (i < j) {
                         result.push(s.elementAt(i));
                         ++i;
                     }
                     return result;
                 }
                 case STD_STRING_CHARCODEAT: {
-                    return new Integer(((String)thisPtr).charAt(((Integer)arg1).intValue()));
+                    return new Integer(((String) thisPtr).charAt(((Integer) arg1).intValue()));
                 }
                 case STD_STRING_FROMCHARCODE: {
-                    return String.valueOf((char)((Integer)arg1).intValue());
+                    return String.valueOf((char) ((Integer) arg1).intValue());
                 }
                 case STD_STRING_CONCAT: {
-                                        
+
                     StringBuffer sb = new StringBuffer();
-                    for(int i = 1; i <= argcount; ++i) {
-                        sb.append(args[argpos+i].toString());
+                    for (int i = 1; i <= argcount; ++i) {
+                        sb.append(args[argpos + i].toString());
                     }
                     return sb.toString();
                 }
                 case STD_STRING_SLICE: {
-                    int i = ((Integer)arg1).intValue();
-                    int j = ((Integer)arg2).intValue();
-                    return ((String)thisPtr).substring(i, j);
+                    int i = ((Integer) arg1).intValue();
+                    int j = ((Integer) arg2).intValue();
+                    return ((String) thisPtr).substring(i, j);
                 }
                 case STD_RANDOM: {
                     return new FixedPoint(0xffffffffl & rnd.nextInt());
@@ -1020,33 +994,33 @@ public final class LightScript {
         }
 
         private static void convertToString(Object o, StringBuffer sb) {
-            if(o instanceof Object[]) {
+            if (o instanceof Object[]) {
                 String sep = "";
                 Object[] os = (Object[]) o;
 
                 sb.append("[");
-                for(int i = 0; i < os.length; ++i) {
+                for (int i = 0; i < os.length; ++i) {
                     sb.append(sep);
                     convertToString(os[i], sb);
                     sep = ", ";
                 }
                 sb.append("]");
-            } else if(o instanceof Stack) {
+            } else if (o instanceof Stack) {
                 String sep = "";
                 Stack s = (Stack) o;
 
                 sb.append("[");
-                for(int i = 0; i < s.size(); ++i) {
+                for (int i = 0; i < s.size(); ++i) {
                     sb.append(sep);
                     convertToString(s.elementAt(i), sb);
                     sep = ", ";
                 }
                 sb.append("]");
-            } else if(o instanceof Hashtable) {
+            } else if (o instanceof Hashtable) {
                 String sep = "";
-                Hashtable h = (Hashtable)o;
+                Hashtable h = (Hashtable) o;
                 sb.append("{");
-                for(Enumeration e = h.keys(); e.hasMoreElements();) {
+                for (Enumeration e = h.keys(); e.hasMoreElements();) {
                     Object key = e.nextElement();
                     sb.append(sep);
                     convertToString(key, sb);
@@ -1055,7 +1029,7 @@ public final class LightScript {
                     sep = ", ";
                 }
                 sb.append("}");
-            } else if(o instanceof String) {
+            } else if (o instanceof String) {
                 sb.append("\"");
                 sb.append(o);
                 sb.append("\"");
@@ -1063,23 +1037,23 @@ public final class LightScript {
                 sb.append(o);
             }
         }
-    
+
         public static void register(LightScript ls) {
-    
+
             Hashtable objectPrototype = new Hashtable();
             ls.executionContext[EC_OBJECT_PROTOTYPE] = objectPrototype;
-    
+
             Hashtable arrayPrototype = new Hashtable();
             ls.executionContext[EC_ARRAY_PROTOTYPE] = arrayPrototype;
-    
+
             Hashtable stringPrototype = clone(objectPrototype);
             ls.executionContext[EC_STRING_PROTOTYPE] = stringPrototype;
-    
+
             Hashtable functionPrototype = clone(objectPrototype);
             ls.executionContext[EC_FUNCTION_PROTOTYPE] = functionPrototype;
-    
+
             ls.executionContext[EC_SETTER] = new StdLib(STD_DEFAULT_SETTER);
-    
+
 
             StdLib defaultGetter = new StdLib(STD_DEFAULT_GETTER);
             defaultGetter.closure = new Object[1];
@@ -1092,30 +1066,30 @@ public final class LightScript {
             globalWrapper.closure = ls.executionContext;
             ls.executionContext[EC_WRAPPED_GLOBALS] = globalWrapper;
 
-    
-            for(int i = 0; i < names.length; i++) {
+
+            for (int i = 0; i < names.length; i++) {
                 ls.set(names[i], new StdLib(i));
             }
-    
+
             objectPrototype.put("hasOwnProperty", new StdLib(STD_HAS_OWN_PROPERTY));
             objectPrototype.put("toString", new StdLib(STD_TO_STRING));
             Hashtable object = clone(objectPrototype);
             object.put("create", new StdLib(STD_CLONE));
-    
+
             // Create members for array
             arrayPrototype.put("push", new StdLib(STD_ARRAY_PUSH));
             arrayPrototype.put("pop", new StdLib(STD_ARRAY_POP));
             arrayPrototype.put("join", new StdLib(STD_ARRAY_JOIN));
             Hashtable array = clone(arrayPrototype);
-    
+
             Hashtable string = clone(stringPrototype);
-    
+
             Hashtable function = clone(stringPrototype);
 
             Hashtable math = clone(objectPrototype);
             math.put("random", new StdLib(STD_RANDOM));
             math.put("floor", new StdLib(STD_FLOOR));
-    
+
             objectPrototype.put("constructor", new StdLib(STD_OBJECT_CONSTRUCTOR));
             arrayPrototype.put("constructor", new StdLib(STD_ARRAY_CONSTRUCTOR));
             array.put("concat", new StdLib(STD_ARRAY_CONCAT));
@@ -1125,7 +1099,7 @@ public final class LightScript {
             stringPrototype.put("charCodeAt", new StdLib(STD_STRING_CHARCODEAT));
             string.put("fromCharCode", new StdLib(STD_STRING_FROMCHARCODE));
             string.put("concat", new StdLib(STD_STRING_CONCAT));
-    
+
             ls.set("Object", object);
             ls.set("String", string);
             ls.set("Array", array);
@@ -1134,18 +1108,20 @@ public final class LightScript {
         }
     }
     /*`\subsubsection{Code}'*/
+
     /**
      * Analysis of variables in a function being compiled,
      * updated during the parsing.
      */
     private static class Code implements LightScriptFunction, LightScriptObject {
-        public Object apply(Object[] args, int argpos, int argcount) 
-                                throws LightScriptException {
-            if(!DEBUG_ENABLED || argcount == argc) {
+
+        public Object apply(Object[] args, int argpos, int argcount)
+                throws LightScriptException {
+            if (!DEBUG_ENABLED || argcount == argc) {
                 Object stack[];
-                if(argpos != 0) {
+                if (argpos != 0) {
                     stack = new Object[argcount + 1];
-                    for(int i = 0; i <= argcount; i++) {
+                    for (int i = 0; i <= argcount; i++) {
                         stack[i] = args[argpos + i];
                     }
                 } else {
@@ -1163,17 +1139,19 @@ public final class LightScript {
         public int maxDepth;
 
         public Object get(Object key) {
-            if("length".equals(key)) {
+            if ("length".equals(key)) {
                 return new Integer(argc);
             }
-            Hashtable prototype = (Hashtable)((Object[])constPool[0])[EC_FUNCTION_PROTOTYPE];
-            if("__proto__".equals(key)) {
+            Hashtable prototype = (Hashtable) ((Object[]) constPool[0])[EC_FUNCTION_PROTOTYPE];
+            if ("__proto__".equals(key)) {
                 return prototype;
             }
             return prototype.get(key);
         }
+
         public void set(Object key, Object val) {
         }
+
         public Code(int argc, byte[] code, Object[] constPool, Object[] closure, int maxDepth) {
             this.argc = argc;
             this.code = code;
@@ -1190,8 +1168,7 @@ public final class LightScript {
         }
     }
 
-/*`\section{Tokeniser}'\index{Tokeniser}*/
-
+    /*`\section{Tokeniser}'\index{Tokeniser}*/
     /** Read the next character from the input stream */
     private void nextc() {
         try {
@@ -1214,19 +1191,19 @@ public final class LightScript {
 
     /** Test if the current character is alphanumeric */
     private boolean isAlphaNum() {
-        return isNum() || c == '_' || ('a' <= c && c <= 'z') 
-                       || c == '$' || ('A' <= c && c <= 'Z');
+        return isNum() || c == '_' || ('a' <= c && c <= 'z')
+                || c == '$' || ('A' <= c && c <= 'Z');
     }
 
     /** Test if the current character could be a part of a multi character 
-      * symbol, such as &&, ||, += and the like. */
+     * symbol, such as &&, ||, += and the like. */
     private boolean isSymb() {
-        return c == '=' || c == '!' || c == '<' || c == '&' || c == '/' || c == '*' 
-            || c == '%' || c == '|' || c == '+' || c == '-' || c == '>';
+        return c == '=' || c == '!' || c == '<' || c == '&' || c == '/' || c == '*'
+                || c == '%' || c == '|' || c == '+' || c == '-' || c == '>';
     }
 
     /** Read the next toke from the input stream. 
-      * The token is stored in the token and tokenVal property. */
+     * The token is stored in the token and tokenVal property. */
     private void nextToken() {
         sb.setLength(0);
 
@@ -1240,11 +1217,11 @@ public final class LightScript {
                         nextc();
                     }
                 } else if (c == '*') {
-                    for(;;) {
+                    for (;;) {
                         nextc();
-                        if(c == '*') {
+                        if (c == '*') {
                             nextc();
-                            if(c == '/') {
+                            if (c == '/') {
                                 break;
                             }
                         }
@@ -1263,7 +1240,7 @@ public final class LightScript {
             tokenVal = EOF;
             return;
 
-        // String
+            // String
         } else if (c == '"' || c == '\'') {
             int quote = c;
             nextc();
@@ -1281,7 +1258,7 @@ public final class LightScript {
             tokenVal = sb.toString();
             return;
 
-        // Number
+            // Number
         } else if (isNum()) {
             do {
                 pushc();
@@ -1290,19 +1267,19 @@ public final class LightScript {
             tokenVal = Integer.valueOf(sb.toString());
             return;
 
-        // Identifier
+            // Identifier
         } else if (isAlphaNum()) {
             do {
                 pushc();
             } while (isAlphaNum());
 
-        // Long symbol !== , ===, <= , &&, ...
+            // Long symbol !== , ===, <= , &&, ...
         } else if (isSymb()) {
             do {
                 pushc();
             } while (isSymb());
 
-        // Single symbol
+            // Single symbol
         } else {
             pushc();
         }
@@ -1310,12 +1287,11 @@ public final class LightScript {
         return;
     }
 
-/*`\section{Parser}\label{code-lightscript-parser} 
-\index{Top down operator precedence parser}'*/
-
+    /*`\section{Parser}\label{code-lightscript-parser}
+    \index{Top down operator precedence parser}'*/
     /** Parse the next expression from the input stream
-      * @param rbp right binding power
-      */
+     * @param rbp right binding power
+     */
     private Object[] parse(int rbp) {
         Object[] left = nud(token);
 
@@ -1328,9 +1304,9 @@ public final class LightScript {
     }
 
     /** Read expressions until an end-token is reached.
-      * @param s an accumulator stack where the expressions are appended
-      * @return an array of parsed expressions, with s prepended 
-      */
+     * @param s an accumulator stack where the expressions are appended
+     * @return an array of parsed expressions, with s prepended
+     */
     private Object[] readList(Stack s) {
         while (token != TOKEN_END) {
             Object[] p = parse(0);
@@ -1344,7 +1320,7 @@ public final class LightScript {
     }
 
     /** Call the null denominator function for a given token
-      * and also read the next token. */
+     * and also read the next token. */
     private Object[] nud(int tok) {
         Object val = tokenVal;
         nextToken();
@@ -1357,15 +1333,14 @@ public final class LightScript {
             case NUD_LITERAL:
                 return v(ID_LITERAL, val);
             case NUD_CONST:
-                return v(ID_LITERAL, 
-                            nudId == ID_TRUE ? TRUE
-                          : nudId == ID_FALSE ? FALSE
-                          : nudId == ID_NULL ? NULL 
-                          : UNDEFINED
-                );
-            case NUD_END: 
+                return v(ID_LITERAL,
+                        nudId == ID_TRUE ? TRUE
+                        : nudId == ID_FALSE ? FALSE
+                        : nudId == ID_NULL ? NULL
+                        : UNDEFINED);
+            case NUD_END:
                 return null;// result does not matter, 
-                            // as this is removed during parsing
+            // as this is removed during parsing
             case NUD_SEP:
                 return SEP_TOKEN;
             case NUD_LIST: {
@@ -1374,7 +1349,7 @@ public final class LightScript {
                 return readList(s);
             }
             case NUD_ATOM: {
-                Object[] result = { new Integer(nudId) };
+                Object[] result = {new Integer(nudId)};
                 return result;
             }
             case NUD_PREFIX:
@@ -1383,7 +1358,7 @@ public final class LightScript {
                 return v(nudId, parse(0), parse(0));
             case NUD_CATCH: {
                 Object[] o = parse(0);
-                stackAdd(varsLocals, ((Object[])o[1])[1]);
+                stackAdd(varsLocals, ((Object[]) o[1])[1]);
                 return v(nudId, o, parse(0));
             }
             case NUD_FUNCTION: {
@@ -1412,26 +1387,26 @@ public final class LightScript {
                 if (((Integer) args[0]).intValue() == ID_PAREN) {
                     for (int i = 1; i < args.length; i++) {
                         Object[] os = (Object[]) args[i];
-        if(DEBUG_ENABLED) {
-                        if (((Integer) os[0]).intValue() != ID_IDENT) {
-                            throw new Error("parameter not variable name" 
-                                            + stringify(args));
+                        if (DEBUG_ENABLED) {
+                            if (((Integer) os[0]).intValue() != ID_IDENT) {
+                                throw new Error("parameter not variable name"
+                                        + stringify(args));
+                            }
                         }
-        }
                         varsLocals.push(os[1]);
                     }
                 } else {
-        if(DEBUG_ENABLED) {
-                    if (((Integer) args[0]).intValue() != ID_CALL_FUNCTION) {
-                        throw new Error("parameter not variable name" 
-                                        + stringify(args));
+                    if (DEBUG_ENABLED) {
+                        if (((Integer) args[0]).intValue() != ID_CALL_FUNCTION) {
+                            throw new Error("parameter not variable name"
+                                    + stringify(args));
+                        }
                     }
-        }
                     varsArgc--;
-                    fnName = (String)varsUsed.elementAt(0);
+                    fnName = (String) varsUsed.elementAt(0);
                     varsUsed.removeElementAt(0);
                     isNamed = true;
-                    for(int i = 0; i < varsUsed.size(); i++) {
+                    for (int i = 0; i < varsUsed.size(); i++) {
                         varsLocals.push(varsUsed.elementAt(i));
                     }
 
@@ -1460,7 +1435,7 @@ public final class LightScript {
                     }
                 }
                 Object[] result = v(nudId, compile(body));
-                if(isNamed) {
+                if (isNamed) {
                     result = v(ID_SET, v(ID_IDENT, fnName), result);
                     stackAdd(prevUsed, fnName);
                 }
@@ -1483,30 +1458,29 @@ public final class LightScript {
                     stackAdd(varsLocals, expr[1]);
                 } else {
                     Object[] expr2 = (Object[]) expr[1];
-        if(DEBUG_ENABLED) {
-                    if (type == ID_SET 
-                    && ((Integer) expr2[0]).intValue() == ID_IDENT) {
+                    if (DEBUG_ENABLED) {
+                        if (type == ID_SET
+                                && ((Integer) expr2[0]).intValue() == ID_IDENT) {
+                            stackAdd(varsLocals, expr2[1]);
+                        } else {
+                            throw new Error("Error in var");
+                        }
+                    } else {
                         stackAdd(varsLocals, expr2[1]);
-                    } 
-                    else {
-                        throw new Error("Error in var");
                     }
-        } else {
-                        stackAdd(varsLocals, expr2[1]);
-        }
                 }
                 return v(nudId, expr);
             default:
-        if(DEBUG_ENABLED) {
-                throw new Error("Unknown token: " + token+ ", val: " + val);
-        } else {
-                return null;
-        }
+                if (DEBUG_ENABLED) {
+                    throw new Error("Unknown token: " + token + ", val: " + val);
+                } else {
+                    return null;
+                }
         }
     }
 
     /** Call the left denominator function for a given token
-      * and also read the next token. */
+     * and also read the next token. */
     private Object[] led(int tok, Object left) {
         nextToken();
         int bp = tok & MASK_BP;
@@ -1529,37 +1503,37 @@ public final class LightScript {
             }
             case LED_DOT: {
                 Stack t = varsUsed;
-                varsUsed= null;
+                varsUsed = null;
                 Object[] right = parse(bp);
                 varsUsed = t;
-        if(DEBUG_ENABLED) {
-                if(((Integer)right[0]).intValue() != ID_IDENT) {
-                    throw new Error("right side of dot not a string: " 
-                                    + stringify(right));
+                if (DEBUG_ENABLED) {
+                    if (((Integer) right[0]).intValue() != ID_IDENT) {
+                        throw new Error("right side of dot not a string: "
+                                + stringify(right));
+                    }
                 }
-        }
 
                 right[0] = new Integer(ID_LITERAL);
                 return v(ID_SUBSCRIPT, left, right);
             }
             case LED_INFIX_IF: {
                 Object branch1 = parse(0);
-        if(DEBUG_ENABLED) {
-                if(parse(0) != SEP_TOKEN) {
-                    throw new Error("infix if error");
+                if (DEBUG_ENABLED) {
+                    if (parse(0) != SEP_TOKEN) {
+                        throw new Error("infix if error");
+                    }
+                } else {
+                    parse(0);
                 }
-        } else {
-                parse(0);
-        }
                 Object branch2 = parse(0);
                 return v(ID_IF, left, v(ID_ELSE, branch1, branch2));
             }
             default:
-        if(DEBUG_ENABLED) {
-                throw new Error("Unknown led token: " + token);
-        } else {  
-                return null;
-        }
+                if (DEBUG_ENABLED) {
+                    throw new Error("Unknown led token: " + token);
+                } else {
+                    return null;
+                }
         }
     }
     private static Hashtable idMapping;
@@ -1567,395 +1541,394 @@ public final class LightScript {
     // initialise idMappings
     static {
         /** This string is used for initialising the idMapping.
-          * Each token type has five properties:
-          * First there is the string of the token,
-          *   then ther is the bindingpower,
-          *   followed by the null denominator function, 
-          *     and its corresponding id
-          *   and finally the left denominator function, 
-          *     and its corresponding id
-          */
+         * Each token type has five properties:
+         * First there is the string of the token,
+         *   then ther is the bindingpower,
+         *   followed by the null denominator function,
+         *     and its corresponding id
+         *   and finally the left denominator function,
+         *     and its corresponding id
+         */
         String identifiers = ""
-        + "(EOF)"
-            + (char) 1
-            + (char) NUD_END
-            + (char) ID_NONE
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "]"
-            + (char) 1
-            + (char) NUD_END
-            + (char) ID_NONE
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + ")"
-            + (char) 1
-            + (char) NUD_END
-            + (char) ID_NONE
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "}"
-            + (char) 1
-            + (char) NUD_END
-            + (char) ID_NONE
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "."
-            + (char) 8
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_DOT
-            + (char) ID_SUBSCRIPT
-        + "("
-            + (char) 7
-            + (char) NUD_LIST
-            + (char) ID_PAREN
-            + (char) LED_INFIX_LIST
-            + (char) ID_CALL_FUNCTION
-        + "["
-            + (char) 7
-            + (char) NUD_LIST
-            + (char) ID_LIST_LITERAL
-            + (char) LED_INFIX_LIST
-            + (char) ID_SUBSCRIPT
-        + ">>"
-            + (char) 6 
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX
-            + (char) ID_SHIFT_RIGHT_ARITHMETIC
-        + "<<"
-            + (char) 6 
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX
-            + (char) ID_SHIFT_LEFT
-        + "|"
-            + (char) 3 
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX
-            + (char) ID_BITWISE_OR
-        + "^"
-            + (char) 3 
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX
-            + (char) ID_BITWISE_XOR
-        + "&"
-            + (char) 3 
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX
-            + (char) ID_BITWISE_AND
-        + "~"
-            + (char) 1
-            + (char) NUD_PREFIX
-            + (char) ID_BITWISE_NOT
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + ">>>"
-            + (char) 6 
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX
-            + (char) ID_SHIFT_RIGHT
-        + "/"
-            + (char) 6
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX
-            + (char) ID_DIV
-        + "*"
-            + (char) 6
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX
-            + (char) ID_MUL
-        + "%"
-            + (char) 6
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX
-            + (char) ID_REM
-        + "+"
-            + (char) 5
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX
-            + (char) ID_ADD
-        + "-"
-            + (char) 5
-            + (char) NUD_PREFIX
-            + (char) ID_NEG
-            + (char) LED_INFIX
-            + (char) ID_SUB
-        + "=="
-            + (char) 4
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX
-            + (char) ID_EQUALS
-        + "==="
-            + (char) 4
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX
-            + (char) ID_EQUALS
-        + "!="
-            + (char) 4
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX
-            + (char) ID_NOT_EQUALS
-        + "!=="
-            + (char) 4
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX
-            + (char) ID_NOT_EQUALS
-        + "<="
-            + (char) 4
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX
-            + (char) ID_LESS_EQUALS
-        + "<"
-            + (char) 4
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX
-            + (char) ID_LESS
-        + ">="
-            + (char) 4
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX_SWAP
-            + (char) ID_LESS_EQUALS
-        + ">"
-            + (char) 4
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX_SWAP
-            + (char) ID_LESS
-        + "&&"
-            + (char) 3
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIXR
-            + (char) ID_AND
-        + "||"
-            + (char) 3
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIXR
-            + (char) ID_OR
-        + "else"
-            + (char) 3
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIXR
-            + (char) ID_ELSE
-        + "in"
-            + (char) 3
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIXR
-            + (char) ID_IN
-        + "?"
-            + (char) 3
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIX_IF
-            + (char) ID_NONE
-        + "="
-            + (char) 2
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_INFIXR
-            + (char) ID_SET
-        + "+="
-            + (char) 2
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_OPASSIGN
-            + (char) ID_ADD
-        + "-="
-            + (char) 2
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_OPASSIGN
-            + (char) ID_SUB
-        + "*="
-            + (char) 2
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_OPASSIGN
-            + (char) ID_MUL
-        + "/="
-            + (char) 2
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_OPASSIGN
-            + (char) ID_DIV
-        + "%="
-            + (char) 2
-            + (char) NUD_NONE
-            + (char) ID_NONE
-            + (char) LED_OPASSIGN
-            + (char) ID_REM
-        + "++"
-            + (char) 1
-            + (char) NUD_PREFIX
-            + (char) ID_INC
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "--"
-            + (char) 1
-            + (char) NUD_PREFIX
-            + (char) ID_DEC
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + ":"
-            + (char) 1
-            + (char) NUD_SEP
-            + (char) ID_NONE
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + ";"
-            + (char) 1
-            + (char) NUD_SEP
-            + (char) ID_NONE
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + ","
-            + (char) 1
-            + (char) NUD_SEP
-            + (char) ID_NONE
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "{"
-            + (char) 1
-            + (char) NUD_LIST
-            + (char) ID_CURLY
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "var"
-            + (char) 1
-            + (char) NUD_VAR
-            + (char) ID_VAR
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "delete"
-            + (char) 1
-            + (char) NUD_PREFIX
-            + (char) ID_DELETE
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "new"
-            + (char) 1
-            + (char) NUD_PREFIX
-            + (char) ID_NEW
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "return"
-            + (char) 1
-            + (char) NUD_PREFIX
-            + (char) ID_RETURN
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "!"
-            + (char) 1
-            + (char) NUD_PREFIX
-            + (char) ID_NOT
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "throw"
-            + (char) 1
-            + (char) NUD_PREFIX
-            + (char) ID_THROW
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "try"
-            + (char) 1
-            + (char) NUD_PREFIX2
-            + (char) ID_TRY
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "catch"
-            + (char) 1
-            + (char) NUD_CATCH
-            + (char) ID_CATCH
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "function"
-            + (char) 1
-            + (char) NUD_FUNCTION
-            + (char) ID_BUILD_FUNCTION
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "do"
-            + (char) 1
-            + (char) NUD_PREFIX2
-            + (char) ID_DO
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "for"
-            + (char) 1
-            + (char) NUD_PREFIX2
-            + (char) ID_FOR
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "if"
-            + (char) 1
-            + (char) NUD_PREFIX2
-            + (char) ID_IF
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "while"
-            + (char) 1
-            + (char) NUD_PREFIX2
-            + (char) ID_WHILE
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "undefined"
-            + (char) 1
-            + (char) NUD_CONST
-            + (char) ID_UNDEFINED
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "null"
-            + (char) 1
-            + (char) NUD_CONST
-            + (char) ID_NULL
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "false"
-            + (char) 1
-            + (char) NUD_CONST
-            + (char) ID_FALSE
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "this"
-            + (char) 1
-            + (char) NUD_ATOM
-            + (char) ID_THIS
-            + (char) LED_NONE
-            + (char) ID_NONE
-        + "true"
-            + (char) 1
-            + (char) NUD_CONST
-            + (char) ID_TRUE
-            + (char) LED_NONE
-            + (char) ID_NONE
-        ;
+                + "(EOF)"
+                + (char) 1
+                + (char) NUD_END
+                + (char) ID_NONE
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "]"
+                + (char) 1
+                + (char) NUD_END
+                + (char) ID_NONE
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + ")"
+                + (char) 1
+                + (char) NUD_END
+                + (char) ID_NONE
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "}"
+                + (char) 1
+                + (char) NUD_END
+                + (char) ID_NONE
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "."
+                + (char) 8
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_DOT
+                + (char) ID_SUBSCRIPT
+                + "("
+                + (char) 7
+                + (char) NUD_LIST
+                + (char) ID_PAREN
+                + (char) LED_INFIX_LIST
+                + (char) ID_CALL_FUNCTION
+                + "["
+                + (char) 7
+                + (char) NUD_LIST
+                + (char) ID_LIST_LITERAL
+                + (char) LED_INFIX_LIST
+                + (char) ID_SUBSCRIPT
+                + ">>"
+                + (char) 6
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX
+                + (char) ID_SHIFT_RIGHT_ARITHMETIC
+                + "<<"
+                + (char) 6
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX
+                + (char) ID_SHIFT_LEFT
+                + "|"
+                + (char) 3
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX
+                + (char) ID_BITWISE_OR
+                + "^"
+                + (char) 3
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX
+                + (char) ID_BITWISE_XOR
+                + "&"
+                + (char) 3
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX
+                + (char) ID_BITWISE_AND
+                + "~"
+                + (char) 1
+                + (char) NUD_PREFIX
+                + (char) ID_BITWISE_NOT
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + ">>>"
+                + (char) 6
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX
+                + (char) ID_SHIFT_RIGHT
+                + "/"
+                + (char) 6
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX
+                + (char) ID_DIV
+                + "*"
+                + (char) 6
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX
+                + (char) ID_MUL
+                + "%"
+                + (char) 6
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX
+                + (char) ID_REM
+                + "+"
+                + (char) 5
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX
+                + (char) ID_ADD
+                + "-"
+                + (char) 5
+                + (char) NUD_PREFIX
+                + (char) ID_NEG
+                + (char) LED_INFIX
+                + (char) ID_SUB
+                + "=="
+                + (char) 4
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX
+                + (char) ID_EQUALS
+                + "==="
+                + (char) 4
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX
+                + (char) ID_EQUALS
+                + "!="
+                + (char) 4
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX
+                + (char) ID_NOT_EQUALS
+                + "!=="
+                + (char) 4
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX
+                + (char) ID_NOT_EQUALS
+                + "<="
+                + (char) 4
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX
+                + (char) ID_LESS_EQUALS
+                + "<"
+                + (char) 4
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX
+                + (char) ID_LESS
+                + ">="
+                + (char) 4
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX_SWAP
+                + (char) ID_LESS_EQUALS
+                + ">"
+                + (char) 4
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX_SWAP
+                + (char) ID_LESS
+                + "&&"
+                + (char) 3
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIXR
+                + (char) ID_AND
+                + "||"
+                + (char) 3
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIXR
+                + (char) ID_OR
+                + "else"
+                + (char) 3
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIXR
+                + (char) ID_ELSE
+                + "in"
+                + (char) 3
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIXR
+                + (char) ID_IN
+                + "?"
+                + (char) 3
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIX_IF
+                + (char) ID_NONE
+                + "="
+                + (char) 2
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_INFIXR
+                + (char) ID_SET
+                + "+="
+                + (char) 2
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_OPASSIGN
+                + (char) ID_ADD
+                + "-="
+                + (char) 2
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_OPASSIGN
+                + (char) ID_SUB
+                + "*="
+                + (char) 2
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_OPASSIGN
+                + (char) ID_MUL
+                + "/="
+                + (char) 2
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_OPASSIGN
+                + (char) ID_DIV
+                + "%="
+                + (char) 2
+                + (char) NUD_NONE
+                + (char) ID_NONE
+                + (char) LED_OPASSIGN
+                + (char) ID_REM
+                + "++"
+                + (char) 1
+                + (char) NUD_PREFIX
+                + (char) ID_INC
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "--"
+                + (char) 1
+                + (char) NUD_PREFIX
+                + (char) ID_DEC
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + ":"
+                + (char) 1
+                + (char) NUD_SEP
+                + (char) ID_NONE
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + ";"
+                + (char) 1
+                + (char) NUD_SEP
+                + (char) ID_NONE
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + ","
+                + (char) 1
+                + (char) NUD_SEP
+                + (char) ID_NONE
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "{"
+                + (char) 1
+                + (char) NUD_LIST
+                + (char) ID_CURLY
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "var"
+                + (char) 1
+                + (char) NUD_VAR
+                + (char) ID_VAR
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "delete"
+                + (char) 1
+                + (char) NUD_PREFIX
+                + (char) ID_DELETE
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "new"
+                + (char) 1
+                + (char) NUD_PREFIX
+                + (char) ID_NEW
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "return"
+                + (char) 1
+                + (char) NUD_PREFIX
+                + (char) ID_RETURN
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "!"
+                + (char) 1
+                + (char) NUD_PREFIX
+                + (char) ID_NOT
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "throw"
+                + (char) 1
+                + (char) NUD_PREFIX
+                + (char) ID_THROW
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "try"
+                + (char) 1
+                + (char) NUD_PREFIX2
+                + (char) ID_TRY
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "catch"
+                + (char) 1
+                + (char) NUD_CATCH
+                + (char) ID_CATCH
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "function"
+                + (char) 1
+                + (char) NUD_FUNCTION
+                + (char) ID_BUILD_FUNCTION
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "do"
+                + (char) 1
+                + (char) NUD_PREFIX2
+                + (char) ID_DO
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "for"
+                + (char) 1
+                + (char) NUD_PREFIX2
+                + (char) ID_FOR
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "if"
+                + (char) 1
+                + (char) NUD_PREFIX2
+                + (char) ID_IF
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "while"
+                + (char) 1
+                + (char) NUD_PREFIX2
+                + (char) ID_WHILE
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "undefined"
+                + (char) 1
+                + (char) NUD_CONST
+                + (char) ID_UNDEFINED
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "null"
+                + (char) 1
+                + (char) NUD_CONST
+                + (char) ID_NULL
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "false"
+                + (char) 1
+                + (char) NUD_CONST
+                + (char) ID_FALSE
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "this"
+                + (char) 1
+                + (char) NUD_ATOM
+                + (char) ID_THIS
+                + (char) LED_NONE
+                + (char) ID_NONE
+                + "true"
+                + (char) 1
+                + (char) NUD_CONST
+                + (char) ID_TRUE
+                + (char) LED_NONE
+                + (char) ID_NONE;
         idMapping = new Hashtable();
         StringBuffer sb = new StringBuffer();
-        for(int i = 0; i < identifiers.length(); i++) {
+        for (int i = 0; i < identifiers.length(); i++) {
             int result = identifiers.charAt(i);
             // result is the binding power
             // next in string is encoded nud/led-function/id object
-            if(result < 32) {
+            if (result < 32) {
                 // read nud function
                 result = (result << SIZE_FN) + identifiers.charAt(++i);
                 // read nud identifier
@@ -1968,9 +1941,9 @@ public final class LightScript {
                 idMapping.put(sb.toString(), new Integer(result));
                 sb.setLength(0);
 
-            // result is a char to be addded to the string
+                // result is a char to be addded to the string
             } else {
-                sb.append((char)result);
+                sb.append((char) result);
             }
         }
     }
@@ -1979,15 +1952,14 @@ public final class LightScript {
         tokenVal = val;
 
         Object o = idMapping.get(val);
-        if(o == null) {
+        if (o == null) {
             token = TOKEN_IDENT;
         } else {
-            token = ((Integer)o).intValue() + MASK_BP;
+            token = ((Integer) o).intValue() + MASK_BP;
         }
     }
 
-/*`\section{Compiler}'*/
-
+    /*`\section{Compiler}'*/
     private void pushShort(int i) {
         emit(((i >> 8) & 0xff));
         emit((i & 0xff));
@@ -2070,7 +2042,7 @@ public final class LightScript {
         maxDepth -= varsArgc;
 
         // create a new code object;
-        Code result = new Code(varsArgc, new byte[code.length()], 
+        Code result = new Code(varsArgc, new byte[code.length()],
                 new Object[constPool.size()], new Object[varsClosure.size()], maxDepth);
 
         // copy values into the code object
@@ -2098,19 +2070,19 @@ public final class LightScript {
      * @param name the name of the variable.
      */
     private void compileSet(Object name) {
-                    int pos = varsClosure.indexOf(name);
-                    if (pos >= 0) {
-                        emit(ID_SET_CLOSURE);
-                        pushShort(pos);
-                    } else {
-                        pos = varsLocals.indexOf(name);
-                        if (varsBoxed.contains(name)) {
-                            emit(ID_SET_BOXED);
-                        } else {
-                            emit(ID_SET_LOCAL);
-                        }
-                        pushShort(depth - pos - 1);
-                    }
+        int pos = varsClosure.indexOf(name);
+        if (pos >= 0) {
+            emit(ID_SET_CLOSURE);
+            pushShort(pos);
+        } else {
+            pos = varsLocals.indexOf(name);
+            if (varsBoxed.contains(name)) {
+                emit(ID_SET_BOXED);
+            } else {
+                emit(ID_SET_LOCAL);
+            }
+            pushShort(depth - pos - 1);
+        }
     }
 
     private void compile(Object rawexpr, boolean yieldResult) {
@@ -2151,11 +2123,11 @@ public final class LightScript {
             }
             case ID_DELETE: {
                 Object[] expr2 = (Object[]) expr[1];
-                int subtype = ((Integer)expr2[0]).intValue();
-                if(subtype == ID_SUBSCRIPT) {
+                int subtype = ((Integer) expr2[0]).intValue();
+                if (subtype == ID_SUBSCRIPT) {
                     compile(expr2[1], true);
                     compile(expr2[2], true);
-                } else if(DEBUG_ENABLED && subtype != ID_IDENT) {
+                } else if (DEBUG_ENABLED && subtype != ID_IDENT) {
                     throw new Error("Deleting non-var");
                 } else {
                     emit(ID_GLOBAL);
@@ -2169,7 +2141,7 @@ public final class LightScript {
             }
             case ID_NEW: {
                 int subtype = childType(expr, 1);
-                if(subtype != ID_CALL_FUNCTION) {
+                if (subtype != ID_CALL_FUNCTION) {
                     expr = v(ID_CALL_FUNCTION, expr);
                 }
                 expr[1] = v(ID_SUBSCRIPT, expr, v(ID_LITERAL, "constructor"));
@@ -2213,11 +2185,11 @@ public final class LightScript {
                     pushShort(pos);
                 } else {
                     pos = varsLocals.indexOf(name);
-        if(DEBUG_ENABLED) {
-                    if (pos == -1) {
-                        throw new Error("Unfound var: " + stringify(expr));
+                    if (DEBUG_ENABLED) {
+                        if (pos == -1) {
+                            throw new Error("Unfound var: " + stringify(expr));
+                        }
                     }
-        }
                     if (varsBoxed.contains(name)) {
                         emit(ID_GET_BOXED);
                     } else {
@@ -2237,12 +2209,12 @@ public final class LightScript {
                     compile(expr[1], yieldResult);
                     hasResult = yieldResult;
                 } else {
-        if(DEBUG_ENABLED) {
-                    throw new Error("Error in var statement: " 
-                                    + stringify(expr));
-        } else {
-                    return;
-        }
+                    if (DEBUG_ENABLED) {
+                        throw new Error("Error in var statement: "
+                                + stringify(expr));
+                    } else {
+                        return;
+                    }
                 }
                 break;
             }
@@ -2254,29 +2226,28 @@ public final class LightScript {
                     String name = (String) ((Object[]) expr[1])[1];
                     compile(expr[2], true);
                     compileSet(name);
-                } else if(targetType == ID_SUBSCRIPT) {
+                } else if (targetType == ID_SUBSCRIPT) {
                     Object[] subs = (Object[]) expr[1];
                     compile(subs[1], true);
                     compile(subs[2], true);
                     compile(expr[2], true);
                     emit(ID_PUT);
                     addDepth(-2);
-                } 
-                else {
-        if(DEBUG_ENABLED) {
-                    throw new Error("Uncompilable assignment operator: " 
-                                    + stringify(expr));
+                } else {
+                    if (DEBUG_ENABLED) {
+                        throw new Error("Uncompilable assignment operator: "
+                                + stringify(expr));
+                    }
                 }
-        }
                 break;
             }
             case ID_PAREN: {
-        if(DEBUG_ENABLED) {
-                if (expr.length != 2) {
-                    throw new Error("Unexpected content of parenthesis: " 
-                                    + stringify(expr));
+                if (DEBUG_ENABLED) {
+                    if (expr.length != 2) {
+                        throw new Error("Unexpected content of parenthesis: "
+                                + stringify(expr));
+                    }
                 }
-        }
                 compile(expr[1], yieldResult);
                 hasResult = yieldResult;
                 break;
@@ -2291,7 +2262,7 @@ public final class LightScript {
 
 
                 // find the method/function
-                if(methodcall) {
+                if (methodcall) {
                     Object[] subs = (Object[]) expr[1];
                     compile(subs[1], true);
 
@@ -2318,11 +2289,11 @@ public final class LightScript {
 
                 // call the function
                 emit(ID_CALL_FN);
-        if(DEBUG_ENABLED) {
-                if (expr.length > 129) {
-                    throw new Error("too many parameters");
+                if (DEBUG_ENABLED) {
+                    if (expr.length > 129) {
+                        throw new Error("too many parameters");
+                    }
                 }
-        }
                 emit(expr.length - 2);
                 addDepth(1 - expr.length - RET_FRAME_SIZE);
 
@@ -2417,7 +2388,7 @@ public final class LightScript {
             case ID_FOR: {
                 Object[] args = (Object[]) expr[1];
                 Object init, cond, step;
-                if(args.length > 2) {
+                if (args.length > 2) {
                     //for(..;..;..)
                     int pos = 1;
                     init = args[pos];
@@ -2426,8 +2397,8 @@ public final class LightScript {
                     pos += (cond == SEP_TOKEN) ? 1 : 2;
                     step = (pos < args.length) ? args[pos] : SEP_TOKEN;
                     curlyToBlock(expr[2]);
-                    compile(v(ID_BLOCK, init, v(ID_WHILE, cond, 
-                                v(ID_BLOCK, expr[2], step))), yieldResult);
+                    compile(v(ID_BLOCK, init, v(ID_WHILE, cond,
+                            v(ID_BLOCK, expr[2], step))), yieldResult);
                     hasResult = yieldResult;
                     break;
                 } else {
@@ -2443,19 +2414,19 @@ public final class LightScript {
                     // labelEnd:
                     //   drop iterator.
                     int pos0, pos1;
-                    
+
                     // find the name
-                    Object[] in = (Object[])((Object[])expr[1])[1];
-                    Object name = ((Object[])in[1])[1];
-                    if(!(name instanceof String)) {
+                    Object[] in = (Object[]) ((Object[]) expr[1])[1];
+                    Object name = ((Object[]) in[1])[1];
+                    if (!(name instanceof String)) {
                         // var name
-                        name = ((Object[])name)[1];
+                        name = ((Object[]) name)[1];
                     }
-        if(DEBUG_ENABLED) {
-                    if(!(name instanceof String)) {
-                        throw new Error("for-in has no var");
+                    if (DEBUG_ENABLED) {
+                        if (!(name instanceof String)) {
+                            throw new Error("for-in has no var");
+                        }
                     }
-        }
 
                     // evaluate b
                     compile(in[2], true);
@@ -2488,7 +2459,7 @@ public final class LightScript {
                     emit(ID_DROP);
                     addDepth(-1);
                     hasResult = false;
-                    
+
                     break;
                 }
 
@@ -2604,7 +2575,7 @@ public final class LightScript {
                 // labelExit:
                 int pos0, pos1, len;
 
-                Object[] catchExpr = (Object[])expr[2];
+                Object[] catchExpr = (Object[]) expr[2];
 
                 emit(ID_TRY);
                 pushShort(0);
@@ -2625,7 +2596,7 @@ public final class LightScript {
                 setShort(pos0, code.length() - pos0);
 
                 addDepth(1);
-                Object name = ((Object [])((Object[])catchExpr[1])[1])[1];
+                Object name = ((Object[]) ((Object[]) catchExpr[1])[1])[1];
 
                 compileSet(name);
                 emit(ID_DROP);
@@ -2680,7 +2651,7 @@ public final class LightScript {
                 curlyToBlock(expr[1]);
                 compile(expr[1], false);
 
-                compile(((Object[])expr[2])[1], true);
+                compile(((Object[]) expr[2])[1], true);
                 emit(ID_JUMP_IF_TRUE);
                 pushShort(pos0 - code.length() - 2);
                 addDepth(-1);
@@ -2688,21 +2659,21 @@ public final class LightScript {
                 break;
             }
             case ID_DEC: {
-                compile(v(ID_SET, expr[1], v(ID_SUB, expr[1], 
-                            v(ID_LITERAL, new Integer(1)))), yieldResult);
+                compile(v(ID_SET, expr[1], v(ID_SUB, expr[1],
+                        v(ID_LITERAL, new Integer(1)))), yieldResult);
                 return;
             }
             case ID_INC: {
-                compile(v(ID_SET, expr[1], v(ID_ADD, expr[1], 
-                            v(ID_LITERAL, new Integer(1)))), yieldResult);
+                compile(v(ID_SET, expr[1], v(ID_ADD, expr[1],
+                        v(ID_LITERAL, new Integer(1)))), yieldResult);
                 return;
             }
             default:
-        if(DEBUG_ENABLED) {
-                throw new Error("Uncompilable expression: " + stringify(expr));
-        } else {
-                return;
-        }
+                if (DEBUG_ENABLED) {
+                    throw new Error("Uncompilable expression: " + stringify(expr));
+                } else {
+                    return;
+                }
         }
 
         if (hasResult && !yieldResult) {
@@ -2713,31 +2684,31 @@ public final class LightScript {
         }
     }
 
-/*`\section{Virtual Machine}\index{Virtual machine}'*/
-
+    /*`\section{Virtual Machine}\index{Virtual machine}'*/
     private static int readShort(int pc, byte[] code) {
         return (short) (((code[++pc] & 0xff) << 8) | (code[++pc] & 0xff));
     }
 
     private static boolean toBool(Object o) {
-        if(o == TRUE) {
+        if (o == TRUE) {
             return true;
         }
-        if(o == FALSE || o == NULL || o == UNDEFINED) {
+        if (o == FALSE || o == NULL || o == UNDEFINED) {
             return false;
         }
-        if(o instanceof String) {
-            return !((String)o).equals("");
+        if (o instanceof String) {
+            return !((String) o).equals("");
         }
-        if(DEBUG_ENABLED) {
-        if(o instanceof Integer) {
-            return ((Integer)o).intValue() != 0;
-        }
-        throw new Error("unhandled toBool case for:" + o.toString());
+        if (DEBUG_ENABLED) {
+            if (o instanceof Integer) {
+                return ((Integer) o).intValue() != 0;
+            }
+            throw new Error("unhandled toBool case for:" + o.toString());
         } else {
-            return ((Integer)o).intValue() != 0;
+            return ((Integer) o).intValue() != 0;
         }
     }
+
     private static Object[] ensureSpace(Object[] stack, int sp, int maxDepth) {
         if (stack.length <= maxDepth + sp + 1) {
             // Currently keep the allocate stack tight to max, 
@@ -2750,622 +2721,618 @@ public final class LightScript {
         }
         return stack;
     }
+
     /**
      * evaluate some bytecode 
      */
     private static Object execute(Code cl, Object[] stack, int argcount) throws LightScriptException {
         //if(!DEBUG_ENABLED) {
         try {
-        //}
-        int sp = argcount;
+            //}
+            int sp = argcount;
 
-        //System.out.println(stringify(cl));
-        int pc = -1;
-        byte[] code = cl.code;
-        Object[] constPool = cl.constPool;
-        Object[] closure = cl.closure;
-        Object[] executionContext = (Object[]) constPool[0];
-        int exceptionHandler = - 1;
-        stack = ensureSpace(stack, sp, cl.maxDepth);
-        Object thisPtr = stack[0];
-        int usedStack;
-        if(__CLEAR_STACK__) {
-        usedStack = sp + cl.maxDepth;
-        }
+            //System.out.println(stringify(cl));
+            int pc = -1;
+            byte[] code = cl.code;
+            Object[] constPool = cl.constPool;
+            Object[] closure = cl.closure;
+            Object[] executionContext = (Object[]) constPool[0];
+            int exceptionHandler = - 1;
+            stack = ensureSpace(stack, sp, cl.maxDepth);
+            Object thisPtr = stack[0];
+            int usedStack;
+            if (__CLEAR_STACK__) {
+                usedStack = sp + cl.maxDepth;
+            }
 
-        for (;;) {
-            ++pc;
-        if(__PRINT_EXECUTED_INSTRUCTIONS__) {
-            System.out.println("pc:" + pc + " op:"  + idName(code[pc]) 
-                             + " sp:" + sp + " stack.length:" + stack.length 
-                             + " int:" + readShort(pc, code));
-        }
-            switch (code[pc]) {
-                case ID_INC_SP: {
-                    sp += code[++pc];
-                    break;
+            for (;;) {
+                ++pc;
+                if (__PRINT_EXECUTED_INSTRUCTIONS__) {
+                    System.out.println("pc:" + pc + " op:" + idName(code[pc])
+                            + " sp:" + sp + " stack.length:" + stack.length
+                            + " int:" + readShort(pc, code));
                 }
-                case ID_RETURN: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    Object result = stack[sp];
-                    sp -= arg;
-                    if (sp == 0) {
-                        return result;
+                switch (code[pc]) {
+                    case ID_INC_SP: {
+                        sp += code[++pc];
+                        break;
                     }
-        if(DEBUG_ENABLED) {
-                    if(sp < 0) {
-                        throw new Error("Wrong stack discipline" 
-                                + sp);
-                    }
-        }
-        if(__CLEAR_STACK__) {
-                    for(int i = sp; i <= usedStack; i++) {
-                        stack[i] = null;
-                    }
-        }
-                    pc = ((Integer) stack[--sp]).intValue();
-                    code = (byte[]) stack[--sp];
-                    constPool = (Object[]) stack[--sp];
-                    executionContext = (Object[]) constPool[0];
-                    closure = (Object[]) stack[--sp];
-                    thisPtr = stack[--sp];
-                    stack[sp] = result;
-        if(__DO_YIELD__) {
-                    Thread.yield();
-        }
-                    break;
-                }
-                case ID_SAVE_PC: {
-                    stack[++sp] = thisPtr;
-                    stack[++sp] = closure;
-                    stack[++sp] = constPool;
-                    stack[++sp] = code;
-                    break;
-                }
-                case ID_CALL_FN: {
-                    int argc = code[++pc];
-                    Object o = stack[sp - argc - 1];
-                    if(o instanceof Code) {
-                        Code fn = (Code) o;
-
-                        int deltaSp = fn.argc - argc;
-                        stack = ensureSpace(stack, sp, fn.maxDepth + deltaSp);
-        if(__CLEAR_STACK__) {
-                        usedStack = sp + fn.maxDepth + deltaSp;
-        }
-                        sp += deltaSp;
-                        argc = fn.argc;
-
-                        for(int i = 0; i < deltaSp; i++) {
-                            stack[sp - i] = UNDEFINED;
-                        }
-                        
-                        stack[sp - argc - 1] = new Integer(pc);
-                        thisPtr = stack[sp - argc];
-                        pc = -1;
-                        code = fn.code;
-                        constPool = fn.constPool;
-                        executionContext = (Object[]) constPool[0];
-                        closure = fn.closure;
-                    } else if (o instanceof LightScriptFunction) {
-                        try {
-                            Object result = ((LightScriptFunction)o
-                                ).apply(stack, sp - argc, argc);
-                            sp -= argc + 1 + RET_FRAME_SIZE;
-                            stack[sp] = result;
-                        } catch(LightScriptException e) {
-                            if(exceptionHandler < 0) {
-                                throw e;
-                            } else {
-                                //System.out.println(stringify(stack));
-                                sp = exceptionHandler;
-                                exceptionHandler = ((Integer) stack[sp]).intValue();
-                                pc = ((Integer) stack[--sp]).intValue();
-                                code = (byte[]) stack[--sp];
-                                constPool = (Object[]) stack[--sp];
-                                executionContext = (Object[]) constPool[0];
-                                closure = (Object[]) stack[--sp];
-                                stack[sp] = e.value;
-                            }
-                            break;
-                        }
-                    } else {
-        if(DEBUG_ENABLED) {
-                        throw new Error("Unknown function:" + o);
-        }
-                    }
-                    break;
-                }
-                case ID_BUILD_FN: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    Code fn = new Code((Code) stack[sp]);
-                    Object[] clos = new Object[arg];
-                    for (int i = arg - 1; i >= 0; i--) {
-                        --sp;
-                        clos[i] = stack[sp];
-                    }
-                    fn.closure = clos;
-                    stack[sp] = fn;
-                    break;
-                }
-                case ID_SET_BOXED: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    ((Object[]) stack[sp - arg])[0] = stack[sp];
-                    break;
-                }
-                case ID_SET_LOCAL: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    stack[sp - arg] = stack[sp];
-                    break;
-                }
-                case ID_SET_CLOSURE: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    ((Object[]) closure[arg])[0] = stack[sp];
-                    break;
-                }
-                case ID_GET_BOXED: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    Object o = ((Object[]) stack[sp - arg])[0];
-                    stack[++sp] = o;
-                    break;
-                }
-                case ID_GET_LOCAL: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    Object o = stack[sp - arg];
-                    stack[++sp] = o;
-                    break;
-                }
-                case ID_GET_CLOSURE: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    stack[++sp] = ((Object[]) closure[arg])[0];
-                    break;
-                }
-                case ID_GET_BOXED_CLOSURE: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    stack[++sp] = closure[arg];
-                    break;
-                }
-                case ID_LITERAL: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    stack[++sp] = constPool[arg];
-                    break;
-                }
-                case ID_BOX_IT: {
-                    int arg = readShort(pc, code);
-                    pc += 2;
-                    Object[] box = {stack[sp - arg]};
-                    stack[sp - arg] = box;
-                    break;
-                }
-                case ID_DROP: {
-                    --sp;
-                    break;
-                }
-                case ID_NOT: {
-                    stack[sp] = toBool(stack[sp]) ? FALSE : TRUE;
-                    break;
-                }
-                case ID_NEG: {
-                    Object o = stack[sp];
-                    if(o instanceof Integer) {
-                        o = new Integer(-((Integer)o).intValue());
-                    } else /* if o is float */ {
-                        o = fpNeg(toFp(o));
-                    }
-                    stack[sp] = o;
-                    break;
-                }
-                case ID_ADD: {
-                    Object o2 = stack[sp];
-                    --sp;
-                    Object o = stack[sp];
-                    if(o instanceof Integer && o2 instanceof Integer) {
-                        int result = ((Integer) o).intValue();
-                        result += ((Integer) o2).intValue();
-                        stack[sp] = new Integer(result);
-                    } else if( (o instanceof Integer || o instanceof FixedPoint) 
-                           &&  (o2 instanceof Integer || o2 instanceof FixedPoint) ) {
-                        stack[sp] = fpAdd(toFp(o), toFp(o2));
-                    } else {
-                        stack[sp] = String.valueOf(o) + String.valueOf(o2);
-                    }
-                    break;
-                }
-                case ID_SUB: {
-                    Object o2 = stack[sp];
-                    Object o1 = stack[--sp];
-                    if(o1 instanceof Integer && o2 instanceof Integer) {
-                        stack[sp] = new Integer(((Integer)o1).intValue() 
-                                    - ((Integer)o2).intValue());
-                    } else /* float */ {
-                        stack[sp] = fpSub(toFp(o1), toFp(o2));
-                    }
-                    break;
-                }
-                case ID_SHIFT_RIGHT_ARITHMETIC: {
-                    int result = toInt(stack[sp]);
-                    result = toInt(stack[--sp]) >> result;
-                    stack[sp] = new Integer(result);
-                    break;
-                }
-                case ID_MUL: {
-                    Object o2 = stack[sp];
-                    Object o1 = stack[--sp];
-                    if(o1 instanceof Integer && o2 instanceof Integer) {
-                        stack[sp] = new Integer(((Integer)o1).intValue() 
-                                    * ((Integer)o2).intValue());
-                    } else {
-                        stack[sp] = fpMul(toFp(o1), toFp(o2));
-                    }
-                    break;
-                }
-                case ID_DIV: {
-                    Object o2 = stack[sp];
-                    Object o1 = stack[--sp];
-                    stack[sp] = fpDiv(toFp(o1), toFp(o2));
-                    break;
-                }
-                case ID_REM: {
-                    Object o2 = stack[sp];
-                    Object o1 = stack[--sp];
-                    if(o1 instanceof Integer && o2 instanceof Integer) {
-                        stack[sp] = new Integer(((Integer)o1).intValue() 
-                                    % ((Integer)o2).intValue());
-                    } else /* float */ {
-                        stack[sp] = fpRem(toFp(o1), toFp(o2));
-                    }
-                    break;
-                }
-                case ID_NOT_EQUALS: {
-                    Object o = stack[sp];
-                    --sp;
-                    stack[sp] = (o == null)
-                            ? (stack[sp] == null ? FALSE : TRUE )
-                            : (o.equals(stack[sp]) ? FALSE : TRUE );
-                    break;
-                }
-                case ID_EQUALS: {
-                    Object o = stack[sp];
-                    --sp;
-                    stack[sp] = (o == null)
-                            ? (stack[sp] == null ? TRUE : FALSE)
-                            : (o.equals(stack[sp]) ? TRUE : FALSE);
-                    break;
-                }
-                case ID_PUT: {
-                    Object val = stack[sp];
-                    Object key = stack[--sp];
-                    Object container = stack[--sp];
-
-                    if (container instanceof LightScriptObject) {
-                        ((LightScriptObject)container).set(key, val);
-
-                    } else if (container instanceof Stack) {
-                        int pos = toInt(key);
-                        Stack s = (Stack) container;
-                        if(pos >= s.size()) {
-                            s.setSize(pos + 1);
-                        }
-                        s.setElementAt(val, pos);
-
-                    } else if (container instanceof Hashtable) {
-                        if (val == null) {
-                            ((Hashtable) container).remove(key);
-                        } else {
-                            ((Hashtable) container).put(key, val);
-                        }
-                    } else {
-                        ((LightScriptFunction)executionContext[EC_SETTER]).apply(stack, sp, 2);
-                    }
-                    break;
-                }
-                case ID_SUBSCRIPT: {
-                    Object key = stack[sp];
-                    Object container = stack[--sp];
-                    Object result = null;
-
-
-                    // "Object"
-                    if (container instanceof LightScriptObject) {
-                        result = ((LightScriptObject)container).get(key);
-                    }  else if (container instanceof Hashtable) {
-                        result = ((Hashtable) container).get(key);
-                        if(result == null) {
-                            Object prototype = ((Hashtable)container).get("__proto__");
-                            // repeat case ID_SUBSCRIPT with prototype as container
-                            if(prototype != null) {
-                                stack[sp] = prototype;
-                                sp += 1;
-                                pc -= 1;
-                                break;
-                            }
-                        }
-
-                    // "Array"
-                    } else if (container instanceof Stack) {
-                        if(key instanceof Integer) {
-                            int pos = ((Integer) key).intValue();
-                            Stack s = (Stack) container;
-                            result = 0 <= pos && pos < s.size()
-                                         ? s.elementAt(pos)
-                                         : null;
-                        } else if("length".equals(key)) {
-                            result = new Integer(((Stack)container).size());
-                        } else {
-                            result = ((Hashtable)executionContext[EC_ARRAY_PROTOTYPE]).get(key);
-                        }
-
-                    // "String"
-                    } else if (container instanceof String) {
-                        if(key instanceof Integer) {
-                            int pos = ((Integer) key).intValue();
-                            String s = (String)container;
-                            result = 0 <= pos && pos < s.length()
-                                         ? s.substring(pos, pos+1)
-                                         : null;
-                        } else if("length".equals(key)) {
-                            result = new Integer(((String)container).length());
-                        } else {
-                            result = ((Hashtable)executionContext[EC_STRING_PROTOTYPE]).get(key);
-                        }
-
-                    // Other builtin types, by calling userdefined default getter
-                    } else {
-                        result = ((LightScriptFunction)executionContext[EC_GETTER]).apply(stack, sp, 1);
-                    } 
-                    
-                    // prototype property or element within (super-)prototype
-                    if(result == null) {
-                        if("__proto__".equals(key)) {
-                            if(container instanceof Stack) {
-                                result = (Hashtable)executionContext[EC_ARRAY_PROTOTYPE];
-                            } else if(container instanceof String) {
-                                result = (Hashtable)executionContext[EC_STRING_PROTOTYPE];
-                            } else {
-                                result = (Hashtable)executionContext[EC_OBJECT_PROTOTYPE];
-                            }
-                        } else {
-                            result = ((Hashtable)executionContext[EC_OBJECT_PROTOTYPE]).get(key);
-                            if(result == null) {
-                                result = UNDEFINED;
-                            }
-                        }
-                    }
-                    stack[sp] = result;
-                    break;
-                }
-                case ID_PUSH: {
-                    Object o = stack[sp];
-                    ((Stack) stack[--sp]).push(o);
-                    break;
-                }
-                case ID_POP: {
-                    stack[sp] = ((Stack) stack[sp]).pop();
-                    break;
-                }
-                case ID_LESS: {
-                    Object o2 = stack[sp];
-                    Object o1 = stack[--sp];
-                    if (o1 instanceof Integer && o2 instanceof Integer) {
-                        stack[sp] = ((Integer) o1).intValue() 
-                            < ((Integer) o2).intValue() ? TRUE : FALSE;
-                    } else if( (o1 instanceof Integer || o1 instanceof FixedPoint) 
-                           &&  (o2 instanceof Integer || o2 instanceof FixedPoint) ) {
-                        stack[sp] = fpLess(toFp(o1), toFp(o2)) ? TRUE : FALSE;
-                    } else {
-                        stack[sp] = o1.toString().compareTo(o2.toString()) 
-                            < 0 ? TRUE : FALSE;
-                    }
-                    break;
-                }
-                case ID_LESS_EQUALS: {
-                    Object o2 = stack[sp];
-                    Object o1 = stack[--sp];
-                    if (o1 instanceof Integer && o2 instanceof Integer) {
-                        stack[sp] = ((Integer) o1).intValue() 
-                            <= ((Integer) o2).intValue() ? TRUE : FALSE;
-                    } else if( (o1 instanceof Integer || o1 instanceof FixedPoint) 
-                           &&  (o2 instanceof Integer || o2 instanceof FixedPoint) ) {
-                        stack[sp] = fpLessEq(toFp(o1), toFp(o2)) ? TRUE : FALSE;
-                    } else {
-                        stack[sp] = o1.toString().compareTo(o2.toString()) 
-                            <= 0 ? TRUE : FALSE;
-                    }
-                    break;
-                }
-                case ID_JUMP: {
-                    pc += readShort(pc, code) + 2;
-        if(__DO_YIELD__) {
-                    Thread.yield();
-        }
-                    break;
-                }
-                case ID_JUMP_IF_UNDEFINED: {
-                    if (UNDEFINED != stack[sp]) {
+                    case ID_RETURN: {
+                        int arg = readShort(pc, code);
                         pc += 2;
-                    } else {
-                        pc += readShort(pc, code) + 2;
-        if(__DO_YIELD__) {
-                    Thread.yield();
-        }
-                    }
-                    --sp;
-                    break;
-                }
-                case ID_JUMP_IF_FALSE: {
-                    if (toBool(stack[sp])) {
-                        pc += 2;
-                    } else {
-                        pc += readShort(pc, code) + 2;
-        if(__DO_YIELD__) {
-                    Thread.yield();
-        }
-                    }
-                    --sp;
-                    break;
-                }
-                case ID_JUMP_IF_TRUE: {
-                    if (toBool(stack[sp])) {
-                        pc += readShort(pc, code) + 2;
-                    } else {
-                        pc += 2;
-                    }
-                    --sp;
-                    break;
-                }
-                case ID_DUP: {
-                    Object o = stack[sp];
-                    stack[++sp] = o;
-                    break;
-                }
-                case ID_NEW_LIST: {
-                    stack[++sp] = new Stack();
-                    break;
-                }
-                case ID_NEW_DICT: {
-                    stack[++sp] = new Hashtable();
-                    break;
-                }
-                case ID_SET_THIS: {
-                    thisPtr = stack[sp];
-                    --sp;
-                    break;
-                }
-                case ID_THIS: {
-                    stack[++sp] = thisPtr;
-                    break;
-                }
-                case ID_SWAP: {
-                    Object t = stack[sp];
-                    stack[sp] = stack[sp - 1];
-                    stack[sp - 1] = t;
-                    break;
-                }
-                case ID_THROW: {
-                    Object result = stack[sp];
-                    if(exceptionHandler < 0) {
-                        throw new LightScriptException(result);
-                    } else {
-                        //System.out.println(stringify(stack));
-                        sp = exceptionHandler;
-                        exceptionHandler = ((Integer) stack[sp]).intValue();
+                        Object result = stack[sp];
+                        sp -= arg;
+                        if (sp == 0) {
+                            return result;
+                        }
+                        if (DEBUG_ENABLED) {
+                            if (sp < 0) {
+                                throw new Error("Wrong stack discipline"
+                                        + sp);
+                            }
+                        }
+                        if (__CLEAR_STACK__) {
+                            for (int i = sp; i <= usedStack; i++) {
+                                stack[i] = null;
+                            }
+                        }
                         pc = ((Integer) stack[--sp]).intValue();
                         code = (byte[]) stack[--sp];
                         constPool = (Object[]) stack[--sp];
                         executionContext = (Object[]) constPool[0];
                         closure = (Object[]) stack[--sp];
+                        thisPtr = stack[--sp];
                         stack[sp] = result;
+                        if (__DO_YIELD__) {
+                            Thread.yield();
+                        }
+                        break;
                     }
-                    break;
-                }
-                case ID_TRY: {
-                    stack[++sp] = closure;
-                    stack[++sp] = constPool;
-                    stack[++sp] = code;
-                    stack[++sp] = new Integer(pc + readShort(pc, code) + 2);
-                    stack[++sp] = new Integer(exceptionHandler);
-                    exceptionHandler = sp;
-                    pc += 2;
-                    break;
-                }
-                case ID_UNTRY: {
-                    exceptionHandler = ((Integer) stack[sp]).intValue();
-                    sp -= TRY_FRAME_SIZE;
-                    break;
-                }
-                case ID_NEW_ITER: {
-                    stack[sp] = ((LightScriptFunction)executionContext[EC_NEW_ITER]).apply(stack, sp, 0);
-                    break;
-                }
-                case ID_NEXT: {
-                    LightScriptFunction iter = (LightScriptFunction)stack[sp];
-                    stack[++sp] = iter.apply(stack, sp, 0);
-                    break;
-                }
-                case ID_GLOBAL: {
-                    stack[++sp] = executionContext[EC_WRAPPED_GLOBALS];
-                    break;
-                }
-                case ID_DELETE: {
-                    Object key = stack[sp];
-                    Object container = stack[--sp];
-                    if(container instanceof Hashtable) {
-                        ((Hashtable)container).remove(key);
-                    } else if(container instanceof Stack && key instanceof Integer) {
-                        ((Stack)container).setElementAt(UNDEFINED, ((Integer)key).intValue());
-                    } else if(container instanceof LightScriptObject) {
-                        ((LightScriptObject)container).set(key, UNDEFINED);
-                    } else {
-        if(DEBUG_ENABLED) {
-                        throw new Error("deleting non-deletable");
-        }
+                    case ID_SAVE_PC: {
+                        stack[++sp] = thisPtr;
+                        stack[++sp] = closure;
+                        stack[++sp] = constPool;
+                        stack[++sp] = code;
+                        break;
                     }
-                    break;
-                }
-                case ID_SHIFT_RIGHT: {
-                    int result = toInt(stack[sp]);
-                    result = toInt(stack[--sp]) >>> result;
-                    stack[sp] = new Integer(result);
-                    break;
-                }
-                case ID_SHIFT_LEFT: {
-                    int result = toInt(stack[sp]);
-                    result = toInt(stack[--sp]) << result;
-                    stack[sp] = new Integer(result);
-                    break;
-                }
-                case ID_BITWISE_OR:
-                {
-                    int result = toInt(stack[sp]);
-                    result = toInt(stack[--sp]) | result;
-                    stack[sp] = new Integer(result);
-                    break;
-                }
-                case ID_BITWISE_XOR:
-                {
-                    int result = toInt(stack[sp]);
-                    result = toInt(stack[--sp]) ^ result;
-                    stack[sp] = new Integer(result);
-                    break;
-                }
-                case ID_BITWISE_AND:
-                {
-                    int result = toInt(stack[sp]);
-                    result = toInt(stack[--sp]) & result;
-                    stack[sp] = new Integer(result);
-                    break;
-                }
-                case ID_BITWISE_NOT:
-                {
-                    int result = ~toInt(stack[sp]);
-                    stack[sp] = new Integer(result);
-                    break;
-                }
-                default: {
-        if(DEBUG_ENABLED) {
-                    throw new Error("Unknown opcode: " + code[pc]);
-        }
+                    case ID_CALL_FN: {
+                        int argc = code[++pc];
+                        Object o = stack[sp - argc - 1];
+                        if (o instanceof Code) {
+                            Code fn = (Code) o;
+
+                            int deltaSp = fn.argc - argc;
+                            stack = ensureSpace(stack, sp, fn.maxDepth + deltaSp);
+                            if (__CLEAR_STACK__) {
+                                usedStack = sp + fn.maxDepth + deltaSp;
+                            }
+                            sp += deltaSp;
+                            argc = fn.argc;
+
+                            for (int i = 0; i < deltaSp; i++) {
+                                stack[sp - i] = UNDEFINED;
+                            }
+
+                            stack[sp - argc - 1] = new Integer(pc);
+                            thisPtr = stack[sp - argc];
+                            pc = -1;
+                            code = fn.code;
+                            constPool = fn.constPool;
+                            executionContext = (Object[]) constPool[0];
+                            closure = fn.closure;
+                        } else if (o instanceof LightScriptFunction) {
+                            try {
+                                Object result = ((LightScriptFunction) o).apply(stack, sp - argc, argc);
+                                sp -= argc + 1 + RET_FRAME_SIZE;
+                                stack[sp] = result;
+                            } catch (LightScriptException e) {
+                                if (exceptionHandler < 0) {
+                                    throw e;
+                                } else {
+                                    //System.out.println(stringify(stack));
+                                    sp = exceptionHandler;
+                                    exceptionHandler = ((Integer) stack[sp]).intValue();
+                                    pc = ((Integer) stack[--sp]).intValue();
+                                    code = (byte[]) stack[--sp];
+                                    constPool = (Object[]) stack[--sp];
+                                    executionContext = (Object[]) constPool[0];
+                                    closure = (Object[]) stack[--sp];
+                                    stack[sp] = e.value;
+                                }
+                                break;
+                            }
+                        } else {
+                            if (DEBUG_ENABLED) {
+                                throw new Error("Unknown function:" + o);
+                            }
+                        }
+                        break;
+                    }
+                    case ID_BUILD_FN: {
+                        int arg = readShort(pc, code);
+                        pc += 2;
+                        Code fn = new Code((Code) stack[sp]);
+                        Object[] clos = new Object[arg];
+                        for (int i = arg - 1; i >= 0; i--) {
+                            --sp;
+                            clos[i] = stack[sp];
+                        }
+                        fn.closure = clos;
+                        stack[sp] = fn;
+                        break;
+                    }
+                    case ID_SET_BOXED: {
+                        int arg = readShort(pc, code);
+                        pc += 2;
+                        ((Object[]) stack[sp - arg])[0] = stack[sp];
+                        break;
+                    }
+                    case ID_SET_LOCAL: {
+                        int arg = readShort(pc, code);
+                        pc += 2;
+                        stack[sp - arg] = stack[sp];
+                        break;
+                    }
+                    case ID_SET_CLOSURE: {
+                        int arg = readShort(pc, code);
+                        pc += 2;
+                        ((Object[]) closure[arg])[0] = stack[sp];
+                        break;
+                    }
+                    case ID_GET_BOXED: {
+                        int arg = readShort(pc, code);
+                        pc += 2;
+                        Object o = ((Object[]) stack[sp - arg])[0];
+                        stack[++sp] = o;
+                        break;
+                    }
+                    case ID_GET_LOCAL: {
+                        int arg = readShort(pc, code);
+                        pc += 2;
+                        Object o = stack[sp - arg];
+                        stack[++sp] = o;
+                        break;
+                    }
+                    case ID_GET_CLOSURE: {
+                        int arg = readShort(pc, code);
+                        pc += 2;
+                        stack[++sp] = ((Object[]) closure[arg])[0];
+                        break;
+                    }
+                    case ID_GET_BOXED_CLOSURE: {
+                        int arg = readShort(pc, code);
+                        pc += 2;
+                        stack[++sp] = closure[arg];
+                        break;
+                    }
+                    case ID_LITERAL: {
+                        int arg = readShort(pc, code);
+                        pc += 2;
+                        stack[++sp] = constPool[arg];
+                        break;
+                    }
+                    case ID_BOX_IT: {
+                        int arg = readShort(pc, code);
+                        pc += 2;
+                        Object[] box = {stack[sp - arg]};
+                        stack[sp - arg] = box;
+                        break;
+                    }
+                    case ID_DROP: {
+                        --sp;
+                        break;
+                    }
+                    case ID_NOT: {
+                        stack[sp] = toBool(stack[sp]) ? FALSE : TRUE;
+                        break;
+                    }
+                    case ID_NEG: {
+                        Object o = stack[sp];
+                        if (o instanceof Integer) {
+                            o = new Integer(-((Integer) o).intValue());
+                        } else /* if o is float */ {
+                            o = fpNeg(toFp(o));
+                        }
+                        stack[sp] = o;
+                        break;
+                    }
+                    case ID_ADD: {
+                        Object o2 = stack[sp];
+                        --sp;
+                        Object o = stack[sp];
+                        if (o instanceof Integer && o2 instanceof Integer) {
+                            int result = ((Integer) o).intValue();
+                            result += ((Integer) o2).intValue();
+                            stack[sp] = new Integer(result);
+                        } else if ((o instanceof Integer || o instanceof FixedPoint)
+                                && (o2 instanceof Integer || o2 instanceof FixedPoint)) {
+                            stack[sp] = fpAdd(toFp(o), toFp(o2));
+                        } else {
+                            stack[sp] = String.valueOf(o) + String.valueOf(o2);
+                        }
+                        break;
+                    }
+                    case ID_SUB: {
+                        Object o2 = stack[sp];
+                        Object o1 = stack[--sp];
+                        if (o1 instanceof Integer && o2 instanceof Integer) {
+                            stack[sp] = new Integer(((Integer) o1).intValue()
+                                    - ((Integer) o2).intValue());
+                        } else /* float */ {
+                            stack[sp] = fpSub(toFp(o1), toFp(o2));
+                        }
+                        break;
+                    }
+                    case ID_SHIFT_RIGHT_ARITHMETIC: {
+                        int result = toInt(stack[sp]);
+                        result = toInt(stack[--sp]) >> result;
+                        stack[sp] = new Integer(result);
+                        break;
+                    }
+                    case ID_MUL: {
+                        Object o2 = stack[sp];
+                        Object o1 = stack[--sp];
+                        if (o1 instanceof Integer && o2 instanceof Integer) {
+                            stack[sp] = new Integer(((Integer) o1).intValue()
+                                    * ((Integer) o2).intValue());
+                        } else {
+                            stack[sp] = fpMul(toFp(o1), toFp(o2));
+                        }
+                        break;
+                    }
+                    case ID_DIV: {
+                        Object o2 = stack[sp];
+                        Object o1 = stack[--sp];
+                        stack[sp] = fpDiv(toFp(o1), toFp(o2));
+                        break;
+                    }
+                    case ID_REM: {
+                        Object o2 = stack[sp];
+                        Object o1 = stack[--sp];
+                        if (o1 instanceof Integer && o2 instanceof Integer) {
+                            stack[sp] = new Integer(((Integer) o1).intValue()
+                                    % ((Integer) o2).intValue());
+                        } else /* float */ {
+                            stack[sp] = fpRem(toFp(o1), toFp(o2));
+                        }
+                        break;
+                    }
+                    case ID_NOT_EQUALS: {
+                        Object o = stack[sp];
+                        --sp;
+                        stack[sp] = (o == null)
+                                ? (stack[sp] == null ? FALSE : TRUE)
+                                : (o.equals(stack[sp]) ? FALSE : TRUE);
+                        break;
+                    }
+                    case ID_EQUALS: {
+                        Object o = stack[sp];
+                        --sp;
+                        stack[sp] = (o == null)
+                                ? (stack[sp] == null ? TRUE : FALSE)
+                                : (o.equals(stack[sp]) ? TRUE : FALSE);
+                        break;
+                    }
+                    case ID_PUT: {
+                        Object val = stack[sp];
+                        Object key = stack[--sp];
+                        Object container = stack[--sp];
+
+                        if (container instanceof LightScriptObject) {
+                            ((LightScriptObject) container).set(key, val);
+
+                        } else if (container instanceof Stack) {
+                            int pos = toInt(key);
+                            Stack s = (Stack) container;
+                            if (pos >= s.size()) {
+                                s.setSize(pos + 1);
+                            }
+                            s.setElementAt(val, pos);
+
+                        } else if (container instanceof Hashtable) {
+                            if (val == null) {
+                                ((Hashtable) container).remove(key);
+                            } else {
+                                ((Hashtable) container).put(key, val);
+                            }
+                        } else {
+                            ((LightScriptFunction) executionContext[EC_SETTER]).apply(stack, sp, 2);
+                        }
+                        break;
+                    }
+                    case ID_SUBSCRIPT: {
+                        Object key = stack[sp];
+                        Object container = stack[--sp];
+                        Object result = null;
+
+
+                        // "Object"
+                        if (container instanceof LightScriptObject) {
+                            result = ((LightScriptObject) container).get(key);
+                        } else if (container instanceof Hashtable) {
+                            result = ((Hashtable) container).get(key);
+                            if (result == null) {
+                                Object prototype = ((Hashtable) container).get("__proto__");
+                                // repeat case ID_SUBSCRIPT with prototype as container
+                                if (prototype != null) {
+                                    stack[sp] = prototype;
+                                    sp += 1;
+                                    pc -= 1;
+                                    break;
+                                }
+                            }
+
+                            // "Array"
+                        } else if (container instanceof Stack) {
+                            if (key instanceof Integer) {
+                                int pos = ((Integer) key).intValue();
+                                Stack s = (Stack) container;
+                                result = 0 <= pos && pos < s.size()
+                                        ? s.elementAt(pos)
+                                        : null;
+                            } else if ("length".equals(key)) {
+                                result = new Integer(((Stack) container).size());
+                            } else {
+                                result = ((Hashtable) executionContext[EC_ARRAY_PROTOTYPE]).get(key);
+                            }
+
+                            // "String"
+                        } else if (container instanceof String) {
+                            if (key instanceof Integer) {
+                                int pos = ((Integer) key).intValue();
+                                String s = (String) container;
+                                result = 0 <= pos && pos < s.length()
+                                        ? s.substring(pos, pos + 1)
+                                        : null;
+                            } else if ("length".equals(key)) {
+                                result = new Integer(((String) container).length());
+                            } else {
+                                result = ((Hashtable) executionContext[EC_STRING_PROTOTYPE]).get(key);
+                            }
+
+                            // Other builtin types, by calling userdefined default getter
+                        } else {
+                            result = ((LightScriptFunction) executionContext[EC_GETTER]).apply(stack, sp, 1);
+                        }
+
+                        // prototype property or element within (super-)prototype
+                        if (result == null) {
+                            if ("__proto__".equals(key)) {
+                                if (container instanceof Stack) {
+                                    result = (Hashtable) executionContext[EC_ARRAY_PROTOTYPE];
+                                } else if (container instanceof String) {
+                                    result = (Hashtable) executionContext[EC_STRING_PROTOTYPE];
+                                } else {
+                                    result = (Hashtable) executionContext[EC_OBJECT_PROTOTYPE];
+                                }
+                            } else {
+                                result = ((Hashtable) executionContext[EC_OBJECT_PROTOTYPE]).get(key);
+                                if (result == null) {
+                                    result = UNDEFINED;
+                                }
+                            }
+                        }
+                        stack[sp] = result;
+                        break;
+                    }
+                    case ID_PUSH: {
+                        Object o = stack[sp];
+                        ((Stack) stack[--sp]).push(o);
+                        break;
+                    }
+                    case ID_POP: {
+                        stack[sp] = ((Stack) stack[sp]).pop();
+                        break;
+                    }
+                    case ID_LESS: {
+                        Object o2 = stack[sp];
+                        Object o1 = stack[--sp];
+                        if (o1 instanceof Integer && o2 instanceof Integer) {
+                            stack[sp] = ((Integer) o1).intValue()
+                                    < ((Integer) o2).intValue() ? TRUE : FALSE;
+                        } else if ((o1 instanceof Integer || o1 instanceof FixedPoint)
+                                && (o2 instanceof Integer || o2 instanceof FixedPoint)) {
+                            stack[sp] = fpLess(toFp(o1), toFp(o2)) ? TRUE : FALSE;
+                        } else {
+                            stack[sp] = o1.toString().compareTo(o2.toString())
+                                    < 0 ? TRUE : FALSE;
+                        }
+                        break;
+                    }
+                    case ID_LESS_EQUALS: {
+                        Object o2 = stack[sp];
+                        Object o1 = stack[--sp];
+                        if (o1 instanceof Integer && o2 instanceof Integer) {
+                            stack[sp] = ((Integer) o1).intValue()
+                                    <= ((Integer) o2).intValue() ? TRUE : FALSE;
+                        } else if ((o1 instanceof Integer || o1 instanceof FixedPoint)
+                                && (o2 instanceof Integer || o2 instanceof FixedPoint)) {
+                            stack[sp] = fpLessEq(toFp(o1), toFp(o2)) ? TRUE : FALSE;
+                        } else {
+                            stack[sp] = o1.toString().compareTo(o2.toString())
+                                    <= 0 ? TRUE : FALSE;
+                        }
+                        break;
+                    }
+                    case ID_JUMP: {
+                        pc += readShort(pc, code) + 2;
+                        if (__DO_YIELD__) {
+                            Thread.yield();
+                        }
+                        break;
+                    }
+                    case ID_JUMP_IF_UNDEFINED: {
+                        if (UNDEFINED != stack[sp]) {
+                            pc += 2;
+                        } else {
+                            pc += readShort(pc, code) + 2;
+                            if (__DO_YIELD__) {
+                                Thread.yield();
+                            }
+                        }
+                        --sp;
+                        break;
+                    }
+                    case ID_JUMP_IF_FALSE: {
+                        if (toBool(stack[sp])) {
+                            pc += 2;
+                        } else {
+                            pc += readShort(pc, code) + 2;
+                            if (__DO_YIELD__) {
+                                Thread.yield();
+                            }
+                        }
+                        --sp;
+                        break;
+                    }
+                    case ID_JUMP_IF_TRUE: {
+                        if (toBool(stack[sp])) {
+                            pc += readShort(pc, code) + 2;
+                        } else {
+                            pc += 2;
+                        }
+                        --sp;
+                        break;
+                    }
+                    case ID_DUP: {
+                        Object o = stack[sp];
+                        stack[++sp] = o;
+                        break;
+                    }
+                    case ID_NEW_LIST: {
+                        stack[++sp] = new Stack();
+                        break;
+                    }
+                    case ID_NEW_DICT: {
+                        stack[++sp] = new Hashtable();
+                        break;
+                    }
+                    case ID_SET_THIS: {
+                        thisPtr = stack[sp];
+                        --sp;
+                        break;
+                    }
+                    case ID_THIS: {
+                        stack[++sp] = thisPtr;
+                        break;
+                    }
+                    case ID_SWAP: {
+                        Object t = stack[sp];
+                        stack[sp] = stack[sp - 1];
+                        stack[sp - 1] = t;
+                        break;
+                    }
+                    case ID_THROW: {
+                        Object result = stack[sp];
+                        if (exceptionHandler < 0) {
+                            throw new LightScriptException(result);
+                        } else {
+                            //System.out.println(stringify(stack));
+                            sp = exceptionHandler;
+                            exceptionHandler = ((Integer) stack[sp]).intValue();
+                            pc = ((Integer) stack[--sp]).intValue();
+                            code = (byte[]) stack[--sp];
+                            constPool = (Object[]) stack[--sp];
+                            executionContext = (Object[]) constPool[0];
+                            closure = (Object[]) stack[--sp];
+                            stack[sp] = result;
+                        }
+                        break;
+                    }
+                    case ID_TRY: {
+                        stack[++sp] = closure;
+                        stack[++sp] = constPool;
+                        stack[++sp] = code;
+                        stack[++sp] = new Integer(pc + readShort(pc, code) + 2);
+                        stack[++sp] = new Integer(exceptionHandler);
+                        exceptionHandler = sp;
+                        pc += 2;
+                        break;
+                    }
+                    case ID_UNTRY: {
+                        exceptionHandler = ((Integer) stack[sp]).intValue();
+                        sp -= TRY_FRAME_SIZE;
+                        break;
+                    }
+                    case ID_NEW_ITER: {
+                        stack[sp] = ((LightScriptFunction) executionContext[EC_NEW_ITER]).apply(stack, sp, 0);
+                        break;
+                    }
+                    case ID_NEXT: {
+                        LightScriptFunction iter = (LightScriptFunction) stack[sp];
+                        stack[++sp] = iter.apply(stack, sp, 0);
+                        break;
+                    }
+                    case ID_GLOBAL: {
+                        stack[++sp] = executionContext[EC_WRAPPED_GLOBALS];
+                        break;
+                    }
+                    case ID_DELETE: {
+                        Object key = stack[sp];
+                        Object container = stack[--sp];
+                        if (container instanceof Hashtable) {
+                            ((Hashtable) container).remove(key);
+                        } else if (container instanceof Stack && key instanceof Integer) {
+                            ((Stack) container).setElementAt(UNDEFINED, ((Integer) key).intValue());
+                        } else if (container instanceof LightScriptObject) {
+                            ((LightScriptObject) container).set(key, UNDEFINED);
+                        } else {
+                            if (DEBUG_ENABLED) {
+                                throw new Error("deleting non-deletable");
+                            }
+                        }
+                        break;
+                    }
+                    case ID_SHIFT_RIGHT: {
+                        int result = toInt(stack[sp]);
+                        result = toInt(stack[--sp]) >>> result;
+                        stack[sp] = new Integer(result);
+                        break;
+                    }
+                    case ID_SHIFT_LEFT: {
+                        int result = toInt(stack[sp]);
+                        result = toInt(stack[--sp]) << result;
+                        stack[sp] = new Integer(result);
+                        break;
+                    }
+                    case ID_BITWISE_OR: {
+                        int result = toInt(stack[sp]);
+                        result = toInt(stack[--sp]) | result;
+                        stack[sp] = new Integer(result);
+                        break;
+                    }
+                    case ID_BITWISE_XOR: {
+                        int result = toInt(stack[sp]);
+                        result = toInt(stack[--sp]) ^ result;
+                        stack[sp] = new Integer(result);
+                        break;
+                    }
+                    case ID_BITWISE_AND: {
+                        int result = toInt(stack[sp]);
+                        result = toInt(stack[--sp]) & result;
+                        stack[sp] = new Integer(result);
+                        break;
+                    }
+                    case ID_BITWISE_NOT: {
+                        int result = ~toInt(stack[sp]);
+                        stack[sp] = new Integer(result);
+                        break;
+                    }
+                    default: {
+                        if (DEBUG_ENABLED) {
+                            throw new Error("Unknown opcode: " + code[pc]);
+                        }
+                    }
                 }
             }
-        }
 // if we debug, we want the real exception, with line number..
-        } catch(Error e) {
-        if(!DEBUG_ENABLED) {
-            throw new LightScriptException(e);
-        } else {
-            throw e;
+        } catch (Error e) {
+            if (!DEBUG_ENABLED) {
+                throw new LightScriptException(e);
+            } else {
+                throw e;
+            }
         }
-        } 
     }
 }
 

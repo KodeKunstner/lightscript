@@ -75,12 +75,14 @@ public class HTMLParser {
 //
 // Initialiseation
 //
+
     private HTMLParser(InputStream is) {
         this.is = is;
     }
 // 
 // Tokeniser
 //
+
     private int arraysearch(Object[] os, Object o) {
         for (int i = 0; i < os.length; ++i) {
             if (os[i].equals(o)) {
@@ -242,7 +244,6 @@ public class HTMLParser {
     private Object[] doParse() {
         while (!eof) {
             nextToken();
-            System.out.println("Token" + tokentype + " " + content);
             switch (tokentype) {
                 case STARTTAG:
                     int closetag = arraysearch(closingTags, content);
@@ -270,6 +271,6 @@ public class HTMLParser {
         while (!tagStack.empty()) {
             closeTag();
         }
-        return (Object[])currentTag.elementAt(0);
+        return (Object[]) currentTag.elementAt(0);
     }
 }

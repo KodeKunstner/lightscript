@@ -1,6 +1,7 @@
 package com.solsort.mobile;
 
 public interface LightScriptObject {
+
     /**
      * Set a property on the object.
      */
