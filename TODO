@@ -1,0 +1,4 @@
+- Switch from LightScriptObject-interface to LightScriptClass-class
+  - Dispatch on .getClass(), and a prototype table
+- Testsuite
+- Actual applications

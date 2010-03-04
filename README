@@ -12,3 +12,13 @@ compilable, - use the Makefile
 ./doc contains documentation, and generated javadoc
 
 ./TODO to do list, and roadmap
+Changelog
+com
+COPYING
+doc
+examples
+external_dependencies
+Makefile
+README
+src
+web

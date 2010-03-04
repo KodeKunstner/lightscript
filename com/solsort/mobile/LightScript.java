@@ -1,11 +1,13 @@
 package com.solsort.mobile;
 /**
 This software is released under the 
-GNU GENERAL PUBLIC LICENSE version 3
-(the actual license text can be retrieved
- from the Free Software Foundation)
+AFFERO GENERAL PUBLIC LICENSE version 3
 
-Copyright, 2009-2010, Rasmus Jensen, rasmus@lightscript.net
+(the actual license text can be retrieved
+from the Free Software Foundation:
+http://www.gnu.org/licenses/agpl-3.0.html)
+
+Copyright, 2009-2010, Rasmus Jensen, rasmus@solsort.com
 
 Contact for other licensing options.
 */
@@ -23,7 +25,7 @@ import java.util.Random;
   * where code can be parsed, compiled, and executed. 
   *
   * @author Rasmus Jensen, rasmus@lightscript.net
-  * @version 1.1
+  * @version 1.2
   */
 public final class LightScript {
 

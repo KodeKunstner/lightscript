@@ -1,3 +1,8 @@
+1.2
+    Renamed package to com.solsort.mobile
+    Added html parser to package
+    Switched away from using macros (Cost: approx 1KB in optimised jar)
+    Only integer now.
 1.1.579
     added Math.random and Math.floor
 1.1.578
