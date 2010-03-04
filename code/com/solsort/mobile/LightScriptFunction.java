@@ -1,3 +1,5 @@
+package com.solsort.mobile;
+
 public interface LightScriptFunction {
     /** 
      * Method callable from LightScript.

@@ -1,3 +1,4 @@
+package com.solsort.mobile;
 /**
 This software is released under the 
 GNU GENERAL PUBLIC LICENSE version 3
@@ -18,190 +19,6 @@ import java.lang.Thread;
 import java.util.Random;
 
 /*`\section{Definitions, API, and utility functions}'*/
-
-/* If debugging is enabled, more tests are run during run-time,
- * and errors may be caught in a more readable way.
- * It also adds support for more readable printing of
- * id, etc.
- */
-#define __DEBUG__
-//#define __PRINT_EXECUTED_INSTRUCTIONS__
-//#define __DO_YIELD__
-
-/* If enabled, wipe the stack on function exit,
- * to kill dangling pointers on execution stack,
- * for better GC at performance price
- */
-#define __CLEAR_STACK__
-
-//#define __HAVE_DOUBLE__
-#define __APPLY_API__
-
-/* Identifiers, used both as node type,
- * and also used as opcode. 
- */
-#define ID_NONE 127
-#define ID_TRUE 0
-#define ID_FALSE 1
-#define ID_UNDEFINED 2
-#define ID_NULL 3
-#define ID_PAREN 4
-#define ID_LIST_LITERAL 5
-#define ID_CURLY 6
-#define ID_VAR 7
-#define ID_BUILD_FUNCTION 8
-#define ID_IF 9
-#define ID_WHILE 10
-#define ID_CALL_FUNCTION 11
-#define ID_AND 12
-#define ID_OR 13
-#define ID_ELSE 14
-#define ID_SET 15
-#define ID_IDENT 16
-#define ID_BLOCK 17
-#define ID_SEP 18
-#define ID_IN 19
-#define ID_FOR 20
-#define ID_END 21
-#define ID_CATCH 22
-#define ID_DO 23
-#define ID_INC 24
-#define ID_DEC 25
-#define ID_ADD 26
-#define ID_EQUALS 27
-#define ID_LESS 29
-#define ID_LESS_EQUALS 30
-#define ID_LITERAL 31
-#define ID_MUL 32
-#define ID_NEG 33
-#define ID_NOT 34
-#define ID_NOT_EQUALS 35
-#define ID_REM 37
-#define ID_RETURN 38
-#define ID_SHIFT_RIGHT_ARITHMETIC 39
-#define ID_SUB 40
-#define ID_SUBSCRIPT 41
-#define ID_THIS 42
-#define ID_THROW 43
-#define ID_TRY 44
-#define ID_UNTRY 45
-#define ID_BOX_IT 46
-#define ID_BUILD_FN 47
-#define ID_CALL_FN 48
-#define ID_DROP 49
-#define ID_DUP 50
-#define ID_GET_BOXED 52
-#define ID_GET_BOXED_CLOSURE 53
-#define ID_GET_CLOSURE 54
-#define ID_GET_LOCAL 55
-#define ID_INC_SP 56
-#define ID_JUMP 57
-#define ID_JUMP_IF_FALSE 58
-#define ID_JUMP_IF_TRUE 59
-#define ID_NEW_DICT 60
-#define ID_NEW_LIST 61
-#define ID_NEXT 62
-#define ID_POP 63
-#define ID_PUSH 64
-#define ID_PUT 65
-#define ID_SAVE_PC 66
-#define ID_SET_BOXED 67
-#define ID_SET_CLOSURE 68
-#define ID_SET_LOCAL 69
-#define ID_SET_THIS 70
-#define ID_SWAP 71
-#define ID_DIV 72
-#define ID_NEW_ITER 73
-#define ID_JUMP_IF_UNDEFINED 74
-#define ID_DELETE 75
-#define ID_NEW 76
-#define ID_GLOBAL 77
-#define ID_SHIFT_RIGHT 78
-#define ID_SHIFT_LEFT 79
-#define ID_BITWISE_OR 81
-#define ID_BITWISE_XOR 82
-#define ID_BITWISE_AND 83
-#define ID_BITWISE_NOT 84
-
-
-/* The function id for the null denominator functions */
-#define NUD_NONE 13
-#define NUD_IDENT 1
-#define NUD_LITERAL 2
-#define NUD_END 3
-#define NUD_SEP 4
-#define NUD_LIST 5
-#define NUD_PREFIX 6
-#define NUD_PREFIX2 7
-#define NUD_FUNCTION 8
-#define NUD_VAR 9
-#define NUD_ATOM 10
-#define NUD_CATCH 11
-#define NUD_CONST 12
-
-/* The function id for the null denominator functions */
-#define LED_NONE 8
-#define LED_DOT 1
-#define LED_INFIX 2
-#define LED_INFIXR 3
-#define LED_INFIX_LIST 4
-#define LED_INFIX_IF 5
-#define LED_OPASSIGN 6
-#define LED_INFIX_SWAP 7
-
-/* Tokens objects are encoded as integers */
-
-/** The number of bits per denominator function */
-#define SIZE_FN 4
-
-/** The number of bits per id */
-#define SIZE_ID 7
-
-/* Masks for function/id */
-#define MASK_ID ((1<<SIZE_ID) - 1)
-#define MASK_FN ((1<<SIZE_FN) - 1)
-
-/* Mask for the binding power / priority */
-#define MASK_BP (-1 << (2*SIZE_ID + 2 *SIZE_FN))
-
-/** The sep token, encoded as an integer */
-#define TOKEN_SEP ((((((((\
-                      0 << SIZE_FN)\
-                    | NUD_SEP) << SIZE_ID)\
-                    | ID_NONE) << SIZE_FN)\
-                    | LED_NONE) << SIZE_ID)\
-                    | ID_NONE)
-
-/** The end token, encoded as an integer */
-#define TOKEN_END ((((((((\
-                      0 << SIZE_FN)\
-                    | NUD_END) << SIZE_ID)\
-                    | ID_NONE) << SIZE_FN)\
-                    | LED_NONE) << SIZE_ID)\
-                    | ID_NONE)
-
-/** The token used for literals, encoded as an integer */
-#define TOKEN_LITERAL ((((((((\
-                      0 << SIZE_FN)\
-                    | NUD_LITERAL) << SIZE_ID)\
-                    | ID_NONE) << SIZE_FN)\
-                    | LED_NONE) << SIZE_ID)\
-                    | ID_NONE)
-
-/** The token used for identifiers, encoded as an integer */
-#define TOKEN_IDENT ((((((((\
-                      0 << SIZE_FN)\
-                    | NUD_IDENT) << SIZE_ID)\
-                    | ID_NONE) << SIZE_FN)\
-                    | LED_NONE) << SIZE_ID)\
-                    | ID_NONE)
-
-/** Sizes of different kinds of stack frames */
-#define RET_FRAME_SIZE 4
-#define TRY_FRAME_SIZE 5
-
-
-/*`\subsection{Variables}'*/
 /** Instances of the LightScript object, is an execution context,
   * where code can be parsed, compiled, and executed. 
   *
@@ -209,6 +26,172 @@ import java.util.Random;
   * @version 1.1
   */
 public final class LightScript {
+
+/* Identifiers, used both as node type,
+ * and also used as opcode. 
+ */
+    private static final int ID_NONE = 127;
+    private static final int ID_TRUE = 0;
+    private static final int ID_FALSE = 1;
+    private static final int ID_UNDEFINED = 2;
+    private static final int ID_NULL = 3;
+    private static final int ID_PAREN = 4;
+    private static final int ID_LIST_LITERAL = 5;
+    private static final int ID_CURLY = 6;
+    private static final int ID_VAR = 7;
+    private static final int ID_BUILD_FUNCTION = 8;
+    private static final int ID_IF = 9;
+    private static final int ID_WHILE = 10;
+    private static final int ID_CALL_FUNCTION = 11;
+    private static final int ID_AND = 12;
+    private static final int ID_OR = 13;
+    private static final int ID_ELSE = 14;
+    private static final int ID_SET = 15;
+    private static final int ID_IDENT = 16;
+    private static final int ID_BLOCK = 17;
+    private static final int ID_SEP = 18;
+    private static final int ID_IN = 19;
+    private static final int ID_FOR = 20;
+    private static final int ID_END = 21;
+    private static final int ID_CATCH = 22;
+    private static final int ID_DO = 23;
+    private static final int ID_INC = 24;
+    private static final int ID_DEC = 25;
+    private static final int ID_ADD = 26;
+    private static final int ID_EQUALS = 27;
+    private static final int ID_LESS = 29;
+    private static final int ID_LESS_EQUALS = 30;
+    private static final int ID_LITERAL = 31;
+    private static final int ID_MUL = 32;
+    private static final int ID_NEG = 33;
+    private static final int ID_NOT = 34;
+    private static final int ID_NOT_EQUALS = 35;
+    private static final int ID_REM = 37;
+    private static final int ID_RETURN = 38;
+    private static final int ID_SHIFT_RIGHT_ARITHMETIC = 39;
+    private static final int ID_SUB = 40;
+    private static final int ID_SUBSCRIPT = 41;
+    private static final int ID_THIS = 42;
+    private static final int ID_THROW = 43;
+    private static final int ID_TRY = 44;
+    private static final int ID_UNTRY = 45;
+    private static final int ID_BOX_IT = 46;
+    private static final int ID_BUILD_FN = 47;
+    private static final int ID_CALL_FN = 48;
+    private static final int ID_DROP = 49;
+    private static final int ID_DUP = 50;
+    private static final int ID_GET_BOXED = 52;
+    private static final int ID_GET_BOXED_CLOSURE = 53;
+    private static final int ID_GET_CLOSURE = 54;
+    private static final int ID_GET_LOCAL = 55;
+    private static final int ID_INC_SP = 56;
+    private static final int ID_JUMP = 57;
+    private static final int ID_JUMP_IF_FALSE = 58;
+    private static final int ID_JUMP_IF_TRUE = 59;
+    private static final int ID_NEW_DICT = 60;
+    private static final int ID_NEW_LIST = 61;
+    private static final int ID_NEXT = 62;
+    private static final int ID_POP = 63;
+    private static final int ID_PUSH = 64;
+    private static final int ID_PUT = 65;
+    private static final int ID_SAVE_PC = 66;
+    private static final int ID_SET_BOXED = 67;
+    private static final int ID_SET_CLOSURE = 68;
+    private static final int ID_SET_LOCAL = 69;
+    private static final int ID_SET_THIS = 70;
+    private static final int ID_SWAP = 71;
+    private static final int ID_DIV = 72;
+    private static final int ID_NEW_ITER = 73;
+    private static final int ID_JUMP_IF_UNDEFINED = 74;
+    private static final int ID_DELETE = 75;
+    private static final int ID_NEW = 76;
+    private static final int ID_GLOBAL = 77;
+    private static final int ID_SHIFT_RIGHT = 78;
+    private static final int ID_SHIFT_LEFT = 79;
+    private static final int ID_BITWISE_OR = 81;
+    private static final int ID_BITWISE_XOR = 82;
+    private static final int ID_BITWISE_AND = 83;
+    private static final int ID_BITWISE_NOT = 84;
+
+
+/* The function id for the null denominator functions */
+    private static final int NUD_NONE = 13;
+    private static final int NUD_IDENT = 1;
+    private static final int NUD_LITERAL = 2;
+    private static final int NUD_END = 3;
+    private static final int NUD_SEP = 4;
+    private static final int NUD_LIST = 5;
+    private static final int NUD_PREFIX = 6;
+    private static final int NUD_PREFIX2 = 7;
+    private static final int NUD_FUNCTION = 8;
+    private static final int NUD_VAR = 9;
+    private static final int NUD_ATOM = 10;
+    private static final int NUD_CATCH = 11;
+    private static final int NUD_CONST = 12;
+
+/* The function id for the null denominator functions */
+    private static final int LED_NONE = 8;
+    private static final int LED_DOT = 1;
+    private static final int LED_INFIX = 2;
+    private static final int LED_INFIXR = 3;
+    private static final int LED_INFIX_LIST = 4;
+    private static final int LED_INFIX_IF = 5;
+    private static final int LED_OPASSIGN = 6;
+    private static final int LED_INFIX_SWAP = 7;
+
+/* Tokens objects are encoded as integers */
+
+/** The number of bits per denominator function */
+    private static final int SIZE_FN = 4;
+
+/** The number of bits per id */
+    private static final int SIZE_ID = 7;
+
+/* Masks for function/id */
+    private static final int MASK_ID = ((1<<SIZE_ID) - 1);
+    private static final int MASK_FN = ((1<<SIZE_FN) - 1);
+
+/* Mask for the binding power / priority */
+    private static final int MASK_BP = (-1 << (2*SIZE_ID + 2 *SIZE_FN));
+
+/** The sep token, encoded as an integer */
+    private static final int TOKEN_SEP = ((((((((
+                      0 << SIZE_FN)
+                    | NUD_SEP) << SIZE_ID)
+                    | ID_NONE) << SIZE_FN)
+                    | LED_NONE) << SIZE_ID)
+                    | ID_NONE);
+
+/** The end token, encoded as an integer */
+    private static final int TOKEN_END = ((((((((
+                      0 << SIZE_FN)
+                    | NUD_END) << SIZE_ID)
+                    | ID_NONE) << SIZE_FN)
+                    | LED_NONE) << SIZE_ID)
+                    | ID_NONE);
+
+/** The token used for literals, encoded as an integer */
+    private static final int TOKEN_LITERAL = ((((((((
+                      0 << SIZE_FN)
+                    | NUD_LITERAL) << SIZE_ID)
+                    | ID_NONE) << SIZE_FN)
+                    | LED_NONE) << SIZE_ID)
+                    | ID_NONE);
+
+/** The token used for identifiers, encoded as an integer */
+    private static final int TOKEN_IDENT = ((((((((
+                      0 << SIZE_FN)
+                    | NUD_IDENT) << SIZE_ID)
+                    | ID_NONE) << SIZE_FN)
+                    | LED_NONE) << SIZE_ID)
+                    | ID_NONE);
+
+/** Sizes of different kinds of stack frames */
+    private static final int RET_FRAME_SIZE = 4;
+    private static final int TRY_FRAME_SIZE = 5;
+
+
+/*`\subsection{Variables}'*/
 
     /** Token used for separators (;,:), which are just discarded */
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
@@ -290,11 +273,11 @@ public final class LightScript {
       * they are boxed, in such that they can be passed
       * to the closure of af function, which will then
       * be able to modify it without looking it up here */
-    #define EC_GLOBALS 0
-    #define EC_OBJECT_PROTOTYPE 1
-    #define EC_ARRAY_PROTOTYPE 2
-    #define EC_FUNCTION_PROTOTYPE 3
-    #define EC_STRING_PROTOTYPE 4
+        private static final int EC_GLOBALS = 0;
+        private static final int EC_OBJECT_PROTOTYPE = 1;
+        private static final int EC_ARRAY_PROTOTYPE = 2;
+        private static final int EC_FUNCTION_PROTOTYPE = 3;
+        private static final int EC_STRING_PROTOTYPE = 4;
     /* Index in executionContext for the default setter function, 
      * which is called when a property is set on
      * an object which is neither a Stack, Hashtable nor LightScriptObject
@@ -302,7 +285,7 @@ public final class LightScript {
      * The apply method of the setter gets the container as thisPtr, 
      * and takes the key and value as arguments
      */
-    #define EC_SETTER 5
+        private static final int EC_SETTER = 5;
     /* Index in executionContext for the default getter function, 
      * called when subscripting an object
      * which is not a Stack, Hashtable, String nor LightScriptObject
@@ -313,9 +296,9 @@ public final class LightScript {
      * The apply method of the getter gets the container as thisPtr, 
      * and takes the key as argument
      */
-    #define EC_GETTER 6
-    #define EC_WRAPPED_GLOBALS 7
-    #define EC_NEW_ITER 8
+        private static final int EC_GETTER = 6;
+        private static final int EC_WRAPPED_GLOBALS = 7;
+        private static final int EC_NEW_ITER = 8;
 
     /** Get the default iterator function */
     public LightScriptObject defaultIterator() {
@@ -359,7 +342,7 @@ public final class LightScript {
         StdLib.register(this);
     }
 
-#ifdef __APPLY_API__
+//#ifdef __APPLY_API__
     /** Shorthands for executing a LightScript function */
     public static Object apply(Object thisPtr, LightScriptFunction f) throws LightScriptException {
         Object args[] = {thisPtr};
@@ -380,7 +363,7 @@ public final class LightScript {
         Object args[] = {thisPtr, arg1, arg2, arg3};
         return f.apply(args, 0, 3);
     }
-#endif /*__APPLY_API__ */
+//#endif /*__APPLY_API__ */
 
     /** Shorthand for evaluating a string that contains LightScript code */
     public Object eval(String s) throws LightScriptException {
@@ -447,85 +430,12 @@ public final class LightScript {
 
 /*`\subsection{Debugging}'*/
 
-#ifdef __DEBUG__
-
-    /** Mapping from ID to name of ID */
-    private static final String[] idNames = {
-        "", "", "", "", "PAREN", "LIST_LITERAL", "CURLY", "VAR", 
-        "BUILD_FUNCTION", "IF", "WHILE", "CALL_FUNCTION", "AND",
-        "OR", "ELSE", "SET", "IDENT", "BLOCK", "SEP", "IN", "FOR",
-        "END", "CATCH", "DO", "INC", "DEC", "ADD", "EQUALS", 
-        "NOT_USED_ANYMORE", "LESS", "LESS_EQUALS", "LITERAL", "MUL", "NEG", 
-        "NOT", "NOT_EQUALS", "NOT_USED_ANYMORE", "REM", "RETURN", ">>", 
-        "SUB", "SUBSCRIPT", "THIS", "THROW", "TRY", "UNTRY", "BOX_IT", 
-        "BUILD_FN", "CALL_FN", "DROP", "DUP", "NOT_USED_ANYMORE", 
-        "GET_BOXED", "GET_BOXED_CLOSURE", "GET_CLOSURE", "GET_LOCAL", 
-        "INC_SP", "JUMP", "JUMP_IF_FALSE", "JUMP_IF_TRUE", "NEW_DICT", 
-        "NEW_LIST", "NEXT", "POP", "PUSH", "PUT", "SAVE_PC", 
-        "SET_BOXED", "SET_CLOSURE", "SET_LOCAL", "SET_THIS", "SWAP",
-        "DIV", "NEW_ITER", "JUMP_IF_UNDEFINED", "DELETE", "NEW", "GLOBAL",
-        "SHIFT_RIGHT", "SHIFT_LEFT", "BITWISE_OR", "BITWISE_XOR", "BITWISE_AND",
-        "ID_BITWISE_NOT"
-    };
-    
-    /** Function that maps from ID to a string representation of the ID,
-      * robust for integers which is not IDs */
-    private static String idName(int id) {
-        return "" + id + ((id > 0 && id < idNames.length) ? idNames[id] : "");
-    }
-
-    /** A toString, that also works nicely on arrays, and LightScript code */
-    private static String stringify(Object o) {
-        if (o == null) {
-            return "null";
-        } else if (o instanceof Object[]) {
-            StringBuffer sb = new StringBuffer();
-            Object[] os = (Object[]) o;
-            sb.append("[");
-            if (os.length > 0 && os[0] instanceof Integer) {
-                int id = ((Integer) os[0]).intValue();
-                sb.append(idName(id));
-            } else if (os.length > 0) {
-                sb.append(os[0]);
-            }
-            for (int i = 1; i < os.length; i++) {
-                sb.append(" " + stringify(os[i]));
-            }
-            sb.append("]");
-            return sb.toString();
-        } else if (o instanceof Code) {
-            Code c = (Code) o;
-            StringBuffer sb = new StringBuffer();
-            sb.append("closure" + c.argc + "{\n\tcode:");
-            for (int i = 0; i < c.code.length; i++) {
-                sb.append(" ");
-                sb.append(idName(c.code[i]));
-            }
-            sb.append("\n\tclosure:");
-            for (int i = 0; i < c.closure.length; i++) {
-                sb.append(" " + i + ":");
-                sb.append(stringify(c.closure[i]));
-            }
-            sb.append("\n\tconstPool:");
-            for (int i = 0; i < c.constPool.length; i++) {
-                sb.append(" " + i + ":");
-                sb.append(stringify(c.constPool[i]));
-            }
-            sb.append("\n}");
-            return sb.toString();
-        } else {
-            return o.toString();
-        }
-    }
-#else /* not debug */
-#define idName(...) ""
+    //private static final int idName =(...) "";
     private static String stringify(Object o) {
         return o.toString();
     }
-#endif
+
     /*`\subsection{Arithmetics}'*/
-#ifndef __HAVE_DOUBLE__
-#define FRACTIONAL_CLASS FixedPoint
     private static class FixedPoint {
         public long val;
         public FixedPoint(int i) {
@@ -631,61 +541,6 @@ public final class LightScript {
     static boolean fpLessEq(long a, long b) {
         return a <= b;
     }
-#else /* not __HAVE_DOUBLE__ */
-#define FRACTIONAL_CLASS Double
-    static int toInt(Object o) {
-        if(o instanceof Integer) {
-            return ((Integer)o).intValue();
-        } else if(o instanceof Double) {
-            return ((Double)o).intValue();
-        } else /* String */ {
-            return Integer.parseInt((String) o);
-        }
-    }
-    static double toFp(Object o) {
-        if(o instanceof Double) {
-            return ((Double)o).doubleValue();
-        } else if(o instanceof Integer) {
-            return ((Integer)o).intValue();
-        } else /* string */ {
-            return Double.parseDouble((String) o);
-        }
-    }
-
-    static Object toNumObj(double d) {
-        int i = (int) d;
-        if(d == i) {
-            return new Integer(i);
-        } else {
-            return new Double(d);
-        }
-    }
-
-    static Object fpNeg(double d) {
-        return toNumObj(-d);
-    }
-    static Object fpAdd(double a, double b) {
-        return toNumObj(a + b);
-    }
-    static Object fpSub(double a, double b) {
-        return toNumObj(a - b);
-    }
-    static Object fpMul(double a, double b) {
-        return toNumObj(a * b);
-    }
-    static Object fpDiv(double a, double b) {
-        return toNumObj(a / b);
-    }
-    static Object fpRem(double a, double b) {
-        return toNumObj(a % b);
-    }
-    static boolean fpLess(double a, double b) {
-        return a < b;
-    }
-    static boolean fpLessEq(double a, double b) {
-        return a <= b;
-    }
-#endif
 
     /*`\subsection{Utility functions}'*/
 
@@ -742,43 +597,39 @@ public final class LightScript {
     private static class StdLib implements LightScriptFunction, LightScriptObject {
         private int id;
         private Object closure[];
-#ifdef __DEBUG__
-        private static Random rnd = new Random(123);
-#else
         private static Random rnd = new Random();
-#endif
     
         // globally named functions
-        #define STD_PRINT (0)
-        #define STD_TYPEOF (1)
-        #define STD_PARSEINT (2)
+            private static final int STD_PRINT = (0);
+            private static final int STD_TYPEOF = (1);
+            private static final int STD_PARSEINT = (2);
     
         private static final String[] names = {"print", "gettype", "parseint"};
         // methods and other stuff added manually to lightscript
-        #define STD_GLOBALLY_NAMED (3)
-        #define STD_HAS_OWN_PROPERTY (STD_GLOBALLY_NAMED + 0)
-        #define STD_ARRAY_PUSH (STD_GLOBALLY_NAMED + 1)
-        #define STD_ARRAY_POP (STD_GLOBALLY_NAMED + 2)
-        #define STD_ARRAY_JOIN (STD_GLOBALLY_NAMED + 3)
-        #define STD_DEFAULT_SETTER (STD_GLOBALLY_NAMED + 4)
-        #define STD_DEFAULT_GETTER (STD_GLOBALLY_NAMED + 5)
-        #define STD_NEW_ITERATOR (STD_GLOBALLY_NAMED + 6)
-        #define STD_INTEGER_ITERATOR (STD_GLOBALLY_NAMED + 7)
-        #define STD_ENUMERATION_ITERATOR (STD_GLOBALLY_NAMED + 8)
-        #define STD_GLOBAL_WRAPPER (STD_GLOBALLY_NAMED + 9)
-        #define STD_OBJECT_CONSTRUCTOR (STD_GLOBALLY_NAMED + 10)
-        #define STD_ARRAY_CONSTRUCTOR (STD_GLOBALLY_NAMED + 11)
-        #define STD_ARRAY_CONCAT (STD_GLOBALLY_NAMED + 12)
-        #define STD_ARRAY_SORT (STD_GLOBALLY_NAMED + 13)
-        #define STD_ARRAY_SLICE (STD_GLOBALLY_NAMED + 14)
-        #define STD_STRING_CHARCODEAT (STD_GLOBALLY_NAMED + 15)
-        #define STD_STRING_FROMCHARCODE (STD_GLOBALLY_NAMED + 16)
-        #define STD_STRING_CONCAT (STD_GLOBALLY_NAMED + 17)
-        #define STD_STRING_SLICE (STD_GLOBALLY_NAMED + 18)
-        #define STD_CLONE (STD_GLOBALLY_NAMED + 19)
-        #define STD_RANDOM (STD_GLOBALLY_NAMED + 20)
-        #define STD_FLOOR (STD_GLOBALLY_NAMED + 21)
-        #define STD_TO_STRING (STD_GLOBALLY_NAMED + 22)
+            private static final int STD_GLOBALLY_NAMED = (3);
+            private static final int STD_HAS_OWN_PROPERTY = (STD_GLOBALLY_NAMED + 0);
+            private static final int STD_ARRAY_PUSH = (STD_GLOBALLY_NAMED + 1);
+            private static final int STD_ARRAY_POP = (STD_GLOBALLY_NAMED + 2);
+            private static final int STD_ARRAY_JOIN = (STD_GLOBALLY_NAMED + 3);
+            private static final int STD_DEFAULT_SETTER = (STD_GLOBALLY_NAMED + 4);
+            private static final int STD_DEFAULT_GETTER = (STD_GLOBALLY_NAMED + 5);
+            private static final int STD_NEW_ITERATOR = (STD_GLOBALLY_NAMED + 6);
+            private static final int STD_INTEGER_ITERATOR = (STD_GLOBALLY_NAMED + 7);
+            private static final int STD_ENUMERATION_ITERATOR = (STD_GLOBALLY_NAMED + 8);
+            private static final int STD_GLOBAL_WRAPPER = (STD_GLOBALLY_NAMED + 9);
+            private static final int STD_OBJECT_CONSTRUCTOR = (STD_GLOBALLY_NAMED + 10);
+            private static final int STD_ARRAY_CONSTRUCTOR = (STD_GLOBALLY_NAMED + 11);
+            private static final int STD_ARRAY_CONCAT = (STD_GLOBALLY_NAMED + 12);
+            private static final int STD_ARRAY_SORT = (STD_GLOBALLY_NAMED + 13);
+            private static final int STD_ARRAY_SLICE = (STD_GLOBALLY_NAMED + 14);
+            private static final int STD_STRING_CHARCODEAT = (STD_GLOBALLY_NAMED + 15);
+            private static final int STD_STRING_FROMCHARCODE = (STD_GLOBALLY_NAMED + 16);
+            private static final int STD_STRING_CONCAT = (STD_GLOBALLY_NAMED + 17);
+            private static final int STD_STRING_SLICE = (STD_GLOBALLY_NAMED + 18);
+            private static final int STD_CLONE = (STD_GLOBALLY_NAMED + 19);
+            private static final int STD_RANDOM = (STD_GLOBALLY_NAMED + 20);
+            private static final int STD_FLOOR = (STD_GLOBALLY_NAMED + 21);
+            private static final int STD_TO_STRING = (STD_GLOBALLY_NAMED + 22);
     
         private static final int[] argcs = {1, 1, 2
             // not named
@@ -1070,15 +921,9 @@ public final class LightScript {
                     int j = ((Integer)arg2).intValue();
                     return ((String)thisPtr).substring(i, j);
                 }
-#ifdef __HAVE_DOUBLE__
-                case STD_RANDOM: {
-                    return new Double(rnd.nextDouble());
-                }
-#else 
                 case STD_RANDOM: {
                     return new FixedPoint(0xffffffffl & rnd.nextInt());
                 }
-#endif /* __HAVE_DOUBLE */
                 case STD_FLOOR: {
                     return new Integer(toInt(arg1));
                 }
@@ -1213,9 +1058,9 @@ public final class LightScript {
     private static class Code implements LightScriptFunction, LightScriptObject {
         public Object apply(Object[] args, int argpos, int argcount) 
                                 throws LightScriptException {
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
             if(argcount == argc) {
-#endif
+#endif*/
                 Object stack[];
                 if(argpos != 0) {
                     stack = new Object[argcount + 1];
@@ -1226,12 +1071,12 @@ public final class LightScript {
                     stack = args;
                 }
                 return execute(this, stack, argcount);
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
             } 
             else {
                 throw new LightScriptException("Wrong number of arguments");
             }
-#endif
+#endif*/
         }
         public int argc;
         public byte[] code;
@@ -1489,21 +1334,21 @@ public final class LightScript {
                 if (((Integer) args[0]).intValue() == ID_PAREN) {
                     for (int i = 1; i < args.length; i++) {
                         Object[] os = (Object[]) args[i];
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                         if (((Integer) os[0]).intValue() != ID_IDENT) {
                             throw new Error("parameter not variable name" 
                                             + stringify(args));
                         }
-#endif
+#endif*/
                         varsLocals.push(os[1]);
                     }
                 } else {
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                     if (((Integer) args[0]).intValue() != ID_CALL_FUNCTION) {
                         throw new Error("parameter not variable name" 
                                         + stringify(args));
                     }
-#endif
+#endif*/
                     varsArgc--;
                     fnName = (String)varsUsed.elementAt(0);
                     varsUsed.removeElementAt(0);
@@ -1560,25 +1405,25 @@ public final class LightScript {
                     stackAdd(varsLocals, expr[1]);
                 } else {
                     Object[] expr2 = (Object[]) expr[1];
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                     if (type == ID_SET 
                     && ((Integer) expr2[0]).intValue() == ID_IDENT) {
-#endif
+#endif*/
                         stackAdd(varsLocals, expr2[1]);
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                     } 
                     else {
                         throw new Error("Error in var");
                     }
-#endif
+#endif*/
                 }
                 return v(nudId, expr);
             default:
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                 throw new Error("Unknown token: " + token+ ", val: " + val);
-#else
+#else*/
                 return null;
-#endif
+//#endif
         }
     }
 
@@ -1609,34 +1454,34 @@ public final class LightScript {
                 varsUsed= null;
                 Object[] right = parse(bp);
                 varsUsed = t;
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                 if(((Integer)right[0]).intValue() != ID_IDENT) {
                     throw new Error("right side of dot not a string: " 
                                     + stringify(right));
                 }
-#endif
+#endif*/
 
                 right[0] = new Integer(ID_LITERAL);
                 return v(ID_SUBSCRIPT, left, right);
             }
             case LED_INFIX_IF: {
                 Object branch1 = parse(0);
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                 if(parse(0) != SEP_TOKEN) {
                     throw new Error("infix if error");
                 }
-#else
+#else*/
                 parse(0);
-#endif
+//#endif
                 Object branch2 = parse(0);
                 return v(ID_IF, left, v(ID_ELSE, branch1, branch2));
             }
             default:
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                 throw new Error("Unknown led token: " + token);
-#else  
+#else  */
                 return null;
-#endif
+//#endif
         }
     }
     private static Hashtable idMapping;
@@ -2082,15 +1927,13 @@ public final class LightScript {
         }
     }
 
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
     private void assertLength(Object[] list, int len) {
         if (list.length != len) {
             throw new Error("Wrong number of parameters:" + stringify(list));
         }
     }
-#else
-#define assertLength(...)
-#endif
+#endif*/
 
     private void emit(int opcode) {
         code.append((char) opcode);
@@ -2236,10 +2079,10 @@ public final class LightScript {
                 if(subtype == ID_SUBSCRIPT) {
                     compile(expr2[1], true);
                     compile(expr2[2], true);
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                 } else if(subtype != ID_IDENT) {
                     throw new Error("Deleting non-var");
-#endif
+#endif*/
                 } else {
                     emit(ID_GLOBAL);
                     addDepth(1);
@@ -2296,11 +2139,11 @@ public final class LightScript {
                     pushShort(pos);
                 } else {
                     pos = varsLocals.indexOf(name);
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                     if (pos == -1) {
                         throw new Error("Unfound var: " + stringify(expr));
                     }
-#endif
+#endif*/
                     if (varsBoxed.contains(name)) {
                         emit(ID_GET_BOXED);
                     } else {
@@ -2320,17 +2163,19 @@ public final class LightScript {
                     compile(expr[1], yieldResult);
                     hasResult = yieldResult;
                 } else {
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                     throw new Error("Error in var statement: " 
                                     + stringify(expr));
-#else
+#else*/
                     return;
-#endif
+//#endif
                 }
                 break;
             }
             case ID_SET: {
+/*#ifdef __DEBUG__
                 assertLength(expr, 3);
+#endif*/
                 int targetType = childType(expr, 1);
                 hasResult = true;
                 if (targetType == ID_IDENT) {
@@ -2345,21 +2190,21 @@ public final class LightScript {
                     emit(ID_PUT);
                     addDepth(-2);
                 } 
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                 else {
                     throw new Error("Uncompilable assignment operator: " 
                                     + stringify(expr));
                 }
-#endif
+#endif*/
                 break;
             }
             case ID_PAREN: {
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                 if (expr.length != 2) {
                     throw new Error("Unexpected content of parenthesis: " 
                                     + stringify(expr));
                 }
-#endif
+#endif*/
                 compile(expr[1], yieldResult);
                 hasResult = yieldResult;
                 break;
@@ -2401,11 +2246,11 @@ public final class LightScript {
 
                 // call the function
                 emit(ID_CALL_FN);
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                 if (expr.length > 129) {
                     throw new Error("too many parameters");
                 }
-#endif
+#endif*/
                 emit(expr.length - 2);
                 addDepth(1 - expr.length - RET_FRAME_SIZE);
 
@@ -2534,11 +2379,11 @@ public final class LightScript {
                         // var name
                         name = ((Object[])name)[1];
                     }
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                     if(!(name instanceof String)) {
                         throw new Error("for-in has no var");
                     }
-#endif
+#endif*/
 
                     // evaluate b
                     compile(in[2], true);
@@ -2581,7 +2426,9 @@ public final class LightScript {
                 break;
             }
             case ID_AND: {
+/*#ifdef __DEBUG__
                 assertLength(expr, 3);
+#endif*/
                 int pos0, pos1, len;
 
                 compile(expr[1], true);
@@ -2607,7 +2454,9 @@ public final class LightScript {
                 break;
             }
             case ID_OR: {
+/*#ifdef __DEBUG__
                 assertLength(expr, 3);
+#endif*/
                 int pos0, pos1, len;
 
                 compile(expr[1], true);
@@ -2781,11 +2630,11 @@ public final class LightScript {
                 return;
             }
             default:
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                 throw new Error("Uncompilable expression: " + stringify(expr));
-#else
+#else*/
                 return;
-#endif
+//#endif
         }
 
         if (hasResult && !yieldResult) {
@@ -2812,14 +2661,14 @@ public final class LightScript {
         if(o instanceof String) {
             return !((String)o).equals("");
         }
-#ifdef DEBUG
+/*#ifdef DEBUG
         if(o instanceof Integer) {
-#endif
+#endif*/
             return ((Integer)o).intValue() != 0;
-#ifdef DEBUG
+/*#ifdef DEBUG
         }
         throw new Error("unhandled toBool case for:" + o.toString());
-#endif
+#endif*/
     }
     private static Object[] ensureSpace(Object[] stack, int sp, int maxDepth) {
         if (stack.length <= maxDepth + sp + 1) {
@@ -2837,9 +2686,9 @@ public final class LightScript {
      * evaluate some bytecode 
      */
     private static Object execute(Code cl, Object[] stack, int argcount) throws LightScriptException {
-#ifndef __DEBUG__
+/*#ifndef __DEBUG__
         try {
-#endif
+#endif*/
         int sp = argcount;
 
         //System.out.println(stringify(cl));
@@ -2851,17 +2700,17 @@ public final class LightScript {
         int exceptionHandler = - 1;
         stack = ensureSpace(stack, sp, cl.maxDepth);
         Object thisPtr = stack[0];
-#ifdef __CLEAR_STACK__
+//#ifdef __CLEAR_STACK__
         int usedStack = sp + cl.maxDepth;
-#endif
+//#endif
 
         for (;;) {
             ++pc;
-#ifdef __PRINT_EXECUTED_INSTRUCTIONS__
+/*#ifdef __PRINT_EXECUTED_INSTRUCTIONS__
             System.out.println("pc:" + pc + " op:"  + idName(code[pc]) 
                              + " sp:" + sp + " stack.length:" + stack.length 
                              + " int:" + readShort(pc, code));
-#endif
+#endif*/
             switch (code[pc]) {
                 case ID_INC_SP: {
                     sp += code[++pc];
@@ -2875,17 +2724,17 @@ public final class LightScript {
                     if (sp == 0) {
                         return result;
                     }
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                     if(sp < 0) {
                         throw new Error("Wrong stack discipline" 
                                 + sp);
                     }
-#endif
-#ifdef __CLEAR_STACK__
+#endif*/
+//#ifdef __CLEAR_STACK__
                     for(int i = sp; i <= usedStack; i++) {
                         stack[i] = null;
                     }
-#endif
+//#endif
                     pc = ((Integer) stack[--sp]).intValue();
                     code = (byte[]) stack[--sp];
                     constPool = (Object[]) stack[--sp];
@@ -2893,9 +2742,7 @@ public final class LightScript {
                     closure = (Object[]) stack[--sp];
                     thisPtr = stack[--sp];
                     stack[sp] = result;
-#ifdef __DO_YIELD__
                     Thread.yield();
-#endif
                     break;
                 }
                 case ID_SAVE_PC: {
@@ -2913,9 +2760,9 @@ public final class LightScript {
 
                         int deltaSp = fn.argc - argc;
                         stack = ensureSpace(stack, sp, fn.maxDepth + deltaSp);
-#ifdef __CLEAR_STACK__
+//#ifdef __CLEAR_STACK__
                         usedStack = sp + fn.maxDepth + deltaSp;
-#endif
+//#endif
                         sp += deltaSp;
                         argc = fn.argc;
 
@@ -2952,10 +2799,10 @@ public final class LightScript {
                             }
                             break;
                         }
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                     } else {
                         throw new Error("Unknown function:" + o);
-#endif
+#endif*/
                     }
                     break;
                 }
@@ -3055,8 +2902,8 @@ public final class LightScript {
                         int result = ((Integer) o).intValue();
                         result += ((Integer) o2).intValue();
                         stack[sp] = new Integer(result);
-                    } else if( (o instanceof Integer || o instanceof FRACTIONAL_CLASS) 
-                           &&  (o2 instanceof Integer || o2 instanceof FRACTIONAL_CLASS) ) {
+                    } else if( (o instanceof Integer || o instanceof FixedPoint) 
+                           &&  (o2 instanceof Integer || o2 instanceof FixedPoint) ) {
                         stack[sp] = fpAdd(toFp(o), toFp(o2));
                     } else {
                         stack[sp] = String.valueOf(o) + String.valueOf(o2);
@@ -3241,8 +3088,8 @@ public final class LightScript {
                     if (o1 instanceof Integer && o2 instanceof Integer) {
                         stack[sp] = ((Integer) o1).intValue() 
                             < ((Integer) o2).intValue() ? TRUE : FALSE;
-                    } else if( (o1 instanceof Integer || o1 instanceof FRACTIONAL_CLASS) 
-                           &&  (o2 instanceof Integer || o2 instanceof FRACTIONAL_CLASS) ) {
+                    } else if( (o1 instanceof Integer || o1 instanceof FixedPoint) 
+                           &&  (o2 instanceof Integer || o2 instanceof FixedPoint) ) {
                         stack[sp] = fpLess(toFp(o1), toFp(o2)) ? TRUE : FALSE;
                     } else {
                         stack[sp] = o1.toString().compareTo(o2.toString()) 
@@ -3256,8 +3103,8 @@ public final class LightScript {
                     if (o1 instanceof Integer && o2 instanceof Integer) {
                         stack[sp] = ((Integer) o1).intValue() 
                             <= ((Integer) o2).intValue() ? TRUE : FALSE;
-                    } else if( (o1 instanceof Integer || o1 instanceof FRACTIONAL_CLASS) 
-                           &&  (o2 instanceof Integer || o2 instanceof FRACTIONAL_CLASS) ) {
+                    } else if( (o1 instanceof Integer || o1 instanceof FixedPoint) 
+                           &&  (o2 instanceof Integer || o2 instanceof FixedPoint) ) {
                         stack[sp] = fpLessEq(toFp(o1), toFp(o2)) ? TRUE : FALSE;
                     } else {
                         stack[sp] = o1.toString().compareTo(o2.toString()) 
@@ -3267,9 +3114,7 @@ public final class LightScript {
                 }
                 case ID_JUMP: {
                     pc += readShort(pc, code) + 2;
-#ifdef __DO_YIELD__
                     Thread.yield();
-#endif
                     break;
                 }
                 case ID_JUMP_IF_UNDEFINED: {
@@ -3277,9 +3122,7 @@ public final class LightScript {
                         pc += 2;
                     } else {
                         pc += readShort(pc, code) + 2;
-#ifdef __DO_YIELD__
-                    Thread.yield();
-#endif
+                        Thread.yield();
                     }
                     --sp;
                     break;
@@ -3289,9 +3132,7 @@ public final class LightScript {
                         pc += 2;
                     } else {
                         pc += readShort(pc, code) + 2;
-#ifdef __DO_YIELD__
-                    Thread.yield();
-#endif
+                        Thread.yield();
                     }
                     --sp;
                     break;
@@ -3387,10 +3228,10 @@ public final class LightScript {
                         ((Stack)container).setElementAt(UNDEFINED, ((Integer)key).intValue());
                     } else if(container instanceof LightScriptObject) {
                         ((LightScriptObject)container).set(key, UNDEFINED);
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                     } else {
                         throw new Error("deleting non-deletable");
-#endif
+#endif*/
                     }
                     break;
                 }
@@ -3434,21 +3275,21 @@ public final class LightScript {
                     break;
                 }
                 default: {
-#ifdef __DEBUG__
+/*#ifdef __DEBUG__
                     throw new Error("Unknown opcode: " + code[pc]);
-#endif
+#endif*/
                 }
             }
         }
 // if we debug, we want the real exception, with line number..
-#ifndef __DEBUG__
+/*#ifndef __DEBUG__
         } catch(Throwable e) {
             if(e instanceof LightScriptException) {
                 throw (LightScriptException)e;
             }
             throw new LightScriptException(e);
         }
-#endif 
+#endif */
     }
 }
 

@@ -1,3 +1,5 @@
+package com.solsort.mobile;
+
 public final class LightScriptException extends Exception {
     public Object value;
     public LightScriptException(Object value) {

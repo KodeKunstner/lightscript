@@ -1,4 +1,4 @@
-package com.solsort.mobile
+package com.solsort.mobile;
 
 import java.io.IOException;
 import java.io.InputStream;
