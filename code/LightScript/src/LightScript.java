@@ -208,7 +208,7 @@ import java.util.Random;
   * @author Rasmus Jensen, rasmus@lightscript.net
   * @version 1.1
   */
-public final class LightScript implements LightScriptObject {
+public final class LightScript {
 
     /** Token used for separators (;,:), which are just discarded */
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
@@ -778,6 +778,7 @@ public final class LightScript implements LightScriptObject {
         #define STD_CLONE (STD_GLOBALLY_NAMED + 19)
         #define STD_RANDOM (STD_GLOBALLY_NAMED + 20)
         #define STD_FLOOR (STD_GLOBALLY_NAMED + 21)
+        #define STD_TO_STRING (STD_GLOBALLY_NAMED + 22)
     
         private static final int[] argcs = {1, 1, 2
             // not named
@@ -796,7 +797,9 @@ public final class LightScript implements LightScriptObject {
             // charcodeat, fromcharcode, strconcat, string_slice
             , 1, 1, -1, 2
             // clone, random, floor
-            , 1, 0, 1
+            , 1, 0, 1,
+            // toString
+            0
         };
 
         public void set(Object key, Object value) {
@@ -1077,8 +1080,58 @@ public final class LightScript implements LightScriptObject {
                 case STD_FLOOR: {
                     return new Integer(toInt(arg1));
                 }
+                case STD_TO_STRING: {
+                    StringBuffer sb = new StringBuffer();
+                    convertToString(thisPtr, sb);
+                    return sb.toString();
+                }
             }
             return LightScript.UNDEFINED;
+        }
+
+        private static void convertToString(Object o, StringBuffer sb) {
+            if(o instanceof Object[]) {
+                String sep = "";
+                Object[] os = (Object[]) o;
+
+                sb.append("[");
+                for(int i = 0; i < os.length; ++i) {
+                    sb.append(sep);
+                    convertToString(os[i], sb);
+                    sep = ", ";
+                }
+                sb.append("]");
+            } else if(o instanceof Stack) {
+                String sep = "";
+                Stack s = (Stack) o;
+
+                sb.append("[");
+                for(int i = 0; i < s.size(); ++i) {
+                    sb.append(sep);
+                    convertToString(s.elementAt(i), sb);
+                    sep = ", ";
+                }
+                sb.append("]");
+            } else if(o instanceof Hashtable) {
+                String sep = "";
+                Hashtable h = (Hashtable)o;
+                sb.append("{");
+                for(Enumeration e = h.keys(); e.hasMoreElements();) {
+                    Object key = e.nextElement();
+                    sb.append(sep);
+                    convertToString(key, sb);
+                    sb.append(": ");
+                    convertToString(h.get(key), sb);
+                    sep = ", ";
+                }
+                sb.append("}");
+            } else if(o instanceof String) {
+                sb.append("\"");
+                sb.append(o);
+                sb.append("\"");
+            } else {
+                sb.append(o);
+            }
         }
     
         public static void register(LightScript ls) {
@@ -1111,6 +1164,7 @@ public final class LightScript implements LightScriptObject {
             }
     
             objectPrototype.put("hasOwnProperty", new StdLib(STD_HAS_OWN_PROPERTY));
+            objectPrototype.put("toString", new StdLib(STD_TO_STRING));
             Hashtable object = clone(objectPrototype);
             object.put("create", new StdLib(STD_CLONE));
     
