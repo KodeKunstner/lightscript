@@ -742,43 +742,6 @@ public final class LightScript {
             return result;
         }
 
-        private static void qsort(Stack arr, int first, int last, LightScriptFunction cmp) throws LightScriptException {
-            Object args[] = {arr, null, null};
-            while (first < last) {
-                int l = first;
-                int r = last;
-                Object pivot = arr.elementAt((l + r) / 2);
-                arr.setElementAt(arr.elementAt(r), (l + r) / 2);
-                arr.setElementAt(pivot, r);
-
-                while (l < r) {
-                    --l;
-                    do {
-                        ++l;
-                        args[1] = arr.elementAt(l);
-                        args[2] = pivot;
-                    } while (((Integer) cmp.apply(args, 0, 2)).intValue() <= 0 && l < r);
-                    if (l < r) {
-                        arr.setElementAt(arr.elementAt(l), r);
-                        r--;
-                    }
-                    ++r;
-                    do {
-                        r--;
-                        args[1] = pivot;
-                        args[2] = arr.elementAt(r);
-                    } while (((Integer) cmp.apply(args, 0, 2)).intValue() <= 0 && l < r);
-                    if (l < r) {
-                        arr.setElementAt(arr.elementAt(r), l);
-                        l++;
-                    }
-                }
-                arr.setElementAt(pivot, r);
-                qsort(arr, l + 1, last, cmp);
-                last = l - 1;
-            }
-        }
-
         private StdLib(int id) {
             this.id = id;
         }
@@ -945,7 +908,7 @@ public final class LightScript {
                 }
                 case STD_ARRAY_SORT: {
                     Stack s = (Stack) thisPtr;
-                    qsort(s, 0, s.size() - 1, (LightScriptFunction) arg1);
+                    Util.qsort(s, 0, s.size() - 1, (LightScriptFunction) arg1);
                     return thisPtr;
                 }
                 case STD_ARRAY_SLICE: {
@@ -986,57 +949,13 @@ public final class LightScript {
                 }
                 case STD_TO_STRING: {
                     StringBuffer sb = new StringBuffer();
-                    convertToString(thisPtr, sb);
+                    Util.convertToString(thisPtr, sb);
                     return sb.toString();
                 }
             }
             return LightScript.UNDEFINED;
         }
 
-        private static void convertToString(Object o, StringBuffer sb) {
-            if (o instanceof Object[]) {
-                String sep = "";
-                Object[] os = (Object[]) o;
-
-                sb.append("[");
-                for (int i = 0; i < os.length; ++i) {
-                    sb.append(sep);
-                    convertToString(os[i], sb);
-                    sep = ", ";
-                }
-                sb.append("]");
-            } else if (o instanceof Stack) {
-                String sep = "";
-                Stack s = (Stack) o;
-
-                sb.append("[");
-                for (int i = 0; i < s.size(); ++i) {
-                    sb.append(sep);
-                    convertToString(s.elementAt(i), sb);
-                    sep = ", ";
-                }
-                sb.append("]");
-            } else if (o instanceof Hashtable) {
-                String sep = "";
-                Hashtable h = (Hashtable) o;
-                sb.append("{");
-                for (Enumeration e = h.keys(); e.hasMoreElements();) {
-                    Object key = e.nextElement();
-                    sb.append(sep);
-                    convertToString(key, sb);
-                    sb.append(": ");
-                    convertToString(h.get(key), sb);
-                    sep = ", ";
-                }
-                sb.append("}");
-            } else if (o instanceof String) {
-                sb.append("\"");
-                sb.append(o);
-                sb.append("\"");
-            } else {
-                sb.append(o);
-            }
-        }
 
         public static void register(LightScript ls) {
 

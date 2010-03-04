@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Stack;
 
+
 /**
  * Parse a HTML document from an inputstream.
  * It will be mapped to an SXML-like structure,
@@ -27,9 +28,8 @@ public class HTMLParser {
 //
 // Variables
 //
-    // Utility
+    // Input Stream
     private InputStream is;
-    private static Object emptyObjectArray[] = {};
     //
     // Input Stream
     private boolean eof = false;
@@ -78,27 +78,6 @@ public class HTMLParser {
 
     private HTMLParser(InputStream is) {
         this.is = is;
-    }
-// 
-// Tokeniser
-//
-
-    private int arraysearch(Object[] os, Object o) {
-        for (int i = 0; i < os.length; ++i) {
-            if (os[i].equals(o)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private Object[] stack2array(Stack s) {
-        if (s.empty()) {
-            return emptyObjectArray;
-        }
-        Object[] result = new Object[s.size()];
-        s.copyInto(result);
-        return result;
     }
 
 //
@@ -201,8 +180,8 @@ public class HTMLParser {
                     }
                 }
                 skip(1);
-                params = stack2array(paramsStack);
-                if (this.arraysearch(autoclose, content) != -1) {
+                params = Util.stack2array(paramsStack);
+                if (Util.arraysearch(autoclose, content) != -1) {
                     tokentype = SINGLETAG;
                 }
             } else {
@@ -221,7 +200,7 @@ public class HTMLParser {
 //
     private void closeTag() {
         if (!tagStack.empty()) {
-            Object[] tag = stack2array(currentTag);
+            Object[] tag = Util.stack2array(currentTag);
             currentTag = (Stack) tagStack.pop();
             currentTag.push(tag);
         }
@@ -236,7 +215,7 @@ public class HTMLParser {
 
     private void tryCloseTags(String tags[]) {
         while (!tagStack.empty()
-                && -1 != arraysearch(tags, ((Stack) tagStack.peek()).elementAt(0))) {
+                && -1 != Util.arraysearch(tags, ((Stack) tagStack.peek()).elementAt(0))) {
             closeTag();
         }
     }
@@ -246,7 +225,7 @@ public class HTMLParser {
             nextToken();
             switch (tokentype) {
                 case STARTTAG:
-                    int closetag = arraysearch(closingTags, content);
+                    int closetag = Util.arraysearch(closingTags, content);
                     if (closetag != -1) {
                         tryCloseTags(closedTags[closetag]);
                     }
