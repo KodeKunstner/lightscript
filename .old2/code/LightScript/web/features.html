@@ -1,0 +1,66 @@
+<html>
+    <head>
+        <title> LightScript - features </title>
+    </head>
+    <body>
+        <h1>Features</h1>
+        The following main features are discussed more in details below:
+        <ul>
+            <li><a href="#javascript">JavaScript/EcmaScript compatibility</a></li>
+            <li><a href="#java">Good integration with Java</a></li>
+            <li><a href="#performance">Support for very low-end phones - optional fixed point numbers, small size and good performance</a></li>
+            <li><a href="#compilerVirtualMachine">Integrated compiler and virtual machine, supporting on-line on-device execution of source code at run-time</a></li>
+        </ul>
+        Other features include:
+        <ul>
+            <li>Runs on Java Micro Edition including CLDC/1.0 MIDP/1.0, on Java Standard Edition, and likely also on Android</li>
+            <li>Objects and prototypical inheritance</li>
+            <li>Closures and first class functions</li>
+            <li>Static scope</li>
+            <li>Dynamic type system</li>
+            <li>Exceptions</li>
+            <li>Open source</li>
+            <li>...</li>
+        </ul>
+        And some of the limitations of the language are:
+        <ul>
+            <li>Includes some quircks from JavaScript for compatibility reasons.</li>
+            <li>Does not have builtin support for regular expressions</li>
+            <li>...</li>
+        </ul>
+        <h4><a name="javascript"><!-- --></a>JavaScript/EcmaScript compatibility</h4>
+        <p>
+        LightScript is a subset of JavaScript, with some extra library functions added.
+        It can thus be executed on top of existing JavaScript implementations, which are already deployed with most browsers, including on smarphones -- a notable example here is the iPhone, which disallows third-party scripting languages, but includes support for JavaScript via WebKit, and thus allows LightScript to be executed on that platform nonetheless.
+        Another benefit of being a JavaScript subset, is that it is easier to get started on for webdevelopers and advanced users who already have some exposure to JavaScript, and thus the familarity may remove the mental barriers of learning a new language, as LightScript can be peceived as a flavor of an existing known language.
+        </p>
+        <h4><a name="java"><!-- --></a>Java integration</h4>
+        <p>
+        It is easy to use LightScript from within Java. LightScript datatypes are represented with standard Java classes, meaning that it is already familiar and easy to use for developers.
+        </p>
+        <p>
+        LightScript can be used to work on Java objects of existing classes, it does not require that the classes implements certain interfaces or are subclasses of a particular class, but any Java object can be passed around within the LightScript run-time. This allows easy integration, and adding of scriptability, to existing applications.
+        </p>
+        <h4><a name="performance"><!-- --></a>Platform support and performance</h4>
+        <p>
+        LightScript runs on even the lowest end mobile devices. 
+        The code footprint is a major limitation on the very low end phones, and the LightScript implementation is designed to overcome this: a full LightScript version 1.2 only adds about 15KB to the optimised JAR-size, where the limit for the entire application can be around 64KB on low end phones.
+        It also runs on integer-only platforms, in which case fractional numbers are represented as fixed-point numbers instead of floats.
+        </p>
+        <p>
+        Benchmarks indicate that the performance of LightScript is an order of magnitude faster than many of the other scripting languages that have a small enough code footprint to run on the lowest end mobile phones, and is similare in performance to other larger scripting languages.
+        Thereby execution of scripts may be feasible even on already slow mobile devices.
+        </p>
+        <p>
+        In this way LightScript allows scripting where it would otherwise not be possible.
+        </p>
+        <h4><a name="compilerVirtualMachine"><!-- --></a>Compiler and virtual machine, and on-line on-device execution</h4>
+        <p>
+        Scripts are compiled to, and executed on, a virtual machine on the device at run-time, making it usable for configuration files and user defined scripts.
+        This also means that scripts can be updated without needing to reinstall the application, allowing dynamic scriptable content, and updateable buissness logic, if it is kept in LightScript, rather than hardcoded in Java.
+        </p>
+        <p>
+        Scripts can be executed as they are read from an <tt>InputStream</tt>. This means that the entire script does not need to be in memory, and also that execution may start before the entire script has been downloaded.
+        </p>
+    </body>
+</html>

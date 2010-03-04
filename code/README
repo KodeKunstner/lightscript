@@ -1,34 +1,14 @@
-Yolan java implementation of the language
-Moby j2me app using the java implementation
-Jasi Yolan like language with javascript like scoping
+LightScript is a subscript of EcmaScript,
+with a compact implementation running
+on low end mobile devices.
 
-Retired:
-.old1 first parser/compiler prototype
-.old2 first vm prototype
-.old3 experiments with boehm gc
-.old4 second parser/compiler prototype
-.old5 second vm prototype
-.old6 third parser/compiler prototype
-.old7 third vm prototype
-.old8 first forth-like vm-prototype
-.old9 second forth-like vm-prototype
-.old10 some experiments with fonts for ui
-.old11 some javascript test programs
-.old12 third forth-like vm-prototype
-.old13 build environment for mobile applications
-.old14 compiler+vm, vm fills stack
-.old15 lisp parser, and beginning of runtime
-.old16 moby2lisp compiler
-.old17 experiments with simple lazy lisp-like language
-.old18 More elegant implementation of lisp-like language
-.old19 single-class implementation of lisp-like language
-.old19 lisp like language - working with first-class functions
-.old20 ... more experiments
-.old21 ... more experiments, including new parser impl.
-.old22 Mobile app with language
-.old23 notes.txt about language and vm
-.old24 a discarded draft compiler+vm with static scope
-.old25 a working compiler+vm with static scope
-.old26 parser for subset of javascript, written in java
-.old27 prototyping vm in c
-.old28 prototyping vm in c
+./net/lightscript class files and generated Java source files,
+this is what is needed when embedding the scripting language.
+
+./src contains the actual source code, from which ./net/lightscript
+is generated. Some contains CPP-directives, and is thus not directly
+compilable, - use the Makefile
+
+./doc contains documentation, and generated javadoc
+
+./TODO to do list, and roadmap

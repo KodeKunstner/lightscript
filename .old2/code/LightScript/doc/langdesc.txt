@@ -1,0 +1,26 @@
+      Literals: [ ... ], { ... }, "...", '...', 123
+      Function: function return ()
+  Subscripting: a.b a["b"] 
+   Arithmetics: >> << | & ^ ~ >>> / * % + - 
+    Comparison: == === !== !=== <= < >= > 
+       Logical: ! && || a?b:c 
+    Assignment: = += -= *= /= %= 
+     Incr/decr: ++ -- (PREFIX ONLY!)
+     Variables: new delete var
+    Exceptions: throw try...catch...
+   Conditional: do..while while for if if..else
+      Specials: true false undefined null this
+     Global-fn: clone(x) gettype(x) 
+                parseint(x, y) print(x)
+        Object: Object Object.prototype 
+                Object.prototype.constructor()
+                Object.prototype.hasOwnProperty(x)
+         Array: Array Array.concat(...) Array.prototype
+                Array.prototype.constructor(...)
+                Array.prototype.join(sep)
+                Array.prototype.pop() Array.prototype.push(x)
+                Array.prototype.slice(x, y) Array.prototype.sort(x)
+      Function: Function Function.prototype
+        String: String String.concat(x) String.fromCharCode(x)
+                String.prototype String.prototype.charCodeAt(x)
+                String.prototype.slice(x, y)

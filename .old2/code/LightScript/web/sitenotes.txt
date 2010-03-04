@@ -1,0 +1,34 @@
+- Features (done)
+  - Overview list
+    - Features
+    - Limitations
+  - A section on each feature
+    - JavaScript/EcmaScript compatibility.
+    - Very good integration with Java.
+    - Support for very low-end mobile phones, via small size and good performance.
+    - High level language constructs: objects and prototypical inheritance, closures and first class functions.
+    - Integrated compiler and virtual machine, leading to on-device execution/loading of source code at run-time.
+- Code examples
+- Embedding examples
+  - Executing LightScript from Java
+  - LightScript: Hello world
+  - Embedding LightScript within Java
+  - LightScript: Random word generation 
+  - Calling Java from LightScript
+  - LightScript: Guess a number 
+- Language reference
+  - Control flow
+  - Functions
+  - Objects
+  - Libraries
+    - Standard library
+    - Optional libraries
+- Download
+(- Development tips)
+(- License)
+- Roadmap and history (done)
+- News
+- About
+  - Summary of features
+  - Short sample code
+  - Short sample embedding
