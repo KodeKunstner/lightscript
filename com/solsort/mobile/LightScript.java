@@ -254,77 +254,11 @@ public final class LightScript {
     private static final int ID_BITWISE_AND = 83;
     private static final int ID_BITWISE_NOT = 84;
     // <editor-fold desc="tokens">
-    /* The function id for the null denominator functions */
-    private static final int NUD_NONE = 13;
-    private static final int NUD_IDENT = 1;
-    private static final int NUD_LITERAL = 2;
-    private static final int NUD_END = 3;
-    private static final int NUD_SEP = 4;
-    private static final int NUD_LIST = 5;
-    private static final int NUD_PREFIX = 6;
-    private static final int NUD_PREFIX2 = 7;
-    private static final int NUD_FUNCTION = 8;
-    private static final int NUD_VAR = 9;
-    private static final int NUD_ATOM = 10;
-    private static final int NUD_CATCH = 11;
-    private static final int NUD_CONST = 12;
-
-    /* The function id for the null denominator functions */
-    private static final int LED_NONE = 8;
-    private static final int LED_DOT = 1;
-    private static final int LED_INFIX = 2;
-    private static final int LED_INFIXR = 3;
-    private static final int LED_INFIX_LIST = 4;
-    private static final int LED_INFIX_IF = 5;
-    private static final int LED_OPASSIGN = 6;
-    private static final int LED_INFIX_SWAP = 7;
-
-    /* Tokens objects are encoded as integers */
-    /** The number of bits per denominator function */
-    private static final int SIZE_FN = 4;
-    /** The number of bits per id */
-    private static final int SIZE_ID = 7;
-    //</editor-fold>
-
-    /* Masks for function/id */
-    private static final int MASK_ID = ((1 << SIZE_ID) - 1);
-    private static final int MASK_FN = ((1 << SIZE_FN) - 1);
-
-    /* Mask for the binding power / priority */
-    private static final int MASK_BP = (-1 << (2 * SIZE_ID + 2 * SIZE_FN));
-    /** The sep token, encoded as an integer */
-    private static final int TOKEN_SEP = ((((((((0 << SIZE_FN)
-            | NUD_SEP) << SIZE_ID)
-            | ID_NONE) << SIZE_FN)
-            | LED_NONE) << SIZE_ID)
-            | ID_NONE);
-    /** The end token, encoded as an integer */
-    private static final int TOKEN_END = ((((((((0 << SIZE_FN)
-            | NUD_END) << SIZE_ID)
-            | ID_NONE) << SIZE_FN)
-            | LED_NONE) << SIZE_ID)
-            | ID_NONE);
-    /** The token used for literals, encoded as an integer */
-    private static final int TOKEN_LITERAL = ((((((((0 << SIZE_FN)
-            | NUD_LITERAL) << SIZE_ID)
-            | ID_NONE) << SIZE_FN)
-            | LED_NONE) << SIZE_ID)
-            | ID_NONE);
-    /** The token used for identifiers, encoded as an integer */
-    private static final int TOKEN_IDENT = ((((((((0 << SIZE_FN)
-            | NUD_IDENT) << SIZE_ID)
-            | ID_NONE) << SIZE_FN)
-            | LED_NONE) << SIZE_ID)
-            | ID_NONE);
     /** Sizes of different kinds of stack frames */
     private static final int RET_FRAME_SIZE = 4;
     private static final int TRY_FRAME_SIZE = 5;
     /** Token used for separators (;,:), which are just discarded */
     private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
-    /** Token string when reaching end of file, it can only occur
-     * at end of file, as it would otherwise be parsed as three
-     * tokens: "(", "EOF", and ")". */
-    private static final String EOF = "(EOF)";
     /** The globals variables in this execution context.
      * they are boxed, in such that they can be passed
      * to the closure of af function, which will then
@@ -529,6 +463,74 @@ public final class LightScript {
     }
 
     public static class Compiler {
+
+        /* The function id for the null denominator functions */
+        private static final int NUD_NONE = 13;
+        private static final int NUD_IDENT = 1;
+        private static final int NUD_LITERAL = 2;
+        private static final int NUD_END = 3;
+        private static final int NUD_SEP = 4;
+        private static final int NUD_LIST = 5;
+        private static final int NUD_PREFIX = 6;
+        private static final int NUD_PREFIX2 = 7;
+        private static final int NUD_FUNCTION = 8;
+        private static final int NUD_VAR = 9;
+        private static final int NUD_ATOM = 10;
+        private static final int NUD_CATCH = 11;
+        private static final int NUD_CONST = 12;
+
+        /* The function id for the null denominator functions */
+        private static final int LED_NONE = 8;
+        private static final int LED_DOT = 1;
+        private static final int LED_INFIX = 2;
+        private static final int LED_INFIXR = 3;
+        private static final int LED_INFIX_LIST = 4;
+        private static final int LED_INFIX_IF = 5;
+        private static final int LED_OPASSIGN = 6;
+        private static final int LED_INFIX_SWAP = 7;
+
+        /* Tokens objects are encoded as integers */
+        /** The number of bits per denominator function */
+        private static final int SIZE_FN = 4;
+        /** The number of bits per id */
+        private static final int SIZE_ID = 7;
+        //</editor-fold>
+
+        /* Masks for function/id */
+        private static final int MASK_ID = ((1 << SIZE_ID) - 1);
+        private static final int MASK_FN = ((1 << SIZE_FN) - 1);
+
+        /* Mask for the binding power / priority */
+        private static final int MASK_BP = (-1 << (2 * SIZE_ID + 2 * SIZE_FN));
+        /** The sep token, encoded as an integer */
+        private static final int TOKEN_SEP = ((((((((0 << SIZE_FN)
+                | NUD_SEP) << SIZE_ID)
+                | ID_NONE) << SIZE_FN)
+                | LED_NONE) << SIZE_ID)
+                | ID_NONE);
+        /** The end token, encoded as an integer */
+        private static final int TOKEN_END = ((((((((0 << SIZE_FN)
+                | NUD_END) << SIZE_ID)
+                | ID_NONE) << SIZE_FN)
+                | LED_NONE) << SIZE_ID)
+                | ID_NONE);
+        /** The token used for literals, encoded as an integer */
+        private static final int TOKEN_LITERAL = ((((((((0 << SIZE_FN)
+                | NUD_LITERAL) << SIZE_ID)
+                | ID_NONE) << SIZE_FN)
+                | LED_NONE) << SIZE_ID)
+                | ID_NONE);
+        /** The token used for identifiers, encoded as an integer */
+        private static final int TOKEN_IDENT = ((((((((0 << SIZE_FN)
+                | NUD_IDENT) << SIZE_ID)
+                | ID_NONE) << SIZE_FN)
+                | LED_NONE) << SIZE_ID)
+                | ID_NONE);
+
+        /** Token string when reaching end of file, it can only occur
+         * at end of file, as it would otherwise be parsed as three
+         * tokens: "(", "EOF", and ")". */
+        private static final String EOF = "(EOF)";
 
         /** Evaluate the next statement from an input stream */
         public Object evalNext(InputStream is) throws LightScriptException {
