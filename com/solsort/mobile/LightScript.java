@@ -26,6 +26,95 @@ import java.util.Stack;
  * @version 1.2
  */
 // </editor-fold>
+
+class OpCodes {
+    /* Identifiers, used both as node type,
+     * and also used as opcode.
+     */
+    public static final int NONE = 127;
+    public static final int TRUE = 0;
+    public static final int FALSE = 1;
+    public static final int UNDEFINED = 2;
+    public static final int NULL = 3;
+    public static final int PAREN = 4;
+    public static final int LIST_LITERAL = 5;
+    public static final int CURLY = 6;
+    public static final int VAR = 7;
+    public static final int BUILD_FUNCTION = 8;
+    public static final int IF = 9;
+    public static final int WHILE = 10;
+    public static final int CALL_FUNCTION = 11;
+    public static final int AND = 12;
+    public static final int OR = 13;
+    public static final int ELSE = 14;
+    public static final int SET = 15;
+    public static final int IDENT = 16;
+    public static final int BLOCK = 17;
+    public static final int SEP = 18;
+    public static final int IN = 19;
+    public static final int FOR = 20;
+    public static final int END = 21;
+    public static final int CATCH = 22;
+    public static final int DO = 23;
+    public static final int INC = 24;
+    public static final int DEC = 25;
+    public static final int ADD = 26;
+    public static final int EQUALS = 27;
+    public static final int LESS = 29;
+    public static final int LESS_EQUALS = 30;
+    public static final int LITERAL = 31;
+    public static final int MUL = 32;
+    public static final int NEG = 33;
+    public static final int NOT = 34;
+    public static final int NOT_EQUALS = 35;
+    public static final int REM = 37;
+    public static final int RETURN = 38;
+    public static final int SHIFT_RIGHT_ARITHMETIC = 39;
+    public static final int SUB = 40;
+    public static final int SUBSCRIPT = 41;
+    public static final int THIS = 42;
+    public static final int THROW = 43;
+    public static final int TRY = 44;
+    public static final int UNTRY = 45;
+    public static final int BOX_IT = 46;
+    public static final int BUILD_FN = 47;
+    public static final int CALL_FN = 48;
+    public static final int DROP = 49;
+    public static final int DUP = 50;
+    public static final int GET_BOXED = 52;
+    public static final int GET_BOXED_CLOSURE = 53;
+    public static final int GET_CLOSURE = 54;
+    public static final int GET_LOCAL = 55;
+    public static final int INC_SP = 56;
+    public static final int JUMP = 57;
+    public static final int JUMP_IF_FALSE = 58;
+    public static final int JUMP_IF_TRUE = 59;
+    public static final int NEW_DICT = 60;
+    public static final int NEW_LIST = 61;
+    public static final int NEXT = 62;
+    public static final int POP = 63;
+    public static final int PUSH = 64;
+    public static final int PUT = 65;
+    public static final int SAVE_PC = 66;
+    public static final int SET_BOXED = 67;
+    public static final int SET_CLOSURE = 68;
+    public static final int SET_LOCAL = 69;
+    public static final int SET_THIS = 70;
+    public static final int SWAP = 71;
+    public static final int DIV = 72;
+    public static final int NEW_ITER = 73;
+    public static final int JUMP_IF_UNDEFINED = 74;
+    public static final int DELETE = 75;
+    public static final int NEW = 76;
+    public static final int GLOBAL = 77;
+    public static final int SHIFT_RIGHT = 78;
+    public static final int SHIFT_LEFT = 79;
+    public static final int BITWISE_OR = 81;
+    public static final int BITWISE_XOR = 82;
+    public static final int BITWISE_AND = 83;
+    public static final int BITWISE_NOT = 84;
+}
+
 public final class LightScript {
     // TODO: globals object
 
@@ -168,97 +257,11 @@ public final class LightScript {
     // </editor-fold>
     // <editor-fold desc="defines">
 
-    /* Identifiers, used both as node type,
-     * and also used as opcode.
-     */
-    private static final int ID_NONE = 127;
-    private static final int ID_TRUE = 0;
-    private static final int ID_FALSE = 1;
-    private static final int ID_UNDEFINED = 2;
-    private static final int ID_NULL = 3;
-    private static final int ID_PAREN = 4;
-    private static final int ID_LIST_LITERAL = 5;
-    private static final int ID_CURLY = 6;
-    private static final int ID_VAR = 7;
-    private static final int ID_BUILD_FUNCTION = 8;
-    private static final int ID_IF = 9;
-    private static final int ID_WHILE = 10;
-    private static final int ID_CALL_FUNCTION = 11;
-    private static final int ID_AND = 12;
-    private static final int ID_OR = 13;
-    private static final int ID_ELSE = 14;
-    private static final int ID_SET = 15;
-    private static final int ID_IDENT = 16;
-    private static final int ID_BLOCK = 17;
-    private static final int ID_SEP = 18;
-    private static final int ID_IN = 19;
-    private static final int ID_FOR = 20;
-    private static final int ID_END = 21;
-    private static final int ID_CATCH = 22;
-    private static final int ID_DO = 23;
-    private static final int ID_INC = 24;
-    private static final int ID_DEC = 25;
-    private static final int ID_ADD = 26;
-    private static final int ID_EQUALS = 27;
-    private static final int ID_LESS = 29;
-    private static final int ID_LESS_EQUALS = 30;
-    private static final int ID_LITERAL = 31;
-    private static final int ID_MUL = 32;
-    private static final int ID_NEG = 33;
-    private static final int ID_NOT = 34;
-    private static final int ID_NOT_EQUALS = 35;
-    private static final int ID_REM = 37;
-    private static final int ID_RETURN = 38;
-    private static final int ID_SHIFT_RIGHT_ARITHMETIC = 39;
-    private static final int ID_SUB = 40;
-    private static final int ID_SUBSCRIPT = 41;
-    private static final int ID_THIS = 42;
-    private static final int ID_THROW = 43;
-    private static final int ID_TRY = 44;
-    private static final int ID_UNTRY = 45;
-    private static final int ID_BOX_IT = 46;
-    private static final int ID_BUILD_FN = 47;
-    private static final int ID_CALL_FN = 48;
-    private static final int ID_DROP = 49;
-    private static final int ID_DUP = 50;
-    private static final int ID_GET_BOXED = 52;
-    private static final int ID_GET_BOXED_CLOSURE = 53;
-    private static final int ID_GET_CLOSURE = 54;
-    private static final int ID_GET_LOCAL = 55;
-    private static final int ID_INC_SP = 56;
-    private static final int ID_JUMP = 57;
-    private static final int ID_JUMP_IF_FALSE = 58;
-    private static final int ID_JUMP_IF_TRUE = 59;
-    private static final int ID_NEW_DICT = 60;
-    private static final int ID_NEW_LIST = 61;
-    private static final int ID_NEXT = 62;
-    private static final int ID_POP = 63;
-    private static final int ID_PUSH = 64;
-    private static final int ID_PUT = 65;
-    private static final int ID_SAVE_PC = 66;
-    private static final int ID_SET_BOXED = 67;
-    private static final int ID_SET_CLOSURE = 68;
-    private static final int ID_SET_LOCAL = 69;
-    private static final int ID_SET_THIS = 70;
-    private static final int ID_SWAP = 71;
-    private static final int ID_DIV = 72;
-    private static final int ID_NEW_ITER = 73;
-    private static final int ID_JUMP_IF_UNDEFINED = 74;
-    private static final int ID_DELETE = 75;
-    private static final int ID_NEW = 76;
-    private static final int ID_GLOBAL = 77;
-    private static final int ID_SHIFT_RIGHT = 78;
-    private static final int ID_SHIFT_LEFT = 79;
-    private static final int ID_BITWISE_OR = 81;
-    private static final int ID_BITWISE_XOR = 82;
-    private static final int ID_BITWISE_AND = 83;
-    private static final int ID_BITWISE_NOT = 84;
-    // <editor-fold desc="tokens">
     /** Sizes of different kinds of stack frames */
     private static final int RET_FRAME_SIZE = 4;
     private static final int TRY_FRAME_SIZE = 5;
     /** Token used for separators (;,:), which are just discarded */
-    private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
+    private static final Object[] SEP_TOKEN = {new Integer(OpCodes.SEP)};
     /** The globals variables in this execution context.
      * they are boxed, in such that they can be passed
      * to the closure of af function, which will then
@@ -307,7 +310,7 @@ public final class LightScript {
         "SET_BOXED", "SET_CLOSURE", "SET_LOCAL", "SET_THIS", "SWAP",
         "DIV", "NEW_ITER", "JUMP_IF_UNDEFINED", "DELETE", "NEW", "GLOBAL",
         "SHIFT_RIGHT", "SHIFT_LEFT", "BITWISE_OR", "BITWISE_XOR", "BITWISE_AND",
-        "ID_BITWISE_NOT"
+        "OpCodes.BITWISE_NOT"
     };
 
     /** Function that maps from ID to a string representation of the ID,
@@ -505,27 +508,27 @@ public final class LightScript {
         /** The sep token, encoded as an integer */
         private static final int TOKEN_SEP = ((((((((0 << SIZE_FN)
                 | NUD_SEP) << SIZE_ID)
-                | ID_NONE) << SIZE_FN)
+                | OpCodes.NONE) << SIZE_FN)
                 | LED_NONE) << SIZE_ID)
-                | ID_NONE);
+                | OpCodes.NONE);
         /** The end token, encoded as an integer */
         private static final int TOKEN_END = ((((((((0 << SIZE_FN)
                 | NUD_END) << SIZE_ID)
-                | ID_NONE) << SIZE_FN)
+                | OpCodes.NONE) << SIZE_FN)
                 | LED_NONE) << SIZE_ID)
-                | ID_NONE);
+                | OpCodes.NONE);
         /** The token used for literals, encoded as an integer */
         private static final int TOKEN_LITERAL = ((((((((0 << SIZE_FN)
                 | NUD_LITERAL) << SIZE_ID)
-                | ID_NONE) << SIZE_FN)
+                | OpCodes.NONE) << SIZE_FN)
                 | LED_NONE) << SIZE_ID)
-                | ID_NONE);
+                | OpCodes.NONE);
         /** The token used for identifiers, encoded as an integer */
         private static final int TOKEN_IDENT = ((((((((0 << SIZE_FN)
                 | NUD_IDENT) << SIZE_ID)
-                | ID_NONE) << SIZE_FN)
+                | OpCodes.NONE) << SIZE_FN)
                 | LED_NONE) << SIZE_ID)
-                | ID_NONE);
+                | OpCodes.NONE);
 
         /** Token string when reaching end of file, it can only occur
          * at end of file, as it would otherwise be parsed as three
@@ -780,14 +783,14 @@ public final class LightScript {
             switch ((tok >> (SIZE_ID * 2 + SIZE_FN)) & ((1 << SIZE_FN) - 1)) {
                 case NUD_IDENT:
                     stackAdd(varsUsed, val);
-                    return v(ID_IDENT, val);
+                    return v(OpCodes.IDENT, val);
                 case NUD_LITERAL:
-                    return v(ID_LITERAL, val);
+                    return v(OpCodes.LITERAL, val);
                 case NUD_CONST:
-                    return v(ID_LITERAL,
-                            nudId == ID_TRUE ? TRUE
-                            : nudId == ID_FALSE ? FALSE
-                            : nudId == ID_NULL ? NULL
+                    return v(OpCodes.LITERAL,
+                            nudId == OpCodes.TRUE ? TRUE
+                            : nudId == OpCodes.FALSE ? FALSE
+                            : nudId == OpCodes.NULL ? NULL
                             : UNDEFINED);
                 case NUD_END:
                     return null;// result does not matter,
@@ -835,11 +838,11 @@ public final class LightScript {
                     String fnName = null;
                     // add function arguments to statistics
                     varsArgc = args.length - 1;
-                    if (((Integer) args[0]).intValue() == ID_PAREN) {
+                    if (((Integer) args[0]).intValue() == OpCodes.PAREN) {
                         for (int i = 1; i < args.length; i++) {
                             Object[] os = (Object[]) args[i];
                             if (DEBUG_ENABLED) {
-                                if (((Integer) os[0]).intValue() != ID_IDENT) {
+                                if (((Integer) os[0]).intValue() != OpCodes.IDENT) {
                                     throw new Error("parameter not variable name"
                                             + stringify(args));
                                 }
@@ -848,7 +851,7 @@ public final class LightScript {
                         }
                     } else {
                         if (DEBUG_ENABLED) {
-                            if (((Integer) args[0]).intValue() != ID_CALL_FUNCTION) {
+                            if (((Integer) args[0]).intValue() != OpCodes.CALL_FUNCTION) {
                                 throw new Error("parameter not variable name"
                                         + stringify(args));
                             }
@@ -887,7 +890,7 @@ public final class LightScript {
                     }
                     Object[] result = v(nudId, compile(body));
                     if (isNamed) {
-                        result = v(ID_SET, v(ID_IDENT, fnName), result);
+                        result = v(OpCodes.SET, v(OpCodes.IDENT, fnName), result);
                         stackAdd(prevUsed, fnName);
                     }
                     varsClosure = null;
@@ -905,13 +908,13 @@ public final class LightScript {
                 case NUD_VAR:
                     Object[] expr = parse(0);
                     int type = ((Integer) expr[0]).intValue();
-                    if (type == ID_IDENT) {
+                    if (type == OpCodes.IDENT) {
                         stackAdd(varsLocals, expr[1]);
                     } else {
                         Object[] expr2 = (Object[]) expr[1];
                         if (DEBUG_ENABLED) {
-                            if (type == ID_SET
-                                    && ((Integer) expr2[0]).intValue() == ID_IDENT) {
+                            if (type == OpCodes.SET
+                                    && ((Integer) expr2[0]).intValue() == OpCodes.IDENT) {
                                 stackAdd(varsLocals, expr2[1]);
                             } else {
                                 throw new Error("Error in var");
@@ -943,7 +946,7 @@ public final class LightScript {
                 case LED_INFIX_SWAP:
                     return v(ledId, parse(bp), left);
                 case LED_OPASSIGN:
-                    return v(ID_SET, left, v(ledId, left, parse(bp - 1)));
+                    return v(OpCodes.SET, left, v(ledId, left, parse(bp - 1)));
                 case LED_INFIXR:
                     return v(ledId, left, parse(bp - 1));
                 case LED_INFIX_LIST: {
@@ -958,14 +961,14 @@ public final class LightScript {
                     Object[] right = parse(bp);
                     varsUsed = t;
                     if (DEBUG_ENABLED) {
-                        if (((Integer) right[0]).intValue() != ID_IDENT) {
+                        if (((Integer) right[0]).intValue() != OpCodes.IDENT) {
                             throw new Error("right side of dot not a string: "
                                     + stringify(right));
                         }
                     }
 
-                    right[0] = new Integer(ID_LITERAL);
-                    return v(ID_SUBSCRIPT, left, right);
+                    right[0] = new Integer(OpCodes.LITERAL);
+                    return v(OpCodes.SUBSCRIPT, left, right);
                 }
                 case LED_INFIX_IF: {
                     Object branch1 = parse(0);
@@ -977,7 +980,7 @@ public final class LightScript {
                         parse(0);
                     }
                     Object branch2 = parse(0);
-                    return v(ID_IF, left, v(ID_ELSE, branch1, branch2));
+                    return v(OpCodes.IF, left, v(OpCodes.ELSE, branch1, branch2));
                 }
                 default:
                     if (DEBUG_ENABLED) {
@@ -1003,375 +1006,375 @@ public final class LightScript {
                     + "(EOF)"
                     + (char) 1
                     + (char) NUD_END
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "]"
                     + (char) 1
                     + (char) NUD_END
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + ")"
                     + (char) 1
                     + (char) NUD_END
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "}"
                     + (char) 1
                     + (char) NUD_END
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "."
                     + (char) 8
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_DOT
-                    + (char) ID_SUBSCRIPT
+                    + (char) OpCodes.SUBSCRIPT
                     + "("
                     + (char) 7
                     + (char) NUD_LIST
-                    + (char) ID_PAREN
+                    + (char) OpCodes.PAREN
                     + (char) LED_INFIX_LIST
-                    + (char) ID_CALL_FUNCTION
+                    + (char) OpCodes.CALL_FUNCTION
                     + "["
                     + (char) 7
                     + (char) NUD_LIST
-                    + (char) ID_LIST_LITERAL
+                    + (char) OpCodes.LIST_LITERAL
                     + (char) LED_INFIX_LIST
-                    + (char) ID_SUBSCRIPT
+                    + (char) OpCodes.SUBSCRIPT
                     + ">>"
                     + (char) 6
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX
-                    + (char) ID_SHIFT_RIGHT_ARITHMETIC
+                    + (char) OpCodes.SHIFT_RIGHT_ARITHMETIC
                     + "<<"
                     + (char) 6
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX
-                    + (char) ID_SHIFT_LEFT
+                    + (char) OpCodes.SHIFT_LEFT
                     + "|"
                     + (char) 3
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX
-                    + (char) ID_BITWISE_OR
+                    + (char) OpCodes.BITWISE_OR
                     + "^"
                     + (char) 3
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX
-                    + (char) ID_BITWISE_XOR
+                    + (char) OpCodes.BITWISE_XOR
                     + "&"
                     + (char) 3
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX
-                    + (char) ID_BITWISE_AND
+                    + (char) OpCodes.BITWISE_AND
                     + "~"
                     + (char) 1
                     + (char) NUD_PREFIX
-                    + (char) ID_BITWISE_NOT
+                    + (char) OpCodes.BITWISE_NOT
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + ">>>"
                     + (char) 6
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX
-                    + (char) ID_SHIFT_RIGHT
+                    + (char) OpCodes.SHIFT_RIGHT
                     + "/"
                     + (char) 6
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX
-                    + (char) ID_DIV
+                    + (char) OpCodes.DIV
                     + "*"
                     + (char) 6
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX
-                    + (char) ID_MUL
+                    + (char) OpCodes.MUL
                     + "%"
                     + (char) 6
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX
-                    + (char) ID_REM
+                    + (char) OpCodes.REM
                     + "+"
                     + (char) 5
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX
-                    + (char) ID_ADD
+                    + (char) OpCodes.ADD
                     + "-"
                     + (char) 5
                     + (char) NUD_PREFIX
-                    + (char) ID_NEG
+                    + (char) OpCodes.NEG
                     + (char) LED_INFIX
-                    + (char) ID_SUB
+                    + (char) OpCodes.SUB
                     + "=="
                     + (char) 4
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX
-                    + (char) ID_EQUALS
+                    + (char) OpCodes.EQUALS
                     + "==="
                     + (char) 4
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX
-                    + (char) ID_EQUALS
+                    + (char) OpCodes.EQUALS
                     + "!="
                     + (char) 4
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX
-                    + (char) ID_NOT_EQUALS
+                    + (char) OpCodes.NOT_EQUALS
                     + "!=="
                     + (char) 4
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX
-                    + (char) ID_NOT_EQUALS
+                    + (char) OpCodes.NOT_EQUALS
                     + "<="
                     + (char) 4
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX
-                    + (char) ID_LESS_EQUALS
+                    + (char) OpCodes.LESS_EQUALS
                     + "<"
                     + (char) 4
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX
-                    + (char) ID_LESS
+                    + (char) OpCodes.LESS
                     + ">="
                     + (char) 4
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX_SWAP
-                    + (char) ID_LESS_EQUALS
+                    + (char) OpCodes.LESS_EQUALS
                     + ">"
                     + (char) 4
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX_SWAP
-                    + (char) ID_LESS
+                    + (char) OpCodes.LESS
                     + "&&"
                     + (char) 3
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIXR
-                    + (char) ID_AND
+                    + (char) OpCodes.AND
                     + "||"
                     + (char) 3
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIXR
-                    + (char) ID_OR
+                    + (char) OpCodes.OR
                     + "else"
                     + (char) 3
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIXR
-                    + (char) ID_ELSE
+                    + (char) OpCodes.ELSE
                     + "in"
                     + (char) 3
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIXR
-                    + (char) ID_IN
+                    + (char) OpCodes.IN
                     + "?"
                     + (char) 3
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIX_IF
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "="
                     + (char) 2
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_INFIXR
-                    + (char) ID_SET
+                    + (char) OpCodes.SET
                     + "+="
                     + (char) 2
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_OPASSIGN
-                    + (char) ID_ADD
+                    + (char) OpCodes.ADD
                     + "-="
                     + (char) 2
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_OPASSIGN
-                    + (char) ID_SUB
+                    + (char) OpCodes.SUB
                     + "*="
                     + (char) 2
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_OPASSIGN
-                    + (char) ID_MUL
+                    + (char) OpCodes.MUL
                     + "/="
                     + (char) 2
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_OPASSIGN
-                    + (char) ID_DIV
+                    + (char) OpCodes.DIV
                     + "%="
                     + (char) 2
                     + (char) NUD_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_OPASSIGN
-                    + (char) ID_REM
+                    + (char) OpCodes.REM
                     + "++"
                     + (char) 1
                     + (char) NUD_PREFIX
-                    + (char) ID_INC
+                    + (char) OpCodes.INC
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "--"
                     + (char) 1
                     + (char) NUD_PREFIX
-                    + (char) ID_DEC
+                    + (char) OpCodes.DEC
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + ":"
                     + (char) 1
                     + (char) NUD_SEP
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + ";"
                     + (char) 1
                     + (char) NUD_SEP
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + ","
                     + (char) 1
                     + (char) NUD_SEP
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "{"
                     + (char) 1
                     + (char) NUD_LIST
-                    + (char) ID_CURLY
+                    + (char) OpCodes.CURLY
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "var"
                     + (char) 1
                     + (char) NUD_VAR
-                    + (char) ID_VAR
+                    + (char) OpCodes.VAR
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "delete"
                     + (char) 1
                     + (char) NUD_PREFIX
-                    + (char) ID_DELETE
+                    + (char) OpCodes.DELETE
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "new"
                     + (char) 1
                     + (char) NUD_PREFIX
-                    + (char) ID_NEW
+                    + (char) OpCodes.NEW
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "return"
                     + (char) 1
                     + (char) NUD_PREFIX
-                    + (char) ID_RETURN
+                    + (char) OpCodes.RETURN
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "!"
                     + (char) 1
                     + (char) NUD_PREFIX
-                    + (char) ID_NOT
+                    + (char) OpCodes.NOT
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "throw"
                     + (char) 1
                     + (char) NUD_PREFIX
-                    + (char) ID_THROW
+                    + (char) OpCodes.THROW
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "try"
                     + (char) 1
                     + (char) NUD_PREFIX2
-                    + (char) ID_TRY
+                    + (char) OpCodes.TRY
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "catch"
                     + (char) 1
                     + (char) NUD_CATCH
-                    + (char) ID_CATCH
+                    + (char) OpCodes.CATCH
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "function"
                     + (char) 1
                     + (char) NUD_FUNCTION
-                    + (char) ID_BUILD_FUNCTION
+                    + (char) OpCodes.BUILD_FUNCTION
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "do"
                     + (char) 1
                     + (char) NUD_PREFIX2
-                    + (char) ID_DO
+                    + (char) OpCodes.DO
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "for"
                     + (char) 1
                     + (char) NUD_PREFIX2
-                    + (char) ID_FOR
+                    + (char) OpCodes.FOR
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "if"
                     + (char) 1
                     + (char) NUD_PREFIX2
-                    + (char) ID_IF
+                    + (char) OpCodes.IF
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "while"
                     + (char) 1
                     + (char) NUD_PREFIX2
-                    + (char) ID_WHILE
+                    + (char) OpCodes.WHILE
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "undefined"
                     + (char) 1
                     + (char) NUD_CONST
-                    + (char) ID_UNDEFINED
+                    + (char) OpCodes.UNDEFINED
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "null"
                     + (char) 1
                     + (char) NUD_CONST
-                    + (char) ID_NULL
+                    + (char) OpCodes.NULL
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "false"
                     + (char) 1
                     + (char) NUD_CONST
-                    + (char) ID_FALSE
+                    + (char) OpCodes.FALSE
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "this"
                     + (char) 1
                     + (char) NUD_ATOM
-                    + (char) ID_THIS
+                    + (char) OpCodes.THIS
                     + (char) LED_NONE
-                    + (char) ID_NONE
+                    + (char) OpCodes.NONE
                     + "true"
                     + (char) 1
                     + (char) NUD_CONST
-                    + (char) ID_TRUE
+                    + (char) OpCodes.TRUE
                     + (char) LED_NONE
-                    + (char) ID_NONE;
+                    + (char) OpCodes.NONE;
             idMapping = new Hashtable();
             StringBuffer sb = new StringBuffer();
             for (int i = 0; i < identifiers.length(); i++) {
@@ -1450,8 +1453,8 @@ public final class LightScript {
 
         private static void curlyToBlock(Object oexpr) {
             Object[] expr = (Object[]) oexpr;
-            if (((Integer) expr[0]).intValue() == ID_CURLY) {
-                expr[0] = new Integer(ID_BLOCK);
+            if (((Integer) expr[0]).intValue() == OpCodes.CURLY) {
+                expr[0] = new Integer(OpCodes.BLOCK);
             }
         }
 
@@ -1464,12 +1467,12 @@ public final class LightScript {
             maxDepth = depth = varsLocals.size();
             int framesize = depth - varsArgc;
             while (framesize >= 127) {
-                emit(ID_INC_SP);
+                emit(OpCodes.INC_SP);
                 emit(127);
                 framesize -= 127;
             }
             if (framesize > 0) {
-                emit(ID_INC_SP);
+                emit(OpCodes.INC_SP);
                 emit(framesize);
             }
 
@@ -1477,7 +1480,7 @@ public final class LightScript {
             for (int i = 0; i < varsBoxed.size(); i++) {
                 int pos = varsLocals.indexOf(varsBoxed.elementAt(i));
                 if (pos != -1) {
-                    emit(ID_BOX_IT);
+                    emit(OpCodes.BOX_IT);
                     pushShort(depth - pos - 1);
                 }
             }
@@ -1487,7 +1490,7 @@ public final class LightScript {
             compile(body, true);
 
             // emit return code, including current stack depth to drop
-            emit(ID_RETURN);
+            emit(OpCodes.RETURN);
             pushShort(depth);
 
             // patch amount of stack space needed
@@ -1524,14 +1527,14 @@ public final class LightScript {
         private void compileSet(Object name) {
             int pos = varsClosure.indexOf(name);
             if (pos >= 0) {
-                emit(ID_SET_CLOSURE);
+                emit(OpCodes.SET_CLOSURE);
                 pushShort(pos);
             } else {
                 pos = varsLocals.indexOf(name);
                 if (varsBoxed.contains(name)) {
-                    emit(ID_SET_BOXED);
+                    emit(OpCodes.SET_BOXED);
                 } else {
-                    emit(ID_SET_LOCAL);
+                    emit(OpCodes.SET_LOCAL);
                 }
                 pushShort(depth - pos - 1);
             }
@@ -1542,22 +1545,22 @@ public final class LightScript {
             Object[] expr = (Object[]) rawexpr;
             int id = ((Integer) expr[0]).intValue();
             switch (id) {
-                case ID_ADD:
-                case ID_MUL:
-                case ID_DIV:
-                case ID_SHIFT_RIGHT_ARITHMETIC:
-                case ID_SHIFT_RIGHT:
-                case ID_SHIFT_LEFT:
-                case ID_BITWISE_OR:
-                case ID_BITWISE_XOR:
-                case ID_BITWISE_AND:
-                case ID_REM:
-                case ID_SUB:
-                case ID_EQUALS:
-                case ID_NOT_EQUALS:
-                case ID_SUBSCRIPT:
-                case ID_LESS_EQUALS:
-                case ID_LESS: {
+                case OpCodes.ADD:
+                case OpCodes.MUL:
+                case OpCodes.DIV:
+                case OpCodes.SHIFT_RIGHT_ARITHMETIC:
+                case OpCodes.SHIFT_RIGHT:
+                case OpCodes.SHIFT_LEFT:
+                case OpCodes.BITWISE_OR:
+                case OpCodes.BITWISE_XOR:
+                case OpCodes.BITWISE_AND:
+                case OpCodes.REM:
+                case OpCodes.SUB:
+                case OpCodes.EQUALS:
+                case OpCodes.NOT_EQUALS:
+                case OpCodes.SUBSCRIPT:
+                case OpCodes.LESS_EQUALS:
+                case OpCodes.LESS: {
                     compile(expr[1], true);
                     compile(expr[2], true);
                     emit(id);
@@ -1565,24 +1568,24 @@ public final class LightScript {
                     hasResult = true;
                     break;
                 }
-                case ID_BITWISE_NOT:
-                case ID_NOT:
-                case ID_NEG: {
+                case OpCodes.BITWISE_NOT:
+                case OpCodes.NOT:
+                case OpCodes.NEG: {
                     compile(expr[1], true);
                     emit(id);
                     hasResult = true;
                     break;
                 }
-                case ID_DELETE: {
+                case OpCodes.DELETE: {
                     Object[] expr2 = (Object[]) expr[1];
                     int subtype = ((Integer) expr2[0]).intValue();
-                    if (subtype == ID_SUBSCRIPT) {
+                    if (subtype == OpCodes.SUBSCRIPT) {
                         compile(expr2[1], true);
                         compile(expr2[2], true);
-                    } else if (DEBUG_ENABLED && subtype != ID_IDENT) {
+                    } else if (DEBUG_ENABLED && subtype != OpCodes.IDENT) {
                         throw new Error("Deleting non-var");
                     } else {
-                        emit(ID_GLOBAL);
+                        emit(OpCodes.GLOBAL);
                         addDepth(1);
                         compile(expr2[1], true);
                     }
@@ -1591,49 +1594,49 @@ public final class LightScript {
                     hasResult = true;
                     break;
                 }
-                case ID_NEW: {
+                case OpCodes.NEW: {
                     int subtype = childType(expr, 1);
-                    if (subtype != ID_CALL_FUNCTION) {
-                        expr = v(ID_CALL_FUNCTION, expr);
+                    if (subtype != OpCodes.CALL_FUNCTION) {
+                        expr = v(OpCodes.CALL_FUNCTION, expr);
                     }
-                    expr[1] = v(ID_SUBSCRIPT, expr, v(ID_LITERAL, "constructor"));
+                    expr[1] = v(OpCodes.SUBSCRIPT, expr, v(OpCodes.LITERAL, "constructor"));
                     compile(expr, yieldResult);
                     hasResult = yieldResult;
                     break;
                 }
-                case ID_THIS: {
+                case OpCodes.THIS: {
                     emit(id);
                     addDepth(1);
                     hasResult = true;
                     break;
                 }
-                case ID_LITERAL: {
+                case OpCodes.LITERAL: {
                     emit(id);
                     pushShort(constPoolId(expr[1]));
                     hasResult = true;
                     addDepth(1);
                     break;
                 }
-                case ID_BLOCK: {
+                case OpCodes.BLOCK: {
                     for (int i = 1; i < expr.length; i++) {
                         compile(expr[i], false);
                     }
                     hasResult = false;
                     break;
                 }
-                case ID_RETURN: {
+                case OpCodes.RETURN: {
                     compile(expr[1], true);
-                    emit(ID_RETURN);
+                    emit(OpCodes.RETURN);
                     pushShort(depth);
                     addDepth(-1);
                     hasResult = false;
                     break;
                 }
-                case ID_IDENT: {
+                case OpCodes.IDENT: {
                     String name = (String) expr[1];
                     int pos = varsClosure.indexOf(name);
                     if (pos >= 0) {
-                        emit(ID_GET_CLOSURE);
+                        emit(OpCodes.GET_CLOSURE);
                         pushShort(pos);
                     } else {
                         pos = varsLocals.indexOf(name);
@@ -1643,9 +1646,9 @@ public final class LightScript {
                             }
                         }
                         if (varsBoxed.contains(name)) {
-                            emit(ID_GET_BOXED);
+                            emit(OpCodes.GET_BOXED);
                         } else {
-                            emit(ID_GET_LOCAL);
+                            emit(OpCodes.GET_LOCAL);
                         }
                         pushShort(depth - pos - 1);
                     }
@@ -1653,11 +1656,11 @@ public final class LightScript {
                     hasResult = true;
                     break;
                 }
-                case ID_VAR: {
+                case OpCodes.VAR: {
                     int id2 = childType(expr, 1);
-                    if (id2 == ID_IDENT) {
+                    if (id2 == OpCodes.IDENT) {
                         hasResult = false;
-                    } else if (id2 == ID_SET) {
+                    } else if (id2 == OpCodes.SET) {
                         compile(expr[1], yieldResult);
                         hasResult = yieldResult;
                     } else {
@@ -1670,20 +1673,20 @@ public final class LightScript {
                     }
                     break;
                 }
-                case ID_SET: {
+                case OpCodes.SET: {
                     assertLength(expr, 3);
                     int targetType = childType(expr, 1);
                     hasResult = true;
-                    if (targetType == ID_IDENT) {
+                    if (targetType == OpCodes.IDENT) {
                         String name = (String) ((Object[]) expr[1])[1];
                         compile(expr[2], true);
                         compileSet(name);
-                    } else if (targetType == ID_SUBSCRIPT) {
+                    } else if (targetType == OpCodes.SUBSCRIPT) {
                         Object[] subs = (Object[]) expr[1];
                         compile(subs[1], true);
                         compile(subs[2], true);
                         compile(expr[2], true);
-                        emit(ID_PUT);
+                        emit(OpCodes.PUT);
                         addDepth(-2);
                     } else {
                         if (DEBUG_ENABLED) {
@@ -1693,7 +1696,7 @@ public final class LightScript {
                     }
                     break;
                 }
-                case ID_PAREN: {
+                case OpCodes.PAREN: {
                     if (DEBUG_ENABLED) {
                         if (expr.length != 2) {
                             throw new Error("Unexpected content of parenthesis: "
@@ -1704,12 +1707,12 @@ public final class LightScript {
                     hasResult = yieldResult;
                     break;
                 }
-                case ID_CALL_FUNCTION: {
+                case OpCodes.CALL_FUNCTION: {
                     expr = stripSep(expr);
-                    boolean methodcall = (childType(expr, 1) == ID_SUBSCRIPT);
+                    boolean methodcall = (childType(expr, 1) == OpCodes.SUBSCRIPT);
 
                     // save program counter
-                    emit(ID_SAVE_PC);
+                    emit(OpCodes.SAVE_PC);
                     addDepth(RET_FRAME_SIZE);
 
 
@@ -1718,19 +1721,19 @@ public final class LightScript {
                         Object[] subs = (Object[]) expr[1];
                         compile(subs[1], true);
 
-                        emit(ID_DUP);
+                        emit(OpCodes.DUP);
                         addDepth(1);
 
                         compile(subs[2], true);
-                        emit(ID_SUBSCRIPT);
+                        emit(OpCodes.SUBSCRIPT);
                         addDepth(-1);
 
-                        emit(ID_SWAP);
+                        emit(OpCodes.SWAP);
 
                     } else {
                         compile(expr[1], true);
 
-                        emit(ID_GLOBAL);
+                        emit(OpCodes.GLOBAL);
                         addDepth(1);
                     }
 
@@ -1740,7 +1743,7 @@ public final class LightScript {
                     }
 
                     // call the function
-                    emit(ID_CALL_FN);
+                    emit(OpCodes.CALL_FN);
                     if (DEBUG_ENABLED) {
                         if (expr.length > 129) {
                             throw new Error("too many parameters");
@@ -1752,33 +1755,33 @@ public final class LightScript {
                     hasResult = true;
                     break;
                 }
-                case ID_BUILD_FUNCTION: {
+                case OpCodes.BUILD_FUNCTION: {
                     Object[] vars = ((Code) expr[1]).closure;
                     for (int i = 0; i < vars.length; i++) {
                         String name = (String) vars[i];
                         if (varsClosure.contains(name)) {
-                            emit(ID_GET_BOXED_CLOSURE);
+                            emit(OpCodes.GET_BOXED_CLOSURE);
                             pushShort(varsClosure.indexOf(name));
                         } else {
-                            emit(ID_GET_LOCAL);
+                            emit(OpCodes.GET_LOCAL);
                             pushShort(depth - varsLocals.indexOf(name) - 1);
                         }
                         addDepth(1);
                     }
-                    emit(ID_LITERAL);
+                    emit(OpCodes.LITERAL);
                     pushShort(constPoolId(expr[1]));
                     addDepth(1);
-                    emit(ID_BUILD_FN);
+                    emit(OpCodes.BUILD_FN);
                     pushShort(vars.length);
                     addDepth(-vars.length);
                     hasResult = true;
                     break;
 
                 }
-                case ID_IF: {
+                case OpCodes.IF: {
                     int subtype = childType(expr, 2);
 
-                    if (subtype == ID_ELSE) {
+                    if (subtype == OpCodes.ELSE) {
                         Object[] branch = (Object[]) expr[2];
 
                         //    code for condition
@@ -1793,7 +1796,7 @@ public final class LightScript {
                         // compile condition
                         compile(expr[1], true);
 
-                        emit(ID_JUMP_IF_TRUE);
+                        emit(OpCodes.JUMP_IF_TRUE);
                         pushShort(0);
                         pos0 = code.length();
                         addDepth(-1);
@@ -1801,7 +1804,7 @@ public final class LightScript {
                         curlyToBlock(branch[2]);
                         compile(branch[2], yieldResult);
 
-                        emit(ID_JUMP);
+                        emit(OpCodes.JUMP);
                         pushShort(0);
                         pos1 = code.length();
                         len = pos1 - pos0;
@@ -1822,7 +1825,7 @@ public final class LightScript {
 
                         compile(expr[1], true);
 
-                        emit(ID_JUMP_IF_FALSE);
+                        emit(OpCodes.JUMP_IF_FALSE);
                         pushShort(0);
                         pos0 = code.length();
                         addDepth(-1);
@@ -1837,7 +1840,7 @@ public final class LightScript {
                         break;
                     }
                 }
-                case ID_FOR: {
+                case OpCodes.FOR: {
                     Object[] args = (Object[]) expr[1];
                     Object init, cond, step;
                     if (args.length > 2) {
@@ -1849,8 +1852,8 @@ public final class LightScript {
                         pos += (cond == SEP_TOKEN) ? 1 : 2;
                         step = (pos < args.length) ? args[pos] : SEP_TOKEN;
                         curlyToBlock(expr[2]);
-                        compile(v(ID_BLOCK, init, v(ID_WHILE, cond,
-                                v(ID_BLOCK, expr[2], step))), yieldResult);
+                        compile(v(OpCodes.BLOCK, init, v(OpCodes.WHILE, cond,
+                                v(OpCodes.BLOCK, expr[2], step))), yieldResult);
                         hasResult = yieldResult;
                         break;
                     } else {
@@ -1883,17 +1886,17 @@ public final class LightScript {
                         // evaluate b
                         compile(in[2], true);
 
-                        emit(ID_NEW_ITER);
+                        emit(OpCodes.NEW_ITER);
                         pos0 = code.length();
                         // get next
-                        emit(ID_NEXT);
+                        emit(OpCodes.NEXT);
                         addDepth(1);
 
                         // store value in variable
                         compileSet(name);
 
                         // exit if done
-                        emit(ID_JUMP_IF_UNDEFINED);
+                        emit(OpCodes.JUMP_IF_UNDEFINED);
                         pushShort(0);
                         pos1 = code.length();
                         addDepth(-1);
@@ -1902,13 +1905,13 @@ public final class LightScript {
                         curlyToBlock(expr[2]);
                         compile(expr[2], false);
 
-                        emit(ID_JUMP);
+                        emit(OpCodes.JUMP);
                         pushShort(0);
 
                         setShort(pos1, code.length() - pos1);
                         setShort(code.length(), pos0 - code.length());
 
-                        emit(ID_DROP);
+                        emit(OpCodes.DROP);
                         addDepth(-1);
                         hasResult = false;
 
@@ -1916,24 +1919,24 @@ public final class LightScript {
                     }
 
                 }
-                case ID_SEP: {
+                case OpCodes.SEP: {
                     hasResult = false;
                     break;
                 }
-                case ID_AND: {
+                case OpCodes.AND: {
                     assertLength(expr, 3);
                     int pos0, pos1, len;
 
                     compile(expr[1], true);
 
-                    emit(ID_JUMP_IF_TRUE);
+                    emit(OpCodes.JUMP_IF_TRUE);
                     pushShort(0);
                     pos0 = code.length();
                     addDepth(-1);
 
-                    compile(v(ID_LITERAL, UNDEFINED), true);
+                    compile(v(OpCodes.LITERAL, UNDEFINED), true);
 
-                    emit(ID_JUMP);
+                    emit(OpCodes.JUMP);
                     pushShort(0);
                     pos1 = code.length();
                     len = pos1 - pos0;
@@ -1946,21 +1949,21 @@ public final class LightScript {
                     hasResult = true;
                     break;
                 }
-                case ID_OR: {
+                case OpCodes.OR: {
                     assertLength(expr, 3);
                     int pos0, pos1, len;
 
                     compile(expr[1], true);
 
-                    emit(ID_DUP);
+                    emit(OpCodes.DUP);
                     addDepth(1);
 
-                    emit(ID_JUMP_IF_TRUE);
+                    emit(OpCodes.JUMP_IF_TRUE);
                     pushShort(0);
                     pos0 = code.length();
                     addDepth(-1);
 
-                    emit(ID_DROP);
+                    emit(OpCodes.DROP);
                     addDepth(-1);
 
                     compile(expr[2], true);
@@ -1973,14 +1976,14 @@ public final class LightScript {
 
                     break;
                 }
-                case ID_LIST_LITERAL: {
-                    emit(ID_NEW_LIST);
+                case OpCodes.LIST_LITERAL: {
+                    emit(OpCodes.NEW_LIST);
                     addDepth(1);
 
                     for (int i = 1; i < expr.length; i++) {
-                        if (childType(expr, i) != ID_SEP) {
+                        if (childType(expr, i) != OpCodes.SEP) {
                             compile(expr[i], true);
-                            emit(ID_PUSH);
+                            emit(OpCodes.PUSH);
                             addDepth(-1);
                         }
                     }
@@ -1988,35 +1991,35 @@ public final class LightScript {
 
                     break;
                 }
-                case ID_CURLY: {
-                    emit(ID_NEW_DICT);
+                case OpCodes.CURLY: {
+                    emit(OpCodes.NEW_DICT);
                     addDepth(1);
 
                     int i = 0;
                     while (i < expr.length - 3) {
                         do {
                             ++i;
-                        } while (childType(expr, i) == ID_SEP);
+                        } while (childType(expr, i) == OpCodes.SEP);
                         compile(expr[i], true);
                         do {
                             ++i;
-                        } while (childType(expr, i) == ID_SEP);
+                        } while (childType(expr, i) == OpCodes.SEP);
                         compile(expr[i], true);
-                        emit(ID_PUT);
+                        emit(OpCodes.PUT);
                         addDepth(-2);
                     }
                     hasResult = true;
 
                     break;
                 }
-                case ID_THROW: {
+                case OpCodes.THROW: {
                     compile(expr[1], true);
-                    emit(ID_THROW);
+                    emit(OpCodes.THROW);
                     addDepth(-1);
                     hasResult = false;
                     break;
                 }
-                case ID_TRY: {
+                case OpCodes.TRY: {
                     //   try -> labelHandle;
                     //   ... body
                     //   untry
@@ -2029,7 +2032,7 @@ public final class LightScript {
 
                     Object[] catchExpr = (Object[]) expr[2];
 
-                    emit(ID_TRY);
+                    emit(OpCodes.TRY);
                     pushShort(0);
                     pos0 = code.length();
                     addDepth(TRY_FRAME_SIZE);
@@ -2037,10 +2040,10 @@ public final class LightScript {
                     curlyToBlock(expr[1]);
                     compile(expr[1], false);
 
-                    emit(ID_UNTRY);
+                    emit(OpCodes.UNTRY);
                     addDepth(-TRY_FRAME_SIZE);
 
-                    emit(ID_JUMP);
+                    emit(OpCodes.JUMP);
                     pushShort(0);
                     pos1 = code.length();
 
@@ -2051,7 +2054,7 @@ public final class LightScript {
                     Object name = ((Object[]) ((Object[]) catchExpr[1])[1])[1];
 
                     compileSet(name);
-                    emit(ID_DROP);
+                    emit(OpCodes.DROP);
                     addDepth(-1);
 
                     curlyToBlock(catchExpr[2]);
@@ -2064,7 +2067,7 @@ public final class LightScript {
                     break;
 
                 }
-                case ID_WHILE: {
+                case OpCodes.WHILE: {
                     // top:
                     //   code for condition
                     //   jump if false -> labelExit
@@ -2080,7 +2083,7 @@ public final class LightScript {
                     pos0 = code.length();
 
                     compile(expr[1], true);
-                    emit(ID_JUMP_IF_FALSE);
+                    emit(OpCodes.JUMP_IF_FALSE);
                     pushShort(0);
                     pos1 = code.length();
                     addDepth(-1);
@@ -2089,14 +2092,14 @@ public final class LightScript {
                     curlyToBlock(expr[2]);
                     compile(expr[2], false);
 
-                    emit(ID_JUMP);
+                    emit(OpCodes.JUMP);
                     pushShort(pos0 - code.length() - 2);
 
                     setShort(pos1, code.length() - pos1);
                     hasResult = false;
                     break;
                 }
-                case ID_DO: {
+                case OpCodes.DO: {
                     int pos0;
                     pos0 = code.length();
 
@@ -2104,20 +2107,20 @@ public final class LightScript {
                     compile(expr[1], false);
 
                     compile(((Object[]) expr[2])[1], true);
-                    emit(ID_JUMP_IF_TRUE);
+                    emit(OpCodes.JUMP_IF_TRUE);
                     pushShort(pos0 - code.length() - 2);
                     addDepth(-1);
                     hasResult = false;
                     break;
                 }
-                case ID_DEC: {
-                    compile(v(ID_SET, expr[1], v(ID_SUB, expr[1],
-                            v(ID_LITERAL, new Integer(1)))), yieldResult);
+                case OpCodes.DEC: {
+                    compile(v(OpCodes.SET, expr[1], v(OpCodes.SUB, expr[1],
+                            v(OpCodes.LITERAL, new Integer(1)))), yieldResult);
                     return;
                 }
-                case ID_INC: {
-                    compile(v(ID_SET, expr[1], v(ID_ADD, expr[1],
-                            v(ID_LITERAL, new Integer(1)))), yieldResult);
+                case OpCodes.INC: {
+                    compile(v(OpCodes.SET, expr[1], v(OpCodes.ADD, expr[1],
+                            v(OpCodes.LITERAL, new Integer(1)))), yieldResult);
                     return;
                 }
                 default:
@@ -2129,10 +2132,10 @@ public final class LightScript {
             }
 
             if (hasResult && !yieldResult) {
-                emit(ID_DROP);
+                emit(OpCodes.DROP);
                 addDepth(-1);
             } else if (yieldResult && !hasResult) {
-                compile(v(ID_LITERAL, UNDEFINED), true);
+                compile(v(OpCodes.LITERAL, UNDEFINED), true);
             }
         }
         //</editor-fold>
@@ -2208,11 +2211,11 @@ public final class LightScript {
                             + " int:" + readShort(pc, code));
                 }
                 switch (code[pc]) {
-                    case ID_INC_SP: {
+                    case OpCodes.INC_SP: {
                         sp += code[++pc];
                         break;
                     }
-                    case ID_RETURN: {
+                    case OpCodes.RETURN: {
                         int arg = readShort(pc, code);
                         pc += 2;
                         Object result = stack[sp];
@@ -2243,14 +2246,14 @@ public final class LightScript {
                         }
                         break;
                     }
-                    case ID_SAVE_PC: {
+                    case OpCodes.SAVE_PC: {
                         stack[++sp] = thisPtr;
                         stack[++sp] = closure;
                         stack[++sp] = constPool;
                         stack[++sp] = code;
                         break;
                     }
-                    case ID_CALL_FN: {
+                    case OpCodes.CALL_FN: {
                         int argc = code[++pc];
                         Object o = stack[sp - argc - 1];
                         if (o instanceof Code) {
@@ -2303,7 +2306,7 @@ public final class LightScript {
                         }
                         break;
                     }
-                    case ID_BUILD_FN: {
+                    case OpCodes.BUILD_FN: {
                         int arg = readShort(pc, code);
                         pc += 2;
                         Code fn = new Code((Code) stack[sp]);
@@ -2316,72 +2319,72 @@ public final class LightScript {
                         stack[sp] = fn;
                         break;
                     }
-                    case ID_SET_BOXED: {
+                    case OpCodes.SET_BOXED: {
                         int arg = readShort(pc, code);
                         pc += 2;
                         ((Object[]) stack[sp - arg])[0] = stack[sp];
                         break;
                     }
-                    case ID_SET_LOCAL: {
+                    case OpCodes.SET_LOCAL: {
                         int arg = readShort(pc, code);
                         pc += 2;
                         stack[sp - arg] = stack[sp];
                         break;
                     }
-                    case ID_SET_CLOSURE: {
+                    case OpCodes.SET_CLOSURE: {
                         int arg = readShort(pc, code);
                         pc += 2;
                         ((Object[]) closure[arg])[0] = stack[sp];
                         break;
                     }
-                    case ID_GET_BOXED: {
+                    case OpCodes.GET_BOXED: {
                         int arg = readShort(pc, code);
                         pc += 2;
                         Object o = ((Object[]) stack[sp - arg])[0];
                         stack[++sp] = o;
                         break;
                     }
-                    case ID_GET_LOCAL: {
+                    case OpCodes.GET_LOCAL: {
                         int arg = readShort(pc, code);
                         pc += 2;
                         Object o = stack[sp - arg];
                         stack[++sp] = o;
                         break;
                     }
-                    case ID_GET_CLOSURE: {
+                    case OpCodes.GET_CLOSURE: {
                         int arg = readShort(pc, code);
                         pc += 2;
                         stack[++sp] = ((Object[]) closure[arg])[0];
                         break;
                     }
-                    case ID_GET_BOXED_CLOSURE: {
+                    case OpCodes.GET_BOXED_CLOSURE: {
                         int arg = readShort(pc, code);
                         pc += 2;
                         stack[++sp] = closure[arg];
                         break;
                     }
-                    case ID_LITERAL: {
+                    case OpCodes.LITERAL: {
                         int arg = readShort(pc, code);
                         pc += 2;
                         stack[++sp] = constPool[arg];
                         break;
                     }
-                    case ID_BOX_IT: {
+                    case OpCodes.BOX_IT: {
                         int arg = readShort(pc, code);
                         pc += 2;
                         Object[] box = {stack[sp - arg]};
                         stack[sp - arg] = box;
                         break;
                     }
-                    case ID_DROP: {
+                    case OpCodes.DROP: {
                         --sp;
                         break;
                     }
-                    case ID_NOT: {
+                    case OpCodes.NOT: {
                         stack[sp] = toBool(stack[sp]) ? FALSE : TRUE;
                         break;
                     }
-                    case ID_NEG: {
+                    case OpCodes.NEG: {
                         Object o = stack[sp];
                         if (o instanceof Integer) {
                             o = new Integer(-((Integer) o).intValue());
@@ -2391,7 +2394,7 @@ public final class LightScript {
                         stack[sp] = o;
                         break;
                     }
-                    case ID_ADD: {
+                    case OpCodes.ADD: {
                         Object o2 = stack[sp];
                         --sp;
                         Object o = stack[sp];
@@ -2405,7 +2408,7 @@ public final class LightScript {
                         }
                         break;
                     }
-                    case ID_SUB: {
+                    case OpCodes.SUB: {
                         Object o2 = stack[sp];
                         Object o1 = stack[--sp];
                         if (o1 instanceof Integer && o2 instanceof Integer) {
@@ -2416,13 +2419,13 @@ public final class LightScript {
                         }
                         break;
                     }
-                    case ID_SHIFT_RIGHT_ARITHMETIC: {
+                    case OpCodes.SHIFT_RIGHT_ARITHMETIC: {
                         int result = toInt(stack[sp]);
                         result = toInt(stack[--sp]) >> result;
                         stack[sp] = new Integer(result);
                         break;
                     }
-                    case ID_MUL: {
+                    case OpCodes.MUL: {
                         Object o2 = stack[sp];
                         Object o1 = stack[--sp];
                         if (o1 instanceof Integer && o2 instanceof Integer) {
@@ -2433,14 +2436,14 @@ public final class LightScript {
                         }
                         break;
                     }
-                    case ID_DIV: {
+                    case OpCodes.DIV: {
                         Object o2 = stack[sp];
                         Object o1 = stack[--sp];
 // CLASS DISPATCH
 //                        stack[sp] = fpDiv(toFp(o1), toFp(o2));
                         break;
                     }
-                    case ID_REM: {
+                    case OpCodes.REM: {
                         Object o2 = stack[sp];
                         Object o1 = stack[--sp];
                         if (o1 instanceof Integer && o2 instanceof Integer) {
@@ -2451,7 +2454,7 @@ public final class LightScript {
                         }
                         break;
                     }
-                    case ID_NOT_EQUALS: {
+                    case OpCodes.NOT_EQUALS: {
                         Object o = stack[sp];
                         --sp;
                         stack[sp] = (o == null)
@@ -2459,7 +2462,7 @@ public final class LightScript {
                                 : (o.equals(stack[sp]) ? FALSE : TRUE);
                         break;
                     }
-                    case ID_EQUALS: {
+                    case OpCodes.EQUALS: {
                         Object o = stack[sp];
                         --sp;
                         stack[sp] = (o == null)
@@ -2467,7 +2470,7 @@ public final class LightScript {
                                 : (o.equals(stack[sp]) ? TRUE : FALSE);
                         break;
                     }
-                    case ID_PUT: {
+                    case OpCodes.PUT: {
                         Object val = stack[sp];
                         Object key = stack[--sp];
                         Object container = stack[--sp];
@@ -2492,7 +2495,7 @@ public final class LightScript {
                         }
                         break;
                     }
-                    case ID_SUBSCRIPT: {
+                    case OpCodes.SUBSCRIPT: {
                         Object key = stack[sp];
                         Object container = stack[--sp];
                         Object result = null;
@@ -2504,7 +2507,7 @@ public final class LightScript {
                             result = ((Hashtable) container).get(key);
                             if (result == null) {
                                 Object prototype = ((Hashtable) container).get("__proto__");
-                                // repeat case ID_SUBSCRIPT with prototype as container
+                                // repeat case OpCodes.SUBSCRIPT with prototype as container
                                 if (prototype != null) {
                                     stack[sp] = prototype;
                                     sp += 1;
@@ -2566,16 +2569,16 @@ public final class LightScript {
                         stack[sp] = result;
                         break;
                     }
-                    case ID_PUSH: {
+                    case OpCodes.PUSH: {
                         Object o = stack[sp];
                         ((Stack) stack[--sp]).push(o);
                         break;
                     }
-                    case ID_POP: {
+                    case OpCodes.POP: {
                         stack[sp] = ((Stack) stack[sp]).pop();
                         break;
                     }
-                    case ID_LESS: {
+                    case OpCodes.LESS: {
                         Object o2 = stack[sp];
                         Object o1 = stack[--sp];
                         if (o1 instanceof Integer && o2 instanceof Integer) {
@@ -2588,7 +2591,7 @@ public final class LightScript {
                         }
                         break;
                     }
-                    case ID_LESS_EQUALS: {
+                    case OpCodes.LESS_EQUALS: {
                         Object o2 = stack[sp];
                         Object o1 = stack[--sp];
                         if (o1 instanceof Integer && o2 instanceof Integer) {
@@ -2601,14 +2604,14 @@ public final class LightScript {
                         }
                         break;
                     }
-                    case ID_JUMP: {
+                    case OpCodes.JUMP: {
                         pc += readShort(pc, code) + 2;
                         if (__DO_YIELD__) {
                             Thread.yield();
                         }
                         break;
                     }
-                    case ID_JUMP_IF_UNDEFINED: {
+                    case OpCodes.JUMP_IF_UNDEFINED: {
                         if (UNDEFINED != stack[sp]) {
                             pc += 2;
                         } else {
@@ -2620,7 +2623,7 @@ public final class LightScript {
                         --sp;
                         break;
                     }
-                    case ID_JUMP_IF_FALSE: {
+                    case OpCodes.JUMP_IF_FALSE: {
                         if (toBool(stack[sp])) {
                             pc += 2;
                         } else {
@@ -2632,7 +2635,7 @@ public final class LightScript {
                         --sp;
                         break;
                     }
-                    case ID_JUMP_IF_TRUE: {
+                    case OpCodes.JUMP_IF_TRUE: {
                         if (toBool(stack[sp])) {
                             pc += readShort(pc, code) + 2;
                         } else {
@@ -2641,35 +2644,35 @@ public final class LightScript {
                         --sp;
                         break;
                     }
-                    case ID_DUP: {
+                    case OpCodes.DUP: {
                         Object o = stack[sp];
                         stack[++sp] = o;
                         break;
                     }
-                    case ID_NEW_LIST: {
+                    case OpCodes.NEW_LIST: {
                         stack[++sp] = new Stack();
                         break;
                     }
-                    case ID_NEW_DICT: {
+                    case OpCodes.NEW_DICT: {
                         stack[++sp] = new Hashtable();
                         break;
                     }
-                    case ID_SET_THIS: {
+                    case OpCodes.SET_THIS: {
                         thisPtr = stack[sp];
                         --sp;
                         break;
                     }
-                    case ID_THIS: {
+                    case OpCodes.THIS: {
                         stack[++sp] = thisPtr;
                         break;
                     }
-                    case ID_SWAP: {
+                    case OpCodes.SWAP: {
                         Object t = stack[sp];
                         stack[sp] = stack[sp - 1];
                         stack[sp - 1] = t;
                         break;
                     }
-                    case ID_THROW: {
+                    case OpCodes.THROW: {
                         Object result = stack[sp];
                         if (exceptionHandler < 0) {
                             throw new LightScriptException(result);
@@ -2686,7 +2689,7 @@ public final class LightScript {
                         }
                         break;
                     }
-                    case ID_TRY: {
+                    case OpCodes.TRY: {
                         stack[++sp] = closure;
                         stack[++sp] = constPool;
                         stack[++sp] = code;
@@ -2696,25 +2699,25 @@ public final class LightScript {
                         pc += 2;
                         break;
                     }
-                    case ID_UNTRY: {
+                    case OpCodes.UNTRY: {
                         exceptionHandler = ((Integer) stack[sp]).intValue();
                         sp -= TRY_FRAME_SIZE;
                         break;
                     }
-                    case ID_NEW_ITER: {
+                    case OpCodes.NEW_ITER: {
                         stack[sp] = ((LightScriptFunction) executionContext[EC_NEW_ITER]).apply(stack, sp, 0);
                         break;
                     }
-                    case ID_NEXT: {
+                    case OpCodes.NEXT: {
                         LightScriptFunction iter = (LightScriptFunction) stack[sp];
                         stack[++sp] = iter.apply(stack, sp, 0);
                         break;
                     }
-                    case ID_GLOBAL: {
+                    case OpCodes.GLOBAL: {
                         stack[++sp] = globals;
                         break;
                     }
-                    case ID_DELETE: {
+                    case OpCodes.DELETE: {
                         Object key = stack[sp];
                         Object container = stack[--sp];
                         //CLASS DISPATCH replace below
@@ -2729,37 +2732,37 @@ public final class LightScript {
                         }
                         break;
                     }
-                    case ID_SHIFT_RIGHT: {
+                    case OpCodes.SHIFT_RIGHT: {
                         int result = toInt(stack[sp]);
                         result = toInt(stack[--sp]) >>> result;
                         stack[sp] = new Integer(result);
                         break;
                     }
-                    case ID_SHIFT_LEFT: {
+                    case OpCodes.SHIFT_LEFT: {
                         int result = toInt(stack[sp]);
                         result = toInt(stack[--sp]) << result;
                         stack[sp] = new Integer(result);
                         break;
                     }
-                    case ID_BITWISE_OR: {
+                    case OpCodes.BITWISE_OR: {
                         int result = toInt(stack[sp]);
                         result = toInt(stack[--sp]) | result;
                         stack[sp] = new Integer(result);
                         break;
                     }
-                    case ID_BITWISE_XOR: {
+                    case OpCodes.BITWISE_XOR: {
                         int result = toInt(stack[sp]);
                         result = toInt(stack[--sp]) ^ result;
                         stack[sp] = new Integer(result);
                         break;
                     }
-                    case ID_BITWISE_AND: {
+                    case OpCodes.BITWISE_AND: {
                         int result = toInt(stack[sp]);
                         result = toInt(stack[--sp]) & result;
                         stack[sp] = new Integer(result);
                         break;
                     }
-                    case ID_BITWISE_NOT: {
+                    case OpCodes.BITWISE_NOT: {
                         int result = ~toInt(stack[sp]);
                         stack[sp] = new Integer(result);
                         break;
