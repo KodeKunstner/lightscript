@@ -17,6 +17,7 @@ import java.util.Stack;
  */
 public class HTMLParser {
 
+    public static boolean doTrim = true;
     /**
      * Parse a HTML document from an input stream
      * @param is the inputstream to parse
@@ -190,7 +191,10 @@ public class HTMLParser {
                 while (!eof && !(startsWith("<"))) {
                     appendc();
                 }
-                content = readbuffer.toString().trim();
+                content = readbuffer.toString();
+                if(doTrim) {
+                    content = content.trim();
+                }
             }
         }
     }

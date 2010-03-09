@@ -1,5 +1,10 @@
+- Split parser/compiler
+- move execute&friends from LightScript to Code
+- rename from com.solsort.mobile to com.solsort.lightscript
+- avoid public functions...
 - Switch from LightScriptObject-interface to LightScriptClass-class
   - Dispatch on .getClass(), and a class table
+- reimplement and extend stdlib + float + gui
 
 a la:
 
