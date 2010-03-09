@@ -10,9 +10,8 @@ import java.util.Hashtable;
 import java.util.Random;
 import java.util.Stack;
 
-class StdLib implements LightScriptFunction, LightScriptObject {
+class StdLib implements LightScriptFunction {
 
-    private static final int EC_GLOBALS = 0;
     private static final int EC_OBJECT_PROTOTYPE = 1;
     private static final int EC_ARRAY_PROTOTYPE = 2;
     private static final int EC_FUNCTION_PROTOTYPE = 3;
@@ -36,7 +35,6 @@ class StdLib implements LightScriptFunction, LightScriptObject {
      * and takes the key as argument
      */
     private static final int EC_GETTER = 6;
-    private static final int EC_WRAPPED_GLOBALS = 7;
     private static final int EC_NEW_ITER = 8;
 
     private int id;
@@ -84,33 +82,7 @@ class StdLib implements LightScriptFunction, LightScriptObject {
         , 0// toString
     };
 
-    public void set(Object key, Object value) {
-        if (id == STD_GLOBAL_WRAPPER) {
-            Object[] box = (Object[]) ((Hashtable) closure[EC_GLOBALS]).get(key);
-            if (box == null) {
-                box = new Object[1];
-                ((Hashtable) closure[EC_GLOBALS]).put(key, box);
-            }
-            box[0] = value;
-        }
-    }
-
-    public Object get(Object key) {
-        if (id == STD_GLOBAL_WRAPPER) {
-            Object[] box = (Object[]) ((Hashtable) closure[EC_GLOBALS]).get(key);
-            if (box == null) {
-                return null;
-            } else {
-                return box[0];
-            }
-        } else if ("length".equals(key)) {
-            return new Integer(argcs[id]);
-        } else {
-
-            return null;
-        }
-    }
-
+    
     private static Hashtable clone(Object o) {
         Hashtable result = new Hashtable();
         result.put("__proto__", o);
@@ -354,10 +326,6 @@ class StdLib implements LightScriptFunction, LightScriptObject {
         ls.executionContext[EC_GETTER] = defaultGetter;
 
         ls.executionContext[EC_NEW_ITER] = new StdLib(STD_NEW_ITERATOR);
-
-        StdLib globalWrapper = new StdLib(STD_GLOBAL_WRAPPER);
-        globalWrapper.closure = ls.executionContext;
-        ls.executionContext[EC_WRAPPED_GLOBALS] = globalWrapper;
 
 
         for (int i = 0; i < names.length; i++) {

@@ -14,11 +14,9 @@ Copyright, 2009-2010, Rasmus Jensen, rasmus@solsort.com
 Contact for other licensing options.
  */
 import java.io.InputStream;
-import java.util.Enumeration;
 import java.io.ByteArrayInputStream;
 import java.util.Hashtable;
 import java.util.Stack;
-import java.util.Random;
 
 /*`\subsection{Variables}'*/
 /** Instances of the LightScript object, is an execution context,
@@ -32,6 +30,8 @@ import java.util.Random;
 
 
 public final class LightScript {
+    // TODO: globals object
+    private static Object globals = null;
 
     public static int toInt(Object object) {
         if(object instanceof Integer) {
@@ -44,18 +44,7 @@ public final class LightScript {
 
     /*`\subsection{Public functions}'*/
     // <editor-fold desc="public api">
-    /** Get the default iterator function */
-    public LightScriptObject defaultIterator() {
-        return (LightScriptObject) executionContext[EC_NEW_ITER];
-    }
-
-    /** Set the default-setter function.
-     * The default iterator function is called as a method on the object,
-     * and should return an iterator across that object. */
-    public void defaultIterator(LightScriptFunction f) {
-        executionContext[EC_NEW_ITER] = f;
-    }
-
+    
     /** Get the default-setter function */
     public LightScriptFunction defaultSetter() {
         return (LightScriptFunction) executionContext[EC_SETTER];
@@ -153,7 +142,7 @@ public final class LightScript {
             }
             compiledCode.closure[i] = box;
         }
-        Object stack[] = {executionContext[EC_WRAPPED_GLOBALS]};
+        Object stack[] = {globals};
         return execute(compiledCode, stack, 0);
     }
 
@@ -170,12 +159,22 @@ public final class LightScript {
 
     /** Set a global value for this execution context */
     public void set(Object key, Object value) {
-        ((LightScriptObject) executionContext[EC_WRAPPED_GLOBALS]).set(key, value);
+            Object[] box = (Object[]) ((Hashtable) executionContext[EC_GLOBALS]).get(key);
+            if (box == null) {
+                box = new Object[1];
+                ((Hashtable) executionContext[EC_GLOBALS]).put(key, box);
+            }
+            box[0] = value;
     }
 
     /** Retrieve a global value from this execution context */
     public Object get(Object key) {
-        return ((LightScriptObject) executionContext[EC_WRAPPED_GLOBALS]).get(key);
+            Object[] box = (Object[]) ((Hashtable) executionContext[EC_GLOBALS]).get(key);
+            if (box == null) {
+                return null;
+            } else {
+                return box[0];
+            }
     }
     /** The true truth value of results
      * of tests/comparisons within LightScript */
@@ -393,7 +392,6 @@ public final class LightScript {
      * and takes the key as argument
      */
     private static final int EC_GETTER = 6;
-    private static final int EC_WRAPPED_GLOBALS = 7;
     private static final int EC_NEW_ITER = 8;
     //</editor-fold>
     // <editor-fold desc="properties">
@@ -2724,7 +2722,7 @@ public final class LightScript {
                         break;
                     }
                     case ID_GLOBAL: {
-                        stack[++sp] = executionContext[EC_WRAPPED_GLOBALS];
+                        stack[++sp] = globals;
                         break;
                     }
                     case ID_DELETE: {
