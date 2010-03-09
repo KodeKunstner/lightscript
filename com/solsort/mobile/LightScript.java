@@ -26,16 +26,14 @@ import java.util.Stack;
  * @version 1.2
  */
 // </editor-fold>
-
-
-
 public final class LightScript {
     // TODO: globals object
+
     private static Object globals = null;
 
     public static int toInt(Object object) {
-        if(object instanceof Integer) {
-            return ((Integer)object).intValue();
+        if (object instanceof Integer) {
+            return ((Integer) object).intValue();
         }
         // CLASS DISPATCH
 
@@ -44,7 +42,6 @@ public final class LightScript {
 
     /*`\subsection{Public functions}'*/
     // <editor-fold desc="public api">
-    
     /** Get the default-setter function */
     public LightScriptFunction defaultSetter() {
         return (LightScriptFunction) executionContext[EC_SETTER];
@@ -109,49 +106,13 @@ public final class LightScript {
         return eval(new ByteArrayInputStream(s.getBytes()));
     }
 
-    /** Evaluate the next statement from an input stream */
-    public Object evalNext(InputStream is) throws LightScriptException {
-// if we debug, we want the real exception, with line number..
-        if (is != this.is) {
-            this.is = is;
-            sb = new StringBuffer();
-            c = ' ';
-            varsArgc = 0;
-            nextToken();
-        }
-        while (token == TOKEN_SEP) {
-            nextToken();
-        }
-        if (tokenVal == EOF || token == TOKEN_END) {
-            return null;
-        }
-        // parse with every var in closure
-        varsUsed = varsLocals = varsBoxed = new Stack();
-        Object[] os = parse(0);
-        varsClosure = varsUsed;
-
-        // compile
-        Code compiledCode = compile(os);
-        // create closure from globals
-        for (int i = 0; i < compiledCode.closure.length; i++) {
-            Object box = ((Hashtable) executionContext[EC_GLOBALS]).get(compiledCode.closure[i]);
-            if (box == null) {
-                box = new Object[1];
-                ((Object[]) box)[0] = UNDEFINED;
-                ((Hashtable) executionContext[EC_GLOBALS]).put(compiledCode.closure[i], box);
-            }
-            compiledCode.closure[i] = box;
-        }
-        Object stack[] = {globals};
-        return execute(compiledCode, stack, 0);
-    }
-
     /** Parse and execute LightScript code read from an input stream */
     public Object eval(InputStream is) throws LightScriptException {
         Object result, t = UNDEFINED;
+        Compiler c = new Compiler(is, executionContext);
         do {
             result = t;
-            t = evalNext(is);
+            t = c.evalNext(is);
         } while (t != null);
 
         return result;
@@ -159,22 +120,22 @@ public final class LightScript {
 
     /** Set a global value for this execution context */
     public void set(Object key, Object value) {
-            Object[] box = (Object[]) ((Hashtable) executionContext[EC_GLOBALS]).get(key);
-            if (box == null) {
-                box = new Object[1];
-                ((Hashtable) executionContext[EC_GLOBALS]).put(key, box);
-            }
-            box[0] = value;
+        Object[] box = (Object[]) ((Hashtable) executionContext[EC_GLOBALS]).get(key);
+        if (box == null) {
+            box = new Object[1];
+            ((Hashtable) executionContext[EC_GLOBALS]).put(key, box);
+        }
+        box[0] = value;
     }
 
     /** Retrieve a global value from this execution context */
     public Object get(Object key) {
-            Object[] box = (Object[]) ((Hashtable) executionContext[EC_GLOBALS]).get(key);
-            if (box == null) {
-                return null;
-            } else {
-                return box[0];
-            }
+        Object[] box = (Object[]) ((Hashtable) executionContext[EC_GLOBALS]).get(key);
+        if (box == null) {
+            return null;
+        } else {
+            return box[0];
+        }
     }
     /** The true truth value of results
      * of tests/comparisons within LightScript */
@@ -394,49 +355,6 @@ public final class LightScript {
     private static final int EC_GETTER = 6;
     private static final int EC_NEW_ITER = 8;
     //</editor-fold>
-    // <editor-fold desc="properties">
-    /** This stack is used during compilation to build the constant pool
-     * of the compiled function. The constant pool contains the constants
-     * that are used during execution of the function */
-    private Stack constPool;
-
-    /* Used to keep track of stack depth during compilation, to be able to
-     * resolve variables */
-    private int maxDepth;
-    private int depth;
-    /** This stringbuffer is used as a dynamically sized bytevector
-     * where opcodes are added, during the compilation */
-    private StringBuffer code;
-    /** The stream which we are parsing */
-    private InputStream is;
-    /** the just read character */
-    private int c;
-    /** the buffer for building the tokens */
-    private StringBuffer sb;
-
-    /* Per function statistics
-     * Sets of variable names for keeping track of which variables
-     * are used where and how, in order to know whether they should
-     * be boxed, and be placed on the stack or in closures. */
-    /** The variables used within a function */
-    private Stack varsUsed;
-    /** The variables that needs to be boxed */
-    private Stack varsBoxed;
-    /** The local variables (arguments, and var-defined) */
-    private Stack varsLocals;
-    /** The variables in the closure */
-    private Stack varsClosure;
-    /** The number of arguments to the function, corresponds to the first
-     * names in varsLocals */
-    private int varsArgc;
-    /** The value of the just read token.
-     * used if the token is an identifier or literal.
-     * possible types are String and Integer */
-    private Object tokenVal;
-    /** The integer encoded token object, including priority, IDs
-     * and Function ids for null/left denominator functions */
-    private int token;
-    //</editor-fold>
     /*`\subsection{Debugging}'*/
     //<editor-fold>
     /** Mapping from ID to name of ID */
@@ -569,7 +487,7 @@ public final class LightScript {
      * Analysis of variables in a function being compiled,
      * updated during the parsing.
      */
-    private static class Code implements LightScriptFunction {
+    public static class Code implements LightScriptFunction {
 
         public Object apply(Object[] args, int argpos, int argcount)
                 throws LightScriptException {
@@ -610,1182 +528,1400 @@ public final class LightScript {
         }
     }
 
-    /*`\section{Tokeniser}'\index{Tokeniser}*/
-    // <editor-fold>
-    /** Read the next character from the input stream */
-    private void nextc() {
-        try {
-            c = is.read();
-        } catch (Exception e) {
-            c = -1;
+    public static class Compiler {
+
+        /** Evaluate the next statement from an input stream */
+        public Object evalNext(InputStream is) throws LightScriptException {
+// if we debug, we want the real exception, with line number..
+            while (token == TOKEN_SEP) {
+                nextToken();
+            }
+            if (tokenVal == EOF || token == TOKEN_END) {
+                return null;
+            }
+            // parse with every var in closure
+            varsUsed = varsLocals = varsBoxed = new Stack();
+            Object[] os = parse(0);
+            varsClosure = varsUsed;
+
+            // compile
+            Code compiledCode = compile(os);
+            // create closure from globals
+            for (int i = 0; i < compiledCode.closure.length; i++) {
+                Object box = ((Hashtable) executionContext[EC_GLOBALS]).get(compiledCode.closure[i]);
+                if (box == null) {
+                    box = new Object[1];
+                    ((Object[]) box)[0] = UNDEFINED;
+                    ((Hashtable) executionContext[EC_GLOBALS]).put(compiledCode.closure[i], box);
+                }
+                compiledCode.closure[i] = box;
+            }
+            Object stack[] = {globals};
+            return execute(compiledCode, stack, 0);
         }
-    }
 
-    /** Append a character to the token buffer */
-    private void pushc() {
-        sb.append((char) c);
-        nextc();
-    }
+        public Compiler(InputStream is, Object[] executionContext) {
+            this.is = is;
+            this.executionContext = executionContext;
+            this.sb = new StringBuffer();
+            this.c = ' ';
+            this.varsArgc = 0;
+            nextToken();
+        }
+        private Object executionContext[];
+        private static Hashtable idMapping;
+        // <editor-fold desc="properties">
+        /** This stack is used during compilation to build the constant pool
+         * of the compiled function. The constant pool contains the constants
+         * that are used during execution of the function */
+        private Stack constPool;
 
-    /** Test if the current character is a number */
-    private boolean isNum() {
-        return '0' <= c && c <= '9';
-    }
+        /* Used to keep track of stack depth during compilation, to be able to
+         * resolve variables */
+        private int maxDepth;
+        private int depth;
+        /** This stringbuffer is used as a dynamically sized bytevector
+         * where opcodes are added, during the compilation */
+        private StringBuffer code;
+        /** The stream which we are parsing */
+        private InputStream is;
+        /** the just read character */
+        private int c;
+        /** the buffer for building the tokens */
+        private StringBuffer sb;
 
-    /** Test if the current character is alphanumeric */
-    private boolean isAlphaNum() {
-        return isNum() || c == '_' || ('a' <= c && c <= 'z')
-                || c == '$' || ('A' <= c && c <= 'Z');
-    }
+        /* Per function statistics
+         * Sets of variable names for keeping track of which variables
+         * are used where and how, in order to know whether they should
+         * be boxed, and be placed on the stack or in closures. */
+        /** The variables used within a function */
+        private Stack varsUsed;
+        /** The variables that needs to be boxed */
+        private Stack varsBoxed;
+        /** The local variables (arguments, and var-defined) */
+        private Stack varsLocals;
+        /** The variables in the closure */
+        private Stack varsClosure;
+        /** The number of arguments to the function, corresponds to the first
+         * names in varsLocals */
+        private int varsArgc;
+        /** The value of the just read token.
+         * used if the token is an identifier or literal.
+         * possible types are String and Integer */
+        private Object tokenVal;
+        /** The integer encoded token object, including priority, IDs
+         * and Function ids for null/left denominator functions */
+        private int token;
+        //</editor-fold>
 
-    /** Test if the current character could be a part of a multi character 
-     * symbol, such as &&, ||, += and the like. */
-    private boolean isSymb() {
-        return c == '=' || c == '!' || c == '<' || c == '&' || c == '/' || c == '*'
-                || c == '%' || c == '|' || c == '+' || c == '-' || c == '>';
-    }
+        /*`\section{Tokeniser}'\index{Tokeniser}*/
+        // <editor-fold>
+        /** Read the next character from the input stream */
+        private void nextc() {
+            try {
+                c = is.read();
+            } catch (Exception e) {
+                c = -1;
+            }
+        }
 
-    /** Read the next toke from the input stream. 
-     * The token is stored in the token and tokenVal property. */
-    private void nextToken() {
-        sb.setLength(0);
+        /** Append a character to the token buffer */
+        private void pushc() {
+            sb.append((char) c);
+            nextc();
+        }
 
-        // skip whitespaces
-        while (c == ' ' || c == '\n' || c == '\t' || c == '\r' || c == '/') {
-            // comments
-            if (c == '/') {
-                nextc();
+        /** Test if the current character is a number */
+        private boolean isNum() {
+            return '0' <= c && c <= '9';
+        }
+
+        /** Test if the current character is alphanumeric */
+        private boolean isAlphaNum() {
+            return isNum() || c == '_' || ('a' <= c && c <= 'z')
+                    || c == '$' || ('A' <= c && c <= 'Z');
+        }
+
+        /** Test if the current character could be a part of a multi character
+         * symbol, such as &&, ||, += and the like. */
+        private boolean isSymb() {
+            return c == '=' || c == '!' || c == '<' || c == '&' || c == '/' || c == '*'
+                    || c == '%' || c == '|' || c == '+' || c == '-' || c == '>';
+        }
+
+        /** Read the next toke from the input stream.
+         * The token is stored in the token and tokenVal property. */
+        private void nextToken() {
+            sb.setLength(0);
+
+            // skip whitespaces
+            while (c == ' ' || c == '\n' || c == '\t' || c == '\r' || c == '/') {
+                // comments
                 if (c == '/') {
-                    while (c != '\n' && c != -1) {
-                        nextc();
-                    }
-                } else if (c == '*') {
-                    for (;;) {
-                        nextc();
-                        if (c == '*') {
+                    nextc();
+                    if (c == '/') {
+                        while (c != '\n' && c != -1) {
                             nextc();
-                            if (c == '/') {
-                                break;
+                        }
+                    } else if (c == '*') {
+                        for (;;) {
+                            nextc();
+                            if (c == '*') {
+                                nextc();
+                                if (c == '/') {
+                                    break;
+                                }
                             }
                         }
-                    }
-                } else {
-                    resolveToken("/");
-                    return;
-                }
-            }
-            nextc();
-        }
-
-        // End of file
-        if (c == -1) {
-            token = TOKEN_END;
-            tokenVal = EOF;
-            return;
-
-            // String
-        } else if (c == '"' || c == '\'') {
-            int quote = c;
-            nextc();
-            while (c != -1 && c != quote) {
-                if (c == '\\') {
-                    nextc();
-                    if (c == 'n') {
-                        c = '\n';
+                    } else {
+                        resolveToken("/");
+                        return;
                     }
                 }
+                nextc();
+            }
+
+            // End of file
+            if (c == -1) {
+                token = TOKEN_END;
+                tokenVal = EOF;
+                return;
+
+                // String
+            } else if (c == '"' || c == '\'') {
+                int quote = c;
+                nextc();
+                while (c != -1 && c != quote) {
+                    if (c == '\\') {
+                        nextc();
+                        if (c == 'n') {
+                            c = '\n';
+                        }
+                    }
+                    pushc();
+                }
+                nextc();
+                token = TOKEN_LITERAL;
+                tokenVal = sb.toString();
+                return;
+
+                // Number
+            } else if (isNum()) {
+                do {
+                    pushc();
+                } while (isNum());
+                token = TOKEN_LITERAL;
+                tokenVal = Integer.valueOf(sb.toString());
+                return;
+
+                // Identifier
+            } else if (isAlphaNum()) {
+                do {
+                    pushc();
+                } while (isAlphaNum());
+
+                // Long symbol !== , ===, <= , &&, ...
+            } else if (isSymb()) {
+                do {
+                    pushc();
+                } while (isSymb());
+
+                // Single symbol
+            } else {
                 pushc();
             }
-            nextc();
-            token = TOKEN_LITERAL;
-            tokenVal = sb.toString();
+            resolveToken(sb.toString());
             return;
-
-            // Number
-        } else if (isNum()) {
-            do {
-                pushc();
-            } while (isNum());
-            token = TOKEN_LITERAL;
-            tokenVal = Integer.valueOf(sb.toString());
-            return;
-
-            // Identifier
-        } else if (isAlphaNum()) {
-            do {
-                pushc();
-            } while (isAlphaNum());
-
-            // Long symbol !== , ===, <= , &&, ...
-        } else if (isSymb()) {
-            do {
-                pushc();
-            } while (isSymb());
-
-            // Single symbol
-        } else {
-            pushc();
         }
-        resolveToken(sb.toString());
-        return;
-    }
-    //</editor-fold>
+        //</editor-fold>
     /*`\section{Parser}\label{code-lightscript-parser}
-    \index{Top down operator precedence parser}'*/
-    //<editor-fold>
+        \index{Top down operator precedence parser}'*/
+        //<editor-fold>
 
-    /** Parse the next expression from the input stream
-     * @param rbp right binding power
-     */
-    private Object[] parse(int rbp) {
-        Object[] left = nud(token);
+        /** Parse the next expression from the input stream
+         * @param rbp right binding power
+         */
+        private Object[] parse(int rbp) {
+            Object[] left = nud(token);
 
-        // token & MASK_BP extract the binding power/priority of the token
-        while (rbp < (token & MASK_BP)) {
-            left = led(token, left);
+            // token & MASK_BP extract the binding power/priority of the token
+            while (rbp < (token & MASK_BP)) {
+                left = led(token, left);
+            }
+
+            return left;
         }
 
-        return left;
-    }
+        /** Read expressions until an end-token is reached.
+         * @param s an accumulator stack where the expressions are appended
+         * @return an array of parsed expressions, with s prepended
+         */
+        private Object[] readList(Stack s) {
+            while (token != TOKEN_END) {
+                Object[] p = parse(0);
+                s.push(p);
+            }
+            nextToken();
 
-    /** Read expressions until an end-token is reached.
-     * @param s an accumulator stack where the expressions are appended
-     * @return an array of parsed expressions, with s prepended
-     */
-    private Object[] readList(Stack s) {
-        while (token != TOKEN_END) {
-            Object[] p = parse(0);
-            s.push(p);
+            Object[] result = new Object[s.size()];
+            s.copyInto(result);
+            return result;
         }
-        nextToken();
 
-        Object[] result = new Object[s.size()];
-        s.copyInto(result);
-        return result;
-    }
+        /** Call the null denominator function for a given token
+         * and also read the next token. */
+        private Object[] nud(int tok) {
+            Object val = tokenVal;
+            nextToken();
+            int nudId = (tok >> (SIZE_ID + SIZE_FN)) & ((1 << SIZE_ID) - 1);
+            // extract the token function id from tok
+            switch ((tok >> (SIZE_ID * 2 + SIZE_FN)) & ((1 << SIZE_FN) - 1)) {
+                case NUD_IDENT:
+                    stackAdd(varsUsed, val);
+                    return v(ID_IDENT, val);
+                case NUD_LITERAL:
+                    return v(ID_LITERAL, val);
+                case NUD_CONST:
+                    return v(ID_LITERAL,
+                            nudId == ID_TRUE ? TRUE
+                            : nudId == ID_FALSE ? FALSE
+                            : nudId == ID_NULL ? NULL
+                            : UNDEFINED);
+                case NUD_END:
+                    return null;// result does not matter,
+                // as this is removed during parsing
+                case NUD_SEP:
+                    return SEP_TOKEN;
+                case NUD_LIST: {
+                    Stack s = new Stack();
+                    s.push(new Integer(nudId));
+                    return readList(s);
+                }
+                case NUD_ATOM: {
+                    Object[] result = {new Integer(nudId)};
+                    return result;
+                }
+                case NUD_PREFIX:
+                    return v(nudId, parse(0));
+                case NUD_PREFIX2:
+                    return v(nudId, parse(0), parse(0));
+                case NUD_CATCH: {
+                    Object[] o = parse(0);
+                    stackAdd(varsLocals, ((Object[]) o[1])[1]);
+                    return v(nudId, o, parse(0));
+                }
+                case NUD_FUNCTION: {
+                    // The functio nud is a bit more complex than
+                    // the others because variable-use-analysis is done
+                    // during the parsing.
 
-    /** Call the null denominator function for a given token
-     * and also read the next token. */
-    private Object[] nud(int tok) {
-        Object val = tokenVal;
-        nextToken();
-        int nudId = (tok >> (SIZE_ID + SIZE_FN)) & ((1 << SIZE_ID) - 1);
-        // extract the token function id from tok
-        switch ((tok >> (SIZE_ID * 2 + SIZE_FN)) & ((1 << SIZE_FN) - 1)) {
-            case NUD_IDENT:
-                stackAdd(varsUsed, val);
-                return v(ID_IDENT, val);
-            case NUD_LITERAL:
-                return v(ID_LITERAL, val);
-            case NUD_CONST:
-                return v(ID_LITERAL,
-                        nudId == ID_TRUE ? TRUE
-                        : nudId == ID_FALSE ? FALSE
-                        : nudId == ID_NULL ? NULL
-                        : UNDEFINED);
-            case NUD_END:
-                return null;// result does not matter, 
-            // as this is removed during parsing
-            case NUD_SEP:
-                return SEP_TOKEN;
-            case NUD_LIST: {
-                Stack s = new Stack();
-                s.push(new Integer(nudId));
-                return readList(s);
-            }
-            case NUD_ATOM: {
-                Object[] result = {new Integer(nudId)};
-                return result;
-            }
-            case NUD_PREFIX:
-                return v(nudId, parse(0));
-            case NUD_PREFIX2:
-                return v(nudId, parse(0), parse(0));
-            case NUD_CATCH: {
-                Object[] o = parse(0);
-                stackAdd(varsLocals, ((Object[]) o[1])[1]);
-                return v(nudId, o, parse(0));
-            }
-            case NUD_FUNCTION: {
-                // The functio nud is a bit more complex than 
-                // the others because variable-use-analysis is done
-                // during the parsing.
+                    // save statistics for previous function
+                    Stack prevUsed = varsUsed;
+                    Stack prevBoxed = varsBoxed;
+                    Stack prevLocals = varsLocals;
+                    int prevArgc = varsArgc;
 
-                // save statistics for previous function
-                Stack prevUsed = varsUsed;
-                Stack prevBoxed = varsBoxed;
-                Stack prevLocals = varsLocals;
-                int prevArgc = varsArgc;
+                    // create new statistics
+                    varsUsed = new Stack();
+                    varsBoxed = new Stack();
+                    varsLocals = new Stack();
 
-                // create new statistics
-                varsUsed = new Stack();
-                varsBoxed = new Stack();
-                varsLocals = new Stack();
+                    // parse arguments
+                    Object[] args = stripSep(parse(0));
 
-                // parse arguments
-                Object[] args = stripSep(parse(0));
-
-                boolean isNamed = false;
-                String fnName = null;
-                // add function arguments to statistics
-                varsArgc = args.length - 1;
-                if (((Integer) args[0]).intValue() == ID_PAREN) {
-                    for (int i = 1; i < args.length; i++) {
-                        Object[] os = (Object[]) args[i];
+                    boolean isNamed = false;
+                    String fnName = null;
+                    // add function arguments to statistics
+                    varsArgc = args.length - 1;
+                    if (((Integer) args[0]).intValue() == ID_PAREN) {
+                        for (int i = 1; i < args.length; i++) {
+                            Object[] os = (Object[]) args[i];
+                            if (DEBUG_ENABLED) {
+                                if (((Integer) os[0]).intValue() != ID_IDENT) {
+                                    throw new Error("parameter not variable name"
+                                            + stringify(args));
+                                }
+                            }
+                            varsLocals.push(os[1]);
+                        }
+                    } else {
                         if (DEBUG_ENABLED) {
-                            if (((Integer) os[0]).intValue() != ID_IDENT) {
+                            if (((Integer) args[0]).intValue() != ID_CALL_FUNCTION) {
                                 throw new Error("parameter not variable name"
                                         + stringify(args));
                             }
                         }
-                        varsLocals.push(os[1]);
+                        varsArgc--;
+                        fnName = (String) varsUsed.elementAt(0);
+                        varsUsed.removeElementAt(0);
+                        isNamed = true;
+                        for (int i = 0; i < varsUsed.size(); i++) {
+                            varsLocals.push(varsUsed.elementAt(i));
+                        }
+
                     }
-                } else {
-                    if (DEBUG_ENABLED) {
-                        if (((Integer) args[0]).intValue() != ID_CALL_FUNCTION) {
-                            throw new Error("parameter not variable name"
-                                    + stringify(args));
+
+                    // parse the body of the function
+                    // notice that this may update vars{Used|Boxed|Locals}
+                    Object[] body = parse(0);
+
+                    // non-local variables are boxed into the closure
+                    for (int i = 0; i < varsUsed.size(); i++) {
+                        Object o = varsUsed.elementAt(i);
+                        if (!varsLocals.contains(o)) {
+                            stackAdd(varsBoxed, o);
                         }
                     }
-                    varsArgc--;
-                    fnName = (String) varsUsed.elementAt(0);
-                    varsUsed.removeElementAt(0);
-                    isNamed = true;
-                    for (int i = 0; i < varsUsed.size(); i++) {
-                        varsLocals.push(varsUsed.elementAt(i));
+
+                    //  find the variables in the closure
+                    // and add that they need to be boxed at parent.
+                    varsClosure = new Stack();
+                    for (int i = 0; i < varsBoxed.size(); i++) {
+                        Object o = varsBoxed.elementAt(i);
+                        if (!varsLocals.contains(o)) {
+                            stackAdd(prevBoxed, o);
+                            stackAdd(varsClosure, o);
+                        }
                     }
-
-                }
-
-                // parse the body of the function
-                // notice that this may update vars{Used|Boxed|Locals}
-                Object[] body = parse(0);
-
-                // non-local variables are boxed into the closure
-                for (int i = 0; i < varsUsed.size(); i++) {
-                    Object o = varsUsed.elementAt(i);
-                    if (!varsLocals.contains(o)) {
-                        stackAdd(varsBoxed, o);
+                    Object[] result = v(nudId, compile(body));
+                    if (isNamed) {
+                        result = v(ID_SET, v(ID_IDENT, fnName), result);
+                        stackAdd(prevUsed, fnName);
                     }
-                }
+                    varsClosure = null;
 
-                //  find the variables in the closure
-                // and add that they need to be boxed at parent.
-                varsClosure = new Stack();
-                for (int i = 0; i < varsBoxed.size(); i++) {
-                    Object o = varsBoxed.elementAt(i);
-                    if (!varsLocals.contains(o)) {
-                        stackAdd(prevBoxed, o);
-                        stackAdd(varsClosure, o);
-                    }
+                    // restore variable statistics
+                    // notice that varsClosure is not needed,
+                    // as it is calculated before the compile,
+                    // and not updated/used other places
+                    varsUsed = prevUsed;
+                    varsBoxed = prevBoxed;
+                    varsLocals = prevLocals;
+                    varsArgc = prevArgc;
+                    return result;
                 }
-                Object[] result = v(nudId, compile(body));
-                if (isNamed) {
-                    result = v(ID_SET, v(ID_IDENT, fnName), result);
-                    stackAdd(prevUsed, fnName);
-                }
-                varsClosure = null;
-
-                // restore variable statistics
-                // notice that varsClosure is not needed,
-                // as it is calculated before the compile,
-                // and not updated/used other places
-                varsUsed = prevUsed;
-                varsBoxed = prevBoxed;
-                varsLocals = prevLocals;
-                varsArgc = prevArgc;
-                return result;
-            }
-            case NUD_VAR:
-                Object[] expr = parse(0);
-                int type = ((Integer) expr[0]).intValue();
-                if (type == ID_IDENT) {
-                    stackAdd(varsLocals, expr[1]);
-                } else {
-                    Object[] expr2 = (Object[]) expr[1];
-                    if (DEBUG_ENABLED) {
-                        if (type == ID_SET
-                                && ((Integer) expr2[0]).intValue() == ID_IDENT) {
-                            stackAdd(varsLocals, expr2[1]);
+                case NUD_VAR:
+                    Object[] expr = parse(0);
+                    int type = ((Integer) expr[0]).intValue();
+                    if (type == ID_IDENT) {
+                        stackAdd(varsLocals, expr[1]);
+                    } else {
+                        Object[] expr2 = (Object[]) expr[1];
+                        if (DEBUG_ENABLED) {
+                            if (type == ID_SET
+                                    && ((Integer) expr2[0]).intValue() == ID_IDENT) {
+                                stackAdd(varsLocals, expr2[1]);
+                            } else {
+                                throw new Error("Error in var");
+                            }
                         } else {
-                            throw new Error("Error in var");
+                            stackAdd(varsLocals, expr2[1]);
+                        }
+                    }
+                    return v(nudId, expr);
+                default:
+                    if (DEBUG_ENABLED) {
+                        throw new Error("Unknown token: " + token + ", val: " + val);
+                    } else {
+                        return null;
+                    }
+            }
+        }
+
+        /** Call the left denominator function for a given token
+         * and also read the next token. */
+        private Object[] led(int tok, Object left) {
+            nextToken();
+            int bp = tok & MASK_BP;
+            int ledId = tok & ((1 << SIZE_ID) - 1);
+            // extract led function id from token
+            switch ((tok >> SIZE_ID) & ((1 << SIZE_FN) - 1)) {
+                case LED_INFIX:
+                    return v(ledId, left, parse(bp));
+                case LED_INFIX_SWAP:
+                    return v(ledId, parse(bp), left);
+                case LED_OPASSIGN:
+                    return v(ID_SET, left, v(ledId, left, parse(bp - 1)));
+                case LED_INFIXR:
+                    return v(ledId, left, parse(bp - 1));
+                case LED_INFIX_LIST: {
+                    Stack s = new Stack();
+                    s.push(new Integer(ledId));
+                    s.push(left);
+                    return readList(s);
+                }
+                case LED_DOT: {
+                    Stack t = varsUsed;
+                    varsUsed = null;
+                    Object[] right = parse(bp);
+                    varsUsed = t;
+                    if (DEBUG_ENABLED) {
+                        if (((Integer) right[0]).intValue() != ID_IDENT) {
+                            throw new Error("right side of dot not a string: "
+                                    + stringify(right));
+                        }
+                    }
+
+                    right[0] = new Integer(ID_LITERAL);
+                    return v(ID_SUBSCRIPT, left, right);
+                }
+                case LED_INFIX_IF: {
+                    Object branch1 = parse(0);
+                    if (DEBUG_ENABLED) {
+                        if (parse(0) != SEP_TOKEN) {
+                            throw new Error("infix if error");
                         }
                     } else {
-                        stackAdd(varsLocals, expr2[1]);
+                        parse(0);
                     }
+                    Object branch2 = parse(0);
+                    return v(ID_IF, left, v(ID_ELSE, branch1, branch2));
                 }
-                return v(nudId, expr);
-            default:
-                if (DEBUG_ENABLED) {
-                    throw new Error("Unknown token: " + token + ", val: " + val);
-                } else {
-                    return null;
-                }
+                default:
+                    if (DEBUG_ENABLED) {
+                        throw new Error("Unknown led token: " + token);
+                    } else {
+                        return null;
+                    }
+            }
         }
-    }
 
-    /** Call the left denominator function for a given token
-     * and also read the next token. */
-    private Object[] led(int tok, Object left) {
-        nextToken();
-        int bp = tok & MASK_BP;
-        int ledId = tok & ((1 << SIZE_ID) - 1);
-        // extract led function id from token
-        switch ((tok >> SIZE_ID) & ((1 << SIZE_FN) - 1)) {
-            case LED_INFIX:
-                return v(ledId, left, parse(bp));
-            case LED_INFIX_SWAP:
-                return v(ledId, parse(bp), left);
-            case LED_OPASSIGN:
-                return v(ID_SET, left, v(ledId, left, parse(bp - 1)));
-            case LED_INFIXR:
-                return v(ledId, left, parse(bp - 1));
-            case LED_INFIX_LIST: {
-                Stack s = new Stack();
-                s.push(new Integer(ledId));
-                s.push(left);
-                return readList(s);
-            }
-            case LED_DOT: {
-                Stack t = varsUsed;
-                varsUsed = null;
-                Object[] right = parse(bp);
-                varsUsed = t;
-                if (DEBUG_ENABLED) {
-                    if (((Integer) right[0]).intValue() != ID_IDENT) {
-                        throw new Error("right side of dot not a string: "
-                                + stringify(right));
-                    }
-                }
+        // initialise idMappings
+        static {
+            /** This string is used for initialising the idMapping.
+             * Each token type has five properties:
+             * First there is the string of the token,
+             *   then ther is the bindingpower,
+             *   followed by the null denominator function,
+             *     and its corresponding id
+             *   and finally the left denominator function,
+             *     and its corresponding id
+             */
+            String identifiers = ""
+                    + "(EOF)"
+                    + (char) 1
+                    + (char) NUD_END
+                    + (char) ID_NONE
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "]"
+                    + (char) 1
+                    + (char) NUD_END
+                    + (char) ID_NONE
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + ")"
+                    + (char) 1
+                    + (char) NUD_END
+                    + (char) ID_NONE
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "}"
+                    + (char) 1
+                    + (char) NUD_END
+                    + (char) ID_NONE
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "."
+                    + (char) 8
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_DOT
+                    + (char) ID_SUBSCRIPT
+                    + "("
+                    + (char) 7
+                    + (char) NUD_LIST
+                    + (char) ID_PAREN
+                    + (char) LED_INFIX_LIST
+                    + (char) ID_CALL_FUNCTION
+                    + "["
+                    + (char) 7
+                    + (char) NUD_LIST
+                    + (char) ID_LIST_LITERAL
+                    + (char) LED_INFIX_LIST
+                    + (char) ID_SUBSCRIPT
+                    + ">>"
+                    + (char) 6
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX
+                    + (char) ID_SHIFT_RIGHT_ARITHMETIC
+                    + "<<"
+                    + (char) 6
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX
+                    + (char) ID_SHIFT_LEFT
+                    + "|"
+                    + (char) 3
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX
+                    + (char) ID_BITWISE_OR
+                    + "^"
+                    + (char) 3
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX
+                    + (char) ID_BITWISE_XOR
+                    + "&"
+                    + (char) 3
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX
+                    + (char) ID_BITWISE_AND
+                    + "~"
+                    + (char) 1
+                    + (char) NUD_PREFIX
+                    + (char) ID_BITWISE_NOT
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + ">>>"
+                    + (char) 6
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX
+                    + (char) ID_SHIFT_RIGHT
+                    + "/"
+                    + (char) 6
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX
+                    + (char) ID_DIV
+                    + "*"
+                    + (char) 6
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX
+                    + (char) ID_MUL
+                    + "%"
+                    + (char) 6
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX
+                    + (char) ID_REM
+                    + "+"
+                    + (char) 5
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX
+                    + (char) ID_ADD
+                    + "-"
+                    + (char) 5
+                    + (char) NUD_PREFIX
+                    + (char) ID_NEG
+                    + (char) LED_INFIX
+                    + (char) ID_SUB
+                    + "=="
+                    + (char) 4
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX
+                    + (char) ID_EQUALS
+                    + "==="
+                    + (char) 4
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX
+                    + (char) ID_EQUALS
+                    + "!="
+                    + (char) 4
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX
+                    + (char) ID_NOT_EQUALS
+                    + "!=="
+                    + (char) 4
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX
+                    + (char) ID_NOT_EQUALS
+                    + "<="
+                    + (char) 4
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX
+                    + (char) ID_LESS_EQUALS
+                    + "<"
+                    + (char) 4
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX
+                    + (char) ID_LESS
+                    + ">="
+                    + (char) 4
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX_SWAP
+                    + (char) ID_LESS_EQUALS
+                    + ">"
+                    + (char) 4
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX_SWAP
+                    + (char) ID_LESS
+                    + "&&"
+                    + (char) 3
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIXR
+                    + (char) ID_AND
+                    + "||"
+                    + (char) 3
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIXR
+                    + (char) ID_OR
+                    + "else"
+                    + (char) 3
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIXR
+                    + (char) ID_ELSE
+                    + "in"
+                    + (char) 3
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIXR
+                    + (char) ID_IN
+                    + "?"
+                    + (char) 3
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIX_IF
+                    + (char) ID_NONE
+                    + "="
+                    + (char) 2
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_INFIXR
+                    + (char) ID_SET
+                    + "+="
+                    + (char) 2
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_OPASSIGN
+                    + (char) ID_ADD
+                    + "-="
+                    + (char) 2
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_OPASSIGN
+                    + (char) ID_SUB
+                    + "*="
+                    + (char) 2
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_OPASSIGN
+                    + (char) ID_MUL
+                    + "/="
+                    + (char) 2
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_OPASSIGN
+                    + (char) ID_DIV
+                    + "%="
+                    + (char) 2
+                    + (char) NUD_NONE
+                    + (char) ID_NONE
+                    + (char) LED_OPASSIGN
+                    + (char) ID_REM
+                    + "++"
+                    + (char) 1
+                    + (char) NUD_PREFIX
+                    + (char) ID_INC
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "--"
+                    + (char) 1
+                    + (char) NUD_PREFIX
+                    + (char) ID_DEC
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + ":"
+                    + (char) 1
+                    + (char) NUD_SEP
+                    + (char) ID_NONE
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + ";"
+                    + (char) 1
+                    + (char) NUD_SEP
+                    + (char) ID_NONE
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + ","
+                    + (char) 1
+                    + (char) NUD_SEP
+                    + (char) ID_NONE
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "{"
+                    + (char) 1
+                    + (char) NUD_LIST
+                    + (char) ID_CURLY
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "var"
+                    + (char) 1
+                    + (char) NUD_VAR
+                    + (char) ID_VAR
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "delete"
+                    + (char) 1
+                    + (char) NUD_PREFIX
+                    + (char) ID_DELETE
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "new"
+                    + (char) 1
+                    + (char) NUD_PREFIX
+                    + (char) ID_NEW
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "return"
+                    + (char) 1
+                    + (char) NUD_PREFIX
+                    + (char) ID_RETURN
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "!"
+                    + (char) 1
+                    + (char) NUD_PREFIX
+                    + (char) ID_NOT
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "throw"
+                    + (char) 1
+                    + (char) NUD_PREFIX
+                    + (char) ID_THROW
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "try"
+                    + (char) 1
+                    + (char) NUD_PREFIX2
+                    + (char) ID_TRY
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "catch"
+                    + (char) 1
+                    + (char) NUD_CATCH
+                    + (char) ID_CATCH
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "function"
+                    + (char) 1
+                    + (char) NUD_FUNCTION
+                    + (char) ID_BUILD_FUNCTION
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "do"
+                    + (char) 1
+                    + (char) NUD_PREFIX2
+                    + (char) ID_DO
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "for"
+                    + (char) 1
+                    + (char) NUD_PREFIX2
+                    + (char) ID_FOR
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "if"
+                    + (char) 1
+                    + (char) NUD_PREFIX2
+                    + (char) ID_IF
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "while"
+                    + (char) 1
+                    + (char) NUD_PREFIX2
+                    + (char) ID_WHILE
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "undefined"
+                    + (char) 1
+                    + (char) NUD_CONST
+                    + (char) ID_UNDEFINED
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "null"
+                    + (char) 1
+                    + (char) NUD_CONST
+                    + (char) ID_NULL
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "false"
+                    + (char) 1
+                    + (char) NUD_CONST
+                    + (char) ID_FALSE
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "this"
+                    + (char) 1
+                    + (char) NUD_ATOM
+                    + (char) ID_THIS
+                    + (char) LED_NONE
+                    + (char) ID_NONE
+                    + "true"
+                    + (char) 1
+                    + (char) NUD_CONST
+                    + (char) ID_TRUE
+                    + (char) LED_NONE
+                    + (char) ID_NONE;
+            idMapping = new Hashtable();
+            StringBuffer sb = new StringBuffer();
+            for (int i = 0; i < identifiers.length(); i++) {
+                int result = identifiers.charAt(i);
+                // result is the binding power
+                // next in string is encoded nud/led-function/id object
+                if (result < 32) {
+                    // read nud function
+                    result = (result << SIZE_FN) + identifiers.charAt(++i);
+                    // read nud identifier
+                    result = (result << SIZE_ID) + identifiers.charAt(++i);
+                    // read led function
+                    result = (result << SIZE_FN) + identifiers.charAt(++i);
+                    // read led identifier
+                    result = (result << SIZE_ID) + identifiers.charAt(++i);
+                    // save to mapping, and start next string.
+                    idMapping.put(sb.toString(), new Integer(result));
+                    sb.setLength(0);
 
-                right[0] = new Integer(ID_LITERAL);
-                return v(ID_SUBSCRIPT, left, right);
-            }
-            case LED_INFIX_IF: {
-                Object branch1 = parse(0);
-                if (DEBUG_ENABLED) {
-                    if (parse(0) != SEP_TOKEN) {
-                        throw new Error("infix if error");
-                    }
+                    // result is a char to be addded to the string
                 } else {
-                    parse(0);
+                    sb.append((char) result);
                 }
-                Object branch2 = parse(0);
-                return v(ID_IF, left, v(ID_ELSE, branch1, branch2));
             }
-            default:
-                if (DEBUG_ENABLED) {
-                    throw new Error("Unknown led token: " + token);
-                } else {
-                    return null;
-                }
         }
-    }
-    private static Hashtable idMapping;
 
-    // initialise idMappings
-    static {
-        /** This string is used for initialising the idMapping.
-         * Each token type has five properties:
-         * First there is the string of the token,
-         *   then ther is the bindingpower,
-         *   followed by the null denominator function,
-         *     and its corresponding id
-         *   and finally the left denominator function,
-         *     and its corresponding id
-         */
-        String identifiers = ""
-                + "(EOF)"
-                + (char) 1
-                + (char) NUD_END
-                + (char) ID_NONE
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "]"
-                + (char) 1
-                + (char) NUD_END
-                + (char) ID_NONE
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + ")"
-                + (char) 1
-                + (char) NUD_END
-                + (char) ID_NONE
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "}"
-                + (char) 1
-                + (char) NUD_END
-                + (char) ID_NONE
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "."
-                + (char) 8
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_DOT
-                + (char) ID_SUBSCRIPT
-                + "("
-                + (char) 7
-                + (char) NUD_LIST
-                + (char) ID_PAREN
-                + (char) LED_INFIX_LIST
-                + (char) ID_CALL_FUNCTION
-                + "["
-                + (char) 7
-                + (char) NUD_LIST
-                + (char) ID_LIST_LITERAL
-                + (char) LED_INFIX_LIST
-                + (char) ID_SUBSCRIPT
-                + ">>"
-                + (char) 6
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX
-                + (char) ID_SHIFT_RIGHT_ARITHMETIC
-                + "<<"
-                + (char) 6
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX
-                + (char) ID_SHIFT_LEFT
-                + "|"
-                + (char) 3
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX
-                + (char) ID_BITWISE_OR
-                + "^"
-                + (char) 3
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX
-                + (char) ID_BITWISE_XOR
-                + "&"
-                + (char) 3
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX
-                + (char) ID_BITWISE_AND
-                + "~"
-                + (char) 1
-                + (char) NUD_PREFIX
-                + (char) ID_BITWISE_NOT
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + ">>>"
-                + (char) 6
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX
-                + (char) ID_SHIFT_RIGHT
-                + "/"
-                + (char) 6
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX
-                + (char) ID_DIV
-                + "*"
-                + (char) 6
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX
-                + (char) ID_MUL
-                + "%"
-                + (char) 6
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX
-                + (char) ID_REM
-                + "+"
-                + (char) 5
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX
-                + (char) ID_ADD
-                + "-"
-                + (char) 5
-                + (char) NUD_PREFIX
-                + (char) ID_NEG
-                + (char) LED_INFIX
-                + (char) ID_SUB
-                + "=="
-                + (char) 4
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX
-                + (char) ID_EQUALS
-                + "==="
-                + (char) 4
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX
-                + (char) ID_EQUALS
-                + "!="
-                + (char) 4
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX
-                + (char) ID_NOT_EQUALS
-                + "!=="
-                + (char) 4
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX
-                + (char) ID_NOT_EQUALS
-                + "<="
-                + (char) 4
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX
-                + (char) ID_LESS_EQUALS
-                + "<"
-                + (char) 4
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX
-                + (char) ID_LESS
-                + ">="
-                + (char) 4
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX_SWAP
-                + (char) ID_LESS_EQUALS
-                + ">"
-                + (char) 4
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX_SWAP
-                + (char) ID_LESS
-                + "&&"
-                + (char) 3
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIXR
-                + (char) ID_AND
-                + "||"
-                + (char) 3
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIXR
-                + (char) ID_OR
-                + "else"
-                + (char) 3
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIXR
-                + (char) ID_ELSE
-                + "in"
-                + (char) 3
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIXR
-                + (char) ID_IN
-                + "?"
-                + (char) 3
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIX_IF
-                + (char) ID_NONE
-                + "="
-                + (char) 2
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_INFIXR
-                + (char) ID_SET
-                + "+="
-                + (char) 2
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_OPASSIGN
-                + (char) ID_ADD
-                + "-="
-                + (char) 2
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_OPASSIGN
-                + (char) ID_SUB
-                + "*="
-                + (char) 2
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_OPASSIGN
-                + (char) ID_MUL
-                + "/="
-                + (char) 2
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_OPASSIGN
-                + (char) ID_DIV
-                + "%="
-                + (char) 2
-                + (char) NUD_NONE
-                + (char) ID_NONE
-                + (char) LED_OPASSIGN
-                + (char) ID_REM
-                + "++"
-                + (char) 1
-                + (char) NUD_PREFIX
-                + (char) ID_INC
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "--"
-                + (char) 1
-                + (char) NUD_PREFIX
-                + (char) ID_DEC
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + ":"
-                + (char) 1
-                + (char) NUD_SEP
-                + (char) ID_NONE
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + ";"
-                + (char) 1
-                + (char) NUD_SEP
-                + (char) ID_NONE
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + ","
-                + (char) 1
-                + (char) NUD_SEP
-                + (char) ID_NONE
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "{"
-                + (char) 1
-                + (char) NUD_LIST
-                + (char) ID_CURLY
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "var"
-                + (char) 1
-                + (char) NUD_VAR
-                + (char) ID_VAR
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "delete"
-                + (char) 1
-                + (char) NUD_PREFIX
-                + (char) ID_DELETE
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "new"
-                + (char) 1
-                + (char) NUD_PREFIX
-                + (char) ID_NEW
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "return"
-                + (char) 1
-                + (char) NUD_PREFIX
-                + (char) ID_RETURN
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "!"
-                + (char) 1
-                + (char) NUD_PREFIX
-                + (char) ID_NOT
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "throw"
-                + (char) 1
-                + (char) NUD_PREFIX
-                + (char) ID_THROW
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "try"
-                + (char) 1
-                + (char) NUD_PREFIX2
-                + (char) ID_TRY
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "catch"
-                + (char) 1
-                + (char) NUD_CATCH
-                + (char) ID_CATCH
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "function"
-                + (char) 1
-                + (char) NUD_FUNCTION
-                + (char) ID_BUILD_FUNCTION
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "do"
-                + (char) 1
-                + (char) NUD_PREFIX2
-                + (char) ID_DO
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "for"
-                + (char) 1
-                + (char) NUD_PREFIX2
-                + (char) ID_FOR
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "if"
-                + (char) 1
-                + (char) NUD_PREFIX2
-                + (char) ID_IF
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "while"
-                + (char) 1
-                + (char) NUD_PREFIX2
-                + (char) ID_WHILE
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "undefined"
-                + (char) 1
-                + (char) NUD_CONST
-                + (char) ID_UNDEFINED
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "null"
-                + (char) 1
-                + (char) NUD_CONST
-                + (char) ID_NULL
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "false"
-                + (char) 1
-                + (char) NUD_CONST
-                + (char) ID_FALSE
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "this"
-                + (char) 1
-                + (char) NUD_ATOM
-                + (char) ID_THIS
-                + (char) LED_NONE
-                + (char) ID_NONE
-                + "true"
-                + (char) 1
-                + (char) NUD_CONST
-                + (char) ID_TRUE
-                + (char) LED_NONE
-                + (char) ID_NONE;
-        idMapping = new Hashtable();
-        StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < identifiers.length(); i++) {
-            int result = identifiers.charAt(i);
-            // result is the binding power
-            // next in string is encoded nud/led-function/id object
-            if (result < 32) {
-                // read nud function
-                result = (result << SIZE_FN) + identifiers.charAt(++i);
-                // read nud identifier
-                result = (result << SIZE_ID) + identifiers.charAt(++i);
-                // read led function
-                result = (result << SIZE_FN) + identifiers.charAt(++i);
-                // read led identifier
-                result = (result << SIZE_ID) + identifiers.charAt(++i);
-                // save to mapping, and start next string.
-                idMapping.put(sb.toString(), new Integer(result));
-                sb.setLength(0);
+        private void resolveToken(Object val) {
+            tokenVal = val;
 
-                // result is a char to be addded to the string
+            Object o = idMapping.get(val);
+            if (o == null) {
+                token = TOKEN_IDENT;
             } else {
-                sb.append((char) result);
+                token = ((Integer) o).intValue() + MASK_BP;
             }
         }
-    }
-
-    private void resolveToken(Object val) {
-        tokenVal = val;
-
-        Object o = idMapping.get(val);
-        if (o == null) {
-            token = TOKEN_IDENT;
-        } else {
-            token = ((Integer) o).intValue() + MASK_BP;
-        }
-    }
-    //</editor-fold>
+        //</editor-fold>
     /*`\section{Compiler}'*/
-    //<editor-fold>
+        //<editor-fold>
 
-    private void pushShort(int i) {
-        emit(((i >> 8) & 0xff));
-        emit((i & 0xff));
-    }
-
-    private void setShort(int pos, int i) {
-        code.setCharAt(pos - 2, (char) ((i >> 8) & 0xff));
-        code.setCharAt(pos - 1, (char) (i & 0xff));
-    }
-
-    private void addDepth(int i) {
-        depth += i;
-        if (depth > maxDepth) {
-            maxDepth = depth;
-        }
-    }
-
-    private void assertLength(Object[] list, int len) {
-        if (list.length != len) {
-            throw new Error("Wrong number of parameters:" + stringify(list));
-        }
-    }
-
-    private void emit(int opcode) {
-        code.append((char) opcode);
-    }
-
-    private int constPoolId(Object o) {
-        int pos = constPool.indexOf(o);
-        if (pos < 0) {
-            pos = constPool.size();
-            constPool.push(o);
-        }
-        return pos;
-    }
-
-    private static void curlyToBlock(Object oexpr) {
-        Object[] expr = (Object[]) oexpr;
-        if (((Integer) expr[0]).intValue() == ID_CURLY) {
-            expr[0] = new Integer(ID_BLOCK);
-        }
-    }
-
-    private Code compile(Object[] body) {
-        constPool = new Stack();
-        constPool.push(executionContext);
-        code = new StringBuffer();
-
-        // allocate space for local vars
-        maxDepth = depth = varsLocals.size();
-        int framesize = depth - varsArgc;
-        while (framesize >= 127) {
-            emit(ID_INC_SP);
-            emit(127);
-            framesize -= 127;
-        }
-        if (framesize > 0) {
-            emit(ID_INC_SP);
-            emit(framesize);
+        private void pushShort(int i) {
+            emit(((i >> 8) & 0xff));
+            emit((i & 0xff));
         }
 
-        // box boxed values in frame
-        for (int i = 0; i < varsBoxed.size(); i++) {
-            int pos = varsLocals.indexOf(varsBoxed.elementAt(i));
-            if (pos != -1) {
-                emit(ID_BOX_IT);
+        private void setShort(int pos, int i) {
+            code.setCharAt(pos - 2, (char) ((i >> 8) & 0xff));
+            code.setCharAt(pos - 1, (char) (i & 0xff));
+        }
+
+        private void addDepth(int i) {
+            depth += i;
+            if (depth > maxDepth) {
+                maxDepth = depth;
+            }
+        }
+
+        private void assertLength(Object[] list, int len) {
+            if (list.length != len) {
+                throw new Error("Wrong number of parameters:" + stringify(list));
+            }
+        }
+
+        private void emit(int opcode) {
+            code.append((char) opcode);
+        }
+
+        private int constPoolId(Object o) {
+            int pos = constPool.indexOf(o);
+            if (pos < 0) {
+                pos = constPool.size();
+                constPool.push(o);
+            }
+            return pos;
+        }
+
+        private static void curlyToBlock(Object oexpr) {
+            Object[] expr = (Object[]) oexpr;
+            if (((Integer) expr[0]).intValue() == ID_CURLY) {
+                expr[0] = new Integer(ID_BLOCK);
+            }
+        }
+
+        private Code compile(Object[] body) {
+            constPool = new Stack();
+            constPool.push(executionContext);
+            code = new StringBuffer();
+
+            // allocate space for local vars
+            maxDepth = depth = varsLocals.size();
+            int framesize = depth - varsArgc;
+            while (framesize >= 127) {
+                emit(ID_INC_SP);
+                emit(127);
+                framesize -= 127;
+            }
+            if (framesize > 0) {
+                emit(ID_INC_SP);
+                emit(framesize);
+            }
+
+            // box boxed values in frame
+            for (int i = 0; i < varsBoxed.size(); i++) {
+                int pos = varsLocals.indexOf(varsBoxed.elementAt(i));
+                if (pos != -1) {
+                    emit(ID_BOX_IT);
+                    pushShort(depth - pos - 1);
+                }
+            }
+
+            // compile
+            curlyToBlock(body);
+            compile(body, true);
+
+            // emit return code, including current stack depth to drop
+            emit(ID_RETURN);
+            pushShort(depth);
+
+            // patch amount of stack space needed
+            maxDepth -= varsArgc;
+
+            // create a new code object;
+            Code result = new Code(varsArgc, new byte[code.length()],
+                    new Object[constPool.size()], new Object[varsClosure.size()], maxDepth);
+
+            // copy values into the code object
+            constPool.copyInto(result.constPool);
+            varsClosure.copyInto(result.closure);
+            for (int i = 0; i < result.code.length; i++) {
+                result.code[i] = (byte) code.charAt(i);
+            }
+
+            //System.out.println(stringify(body));
+            //System.out.println(varsLocals);
+            //System.out.println(varsBoxed);
+            //System.out.println(varsClosure);
+            //System.out.println(result);
+            return result;
+        }
+
+        private static int childType(Object[] expr, int i) {
+            return ((Integer) ((Object[]) expr[i])[0]).intValue();
+        }
+
+        /**
+         * Generates code that sets the variable to the value of the
+         * top of the stack, not altering the stack
+         * @param name the name of the variable.
+         */
+        private void compileSet(Object name) {
+            int pos = varsClosure.indexOf(name);
+            if (pos >= 0) {
+                emit(ID_SET_CLOSURE);
+                pushShort(pos);
+            } else {
+                pos = varsLocals.indexOf(name);
+                if (varsBoxed.contains(name)) {
+                    emit(ID_SET_BOXED);
+                } else {
+                    emit(ID_SET_LOCAL);
+                }
                 pushShort(depth - pos - 1);
             }
         }
 
-        // compile
-        curlyToBlock(body);
-        compile(body, true);
-
-        // emit return code, including current stack depth to drop
-        emit(ID_RETURN);
-        pushShort(depth);
-
-        // patch amount of stack space needed
-        maxDepth -= varsArgc;
-
-        // create a new code object;
-        Code result = new Code(varsArgc, new byte[code.length()],
-                new Object[constPool.size()], new Object[varsClosure.size()], maxDepth);
-
-        // copy values into the code object
-        constPool.copyInto(result.constPool);
-        varsClosure.copyInto(result.closure);
-        for (int i = 0; i < result.code.length; i++) {
-            result.code[i] = (byte) code.charAt(i);
-        }
-
-        //System.out.println(stringify(body));
-        //System.out.println(varsLocals);
-        //System.out.println(varsBoxed);
-        //System.out.println(varsClosure);
-        //System.out.println(result);
-        return result;
-    }
-
-    private static int childType(Object[] expr, int i) {
-        return ((Integer) ((Object[]) expr[i])[0]).intValue();
-    }
-
-    /** 
-     * Generates code that sets the variable to the value of the 
-     * top of the stack, not altering the stack
-     * @param name the name of the variable.
-     */
-    private void compileSet(Object name) {
-        int pos = varsClosure.indexOf(name);
-        if (pos >= 0) {
-            emit(ID_SET_CLOSURE);
-            pushShort(pos);
-        } else {
-            pos = varsLocals.indexOf(name);
-            if (varsBoxed.contains(name)) {
-                emit(ID_SET_BOXED);
-            } else {
-                emit(ID_SET_LOCAL);
-            }
-            pushShort(depth - pos - 1);
-        }
-    }
-
-    private void compile(Object rawexpr, boolean yieldResult) {
-        boolean hasResult;
-        Object[] expr = (Object[]) rawexpr;
-        int id = ((Integer) expr[0]).intValue();
-        switch (id) {
-            case ID_ADD:
-            case ID_MUL:
-            case ID_DIV:
-            case ID_SHIFT_RIGHT_ARITHMETIC:
-            case ID_SHIFT_RIGHT:
-            case ID_SHIFT_LEFT:
-            case ID_BITWISE_OR:
-            case ID_BITWISE_XOR:
-            case ID_BITWISE_AND:
-            case ID_REM:
-            case ID_SUB:
-            case ID_EQUALS:
-            case ID_NOT_EQUALS:
-            case ID_SUBSCRIPT:
-            case ID_LESS_EQUALS:
-            case ID_LESS: {
-                compile(expr[1], true);
-                compile(expr[2], true);
-                emit(id);
-                addDepth(-1);
-                hasResult = true;
-                break;
-            }
-            case ID_BITWISE_NOT:
-            case ID_NOT:
-            case ID_NEG: {
-                compile(expr[1], true);
-                emit(id);
-                hasResult = true;
-                break;
-            }
-            case ID_DELETE: {
-                Object[] expr2 = (Object[]) expr[1];
-                int subtype = ((Integer) expr2[0]).intValue();
-                if (subtype == ID_SUBSCRIPT) {
-                    compile(expr2[1], true);
-                    compile(expr2[2], true);
-                } else if (DEBUG_ENABLED && subtype != ID_IDENT) {
-                    throw new Error("Deleting non-var");
-                } else {
-                    emit(ID_GLOBAL);
+        private void compile(Object rawexpr, boolean yieldResult) {
+            boolean hasResult;
+            Object[] expr = (Object[]) rawexpr;
+            int id = ((Integer) expr[0]).intValue();
+            switch (id) {
+                case ID_ADD:
+                case ID_MUL:
+                case ID_DIV:
+                case ID_SHIFT_RIGHT_ARITHMETIC:
+                case ID_SHIFT_RIGHT:
+                case ID_SHIFT_LEFT:
+                case ID_BITWISE_OR:
+                case ID_BITWISE_XOR:
+                case ID_BITWISE_AND:
+                case ID_REM:
+                case ID_SUB:
+                case ID_EQUALS:
+                case ID_NOT_EQUALS:
+                case ID_SUBSCRIPT:
+                case ID_LESS_EQUALS:
+                case ID_LESS: {
+                    compile(expr[1], true);
+                    compile(expr[2], true);
+                    emit(id);
+                    addDepth(-1);
+                    hasResult = true;
+                    break;
+                }
+                case ID_BITWISE_NOT:
+                case ID_NOT:
+                case ID_NEG: {
+                    compile(expr[1], true);
+                    emit(id);
+                    hasResult = true;
+                    break;
+                }
+                case ID_DELETE: {
+                    Object[] expr2 = (Object[]) expr[1];
+                    int subtype = ((Integer) expr2[0]).intValue();
+                    if (subtype == ID_SUBSCRIPT) {
+                        compile(expr2[1], true);
+                        compile(expr2[2], true);
+                    } else if (DEBUG_ENABLED && subtype != ID_IDENT) {
+                        throw new Error("Deleting non-var");
+                    } else {
+                        emit(ID_GLOBAL);
+                        addDepth(1);
+                        compile(expr2[1], true);
+                    }
+                    emit(id);
+                    addDepth(-1);
+                    hasResult = true;
+                    break;
+                }
+                case ID_NEW: {
+                    int subtype = childType(expr, 1);
+                    if (subtype != ID_CALL_FUNCTION) {
+                        expr = v(ID_CALL_FUNCTION, expr);
+                    }
+                    expr[1] = v(ID_SUBSCRIPT, expr, v(ID_LITERAL, "constructor"));
+                    compile(expr, yieldResult);
+                    hasResult = yieldResult;
+                    break;
+                }
+                case ID_THIS: {
+                    emit(id);
                     addDepth(1);
-                    compile(expr2[1], true);
+                    hasResult = true;
+                    break;
                 }
-                emit(id);
-                addDepth(-1);
-                hasResult = true;
-                break;
-            }
-            case ID_NEW: {
-                int subtype = childType(expr, 1);
-                if (subtype != ID_CALL_FUNCTION) {
-                    expr = v(ID_CALL_FUNCTION, expr);
+                case ID_LITERAL: {
+                    emit(id);
+                    pushShort(constPoolId(expr[1]));
+                    hasResult = true;
+                    addDepth(1);
+                    break;
                 }
-                expr[1] = v(ID_SUBSCRIPT, expr, v(ID_LITERAL, "constructor"));
-                compile(expr, yieldResult);
-                hasResult = yieldResult;
-                break;
-            }
-            case ID_THIS: {
-                emit(id);
-                addDepth(1);
-                hasResult = true;
-                break;
-            }
-            case ID_LITERAL: {
-                emit(id);
-                pushShort(constPoolId(expr[1]));
-                hasResult = true;
-                addDepth(1);
-                break;
-            }
-            case ID_BLOCK: {
-                for (int i = 1; i < expr.length; i++) {
-                    compile(expr[i], false);
+                case ID_BLOCK: {
+                    for (int i = 1; i < expr.length; i++) {
+                        compile(expr[i], false);
+                    }
+                    hasResult = false;
+                    break;
                 }
-                hasResult = false;
-                break;
-            }
-            case ID_RETURN: {
-                compile(expr[1], true);
-                emit(ID_RETURN);
-                pushShort(depth);
-                addDepth(-1);
-                hasResult = false;
-                break;
-            }
-            case ID_IDENT: {
-                String name = (String) expr[1];
-                int pos = varsClosure.indexOf(name);
-                if (pos >= 0) {
-                    emit(ID_GET_CLOSURE);
-                    pushShort(pos);
-                } else {
-                    pos = varsLocals.indexOf(name);
-                    if (DEBUG_ENABLED) {
-                        if (pos == -1) {
-                            throw new Error("Unfound var: " + stringify(expr));
+                case ID_RETURN: {
+                    compile(expr[1], true);
+                    emit(ID_RETURN);
+                    pushShort(depth);
+                    addDepth(-1);
+                    hasResult = false;
+                    break;
+                }
+                case ID_IDENT: {
+                    String name = (String) expr[1];
+                    int pos = varsClosure.indexOf(name);
+                    if (pos >= 0) {
+                        emit(ID_GET_CLOSURE);
+                        pushShort(pos);
+                    } else {
+                        pos = varsLocals.indexOf(name);
+                        if (DEBUG_ENABLED) {
+                            if (pos == -1) {
+                                throw new Error("Unfound var: " + stringify(expr));
+                            }
+                        }
+                        if (varsBoxed.contains(name)) {
+                            emit(ID_GET_BOXED);
+                        } else {
+                            emit(ID_GET_LOCAL);
+                        }
+                        pushShort(depth - pos - 1);
+                    }
+                    addDepth(1);
+                    hasResult = true;
+                    break;
+                }
+                case ID_VAR: {
+                    int id2 = childType(expr, 1);
+                    if (id2 == ID_IDENT) {
+                        hasResult = false;
+                    } else if (id2 == ID_SET) {
+                        compile(expr[1], yieldResult);
+                        hasResult = yieldResult;
+                    } else {
+                        if (DEBUG_ENABLED) {
+                            throw new Error("Error in var statement: "
+                                    + stringify(expr));
+                        } else {
+                            return;
                         }
                     }
-                    if (varsBoxed.contains(name)) {
-                        emit(ID_GET_BOXED);
-                    } else {
-                        emit(ID_GET_LOCAL);
-                    }
-                    pushShort(depth - pos - 1);
+                    break;
                 }
-                addDepth(1);
-                hasResult = true;
-                break;
-            }
-            case ID_VAR: {
-                int id2 = childType(expr, 1);
-                if (id2 == ID_IDENT) {
-                    hasResult = false;
-                } else if (id2 == ID_SET) {
+                case ID_SET: {
+                    assertLength(expr, 3);
+                    int targetType = childType(expr, 1);
+                    hasResult = true;
+                    if (targetType == ID_IDENT) {
+                        String name = (String) ((Object[]) expr[1])[1];
+                        compile(expr[2], true);
+                        compileSet(name);
+                    } else if (targetType == ID_SUBSCRIPT) {
+                        Object[] subs = (Object[]) expr[1];
+                        compile(subs[1], true);
+                        compile(subs[2], true);
+                        compile(expr[2], true);
+                        emit(ID_PUT);
+                        addDepth(-2);
+                    } else {
+                        if (DEBUG_ENABLED) {
+                            throw new Error("Uncompilable assignment operator: "
+                                    + stringify(expr));
+                        }
+                    }
+                    break;
+                }
+                case ID_PAREN: {
+                    if (DEBUG_ENABLED) {
+                        if (expr.length != 2) {
+                            throw new Error("Unexpected content of parenthesis: "
+                                    + stringify(expr));
+                        }
+                    }
                     compile(expr[1], yieldResult);
                     hasResult = yieldResult;
-                } else {
-                    if (DEBUG_ENABLED) {
-                        throw new Error("Error in var statement: "
-                                + stringify(expr));
+                    break;
+                }
+                case ID_CALL_FUNCTION: {
+                    expr = stripSep(expr);
+                    boolean methodcall = (childType(expr, 1) == ID_SUBSCRIPT);
+
+                    // save program counter
+                    emit(ID_SAVE_PC);
+                    addDepth(RET_FRAME_SIZE);
+
+
+                    // find the method/function
+                    if (methodcall) {
+                        Object[] subs = (Object[]) expr[1];
+                        compile(subs[1], true);
+
+                        emit(ID_DUP);
+                        addDepth(1);
+
+                        compile(subs[2], true);
+                        emit(ID_SUBSCRIPT);
+                        addDepth(-1);
+
+                        emit(ID_SWAP);
+
                     } else {
-                        return;
+                        compile(expr[1], true);
+
+                        emit(ID_GLOBAL);
+                        addDepth(1);
                     }
-                }
-                break;
-            }
-            case ID_SET: {
-                assertLength(expr, 3);
-                int targetType = childType(expr, 1);
-                hasResult = true;
-                if (targetType == ID_IDENT) {
-                    String name = (String) ((Object[]) expr[1])[1];
-                    compile(expr[2], true);
-                    compileSet(name);
-                } else if (targetType == ID_SUBSCRIPT) {
-                    Object[] subs = (Object[]) expr[1];
-                    compile(subs[1], true);
-                    compile(subs[2], true);
-                    compile(expr[2], true);
-                    emit(ID_PUT);
-                    addDepth(-2);
-                } else {
+
+                    // evaluate parameters
+                    for (int i = 2; i < expr.length; i++) {
+                        compile(expr[i], true);
+                    }
+
+                    // call the function
+                    emit(ID_CALL_FN);
                     if (DEBUG_ENABLED) {
-                        throw new Error("Uncompilable assignment operator: "
-                                + stringify(expr));
+                        if (expr.length > 129) {
+                            throw new Error("too many parameters");
+                        }
                     }
+                    emit(expr.length - 2);
+                    addDepth(1 - expr.length - RET_FRAME_SIZE);
+
+                    hasResult = true;
+                    break;
                 }
-                break;
-            }
-            case ID_PAREN: {
-                if (DEBUG_ENABLED) {
-                    if (expr.length != 2) {
-                        throw new Error("Unexpected content of parenthesis: "
-                                + stringify(expr));
+                case ID_BUILD_FUNCTION: {
+                    Object[] vars = ((Code) expr[1]).closure;
+                    for (int i = 0; i < vars.length; i++) {
+                        String name = (String) vars[i];
+                        if (varsClosure.contains(name)) {
+                            emit(ID_GET_BOXED_CLOSURE);
+                            pushShort(varsClosure.indexOf(name));
+                        } else {
+                            emit(ID_GET_LOCAL);
+                            pushShort(depth - varsLocals.indexOf(name) - 1);
+                        }
+                        addDepth(1);
                     }
-                }
-                compile(expr[1], yieldResult);
-                hasResult = yieldResult;
-                break;
-            }
-            case ID_CALL_FUNCTION: {
-                expr = stripSep(expr);
-                boolean methodcall = (childType(expr, 1) == ID_SUBSCRIPT);
-
-                // save program counter
-                emit(ID_SAVE_PC);
-                addDepth(RET_FRAME_SIZE);
-
-
-                // find the method/function
-                if (methodcall) {
-                    Object[] subs = (Object[]) expr[1];
-                    compile(subs[1], true);
-
-                    emit(ID_DUP);
+                    emit(ID_LITERAL);
+                    pushShort(constPoolId(expr[1]));
                     addDepth(1);
+                    emit(ID_BUILD_FN);
+                    pushShort(vars.length);
+                    addDepth(-vars.length);
+                    hasResult = true;
+                    break;
 
-                    compile(subs[2], true);
-                    emit(ID_SUBSCRIPT);
-                    addDepth(-1);
-
-                    emit(ID_SWAP);
-
-                } else {
-                    compile(expr[1], true);
-
-                    emit(ID_GLOBAL);
-                    addDepth(1);
                 }
+                case ID_IF: {
+                    int subtype = childType(expr, 2);
 
-                // evaluate parameters
-                for (int i = 2; i < expr.length; i++) {
-                    compile(expr[i], true);
-                }
+                    if (subtype == ID_ELSE) {
+                        Object[] branch = (Object[]) expr[2];
 
-                // call the function
-                emit(ID_CALL_FN);
-                if (DEBUG_ENABLED) {
-                    if (expr.length > 129) {
-                        throw new Error("too many parameters");
-                    }
-                }
-                emit(expr.length - 2);
-                addDepth(1 - expr.length - RET_FRAME_SIZE);
+                        //    code for condition
+                        //    jump_if_true -> label1
+                        //    code for branch2
+                        //    jump -> label2
+                        // label1:
+                        //    code for branch1
+                        // label2:
 
-                hasResult = true;
-                break;
-            }
-            case ID_BUILD_FUNCTION: {
-                Object[] vars = ((Code) expr[1]).closure;
-                for (int i = 0; i < vars.length; i++) {
-                    String name = (String) vars[i];
-                    if (varsClosure.contains(name)) {
-                        emit(ID_GET_BOXED_CLOSURE);
-                        pushShort(varsClosure.indexOf(name));
+                        int pos0, pos1, len;
+                        // compile condition
+                        compile(expr[1], true);
+
+                        emit(ID_JUMP_IF_TRUE);
+                        pushShort(0);
+                        pos0 = code.length();
+                        addDepth(-1);
+
+                        curlyToBlock(branch[2]);
+                        compile(branch[2], yieldResult);
+
+                        emit(ID_JUMP);
+                        pushShort(0);
+                        pos1 = code.length();
+                        len = pos1 - pos0;
+                        setShort(pos0, len);
+
+                        addDepth(yieldResult ? -1 : 0);
+
+                        curlyToBlock(branch[1]);
+                        compile(branch[1], yieldResult);
+
+                        len = code.length() - pos1;
+                        setShort(pos1, len);
+
+                        hasResult = yieldResult;
+                        break;
                     } else {
-                        emit(ID_GET_LOCAL);
-                        pushShort(depth - varsLocals.indexOf(name) - 1);
+                        int pos0, len;
+
+                        compile(expr[1], true);
+
+                        emit(ID_JUMP_IF_FALSE);
+                        pushShort(0);
+                        pos0 = code.length();
+                        addDepth(-1);
+
+                        curlyToBlock(expr[2]);
+                        compile(expr[2], false);
+
+                        len = code.length() - pos0;
+                        setShort(pos0, len);
+
+                        hasResult = false;
+                        break;
                     }
-                    addDepth(1);
                 }
-                emit(ID_LITERAL);
-                pushShort(constPoolId(expr[1]));
-                addDepth(1);
-                emit(ID_BUILD_FN);
-                pushShort(vars.length);
-                addDepth(-vars.length);
-                hasResult = true;
-                break;
+                case ID_FOR: {
+                    Object[] args = (Object[]) expr[1];
+                    Object init, cond, step;
+                    if (args.length > 2) {
+                        //for(..;..;..)
+                        int pos = 1;
+                        init = args[pos];
+                        pos += (init == SEP_TOKEN) ? 1 : 2;
+                        cond = args[pos];
+                        pos += (cond == SEP_TOKEN) ? 1 : 2;
+                        step = (pos < args.length) ? args[pos] : SEP_TOKEN;
+                        curlyToBlock(expr[2]);
+                        compile(v(ID_BLOCK, init, v(ID_WHILE, cond,
+                                v(ID_BLOCK, expr[2], step))), yieldResult);
+                        hasResult = yieldResult;
+                        break;
+                    } else {
+                        // for(a in b) c
+                        //
+                        //   evalute b
+                        // labelTop:
+                        //   getNextElement
+                        //   save -> a
+                        //   if no element jump to labelEnd
+                        //   c
+                        //   jump -> labelTop
+                        // labelEnd:
+                        //   drop iterator.
+                        int pos0, pos1;
 
-            }
-            case ID_IF: {
-                int subtype = childType(expr, 2);
+                        // find the name
+                        Object[] in = (Object[]) ((Object[]) expr[1])[1];
+                        Object name = ((Object[]) in[1])[1];
+                        if (!(name instanceof String)) {
+                            // var name
+                            name = ((Object[]) name)[1];
+                        }
+                        if (DEBUG_ENABLED) {
+                            if (!(name instanceof String)) {
+                                throw new Error("for-in has no var");
+                            }
+                        }
 
-                if (subtype == ID_ELSE) {
-                    Object[] branch = (Object[]) expr[2];
+                        // evaluate b
+                        compile(in[2], true);
 
-                    //    code for condition
-                    //    jump_if_true -> label1
-                    //    code for branch2
-                    //    jump -> label2
-                    // label1:
-                    //    code for branch1
-                    // label2:
+                        emit(ID_NEW_ITER);
+                        pos0 = code.length();
+                        // get next
+                        emit(ID_NEXT);
+                        addDepth(1);
 
+                        // store value in variable
+                        compileSet(name);
+
+                        // exit if done
+                        emit(ID_JUMP_IF_UNDEFINED);
+                        pushShort(0);
+                        pos1 = code.length();
+                        addDepth(-1);
+
+                        // compile block
+                        curlyToBlock(expr[2]);
+                        compile(expr[2], false);
+
+                        emit(ID_JUMP);
+                        pushShort(0);
+
+                        setShort(pos1, code.length() - pos1);
+                        setShort(code.length(), pos0 - code.length());
+
+                        emit(ID_DROP);
+                        addDepth(-1);
+                        hasResult = false;
+
+                        break;
+                    }
+
+                }
+                case ID_SEP: {
+                    hasResult = false;
+                    break;
+                }
+                case ID_AND: {
+                    assertLength(expr, 3);
                     int pos0, pos1, len;
-                    // compile condition
+
                     compile(expr[1], true);
 
                     emit(ID_JUMP_IF_TRUE);
@@ -1793,347 +1929,215 @@ public final class LightScript {
                     pos0 = code.length();
                     addDepth(-1);
 
-                    curlyToBlock(branch[2]);
-                    compile(branch[2], yieldResult);
+                    compile(v(ID_LITERAL, UNDEFINED), true);
 
                     emit(ID_JUMP);
                     pushShort(0);
                     pos1 = code.length();
                     len = pos1 - pos0;
                     setShort(pos0, len);
+                    addDepth(-1);
 
-                    addDepth(yieldResult ? -1 : 0);
-
-                    curlyToBlock(branch[1]);
-                    compile(branch[1], yieldResult);
-
+                    compile(expr[2], true);
                     len = code.length() - pos1;
                     setShort(pos1, len);
-
-                    hasResult = yieldResult;
+                    hasResult = true;
                     break;
-                } else {
-                    int pos0, len;
+                }
+                case ID_OR: {
+                    assertLength(expr, 3);
+                    int pos0, pos1, len;
 
                     compile(expr[1], true);
 
-                    emit(ID_JUMP_IF_FALSE);
+                    emit(ID_DUP);
+                    addDepth(1);
+
+                    emit(ID_JUMP_IF_TRUE);
                     pushShort(0);
                     pos0 = code.length();
                     addDepth(-1);
 
-                    curlyToBlock(expr[2]);
-                    compile(expr[2], false);
+                    emit(ID_DROP);
+                    addDepth(-1);
 
-                    len = code.length() - pos0;
+                    compile(expr[2], true);
+
+                    pos1 = code.length();
+                    len = pos1 - pos0;
                     setShort(pos0, len);
 
+                    hasResult = true;
+
+                    break;
+                }
+                case ID_LIST_LITERAL: {
+                    emit(ID_NEW_LIST);
+                    addDepth(1);
+
+                    for (int i = 1; i < expr.length; i++) {
+                        if (childType(expr, i) != ID_SEP) {
+                            compile(expr[i], true);
+                            emit(ID_PUSH);
+                            addDepth(-1);
+                        }
+                    }
+                    hasResult = true;
+
+                    break;
+                }
+                case ID_CURLY: {
+                    emit(ID_NEW_DICT);
+                    addDepth(1);
+
+                    int i = 0;
+                    while (i < expr.length - 3) {
+                        do {
+                            ++i;
+                        } while (childType(expr, i) == ID_SEP);
+                        compile(expr[i], true);
+                        do {
+                            ++i;
+                        } while (childType(expr, i) == ID_SEP);
+                        compile(expr[i], true);
+                        emit(ID_PUT);
+                        addDepth(-2);
+                    }
+                    hasResult = true;
+
+                    break;
+                }
+                case ID_THROW: {
+                    compile(expr[1], true);
+                    emit(ID_THROW);
+                    addDepth(-1);
                     hasResult = false;
                     break;
                 }
-            }
-            case ID_FOR: {
-                Object[] args = (Object[]) expr[1];
-                Object init, cond, step;
-                if (args.length > 2) {
-                    //for(..;..;..)
-                    int pos = 1;
-                    init = args[pos];
-                    pos += (init == SEP_TOKEN) ? 1 : 2;
-                    cond = args[pos];
-                    pos += (cond == SEP_TOKEN) ? 1 : 2;
-                    step = (pos < args.length) ? args[pos] : SEP_TOKEN;
-                    curlyToBlock(expr[2]);
-                    compile(v(ID_BLOCK, init, v(ID_WHILE, cond,
-                            v(ID_BLOCK, expr[2], step))), yieldResult);
-                    hasResult = yieldResult;
-                    break;
-                } else {
-                    // for(a in b) c
-                    //
-                    //   evalute b
-                    // labelTop:
-                    //   getNextElement
-                    //   save -> a
-                    //   if no element jump to labelEnd
-                    //   c
-                    //   jump -> labelTop
-                    // labelEnd:
-                    //   drop iterator.
-                    int pos0, pos1;
+                case ID_TRY: {
+                    //   try -> labelHandle;
+                    //   ... body
+                    //   untry
+                    //   jump -> labelExit;
+                    // labelHandle:
+                    //   set var <- Exception
+                    //   handleExpr
+                    // labelExit:
+                    int pos0, pos1, len;
 
-                    // find the name
-                    Object[] in = (Object[]) ((Object[]) expr[1])[1];
-                    Object name = ((Object[]) in[1])[1];
-                    if (!(name instanceof String)) {
-                        // var name
-                        name = ((Object[]) name)[1];
-                    }
-                    if (DEBUG_ENABLED) {
-                        if (!(name instanceof String)) {
-                            throw new Error("for-in has no var");
-                        }
-                    }
+                    Object[] catchExpr = (Object[]) expr[2];
 
-                    // evaluate b
-                    compile(in[2], true);
-
-                    emit(ID_NEW_ITER);
+                    emit(ID_TRY);
+                    pushShort(0);
                     pos0 = code.length();
-                    // get next
-                    emit(ID_NEXT);
+                    addDepth(TRY_FRAME_SIZE);
+
+                    curlyToBlock(expr[1]);
+                    compile(expr[1], false);
+
+                    emit(ID_UNTRY);
+                    addDepth(-TRY_FRAME_SIZE);
+
+                    emit(ID_JUMP);
+                    pushShort(0);
+                    pos1 = code.length();
+
+                    // lableHandle:
+                    setShort(pos0, code.length() - pos0);
+
                     addDepth(1);
+                    Object name = ((Object[]) ((Object[]) catchExpr[1])[1])[1];
 
-                    // store value in variable
                     compileSet(name);
+                    emit(ID_DROP);
+                    addDepth(-1);
 
-                    // exit if done
-                    emit(ID_JUMP_IF_UNDEFINED);
+                    curlyToBlock(catchExpr[2]);
+                    compile(catchExpr[2], false);
+
+                    setShort(pos1, code.length() - pos1);
+
+                    hasResult = false;
+
+                    break;
+
+                }
+                case ID_WHILE: {
+                    // top:
+                    //   code for condition
+                    //   jump if false -> labelExit
+                    //   code for stmt1
+                    //   drop
+                    //   ...
+                    //   code for stmtn
+                    //   drop
+                    //   jump -> labelTop;
+                    // labelExit:
+
+                    int pos0, pos1, len;
+                    pos0 = code.length();
+
+                    compile(expr[1], true);
+                    emit(ID_JUMP_IF_FALSE);
                     pushShort(0);
                     pos1 = code.length();
                     addDepth(-1);
 
-                    // compile block
+
                     curlyToBlock(expr[2]);
                     compile(expr[2], false);
 
                     emit(ID_JUMP);
-                    pushShort(0);
+                    pushShort(pos0 - code.length() - 2);
 
                     setShort(pos1, code.length() - pos1);
-                    setShort(code.length(), pos0 - code.length());
-
-                    emit(ID_DROP);
-                    addDepth(-1);
                     hasResult = false;
-
                     break;
                 }
+                case ID_DO: {
+                    int pos0;
+                    pos0 = code.length();
 
-            }
-            case ID_SEP: {
-                hasResult = false;
-                break;
-            }
-            case ID_AND: {
-                assertLength(expr, 3);
-                int pos0, pos1, len;
+                    curlyToBlock(expr[1]);
+                    compile(expr[1], false);
 
-                compile(expr[1], true);
-
-                emit(ID_JUMP_IF_TRUE);
-                pushShort(0);
-                pos0 = code.length();
-                addDepth(-1);
-
-                compile(v(ID_LITERAL, UNDEFINED), true);
-
-                emit(ID_JUMP);
-                pushShort(0);
-                pos1 = code.length();
-                len = pos1 - pos0;
-                setShort(pos0, len);
-                addDepth(-1);
-
-                compile(expr[2], true);
-                len = code.length() - pos1;
-                setShort(pos1, len);
-                hasResult = true;
-                break;
-            }
-            case ID_OR: {
-                assertLength(expr, 3);
-                int pos0, pos1, len;
-
-                compile(expr[1], true);
-
-                emit(ID_DUP);
-                addDepth(1);
-
-                emit(ID_JUMP_IF_TRUE);
-                pushShort(0);
-                pos0 = code.length();
-                addDepth(-1);
-
-                emit(ID_DROP);
-                addDepth(-1);
-
-                compile(expr[2], true);
-
-                pos1 = code.length();
-                len = pos1 - pos0;
-                setShort(pos0, len);
-
-                hasResult = true;
-
-                break;
-            }
-            case ID_LIST_LITERAL: {
-                emit(ID_NEW_LIST);
-                addDepth(1);
-
-                for (int i = 1; i < expr.length; i++) {
-                    if (childType(expr, i) != ID_SEP) {
-                        compile(expr[i], true);
-                        emit(ID_PUSH);
-                        addDepth(-1);
-                    }
+                    compile(((Object[]) expr[2])[1], true);
+                    emit(ID_JUMP_IF_TRUE);
+                    pushShort(pos0 - code.length() - 2);
+                    addDepth(-1);
+                    hasResult = false;
+                    break;
                 }
-                hasResult = true;
-
-                break;
-            }
-            case ID_CURLY: {
-                emit(ID_NEW_DICT);
-                addDepth(1);
-
-                int i = 0;
-                while (i < expr.length - 3) {
-                    do {
-                        ++i;
-                    } while (childType(expr, i) == ID_SEP);
-                    compile(expr[i], true);
-                    do {
-                        ++i;
-                    } while (childType(expr, i) == ID_SEP);
-                    compile(expr[i], true);
-                    emit(ID_PUT);
-                    addDepth(-2);
-                }
-                hasResult = true;
-
-                break;
-            }
-            case ID_THROW: {
-                compile(expr[1], true);
-                emit(ID_THROW);
-                addDepth(-1);
-                hasResult = false;
-                break;
-            }
-            case ID_TRY: {
-                //   try -> labelHandle;
-                //   ... body
-                //   untry
-                //   jump -> labelExit;
-                // labelHandle:
-                //   set var <- Exception
-                //   handleExpr
-                // labelExit:
-                int pos0, pos1, len;
-
-                Object[] catchExpr = (Object[]) expr[2];
-
-                emit(ID_TRY);
-                pushShort(0);
-                pos0 = code.length();
-                addDepth(TRY_FRAME_SIZE);
-
-                curlyToBlock(expr[1]);
-                compile(expr[1], false);
-
-                emit(ID_UNTRY);
-                addDepth(-TRY_FRAME_SIZE);
-
-                emit(ID_JUMP);
-                pushShort(0);
-                pos1 = code.length();
-
-                // lableHandle:
-                setShort(pos0, code.length() - pos0);
-
-                addDepth(1);
-                Object name = ((Object[]) ((Object[]) catchExpr[1])[1])[1];
-
-                compileSet(name);
-                emit(ID_DROP);
-                addDepth(-1);
-
-                curlyToBlock(catchExpr[2]);
-                compile(catchExpr[2], false);
-
-                setShort(pos1, code.length() - pos1);
-
-                hasResult = false;
-
-                break;
-
-            }
-            case ID_WHILE: {
-                // top:
-                //   code for condition
-                //   jump if false -> labelExit
-                //   code for stmt1
-                //   drop
-                //   ...
-                //   code for stmtn
-                //   drop
-                //   jump -> labelTop;
-                // labelExit:
-
-                int pos0, pos1, len;
-                pos0 = code.length();
-
-                compile(expr[1], true);
-                emit(ID_JUMP_IF_FALSE);
-                pushShort(0);
-                pos1 = code.length();
-                addDepth(-1);
-
-
-                curlyToBlock(expr[2]);
-                compile(expr[2], false);
-
-                emit(ID_JUMP);
-                pushShort(pos0 - code.length() - 2);
-
-                setShort(pos1, code.length() - pos1);
-                hasResult = false;
-                break;
-            }
-            case ID_DO: {
-                int pos0;
-                pos0 = code.length();
-
-                curlyToBlock(expr[1]);
-                compile(expr[1], false);
-
-                compile(((Object[]) expr[2])[1], true);
-                emit(ID_JUMP_IF_TRUE);
-                pushShort(pos0 - code.length() - 2);
-                addDepth(-1);
-                hasResult = false;
-                break;
-            }
-            case ID_DEC: {
-                compile(v(ID_SET, expr[1], v(ID_SUB, expr[1],
-                        v(ID_LITERAL, new Integer(1)))), yieldResult);
-                return;
-            }
-            case ID_INC: {
-                compile(v(ID_SET, expr[1], v(ID_ADD, expr[1],
-                        v(ID_LITERAL, new Integer(1)))), yieldResult);
-                return;
-            }
-            default:
-                if (DEBUG_ENABLED) {
-                    throw new Error("Uncompilable expression: " + stringify(expr));
-                } else {
+                case ID_DEC: {
+                    compile(v(ID_SET, expr[1], v(ID_SUB, expr[1],
+                            v(ID_LITERAL, new Integer(1)))), yieldResult);
                     return;
                 }
-        }
+                case ID_INC: {
+                    compile(v(ID_SET, expr[1], v(ID_ADD, expr[1],
+                            v(ID_LITERAL, new Integer(1)))), yieldResult);
+                    return;
+                }
+                default:
+                    if (DEBUG_ENABLED) {
+                        throw new Error("Uncompilable expression: " + stringify(expr));
+                    } else {
+                        return;
+                    }
+            }
 
-        if (hasResult && !yieldResult) {
-            emit(ID_DROP);
-            addDepth(-1);
-        } else if (yieldResult && !hasResult) {
-            compile(v(ID_LITERAL, UNDEFINED), true);
+            if (hasResult && !yieldResult) {
+                emit(ID_DROP);
+                addDepth(-1);
+            } else if (yieldResult && !hasResult) {
+                compile(v(ID_LITERAL, UNDEFINED), true);
+            }
         }
+        //</editor-fold>
     }
-
-    //</editor-fold>
     /*`\section{Virtual Machine}\index{Virtual machine}'*/
     //<editor-fold>
+
     private static int readShort(int pc, byte[] code) {
         return (short) (((code[++pc] & 0xff) << 8) | (code[++pc] & 0xff));
     }
@@ -2493,7 +2497,7 @@ public final class LightScript {
 
 
                         // "Object"
-    //CLASS DISPATCH replace below
+                        //CLASS DISPATCH replace below
                         if (container instanceof Hashtable) {
                             result = ((Hashtable) container).get(key);
                             if (result == null) {
