@@ -289,7 +289,9 @@ class StdLib implements LightScriptFunction {
                 return ((String) thisPtr).substring(i, j);
             }
             case STD_RANDOM: {
-                return new FixedPoint(0xffffffffl & rnd.nextInt());
+                //TODO:
+                //return new FixedPoint(0xffffffffl & rnd.nextInt());
+                return new Integer(0);
             }
             case STD_FLOOR: {
                 return new Integer(LightScript.toInt(arg1));
