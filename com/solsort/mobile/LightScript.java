@@ -26,95 +26,6 @@ import java.util.Stack;
  * @version 1.2
  */
 // </editor-fold>
-
-class OpCodes {
-    /* Identifiers, used both as node type,
-     * and also used as opcode.
-     */
-    public static final int NONE = 127;
-    public static final int TRUE = 0;
-    public static final int FALSE = 1;
-    public static final int UNDEFINED = 2;
-    public static final int NULL = 3;
-    public static final int PAREN = 4;
-    public static final int LIST_LITERAL = 5;
-    public static final int CURLY = 6;
-    public static final int VAR = 7;
-    public static final int BUILD_FUNCTION = 8;
-    public static final int IF = 9;
-    public static final int WHILE = 10;
-    public static final int CALL_FUNCTION = 11;
-    public static final int AND = 12;
-    public static final int OR = 13;
-    public static final int ELSE = 14;
-    public static final int SET = 15;
-    public static final int IDENT = 16;
-    public static final int BLOCK = 17;
-    public static final int SEP = 18;
-    public static final int IN = 19;
-    public static final int FOR = 20;
-    public static final int END = 21;
-    public static final int CATCH = 22;
-    public static final int DO = 23;
-    public static final int INC = 24;
-    public static final int DEC = 25;
-    public static final int ADD = 26;
-    public static final int EQUALS = 27;
-    public static final int LESS = 29;
-    public static final int LESS_EQUALS = 30;
-    public static final int LITERAL = 31;
-    public static final int MUL = 32;
-    public static final int NEG = 33;
-    public static final int NOT = 34;
-    public static final int NOT_EQUALS = 35;
-    public static final int REM = 37;
-    public static final int RETURN = 38;
-    public static final int SHIFT_RIGHT_ARITHMETIC = 39;
-    public static final int SUB = 40;
-    public static final int SUBSCRIPT = 41;
-    public static final int THIS = 42;
-    public static final int THROW = 43;
-    public static final int TRY = 44;
-    public static final int UNTRY = 45;
-    public static final int BOX_IT = 46;
-    public static final int BUILD_FN = 47;
-    public static final int CALL_FN = 48;
-    public static final int DROP = 49;
-    public static final int DUP = 50;
-    public static final int GET_BOXED = 52;
-    public static final int GET_BOXED_CLOSURE = 53;
-    public static final int GET_CLOSURE = 54;
-    public static final int GET_LOCAL = 55;
-    public static final int INC_SP = 56;
-    public static final int JUMP = 57;
-    public static final int JUMP_IF_FALSE = 58;
-    public static final int JUMP_IF_TRUE = 59;
-    public static final int NEW_DICT = 60;
-    public static final int NEW_LIST = 61;
-    public static final int NEXT = 62;
-    public static final int POP = 63;
-    public static final int PUSH = 64;
-    public static final int PUT = 65;
-    public static final int SAVE_PC = 66;
-    public static final int SET_BOXED = 67;
-    public static final int SET_CLOSURE = 68;
-    public static final int SET_LOCAL = 69;
-    public static final int SET_THIS = 70;
-    public static final int SWAP = 71;
-    public static final int DIV = 72;
-    public static final int NEW_ITER = 73;
-    public static final int JUMP_IF_UNDEFINED = 74;
-    public static final int DELETE = 75;
-    public static final int NEW = 76;
-    public static final int GLOBAL = 77;
-    public static final int SHIFT_RIGHT = 78;
-    public static final int SHIFT_LEFT = 79;
-    public static final int BITWISE_OR = 81;
-    public static final int BITWISE_XOR = 82;
-    public static final int BITWISE_AND = 83;
-    public static final int BITWISE_NOT = 84;
-}
-
 public final class LightScript {
     // TODO: globals object
 
@@ -424,47 +335,6 @@ public final class LightScript {
      * Analysis of variables in a function being compiled,
      * updated during the parsing.
      */
-    public static class Code implements LightScriptFunction {
-
-        public Object apply(Object[] args, int argpos, int argcount)
-                throws LightScriptException {
-            if (!DEBUG_ENABLED || argcount == argc) {
-                Object stack[];
-                if (argpos != 0) {
-                    stack = new Object[argcount + 1];
-                    for (int i = 0; i <= argcount; i++) {
-                        stack[i] = args[argpos + i];
-                    }
-                } else {
-                    stack = args;
-                }
-                return execute(this, stack, argcount);
-            } else {
-                throw new LightScriptException("Wrong number of arguments");
-            }
-        }
-        public int argc;
-        public byte[] code;
-        public Object[] constPool;
-        public Object[] closure;
-        public int maxDepth;
-
-        public Code(int argc, byte[] code, Object[] constPool, Object[] closure, int maxDepth) {
-            this.argc = argc;
-            this.code = code;
-            this.constPool = constPool;
-            this.closure = closure;
-            this.maxDepth = maxDepth;
-        }
-
-        public Code(Code cl) {
-            this.argc = cl.argc;
-            this.code = cl.code;
-            this.constPool = cl.constPool;
-            this.maxDepth = cl.maxDepth;
-        }
-    }
-
     public static class Compiler {
 
         /* The function id for the null denominator functions */
@@ -2183,7 +2053,7 @@ public final class LightScript {
     /**
      * evaluate some bytecode 
      */
-    private static Object execute(Code cl, Object[] stack, int argcount) throws LightScriptException {
+    public static Object execute(Code cl, Object[] stack, int argcount) throws LightScriptException {
         //if(!DEBUG_ENABLED) {
         try {
             //}
@@ -2785,4 +2655,3 @@ public final class LightScript {
     }
     //</editor-fold>
 }
-
