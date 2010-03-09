@@ -1,3 +1,4 @@
+//<editor-fold desc="license and imports">
 package com.solsort.mobile;
 
 /**
@@ -26,264 +27,11 @@ import java.util.Random;
  * @author Rasmus Jensen, rasmus@lightscript.net
  * @version 1.2
  */
+// </editor-fold>
 public final class LightScript {
 
-
-    /*`\section{Definitions, API, and utility functions}'*/
-
-    /* If debugging is enabled, more tests are run during run-time,
-     * and errors may be caught in a more readable way.
-     * It also adds support for more readable printing of
-     * id, etc.
-     */
-    private static final boolean DEBUG_ENABLED = true;
-    private static final boolean __PRINT_EXECUTED_INSTRUCTIONS__ = false;
-    private static final boolean __DO_YIELD__ = true;
-
-    /* If enabled, wipe the stack on function exit,
-     * to kill dangling pointers on execution stack,
-     * for better GC at performance price
-     */
-    private static final boolean __CLEAR_STACK__ = true;
-
-    /* Identifiers, used both as node type,
-     * and also used as opcode.
-     */
-    private static final int ID_NONE = 127;
-    private static final int ID_TRUE = 0;
-    private static final int ID_FALSE = 1;
-    private static final int ID_UNDEFINED = 2;
-    private static final int ID_NULL = 3;
-    private static final int ID_PAREN = 4;
-    private static final int ID_LIST_LITERAL = 5;
-    private static final int ID_CURLY = 6;
-    private static final int ID_VAR = 7;
-    private static final int ID_BUILD_FUNCTION = 8;
-    private static final int ID_IF = 9;
-    private static final int ID_WHILE = 10;
-    private static final int ID_CALL_FUNCTION = 11;
-    private static final int ID_AND = 12;
-    private static final int ID_OR = 13;
-    private static final int ID_ELSE = 14;
-    private static final int ID_SET = 15;
-    private static final int ID_IDENT = 16;
-    private static final int ID_BLOCK = 17;
-    private static final int ID_SEP = 18;
-    private static final int ID_IN = 19;
-    private static final int ID_FOR = 20;
-    private static final int ID_END = 21;
-    private static final int ID_CATCH = 22;
-    private static final int ID_DO = 23;
-    private static final int ID_INC = 24;
-    private static final int ID_DEC = 25;
-    private static final int ID_ADD = 26;
-    private static final int ID_EQUALS = 27;
-    private static final int ID_LESS = 29;
-    private static final int ID_LESS_EQUALS = 30;
-    private static final int ID_LITERAL = 31;
-    private static final int ID_MUL = 32;
-    private static final int ID_NEG = 33;
-    private static final int ID_NOT = 34;
-    private static final int ID_NOT_EQUALS = 35;
-    private static final int ID_REM = 37;
-    private static final int ID_RETURN = 38;
-    private static final int ID_SHIFT_RIGHT_ARITHMETIC = 39;
-    private static final int ID_SUB = 40;
-    private static final int ID_SUBSCRIPT = 41;
-    private static final int ID_THIS = 42;
-    private static final int ID_THROW = 43;
-    private static final int ID_TRY = 44;
-    private static final int ID_UNTRY = 45;
-    private static final int ID_BOX_IT = 46;
-    private static final int ID_BUILD_FN = 47;
-    private static final int ID_CALL_FN = 48;
-    private static final int ID_DROP = 49;
-    private static final int ID_DUP = 50;
-    private static final int ID_GET_BOXED = 52;
-    private static final int ID_GET_BOXED_CLOSURE = 53;
-    private static final int ID_GET_CLOSURE = 54;
-    private static final int ID_GET_LOCAL = 55;
-    private static final int ID_INC_SP = 56;
-    private static final int ID_JUMP = 57;
-    private static final int ID_JUMP_IF_FALSE = 58;
-    private static final int ID_JUMP_IF_TRUE = 59;
-    private static final int ID_NEW_DICT = 60;
-    private static final int ID_NEW_LIST = 61;
-    private static final int ID_NEXT = 62;
-    private static final int ID_POP = 63;
-    private static final int ID_PUSH = 64;
-    private static final int ID_PUT = 65;
-    private static final int ID_SAVE_PC = 66;
-    private static final int ID_SET_BOXED = 67;
-    private static final int ID_SET_CLOSURE = 68;
-    private static final int ID_SET_LOCAL = 69;
-    private static final int ID_SET_THIS = 70;
-    private static final int ID_SWAP = 71;
-    private static final int ID_DIV = 72;
-    private static final int ID_NEW_ITER = 73;
-    private static final int ID_JUMP_IF_UNDEFINED = 74;
-    private static final int ID_DELETE = 75;
-    private static final int ID_NEW = 76;
-    private static final int ID_GLOBAL = 77;
-    private static final int ID_SHIFT_RIGHT = 78;
-    private static final int ID_SHIFT_LEFT = 79;
-    private static final int ID_BITWISE_OR = 81;
-    private static final int ID_BITWISE_XOR = 82;
-    private static final int ID_BITWISE_AND = 83;
-    private static final int ID_BITWISE_NOT = 84;
-    /* The function id for the null denominator functions */
-    private static final int NUD_NONE = 13;
-    private static final int NUD_IDENT = 1;
-    private static final int NUD_LITERAL = 2;
-    private static final int NUD_END = 3;
-    private static final int NUD_SEP = 4;
-    private static final int NUD_LIST = 5;
-    private static final int NUD_PREFIX = 6;
-    private static final int NUD_PREFIX2 = 7;
-    private static final int NUD_FUNCTION = 8;
-    private static final int NUD_VAR = 9;
-    private static final int NUD_ATOM = 10;
-    private static final int NUD_CATCH = 11;
-    private static final int NUD_CONST = 12;
-
-    /* The function id for the null denominator functions */
-    private static final int LED_NONE = 8;
-    private static final int LED_DOT = 1;
-    private static final int LED_INFIX = 2;
-    private static final int LED_INFIXR = 3;
-    private static final int LED_INFIX_LIST = 4;
-    private static final int LED_INFIX_IF = 5;
-    private static final int LED_OPASSIGN = 6;
-    private static final int LED_INFIX_SWAP = 7;
-
-    /* Tokens objects are encoded as integers */
-    /** The number of bits per denominator function */
-    private static final int SIZE_FN = 4;
-    /** The number of bits per id */
-    private static final int SIZE_ID = 7;
-
-    /* Masks for function/id */
-    private static final int MASK_ID = ((1 << SIZE_ID) - 1);
-    private static final int MASK_FN = ((1 << SIZE_FN) - 1);
-
-    /* Mask for the binding power / priority */
-    private static final int MASK_BP = (-1 << (2 * SIZE_ID + 2 * SIZE_FN));
-    /** The sep token, encoded as an integer */
-    private static final int TOKEN_SEP = ((((((((0 << SIZE_FN)
-            | NUD_SEP) << SIZE_ID)
-            | ID_NONE) << SIZE_FN)
-            | LED_NONE) << SIZE_ID)
-            | ID_NONE);
-    /** The end token, encoded as an integer */
-    private static final int TOKEN_END = ((((((((0 << SIZE_FN)
-            | NUD_END) << SIZE_ID)
-            | ID_NONE) << SIZE_FN)
-            | LED_NONE) << SIZE_ID)
-            | ID_NONE);
-    /** The token used for literals, encoded as an integer */
-    private static final int TOKEN_LITERAL = ((((((((0 << SIZE_FN)
-            | NUD_LITERAL) << SIZE_ID)
-            | ID_NONE) << SIZE_FN)
-            | LED_NONE) << SIZE_ID)
-            | ID_NONE);
-    /** The token used for identifiers, encoded as an integer */
-    private static final int TOKEN_IDENT = ((((((((0 << SIZE_FN)
-            | NUD_IDENT) << SIZE_ID)
-            | ID_NONE) << SIZE_FN)
-            | LED_NONE) << SIZE_ID)
-            | ID_NONE);
-    /** Sizes of different kinds of stack frames */
-    private static final int RET_FRAME_SIZE = 4;
-    private static final int TRY_FRAME_SIZE = 5;
-    /** Token used for separators (;,:), which are just discarded */
-    private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
-    /** The true truth value of results 
-     * of tests/comparisons within LightScript */
-    public static final Object TRUE = new StringBuffer("true");
-    /** The null value within LightScript */
-    public static final Object NULL = new StringBuffer("null");
-    /** The undefined value within LightScript */
-    public static final Object UNDEFINED = new StringBuffer("undefined");
-    /** The false truth value of results 
-     * of tests/comparisons within LightScript */
-    public static final Object FALSE = new StringBuffer("false");
-    /** Token string when reaching end of file, it can only occur
-     * at end of file, as it would otherwise be parsed as three
-     * tokens: "(", "EOF", and ")". */
-    private static final String EOF = "(EOF)";
-    /** This stack is used during compilation to build the constant pool 
-     * of the compiled function. The constant pool contains the constants
-     * that are used during execution of the function */
-    private Stack constPool;
-
-    /* Used to keep track of stack depth during compilation, to be able to
-     * resolve variables */
-    private int maxDepth;
-    private int depth;
-    /** This stringbuffer is used as a dynamically sized bytevector
-     * where opcodes are added, during the compilation */
-    private StringBuffer code;
-    /** The stream which we are parsing */
-    private InputStream is;
-    /** the just read character */
-    private int c;
-    /** the buffer for building the tokens */
-    private StringBuffer sb;
-
-    /* Per function statistics
-     * Sets of variable names for keeping track of which variables
-     * are used where and how, in order to know whether they should
-     * be boxed, and be placed on the stack or in closures. */
-    /** The variables used within a function */
-    private Stack varsUsed;
-    /** The variables that needs to be boxed */
-    private Stack varsBoxed;
-    /** The local variables (arguments, and var-defined) */
-    private Stack varsLocals;
-    /** The variables in the closure */
-    private Stack varsClosure;
-    /** The number of arguments to the function, corresponds to the first
-     * names in varsLocals */
-    private int varsArgc;
-    /** The value of the just read token.
-     * used if the token is an identifier or literal.
-     * possible types are String and Integer */
-    private Object tokenVal;
-    /** The integer encoded token object, including priority, IDs
-     * and Function ids for null/left denominator functions */
-    private int token;
     /*`\subsection{Public functions}'*/
-    /** The globals variables in this execution context.
-     * they are boxed, in such that they can be passed
-     * to the closure of af function, which will then
-     * be able to modify it without looking it up here */
-    private static final int EC_GLOBALS = 0;
-    private static final int EC_OBJECT_PROTOTYPE = 1;
-    private static final int EC_ARRAY_PROTOTYPE = 2;
-    private static final int EC_FUNCTION_PROTOTYPE = 3;
-    private static final int EC_STRING_PROTOTYPE = 4;
-    /* Index in executionContext for the default setter function, 
-     * which is called when a property is set on
-     * an object which is neither a Stack, Hashtable nor LightScriptObject
-     *
-     * The apply method of the setter gets the container as thisPtr, 
-     * and takes the key and value as arguments
-     */
-    private static final int EC_SETTER = 5;
-    /* Index in executionContext for the default getter function, 
-     * called when subscripting an object
-     * which is not a Stack, Hashtable, String nor LightScriptObject
-     * or when the subscripting of any of those objects returns null.
-     * (non-integer on stacks/strings, keys not found in Hashtable or 
-     * its prototypes, when LightScriptObject.get returns null)
-     *
-     * The apply method of the getter gets the container as thisPtr, 
-     * and takes the key as argument
-     */
-    private static final int EC_GETTER = 6;
-    private static final int EC_WRAPPED_GLOBALS = 7;
-    private static final int EC_NEW_ITER = 8;
-
+    // <editor-fold desc="public api">
     /** Get the default iterator function */
     public LightScriptObject defaultIterator() {
         return (LightScriptObject) executionContext[EC_NEW_ITER];
@@ -417,8 +165,270 @@ public final class LightScript {
     public Object get(Object key) {
         return ((LightScriptObject) executionContext[EC_WRAPPED_GLOBALS]).get(key);
     }
+    /** The true truth value of results
+     * of tests/comparisons within LightScript */
+    public static final Object TRUE = new StringBuffer("true");
+    /** The null value within LightScript */
+    public static final Object NULL = new StringBuffer("null");
+    /** The undefined value within LightScript */
+    public static final Object UNDEFINED = new StringBuffer("undefined");
+    /** The false truth value of results
+     * of tests/comparisons within LightScript */
+    public static final Object FALSE = new StringBuffer("false");
+    // </editor-fold>
+    // <editor-fold desc="options">
+    /*`\section{Definitions, API, and utility functions}'*/
 
+    /* If debugging is enabled, more tests are run during run-time,
+     * and errors may be caught in a more readable way.
+     * It also adds support for more readable printing of
+     * id, etc.
+     */
+    private static final boolean DEBUG_ENABLED = true;
+    private static final boolean __PRINT_EXECUTED_INSTRUCTIONS__ = false;
+    private static final boolean __DO_YIELD__ = true;
+
+    /* If enabled, wipe the stack on function exit,
+     * to kill dangling pointers on execution stack,
+     * for better GC at performance price
+     */
+    private static final boolean __CLEAR_STACK__ = true;
+    // </editor-fold>
+    // <editor-fold desc="defines">
+
+    /* Identifiers, used both as node type,
+     * and also used as opcode.
+     */
+    private static final int ID_NONE = 127;
+    private static final int ID_TRUE = 0;
+    private static final int ID_FALSE = 1;
+    private static final int ID_UNDEFINED = 2;
+    private static final int ID_NULL = 3;
+    private static final int ID_PAREN = 4;
+    private static final int ID_LIST_LITERAL = 5;
+    private static final int ID_CURLY = 6;
+    private static final int ID_VAR = 7;
+    private static final int ID_BUILD_FUNCTION = 8;
+    private static final int ID_IF = 9;
+    private static final int ID_WHILE = 10;
+    private static final int ID_CALL_FUNCTION = 11;
+    private static final int ID_AND = 12;
+    private static final int ID_OR = 13;
+    private static final int ID_ELSE = 14;
+    private static final int ID_SET = 15;
+    private static final int ID_IDENT = 16;
+    private static final int ID_BLOCK = 17;
+    private static final int ID_SEP = 18;
+    private static final int ID_IN = 19;
+    private static final int ID_FOR = 20;
+    private static final int ID_END = 21;
+    private static final int ID_CATCH = 22;
+    private static final int ID_DO = 23;
+    private static final int ID_INC = 24;
+    private static final int ID_DEC = 25;
+    private static final int ID_ADD = 26;
+    private static final int ID_EQUALS = 27;
+    private static final int ID_LESS = 29;
+    private static final int ID_LESS_EQUALS = 30;
+    private static final int ID_LITERAL = 31;
+    private static final int ID_MUL = 32;
+    private static final int ID_NEG = 33;
+    private static final int ID_NOT = 34;
+    private static final int ID_NOT_EQUALS = 35;
+    private static final int ID_REM = 37;
+    private static final int ID_RETURN = 38;
+    private static final int ID_SHIFT_RIGHT_ARITHMETIC = 39;
+    private static final int ID_SUB = 40;
+    private static final int ID_SUBSCRIPT = 41;
+    private static final int ID_THIS = 42;
+    private static final int ID_THROW = 43;
+    private static final int ID_TRY = 44;
+    private static final int ID_UNTRY = 45;
+    private static final int ID_BOX_IT = 46;
+    private static final int ID_BUILD_FN = 47;
+    private static final int ID_CALL_FN = 48;
+    private static final int ID_DROP = 49;
+    private static final int ID_DUP = 50;
+    private static final int ID_GET_BOXED = 52;
+    private static final int ID_GET_BOXED_CLOSURE = 53;
+    private static final int ID_GET_CLOSURE = 54;
+    private static final int ID_GET_LOCAL = 55;
+    private static final int ID_INC_SP = 56;
+    private static final int ID_JUMP = 57;
+    private static final int ID_JUMP_IF_FALSE = 58;
+    private static final int ID_JUMP_IF_TRUE = 59;
+    private static final int ID_NEW_DICT = 60;
+    private static final int ID_NEW_LIST = 61;
+    private static final int ID_NEXT = 62;
+    private static final int ID_POP = 63;
+    private static final int ID_PUSH = 64;
+    private static final int ID_PUT = 65;
+    private static final int ID_SAVE_PC = 66;
+    private static final int ID_SET_BOXED = 67;
+    private static final int ID_SET_CLOSURE = 68;
+    private static final int ID_SET_LOCAL = 69;
+    private static final int ID_SET_THIS = 70;
+    private static final int ID_SWAP = 71;
+    private static final int ID_DIV = 72;
+    private static final int ID_NEW_ITER = 73;
+    private static final int ID_JUMP_IF_UNDEFINED = 74;
+    private static final int ID_DELETE = 75;
+    private static final int ID_NEW = 76;
+    private static final int ID_GLOBAL = 77;
+    private static final int ID_SHIFT_RIGHT = 78;
+    private static final int ID_SHIFT_LEFT = 79;
+    private static final int ID_BITWISE_OR = 81;
+    private static final int ID_BITWISE_XOR = 82;
+    private static final int ID_BITWISE_AND = 83;
+    private static final int ID_BITWISE_NOT = 84;
+    // <editor-fold desc="tokens">
+    /* The function id for the null denominator functions */
+    private static final int NUD_NONE = 13;
+    private static final int NUD_IDENT = 1;
+    private static final int NUD_LITERAL = 2;
+    private static final int NUD_END = 3;
+    private static final int NUD_SEP = 4;
+    private static final int NUD_LIST = 5;
+    private static final int NUD_PREFIX = 6;
+    private static final int NUD_PREFIX2 = 7;
+    private static final int NUD_FUNCTION = 8;
+    private static final int NUD_VAR = 9;
+    private static final int NUD_ATOM = 10;
+    private static final int NUD_CATCH = 11;
+    private static final int NUD_CONST = 12;
+
+    /* The function id for the null denominator functions */
+    private static final int LED_NONE = 8;
+    private static final int LED_DOT = 1;
+    private static final int LED_INFIX = 2;
+    private static final int LED_INFIXR = 3;
+    private static final int LED_INFIX_LIST = 4;
+    private static final int LED_INFIX_IF = 5;
+    private static final int LED_OPASSIGN = 6;
+    private static final int LED_INFIX_SWAP = 7;
+
+    /* Tokens objects are encoded as integers */
+    /** The number of bits per denominator function */
+    private static final int SIZE_FN = 4;
+    /** The number of bits per id */
+    private static final int SIZE_ID = 7;
+    //</editor-fold>
+
+    /* Masks for function/id */
+    private static final int MASK_ID = ((1 << SIZE_ID) - 1);
+    private static final int MASK_FN = ((1 << SIZE_FN) - 1);
+
+    /* Mask for the binding power / priority */
+    private static final int MASK_BP = (-1 << (2 * SIZE_ID + 2 * SIZE_FN));
+    /** The sep token, encoded as an integer */
+    private static final int TOKEN_SEP = ((((((((0 << SIZE_FN)
+            | NUD_SEP) << SIZE_ID)
+            | ID_NONE) << SIZE_FN)
+            | LED_NONE) << SIZE_ID)
+            | ID_NONE);
+    /** The end token, encoded as an integer */
+    private static final int TOKEN_END = ((((((((0 << SIZE_FN)
+            | NUD_END) << SIZE_ID)
+            | ID_NONE) << SIZE_FN)
+            | LED_NONE) << SIZE_ID)
+            | ID_NONE);
+    /** The token used for literals, encoded as an integer */
+    private static final int TOKEN_LITERAL = ((((((((0 << SIZE_FN)
+            | NUD_LITERAL) << SIZE_ID)
+            | ID_NONE) << SIZE_FN)
+            | LED_NONE) << SIZE_ID)
+            | ID_NONE);
+    /** The token used for identifiers, encoded as an integer */
+    private static final int TOKEN_IDENT = ((((((((0 << SIZE_FN)
+            | NUD_IDENT) << SIZE_ID)
+            | ID_NONE) << SIZE_FN)
+            | LED_NONE) << SIZE_ID)
+            | ID_NONE);
+    /** Sizes of different kinds of stack frames */
+    private static final int RET_FRAME_SIZE = 4;
+    private static final int TRY_FRAME_SIZE = 5;
+    /** Token used for separators (;,:), which are just discarded */
+    private static final Object[] SEP_TOKEN = {new Integer(ID_SEP)};
+    /** Token string when reaching end of file, it can only occur
+     * at end of file, as it would otherwise be parsed as three
+     * tokens: "(", "EOF", and ")". */
+    private static final String EOF = "(EOF)";
+    /** The globals variables in this execution context.
+     * they are boxed, in such that they can be passed
+     * to the closure of af function, which will then
+     * be able to modify it without looking it up here */
+    private static final int EC_GLOBALS = 0;
+    private static final int EC_OBJECT_PROTOTYPE = 1;
+    private static final int EC_ARRAY_PROTOTYPE = 2;
+    private static final int EC_FUNCTION_PROTOTYPE = 3;
+    private static final int EC_STRING_PROTOTYPE = 4;
+    /* Index in executionContext for the default setter function,
+     * which is called when a property is set on
+     * an object which is neither a Stack, Hashtable nor LightScriptObject
+     *
+     * The apply method of the setter gets the container as thisPtr,
+     * and takes the key and value as arguments
+     */
+    private static final int EC_SETTER = 5;
+    /* Index in executionContext for the default getter function,
+     * called when subscripting an object
+     * which is not a Stack, Hashtable, String nor LightScriptObject
+     * or when the subscripting of any of those objects returns null.
+     * (non-integer on stacks/strings, keys not found in Hashtable or
+     * its prototypes, when LightScriptObject.get returns null)
+     *
+     * The apply method of the getter gets the container as thisPtr,
+     * and takes the key as argument
+     */
+    private static final int EC_GETTER = 6;
+    private static final int EC_WRAPPED_GLOBALS = 7;
+    private static final int EC_NEW_ITER = 8;
+    //</editor-fold>
+    // <editor-fold desc="properties">
+    /** This stack is used during compilation to build the constant pool
+     * of the compiled function. The constant pool contains the constants
+     * that are used during execution of the function */
+    private Stack constPool;
+
+    /* Used to keep track of stack depth during compilation, to be able to
+     * resolve variables */
+    private int maxDepth;
+    private int depth;
+    /** This stringbuffer is used as a dynamically sized bytevector
+     * where opcodes are added, during the compilation */
+    private StringBuffer code;
+    /** The stream which we are parsing */
+    private InputStream is;
+    /** the just read character */
+    private int c;
+    /** the buffer for building the tokens */
+    private StringBuffer sb;
+
+    /* Per function statistics
+     * Sets of variable names for keeping track of which variables
+     * are used where and how, in order to know whether they should
+     * be boxed, and be placed on the stack or in closures. */
+    /** The variables used within a function */
+    private Stack varsUsed;
+    /** The variables that needs to be boxed */
+    private Stack varsBoxed;
+    /** The local variables (arguments, and var-defined) */
+    private Stack varsLocals;
+    /** The variables in the closure */
+    private Stack varsClosure;
+    /** The number of arguments to the function, corresponds to the first
+     * names in varsLocals */
+    private int varsArgc;
+    /** The value of the just read token.
+     * used if the token is an identifier or literal.
+     * possible types are String and Integer */
+    private Object tokenVal;
+    /** The integer encoded token object, including priority, IDs
+     * and Function ids for null/left denominator functions */
+    private int token;
+    //</editor-fold>
     /*`\subsection{Debugging}'*/
+    //<editor-fold>
     /** Mapping from ID to name of ID */
     private static final String[] idNames = {
         "", "", "", "", "PAREN", "LIST_LITERAL", "CURLY", "VAR",
@@ -491,7 +501,9 @@ public final class LightScript {
             return o.toString();
         }
     }
+    //</editor-fold>
     /*`\subsection{Arithmetics}'*/
+    //<editor-fold>
 
     private static class FixedPoint {
 
@@ -612,7 +624,9 @@ public final class LightScript {
         return a <= b;
     }
 
+    //</editor-fold>
     /*`\subsection{Utility functions}'*/
+    //<editor-fold>
 
     /* Constructors for nodes of the Abstract Syntax Tree.
      * Each node is an array containing an ID, followed by 
@@ -659,9 +673,10 @@ public final class LightScript {
             s.push(val);
         }
     }
-
+    //</editor-fold>
     /*`\subsection{Utility classes}'*/
     /*`\subsubsection{StdLib}'*/
+
     private static class StdLib implements LightScriptFunction, LightScriptObject {
 
         private int id;
@@ -956,7 +971,6 @@ public final class LightScript {
             return LightScript.UNDEFINED;
         }
 
-
         public static void register(LightScript ls) {
 
             Hashtable objectPrototype = new Hashtable();
@@ -1026,8 +1040,8 @@ public final class LightScript {
             ls.set("Math", math);
         }
     }
-    /*`\subsubsection{Code}'*/
 
+    /*`\subsubsection{Code}'*/
     /**
      * Analysis of variables in a function being compiled,
      * updated during the parsing.
@@ -1088,6 +1102,7 @@ public final class LightScript {
     }
 
     /*`\section{Tokeniser}'\index{Tokeniser}*/
+    // <editor-fold>
     /** Read the next character from the input stream */
     private void nextc() {
         try {
@@ -1205,9 +1220,11 @@ public final class LightScript {
         resolveToken(sb.toString());
         return;
     }
-
+    //</editor-fold>
     /*`\section{Parser}\label{code-lightscript-parser}
     \index{Top down operator precedence parser}'*/
+    //<editor-fold>
+
     /** Parse the next expression from the input stream
      * @param rbp right binding power
      */
@@ -1877,8 +1894,10 @@ public final class LightScript {
             token = ((Integer) o).intValue() + MASK_BP;
         }
     }
-
+    //</editor-fold>
     /*`\section{Compiler}'*/
+    //<editor-fold>
+
     private void pushShort(int i) {
         emit(((i >> 8) & 0xff));
         emit((i & 0xff));
@@ -2603,7 +2622,9 @@ public final class LightScript {
         }
     }
 
+    //</editor-fold>
     /*`\section{Virtual Machine}\index{Virtual machine}'*/
+    //<editor-fold>
     private static int readShort(int pc, byte[] code) {
         return (short) (((code[++pc] & 0xff) << 8) | (code[++pc] & 0xff));
     }
@@ -3253,5 +3274,6 @@ public final class LightScript {
             }
         }
     }
+    //</editor-fold>
 }
 
