@@ -569,7 +569,7 @@ public final class LightScript {
      * Analysis of variables in a function being compiled,
      * updated during the parsing.
      */
-    private static class Code implements LightScriptFunction, LightScriptObject {
+    private static class Code implements LightScriptFunction {
 
         public Object apply(Object[] args, int argpos, int argcount)
                 throws LightScriptException {
@@ -593,20 +593,6 @@ public final class LightScript {
         public Object[] constPool;
         public Object[] closure;
         public int maxDepth;
-
-        public Object get(Object key) {
-            if ("length".equals(key)) {
-                return new Integer(argc);
-            }
-            Hashtable prototype = (Hashtable) ((Object[]) constPool[0])[EC_FUNCTION_PROTOTYPE];
-            if ("__proto__".equals(key)) {
-                return prototype;
-            }
-            return prototype.get(key);
-        }
-
-        public void set(Object key, Object val) {
-        }
 
         public Code(int argc, byte[] code, Object[] constPool, Object[] closure, int maxDepth) {
             this.argc = argc;
@@ -2480,10 +2466,8 @@ public final class LightScript {
                         Object key = stack[--sp];
                         Object container = stack[--sp];
 
-                        if (container instanceof LightScriptObject) {
-                            ((LightScriptObject) container).set(key, val);
-
-                        } else if (container instanceof Stack) {
+                        //CLASS DISPATCH replace below
+                        if (container instanceof Stack) {
                             int pos = toInt(key);
                             Stack s = (Stack) container;
                             if (pos >= s.size()) {
@@ -2509,9 +2493,8 @@ public final class LightScript {
 
 
                         // "Object"
-                        if (container instanceof LightScriptObject) {
-                            result = ((LightScriptObject) container).get(key);
-                        } else if (container instanceof Hashtable) {
+    //CLASS DISPATCH replace below
+                        if (container instanceof Hashtable) {
                             result = ((Hashtable) container).get(key);
                             if (result == null) {
                                 Object prototype = ((Hashtable) container).get("__proto__");
@@ -2728,12 +2711,11 @@ public final class LightScript {
                     case ID_DELETE: {
                         Object key = stack[sp];
                         Object container = stack[--sp];
+                        //CLASS DISPATCH replace below
                         if (container instanceof Hashtable) {
                             ((Hashtable) container).remove(key);
                         } else if (container instanceof Stack && key instanceof Integer) {
                             ((Stack) container).setElementAt(UNDEFINED, ((Integer) key).intValue());
-                        } else if (container instanceof LightScriptObject) {
-                            ((LightScriptObject) container).set(key, UNDEFINED);
                         } else {
                             if (DEBUG_ENABLED) {
                                 throw new Error("deleting non-deletable");
