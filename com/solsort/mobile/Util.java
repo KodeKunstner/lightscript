@@ -78,7 +78,7 @@ public final class Util {
         }
     }
 
-    public static void qsort(Stack arr, int first, int last, LightScriptFunction cmp) throws LightScriptException {
+    public static void qsort(Stack arr, int first, int last, Function cmp) throws ScriptException {
         Object args[] = {arr, null, null};
         while (first < last) {
             int l = first;

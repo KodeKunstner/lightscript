@@ -1,11 +1,11 @@
 package com.solsort.mobile;
 
 
-class Code implements LightScriptFunction {
+class Code implements Function {
 
         private static final boolean DEBUG_ENABLED = true;
         public Object apply(Object[] args, int argpos, int argcount)
-                throws LightScriptException {
+                throws ScriptException {
             if (!DEBUG_ENABLED || argcount == argc) {
                 Object stack[];
                 if (argpos != 0) {
@@ -18,7 +18,7 @@ class Code implements LightScriptFunction {
                 }
                 return LightScript.execute(this, stack, argcount);
             } else {
-                throw new LightScriptException("Wrong number of arguments");
+                throw new ScriptException("Wrong number of arguments");
             }
         }
         public int argc;

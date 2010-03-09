@@ -29,7 +29,8 @@ import java.util.Stack;
 public final class LightScript {
     // TODO: globals object
 
-    public static Object globals = null;
+    public static Object oldGlobalObject = null;
+    private static Hashtable globals = new Hashtable();
 
     public static int toInt(Object object) {
         if (object instanceof Integer) {
@@ -43,26 +44,26 @@ public final class LightScript {
     /*`\subsection{Public functions}'*/
     // <editor-fold desc="public api">
     /** Get the default-setter function */
-    public LightScriptFunction defaultSetter() {
-        return (LightScriptFunction) executionContext[EC_SETTER];
+    public Function defaultSetter() {
+        return (Function) executionContext[EC_SETTER];
     }
 
     /** Set the default-setter function.
      * The default setter function is called as a method on the object,
      * with the key and the value as arguments. */
-    public void defaultSetter(LightScriptFunction f) {
+    public void defaultSetter(Function f) {
         executionContext[EC_SETTER] = f;
     }
 
     /** Get the default-getter function */
-    public LightScriptFunction defaultGetter() {
-        return (LightScriptFunction) executionContext[EC_GETTER];
+    public Function defaultGetter() {
+        return (Function) executionContext[EC_GETTER];
     }
 
     /** Set the default-getter function.
      * The default getter function is called as a method on the object,
      * with a single argument, which is the key */
-    public void defaultGetter(LightScriptFunction f) {
+    public void defaultGetter(Function f) {
         executionContext[EC_GETTER] = f;
     }
     /**
@@ -78,38 +79,38 @@ public final class LightScript {
     }
 
     /** Shorthands for executing a LightScript function */
-    public static Object apply(Object thisPtr, LightScriptFunction f) throws LightScriptException {
+    public static Object apply(Object thisPtr, Function f) throws ScriptException {
         Object args[] = {thisPtr};
         return f.apply(args, 0, 0);
     }
 
     /** Shorthands for executing a LightScript function */
-    public static Object apply(Object thisPtr, LightScriptFunction f, Object arg1) throws LightScriptException {
+    public static Object apply(Object thisPtr, Function f, Object arg1) throws ScriptException {
         Object args[] = {thisPtr, arg1};
         return f.apply(args, 0, 1);
     }
 
     /** Shorthands for executing a LightScript function */
-    public static Object apply(Object thisPtr, LightScriptFunction f, Object arg1, Object arg2) throws LightScriptException {
+    public static Object apply(Object thisPtr, Function f, Object arg1, Object arg2) throws ScriptException {
         Object args[] = {thisPtr, arg1, arg2};
         return f.apply(args, 0, 2);
     }
 
     /** Shorthands for executing a LightScript function */
-    public static Object apply(Object thisPtr, LightScriptFunction f, Object arg1, Object arg2, Object arg3) throws LightScriptException {
+    public static Object apply(Object thisPtr, Function f, Object arg1, Object arg2, Object arg3) throws ScriptException {
         Object args[] = {thisPtr, arg1, arg2, arg3};
         return f.apply(args, 0, 3);
     }
 
     /** Shorthand for evaluating a string that contains LightScript code */
-    public Object eval(String s) throws LightScriptException {
+    public Object eval(String s) throws ScriptException {
         return eval(new ByteArrayInputStream(s.getBytes()));
     }
 
     /** Parse and execute LightScript code read from an input stream */
-    public Object eval(InputStream is) throws LightScriptException {
+    public Object eval(InputStream is) throws ScriptException {
         Object result, t = UNDEFINED;
-        Compiler c = new Compiler(is, executionContext);
+        Compiler c = new Compiler(is, this);
         do {
             result = t;
             t = c.evalNext(is);
@@ -118,24 +119,23 @@ public final class LightScript {
         return result;
     }
 
+    public Object[] getBox(Object key) {
+        Object box[] = (Object[]) globals.get(key);
+        if(box == null) {
+            box = new Object[1];
+            box[0] = UNDEFINED;
+            globals.put(key, box);
+        }
+        return box;
+    }
     /** Set a global value for this execution context */
     public void set(Object key, Object value) {
-        Object[] box = (Object[]) ((Hashtable) executionContext[EC_GLOBALS]).get(key);
-        if (box == null) {
-            box = new Object[1];
-            ((Hashtable) executionContext[EC_GLOBALS]).put(key, box);
-        }
-        box[0] = value;
+        getBox(key)[0] = value;
     }
 
     /** Retrieve a global value from this execution context */
     public Object get(Object key) {
-        Object[] box = (Object[]) ((Hashtable) executionContext[EC_GLOBALS]).get(key);
-        if (box == null) {
-            return null;
-        } else {
-            return box[0];
-        }
+        return getBox(key)[0];
     }
     /** The true truth value of results
      * of tests/comparisons within LightScript */
@@ -177,7 +177,7 @@ public final class LightScript {
      * they are boxed, in such that they can be passed
      * to the closure of af function, which will then
      * be able to modify it without looking it up here */
-    public static final int EC_GLOBALS = 0;
+    private static final int EC_GLOBALS = 0;
     private static final int EC_OBJECT_PROTOTYPE = 1;
     private static final int EC_ARRAY_PROTOTYPE = 2;
     private static final int EC_FUNCTION_PROTOTYPE = 3;
@@ -277,56 +277,6 @@ public final class LightScript {
             return o.toString();
         }
     }
-    //</editor-fold>
-    /*`\subsection{Utility functions}'*/
-    //<editor-fold>
-
-    /* Constructors for nodes of the Abstract Syntax Tree.
-     * Each node is an array containing an ID, followed by 
-     * its children or literal values */
-    /** (id, o) -> (Object []) {new Integer(id), o} */
-    private static Object[] v(int id, Object o) {
-        Object[] result = {new Integer(id), o};
-        return result;
-    }
-
-    /** (id, o1, o2) -> (Object []) {new Integer(id), o1, o2} */
-    private static Object[] v(int id, Object o1, Object o2) {
-        Object[] result = {new Integer(id), o1, o2};
-        return result;
-    }
-
-    /** (id, o1, o2, o3) -> (Object []) {new Integer(id), o1, o2, o3} */
-    private static Object[] v(int id, Object o1, Object o2, Object o3) {
-        Object[] result = {new Integer(id), o1, o2, o3};
-        return result;
-    }
-
-    /** Returns a new object array, with the seperator tokens removed */
-    private static Object[] stripSep(Object[] os) {
-        Stack s = new Stack();
-        for (int i = 0; i < os.length; i++) {
-            if (os[i] != SEP_TOKEN) {
-                s.push(os[i]);
-            }
-        }
-        os = new Object[s.size()];
-        s.copyInto(os);
-        return os;
-    }
-
-    /** Push a value into a stack if it is not already there */
-    private static void stackAdd(Stack s, Object val) {
-        if (s == null) {
-            return;
-        }
-        int pos = s.indexOf(val);
-        if (pos == -1) {
-            pos = s.size();
-            s.push(val);
-        }
-    }
-    //</editor-fold>
     /*`\subsection{Utility classes}'*/
     /*`\subsubsection{StdLib}'*/
 
@@ -379,7 +329,7 @@ public final class LightScript {
     /**
      * evaluate some bytecode 
      */
-    public static Object execute(Code cl, Object[] stack, int argcount) throws LightScriptException {
+    public static Object execute(Code cl, Object[] stack, int argcount) throws ScriptException {
         //if(!DEBUG_ENABLED) {
         try {
             //}
@@ -390,7 +340,7 @@ public final class LightScript {
             byte[] code = cl.code;
             Object[] constPool = cl.constPool;
             Object[] closure = cl.closure;
-            Object[] executionContext = (Object[]) constPool[0];
+            Object[] executionContext = ((LightScript)constPool[0]).executionContext;
             int exceptionHandler = - 1;
             stack = ensureSpace(stack, sp, cl.maxDepth);
             Object thisPtr = stack[0];
@@ -433,7 +383,7 @@ public final class LightScript {
                         pc = ((Integer) stack[--sp]).intValue();
                         code = (byte[]) stack[--sp];
                         constPool = (Object[]) stack[--sp];
-                        executionContext = (Object[]) constPool[0];
+                        executionContext = ((LightScript)constPool[0]).executionContext;
                         closure = (Object[]) stack[--sp];
                         thisPtr = stack[--sp];
                         stack[sp] = result;
@@ -472,14 +422,14 @@ public final class LightScript {
                             pc = -1;
                             code = fn.code;
                             constPool = fn.constPool;
-                            executionContext = (Object[]) constPool[0];
+                            executionContext = ((LightScript)constPool[0]).executionContext;
                             closure = fn.closure;
-                        } else if (o instanceof LightScriptFunction) {
+                        } else if (o instanceof Function) {
                             try {
-                                Object result = ((LightScriptFunction) o).apply(stack, sp - argc, argc);
+                                Object result = ((Function) o).apply(stack, sp - argc, argc);
                                 sp -= argc + 1 + RET_FRAME_SIZE;
                                 stack[sp] = result;
-                            } catch (LightScriptException e) {
+                            } catch (ScriptException e) {
                                 if (exceptionHandler < 0) {
                                     throw e;
                                 } else {
@@ -489,7 +439,7 @@ public final class LightScript {
                                     pc = ((Integer) stack[--sp]).intValue();
                                     code = (byte[]) stack[--sp];
                                     constPool = (Object[]) stack[--sp];
-                                    executionContext = (Object[]) constPool[0];
+                                    executionContext = ((LightScript)constPool[0]).executionContext;
                                     closure = (Object[]) stack[--sp];
                                     stack[sp] = e.value;
                                 }
@@ -687,7 +637,7 @@ public final class LightScript {
                                 ((Hashtable) container).put(key, val);
                             }
                         } else {
-                            ((LightScriptFunction) executionContext[EC_SETTER]).apply(stack, sp, 2);
+                            ((Function) executionContext[EC_SETTER]).apply(stack, sp, 2);
                         }
                         break;
                     }
@@ -742,7 +692,7 @@ public final class LightScript {
 
                             // Other builtin types, by calling userdefined default getter
                         } else {
-                            result = ((LightScriptFunction) executionContext[EC_GETTER]).apply(stack, sp, 1);
+                            result = ((Function) executionContext[EC_GETTER]).apply(stack, sp, 1);
                         }
 
                         // prototype property or element within (super-)prototype
@@ -871,7 +821,7 @@ public final class LightScript {
                     case OpCodes.THROW: {
                         Object result = stack[sp];
                         if (exceptionHandler < 0) {
-                            throw new LightScriptException(result);
+                            throw new ScriptException(result);
                         } else {
                             //System.out.println(stringify(stack));
                             sp = exceptionHandler;
@@ -879,7 +829,7 @@ public final class LightScript {
                             pc = ((Integer) stack[--sp]).intValue();
                             code = (byte[]) stack[--sp];
                             constPool = (Object[]) stack[--sp];
-                            executionContext = (Object[]) constPool[0];
+                            executionContext = ((LightScript)constPool[0]).executionContext;
                             closure = (Object[]) stack[--sp];
                             stack[sp] = result;
                         }
@@ -901,16 +851,16 @@ public final class LightScript {
                         break;
                     }
                     case OpCodes.NEW_ITER: {
-                        stack[sp] = ((LightScriptFunction) executionContext[EC_NEW_ITER]).apply(stack, sp, 0);
+                        stack[sp] = ((Function) executionContext[EC_NEW_ITER]).apply(stack, sp, 0);
                         break;
                     }
                     case OpCodes.NEXT: {
-                        LightScriptFunction iter = (LightScriptFunction) stack[sp];
+                        Function iter = (Function) stack[sp];
                         stack[++sp] = iter.apply(stack, sp, 0);
                         break;
                     }
                     case OpCodes.GLOBAL: {
-                        stack[++sp] = globals;
+                        stack[++sp] = oldGlobalObject;
                         break;
                     }
                     case OpCodes.DELETE: {
@@ -973,7 +923,7 @@ public final class LightScript {
 // if we debug, we want the real exception, with line number..
         } catch (Error e) {
             if (!DEBUG_ENABLED) {
-                throw new LightScriptException(e);
+                throw new ScriptException(e);
             } else {
                 throw e;
             }

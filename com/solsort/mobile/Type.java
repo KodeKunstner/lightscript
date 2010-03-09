@@ -4,7 +4,7 @@ package com.solsort.mobile;
  *
  * @author rje
  */
-public class LightScriptClass {
+public class Type {
 
     public java.util.Hashtable prototype;
 
@@ -20,7 +20,7 @@ public class LightScriptClass {
         return true;
     }
 
-    public static class Hashtable extends LightScriptClass {
+    public static class Hashtable extends Type {
 
         public Object get(Object thisPtr, Object key) {
             Object result = ((java.util.Hashtable) thisPtr).get(key);
@@ -40,7 +40,7 @@ public class LightScriptClass {
         }
     }
 
-    public static class Stack extends LightScriptClass {
+    public static class Stack extends Type {
 
         public Object get(Object thisPtr, Object key) {
             java.util.Stack s = (java.util.Stack) thisPtr;
@@ -76,7 +76,7 @@ public class LightScriptClass {
         }
     }
 
-    public static class ObjectArray extends LightScriptClass {
+    public static class ObjectArray extends Type {
 
         public Object get(Object thisPtr, Object key) {
             Object[] os = (Object[]) thisPtr;
@@ -109,7 +109,7 @@ public class LightScriptClass {
         }
     }
 
-    public static class String extends LightScriptClass {
+    public static class String extends Type {
 
         public Object get(Object thisPtr, Object key) {
             java.lang.String str = (java.lang.String) thisPtr;

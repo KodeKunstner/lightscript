@@ -10,7 +10,7 @@ import java.util.Hashtable;
 import java.util.Random;
 import java.util.Stack;
 
-class StdLib implements LightScriptFunction {
+class StdLib implements Function {
 
     private static final int EC_OBJECT_PROTOTYPE = 1;
     private static final int EC_ARRAY_PROTOTYPE = 2;
@@ -93,12 +93,12 @@ class StdLib implements LightScriptFunction {
         this.id = id;
     }
 
-    public Object apply(Object[] args, int argpos, int argcount) throws LightScriptException {
+    public Object apply(Object[] args, int argpos, int argcount) throws ScriptException {
         Object thisPtr = args[argpos];
         Object arg1 = argcount < 1 ? LightScript.UNDEFINED : args[argpos + 1];
         Object arg2 = argcount < 2 ? LightScript.UNDEFINED : args[argpos + 2];
         if (argcs[id] >= 0 && argcount != argcs[id]) {
-            throw new LightScriptException("Error: Wrong number of arguments");
+            throw new ScriptException("Error: Wrong number of arguments");
         }
         switch (id) {
             case STD_PRINT: {
@@ -255,7 +255,7 @@ class StdLib implements LightScriptFunction {
             }
             case STD_ARRAY_SORT: {
                 Stack s = (Stack) thisPtr;
-                Util.qsort(s, 0, s.size() - 1, (LightScriptFunction) arg1);
+                Util.qsort(s, 0, s.size() - 1, (Function) arg1);
                 return thisPtr;
             }
             case STD_ARRAY_SLICE: {

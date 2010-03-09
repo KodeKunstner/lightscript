@@ -1,6 +1,6 @@
 package com.solsort.mobile;
 
-public interface LightScriptFunction {
+public interface Function {
 
     /**
      * Method callable from LightScript.
@@ -18,5 +18,5 @@ public interface LightScriptFunction {
      * @return          An object that is returned to LightScript
      */
     public Object apply(Object[] args, int argpos, int argcount)
-            throws LightScriptException;
+            throws ScriptException;
 }

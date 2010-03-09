@@ -135,7 +135,7 @@ class Compiler {
     private static final String EOF = "(EOF)";
 
     /** Evaluate the next statement from an input stream */
-    public Object evalNext(InputStream is) throws LightScriptException {
+    public Object evalNext(InputStream is) throws ScriptException {
 // if we debug, we want the real exception, with line number..
         while (token == TOKEN_SEP) {
             nextToken();
@@ -152,27 +152,22 @@ class Compiler {
         Code compiledCode = compile(os);
         // create closure from globals
         for (int i = 0; i < compiledCode.closure.length; i++) {
-            Object box = ((Hashtable) executionContext[LightScript.EC_GLOBALS]).get(compiledCode.closure[i]);
-            if (box == null) {
-                box = new Object[1];
-                ((Object[]) box)[0] = LightScript.UNDEFINED;
-                ((Hashtable) executionContext[LightScript.EC_GLOBALS]).put(compiledCode.closure[i], box);
-            }
+            Object box = ls.getBox(compiledCode.closure[i]);
             compiledCode.closure[i] = box;
         }
-        Object stack[] = {LightScript.globals};
+        Object stack[] = {LightScript.oldGlobalObject};
         return LightScript.execute(compiledCode, stack, 0);
     }
 
-    public Compiler(InputStream is, Object[] executionContext) {
+    public Compiler(InputStream is, LightScript ls) {
+        this.ls = ls;
         this.is = is;
-        this.executionContext = executionContext;
         this.sb = new StringBuffer();
         this.c = ' ';
         this.varsArgc = 0;
         nextToken();
     }
-    private Object executionContext[];
+    private LightScript ls;
     private static Hashtable idMapping;
     // <editor-fold desc="properties">
     /** This stack is used during compilation to build the constant pool
@@ -1059,7 +1054,7 @@ class Compiler {
 
     private Code compile(Object[] body) {
         constPool = new Stack();
-        constPool.push(executionContext);
+        constPool.push(ls);
         code = new StringBuffer();
 
         // allocate space for local vars
