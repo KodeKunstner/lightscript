@@ -102,7 +102,7 @@ class OpCodes {
         "OpCodes.BITWISE_NOT"
     };
 
-    /** Function that maps from ID to a string representation of the ID,
+    /** LightScriptFunction that maps from ID to a string representation of the ID,
      * robust for integers which is not IDs */
     public static String idName(int id) {
         return "" + id + ((id > 0 && id < idNames.length) ? idNames[id] : "");

@@ -21,7 +21,7 @@ public class Main {
         do {
             try {
                 result = ls.evalNext(is);
-            } catch(LightScriptException e) {
+            } catch(LightLightScriptException e) {
                 System.out.println(e);
             }
             if(args.length != 1 && result != null) {

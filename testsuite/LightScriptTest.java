@@ -2,8 +2,8 @@ package testsuite;
 import com.solsort.lightscript.*;
 import java.io.*;
 
-class LightScriptTest implements Function {
-    public Object apply(Object[] args, int argpos, int argc) throws ScriptException {
+class LightScriptTest implements LightScriptFunction {
+    public Object apply(Object[] args, int argpos, int argc) throws LightScriptException {
         String str = (String) args[argpos+1];
         Object result = ls.eval(str);
         ++testno;
@@ -29,9 +29,9 @@ class LightScriptTest implements Function {
             try {
                 testno = 0;
                 ls.eval(new FileInputStream(args[i]));
-            } catch(ScriptException e) {
+            } catch(LightScriptException e) {
                 ++errorcount;
-                System.out.println("Error: got ScriptException during evaluation: " + e.value.toString());
+                System.out.println("Error: got LightScriptException during evaluation: " + e.value.toString());
                 e.printStackTrace();
             }
             totalcount += testno;

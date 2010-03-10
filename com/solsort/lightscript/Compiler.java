@@ -138,7 +138,7 @@ class Compiler {
      * Compile the next statement from the inputstream
      * @return An argumentless function, whose execution correspond the execution of the statement.
      */
-    public Function compileNextStatement() {
+    public LightScriptFunction compileNextStatement() {
 // if we debug, we want the real exception, with line number..
         while (token == TOKEN_SEP) {
             nextToken();
@@ -210,7 +210,7 @@ class Compiler {
      * possible types are String and Integer */
     private Object tokenVal;
     /** The integer encoded token object, including priority, IDs
-     * and Function ids for null/left denominator functions */
+     * and LightScriptFunction ids for null/left denominator functions */
     private int token;
     //</editor-fold>
 

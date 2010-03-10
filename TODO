@@ -5,6 +5,7 @@
 - Testsuite
 - Include applications
 - Documentation in readme as markdown
-  - including benchmarks from thesis
+    - including benchmarks from thesis
 - Website for project
 - Error-logging with upload to server.
+- update javadocs

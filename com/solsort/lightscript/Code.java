@@ -3,12 +3,12 @@ package com.solsort.lightscript;
 import java.util.Hashtable;
 import java.util.Stack;
 
-class Code implements Function {
+class Code implements LightScriptFunction {
 
     private static final boolean DEBUG_ENABLED = true;
 
     public Object apply(Object[] args, int argpos, int argcount)
-            throws ScriptException {
+            throws LightScriptException {
         if (!DEBUG_ENABLED || argcount == argc) {
             Object stack[];
             if (argpos != 0) {
@@ -21,7 +21,7 @@ class Code implements Function {
             }
             return execute(this, stack, argcount);
         } else {
-            throw new ScriptException("Wrong number of arguments");
+            throw new LightScriptException("Wrong number of arguments");
         }
     }
     int argc;
@@ -86,7 +86,7 @@ class Code implements Function {
         throw new Error("Not yet implemented");
     }
 
-    private static boolean toBool(LightScript ls, Object stack[], int sp) throws ScriptException  {
+    private static boolean toBool(LightScript ls, Object stack[], int sp) throws LightScriptException  {
         Object o = stack[sp];
         if (o == LightScript.TRUE) {
             return true;
@@ -110,24 +110,24 @@ class Code implements Function {
         return stack;
     }
 
-    private static Object unop(LightScript ls, Object stack[], int sp, String name) throws ScriptException {
+    private static Object unop(LightScript ls, Object stack[], int sp, String name) throws LightScriptException {
           Object o = ls.getTypeMethod(stack[sp].getClass(), name);
           if(o!= LightScript.UNDEFINED) {
-              o = ((Function) o).apply(stack, sp, 0);
+              o = ((LightScriptFunction) o).apply(stack, sp, 0);
           }
           return o;
 
     }
 
-    private static Object binop(LightScript ls, Object stack[], int sp, String name) throws ScriptException {
+    private static Object binop(LightScript ls, Object stack[], int sp, String name) throws LightScriptException {
         Object o = ls.getTypeMethod(stack[sp].getClass(), name);
         if (o != LightScript.UNDEFINED) {
-            o = ((Function) o).apply(stack, sp, 1);
+            o = ((LightScriptFunction) o).apply(stack, sp, 1);
         }
         if (o == LightScript.UNDEFINED) {
             o = ls.getTypeMethod(stack[sp + 1].getClass(), name);
             if (o != LightScript.UNDEFINED) {
-                o = ((Function) o).apply(stack, sp, 1);
+                o = ((LightScriptFunction) o).apply(stack, sp, 1);
             }
         }
         return o;
@@ -136,7 +136,7 @@ class Code implements Function {
     /**
      * evaluate some bytecode
      */
-    public static Object execute(Code cl, Object[] stack, int argcount) throws ScriptException {
+    public static Object execute(Code cl, Object[] stack, int argcount) throws LightScriptException {
         //if(!DEBUG_ENABLED) {
         try {
             //}
@@ -231,12 +231,12 @@ class Code implements Function {
                             constPool = fn.constPool;
                             ls = (LightScript) constPool[0];
                             closure = fn.closure;
-                        } else if (o instanceof Function) {
+                        } else if (o instanceof LightScriptFunction) {
                             try {
-                                Object result = ((Function) o).apply(stack, sp - argc, argc);
+                                Object result = ((LightScriptFunction) o).apply(stack, sp - argc, argc);
                                 sp -= argc + 1 + RET_FRAME_SIZE;
                                 stack[sp] = result;
-                            } catch (ScriptException e) {
+                            } catch (LightScriptException e) {
                                 if (exceptionHandler < 0) {
                                     throw e;
                                 } else {
@@ -541,7 +541,7 @@ class Code implements Function {
                     case OpCodes.THROW: {
                         Object result = stack[sp];
                         if (exceptionHandler < 0) {
-                            throw new ScriptException(result);
+                            throw new LightScriptException(result);
                         } else {
                             //System.out.println(stringify(stack));
                             sp = exceptionHandler;
@@ -575,7 +575,7 @@ class Code implements Function {
                         break;
                     }
                     case OpCodes.NEXT: {
-                        Function iter = (Function) stack[sp];
+                        LightScriptFunction iter = (LightScriptFunction) stack[sp];
                         stack[++sp] = iter.apply(stack, sp, 0);
                         break;
                     }
@@ -635,7 +635,7 @@ class Code implements Function {
 // if we debug, we want the real exception, with line number..
         } catch (Error e) {
             if (!DEBUG_ENABLED) {
-                throw new ScriptException(e);
+                throw new LightScriptException(e);
             } else {
                 throw e;
             }

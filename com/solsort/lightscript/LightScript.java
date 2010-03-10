@@ -41,11 +41,11 @@ public final class LightScript {
     // </editor-fold>
     // <editor-fold desc="types">
 
-    private class Type implements Function {
+    private class Type implements LightScriptFunction {
 
         java.util.Hashtable methods;
-        Function setter;
-        Function getter;
+        LightScriptFunction setter;
+        LightScriptFunction getter;
 
         Type() {
             setter = this;
@@ -54,7 +54,7 @@ public final class LightScript {
             methods.put("__getter__", getter);
         }
 
-        public Object apply(Object[] args, int argpos, int argcount) throws ScriptException {
+        public Object apply(Object[] args, int argpos, int argcount) throws LightScriptException {
             Object o = methods.get(args[argpos + 1]);
             return o != null ? o : LightScript.UNDEFINED;
         }
@@ -62,7 +62,7 @@ public final class LightScript {
     private Hashtable types = new Hashtable();
     private Type defaultType = new Type();
 
-    Function getGetter(Class c) {
+    LightScriptFunction getGetter(Class c) {
         Object o = types.get(c);
         if (o != null) {
             o = ((Type) o).getter;
@@ -70,10 +70,10 @@ public final class LightScript {
         if (o == null) {
             o = defaultType.getter;
         }
-        return (Function) o;
+        return (LightScriptFunction) o;
     }
 
-    Function getSetter(Class c) {
+    LightScriptFunction getSetter(Class c) {
         Object o = types.get(c);
         if (o != null) {
             o = ((Type) o).setter;
@@ -81,10 +81,10 @@ public final class LightScript {
         if (o == null) {
             o = defaultType.setter;
         }
-        return (Function) o;
+        return (LightScriptFunction) o;
     }
 
-    public Function getTypeMethod(Class c, String method) {
+    public LightScriptFunction getTypeMethod(Class c, String method) {
         Object o = null;
         if (c != null) {
             o = types.get(c);
@@ -95,7 +95,7 @@ public final class LightScript {
         if (o == null) {
             o = defaultType.methods.get(method);
         }
-        return o == null ? null : (Function) o;
+        return o == null ? null : (LightScriptFunction) o;
     }
 
     /**
@@ -105,7 +105,7 @@ public final class LightScript {
      * @param method the name of the method to set
      * @param function 
      */
-    public void setTypeMethod(Class c, String method, Function function) {
+    public void setTypeMethod(Class c, String method, LightScriptFunction function) {
         Type t;
         if (c == null) {
             t = defaultType;
@@ -164,10 +164,10 @@ public final class LightScript {
 
     // <editor-fold desc="eval(...)">
     /** Parse and execute LightScript code read from an input stream */
-    public Object eval(InputStream is) throws ScriptException {
+    public Object eval(InputStream is) throws LightScriptException {
         Object result = UNDEFINED, t = UNDEFINED;
         Compiler c = new Compiler(is, this);
-        Function stmt = c.compileNextStatement();
+        LightScriptFunction stmt = c.compileNextStatement();
         while (stmt != null) {
             result = apply(this, stmt);
             stmt = c.compileNextStatement();
@@ -176,32 +176,32 @@ public final class LightScript {
     }
 
     /** Shorthand for evaluating a string that contains LightScript code */
-    public Object eval(String s) throws ScriptException {
+    public Object eval(String s) throws LightScriptException {
         return eval(new ByteArrayInputStream(s.getBytes()));
     }
     // </editor-fold>
     //<editor-fold desc="apply(...)">
 
     /** Shorthands for executing a LightScript function */
-    public static Object apply(Object thisPtr, Function f) throws ScriptException {
+    public static Object apply(Object thisPtr, LightScriptFunction f) throws LightScriptException {
         Object args[] = {thisPtr};
         return f.apply(args, 0, 0);
     }
 
     /** Shorthands for executing a LightScript function */
-    public static Object apply(Object thisPtr, Function f, Object arg1) throws ScriptException {
+    public static Object apply(Object thisPtr, LightScriptFunction f, Object arg1) throws LightScriptException {
         Object args[] = {thisPtr, arg1};
         return f.apply(args, 0, 1);
     }
 
     /** Shorthands for executing a LightScript function */
-    public static Object apply(Object thisPtr, Function f, Object arg1, Object arg2) throws ScriptException {
+    public static Object apply(Object thisPtr, LightScriptFunction f, Object arg1, Object arg2) throws LightScriptException {
         Object args[] = {thisPtr, arg1, arg2};
         return f.apply(args, 0, 2);
     }
 
     /** Shorthands for executing a LightScript function */
-    public static Object apply(Object thisPtr, Function f, Object arg1, Object arg2, Object arg3) throws ScriptException {
+    public static Object apply(Object thisPtr, LightScriptFunction f, Object arg1, Object arg2, Object arg3) throws LightScriptException {
         Object args[] = {thisPtr, arg1, arg2, arg3};
         return f.apply(args, 0, 3);
     }

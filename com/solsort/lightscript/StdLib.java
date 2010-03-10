@@ -11,7 +11,7 @@ import java.util.Random;
 import java.util.Stack;
 //import com.solsort.mobile.Util;
 
-class StdLib implements Function {
+class StdLib implements LightScriptFunction {
 
     private int id;
     private Object closure[];
@@ -69,12 +69,12 @@ class StdLib implements Function {
         this.id = id;
     }
 
-    public Object apply(Object[] args, int argpos, int argcount) throws ScriptException {
+    public Object apply(Object[] args, int argpos, int argcount) throws LightScriptException {
         Object thisPtr = args[argpos];
         Object arg1 = argcount < 1 ? LightScript.UNDEFINED : args[argpos + 1];
         Object arg2 = argcount < 2 ? LightScript.UNDEFINED : args[argpos + 2];
         if (argcs[id] >= 0 && argcount != argcs[id]) {
-            throw new ScriptException("Error: Wrong number of arguments");
+            throw new LightScriptException("Error: Wrong number of arguments");
         }
         switch (id) {
             case STD_PRINT: {
@@ -232,7 +232,7 @@ class StdLib implements Function {
             case STD_ARRAY_SORT: {
                 Stack s = (Stack) thisPtr;
                 // TODO
-                //Util.qsort(s, 0, s.size() - 1, (Function) arg1);
+                //Util.qsort(s, 0, s.size() - 1, (LightScriptFunction) arg1);
                 return thisPtr;
             }
             case STD_ARRAY_SLICE: {
@@ -344,7 +344,7 @@ class StdLib implements Function {
         ls.set("Object", object);
         ls.set("String", string);
         ls.set("Array", array);
-        ls.set("Function", function);
+        ls.set("LightScriptFunction", function);
         ls.set("Math", math);
     }
 }

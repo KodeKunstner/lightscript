@@ -5,7 +5,7 @@ import javax.microedition.lcdui.Form;
 import javax.microedition.midlet.MIDlet;
 import com.solsort.mobile.*;
 
-public class Mob2 extends MIDlet implements LightScriptFunction {
+public class Mob2 extends MIDlet implements LightScriptLightScriptFunction {
     static Form form;
 
     public void startApp() {
@@ -17,7 +17,7 @@ public class Mob2 extends MIDlet implements LightScriptFunction {
         ls.set("print", this);
         try {
             ls.eval("print('Hello world')");
-        } catch(LightScriptException e) {
+        } catch(LightLightScriptException e) {
             System.err.println(e.getMessage());
             e.printStackTrace();
         }
@@ -29,7 +29,7 @@ public class Mob2 extends MIDlet implements LightScriptFunction {
     public void destroyApp(boolean unconditional) {
     }
 
-    public Object apply(Object[] args, int argpos, int argcount) throws LightScriptException {
+    public Object apply(Object[] args, int argpos, int argcount) throws LightLightScriptException {
         Object obj = args[argpos + 1];
         Mob2.form.append(obj==null?"nil":obj.toString());
         return obj;

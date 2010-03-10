@@ -7,8 +7,8 @@ import java.util.Stack;
 import java.io.InputStream;
 import javax.microedition.io.Connector;
 import javax.microedition.io.HttpConnection;
-import com.solsort.lightscript.Function;
-import com.solsort.lightscript.ScriptException;
+import com.solsort.lightscript.LightScriptFunction;
+import com.solsort.lightscript.LightScriptException;
 
 /**
  * Utility functions
@@ -80,7 +80,7 @@ public final class Util {
         }
     }
 
-    public static void qsort(Stack arr, int first, int last, Function cmp) throws ScriptException {
+    public static void qsort(Stack arr, int first, int last, LightScriptFunction cmp) throws LightScriptException {
         Object args[] = {arr, null, null};
         while (first < last) {
             int l = first;
@@ -119,7 +119,7 @@ public final class Util {
     private static Hashtable cookies = new Hashtable();
 
     /**
-     * @todo extract to other class, get LightScriptFunction as callback
+     * @todo extract to other class, get LightScriptLightScriptFunction as callback
      * @param url
      * @return
      * @throws IOException

@@ -1,10 +1,10 @@
 package com.solsort.lightscript;
 
-public final class ScriptException extends Exception {
+public final class LightScriptException extends Exception {
 
     public Object value;
 
-    public ScriptException(Object value) {
+    public LightScriptException(Object value) {
         super(value.toString());
         this.value = value;
     }
