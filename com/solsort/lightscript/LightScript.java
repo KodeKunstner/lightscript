@@ -16,6 +16,7 @@ Contact for other licensing options.
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 import java.util.Hashtable;
+import java.util.Stack;
 
 /*`\subsection{Variables}'*/
 /** Instances of the LightScript object, is an execution context,
@@ -38,6 +39,54 @@ public final class LightScript {
     /** The false truth value of results
      * of tests/comparisons within LightScript */
     public static final Object FALSE = new StringBuffer("false");
+    // </editor-fold>
+    // <editor-fold desc="types">
+    Hashtable types = new Hashtable();
+    Type defaultType = new Type();
+
+    Object subscript(Object obj, Object key) {
+        Object o = types.get(obj.getClass());
+        if (o != null) {
+            o = ((Type) o).get(obj, key);
+        }
+        if (o != null) {
+            return o;
+        }
+        o = defaultType.get(obj, key);
+        if (o != null) {
+            return o;
+        }
+        return UNDEFINED;
+    }
+
+    void subscriptAssign(Object obj, Object key, Object val) {
+        Object o = types.get(obj.getClass());
+        Type thisClass;
+        if (o == null) {
+            thisClass = defaultType;
+        } else {
+            thisClass = (Type) o;
+        }
+        thisClass.set(obj, key, val);
+    }
+
+    boolean toBool(Object obj) {
+        if (obj == TRUE) {
+            return true;
+        }
+        if (obj == UNDEFINED || obj == FALSE || obj == null || obj == NULL) {
+            return false;
+        }
+
+        Object o = types.get(obj.getClass());
+        Type thisClass;
+        if (o == null) {
+            thisClass = defaultType;
+        } else {
+            thisClass = (Type) o;
+        }
+        return thisClass.toBool(obj);
+    }
     // </editor-fold>
     //<editor-fold desc="globals">
     /** Hashtable containing boxed global values */
@@ -71,6 +120,10 @@ public final class LightScript {
 
     /** Constructor, loading standard library */
     public LightScript() {
+        types.put((new String()).getClass(), new StringType());
+        types.put((new Hashtable()), new HashtableType());
+        types.put((new Stack()), new StackType());
+        types.put((new Object[1]).getClass(), new ObjectArrayType());
         StdLib.register(this);
     }
 
