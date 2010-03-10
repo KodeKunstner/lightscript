@@ -55,8 +55,7 @@ public final class LightScript {
         }
 
         public Object apply(Object[] args, int argpos, int argcount) throws LightScriptException {
-            Object o = methods.get(args[argpos + 1]);
-            return o != null ? o : LightScript.UNDEFINED;
+            return methods.get(args[argpos + 1]);
         }
     }
     private Hashtable types = new Hashtable();
@@ -185,9 +184,9 @@ public final class LightScript {
     //<editor-fold desc="apply(...)">
 
     private Object apply(String fn, Object args[]) throws LightScriptException {
-        Object[] lookupArgs= { args[0], fn };
-        return ((LightScriptFunction)getGetter(args[0].getClass()).apply(lookupArgs, 0, 1)).apply(args, 0, args.length-1);
+        return getMethod(args[0].getClass(), fn).apply(args, 0, args.length-1);
     }
+
     private Object apply(LightScriptFunction fn, Object args[]) throws LightScriptException {
         return fn.apply(args, 0, args.length - 1);
     }

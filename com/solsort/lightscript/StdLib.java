@@ -7,6 +7,7 @@ package com.solsort.lightscript;
 //</editor-fold>
 import java.util.Stack;
 import java.util.Hashtable;
+import java.util.Enumeration;
 
 /**
  *
@@ -77,9 +78,16 @@ class StdLib implements LightScriptFunction {
             }
             case 8: { // hashtable getter
                 Hashtable h = (Hashtable) args[argpos];
-                Object o = h.get(args[argpos + 1]);
-                if(o == null) {
-                    return ((LightScriptFunction) closure).apply(args, argpos, argcount);
+                for(;;) {
+                    Object o = h.get(args[argpos + 1]);
+                    if(o != null) {
+                        return o;
+                    }
+                    o = h.get("__prototype__");
+                    if(o == null || ! (h instanceof Hashtable)) {
+                        return ((LightScriptFunction) closure).apply(args, argpos, argcount);
+                    }
+                    h = (Hashtable)o;
                 }
             }
             case 9: { // hashtable setter
@@ -131,14 +139,68 @@ class StdLib implements LightScriptFunction {
             case 16: { // toString
                 return args[argpos].toString();
             }
+            case 17: { // clone
+                Hashtable h = new Hashtable();
+                h.put("__prototype__", args[argpos+1]);
+                return h;
+            }
+            case 18: { // typeof
+                Object arg1 = args[argpos + 1];
+                if (arg1 instanceof Hashtable) {
+                    return "object";
+                } else if (arg1 instanceof Stack) {
+                    return "array";
+                } else if (arg1 instanceof Integer) {
+                    return "number";
+                } else if (arg1 == LightScript.UNDEFINED) {
+                    return "undefined";
+                } else if (arg1 == LightScript.NULL) {
+                    return "null";
+                } else if (arg1 == LightScript.TRUE || arg1 == LightScript.FALSE) {
+                    return "boolean";
+                } else if (arg1 instanceof Object[]) {
+                    return "tuple";
+                } else {
+                    return "builtin";
+                }
+            }
+            case 19: { // hashtable hasOwnProperty
+                return ((Hashtable)args[argpos]).containsKey(args[argpos+1])?LightScript.TRUE:LightScript.FALSE;
+            }
+            case 20: { // array join
+                StringBuffer sb = new StringBuffer();
+                String sep = "";
+                Stack s = (Stack)args[argpos];
+                String sep2;
+                if(argcount > 0) {
+                    sep2 = (String)((LightScript)closure).callMethod(args[argpos+1], "toString");
+                } else {
+                    sep2 = ",";
+                }
+                for(int i=0; i<s.size(); ++i) {
+                    sb.append(sep);
+                    sb.append((String)((LightScript)closure).callMethod(s.elementAt(i), "toString"));
+                    sep = sep2;
+                }
+                return sb.toString();
+            }
+            case 21: { // hashtable __iter__
+                return new StdLib(22, ((Hashtable)args[argpos]).keys());
+            }
+            case 22: { // hashtable iterator
+                Enumeration e = (Enumeration)closure;
+                Object o;
+                do {
+                    if(!e.hasMoreElements()) {
+                        return LightScript.UNDEFINED;
+                    }
+                    o = e.nextElement();
+                } while("__proto__".equals(o));
+                return o;
+            }
             // TODO:
-            // typeof
             // parseint
-            // clone
-            // has_own_property
-            // array.join
             // hashtable-iterator
-            // hashtable-getter-__proto__
             // array.concat
             // array.sort
             // array.slice
@@ -157,11 +219,14 @@ class StdLib implements LightScriptFunction {
         ls.setMethod(null, "toString", new StdLib(16));
 
         ls.set("print", new StdLib(15));
+        ls.set("clone", new StdLib(17));
 
         ls.set("Object", new StdLib(7));
         Class objectClass = (new Hashtable()).getClass();
         ls.setMethod(objectClass, "__getter__", new StdLib(8, ls.getMethod(objectClass, "__getter__")));
         ls.setMethod(objectClass, "__setter__", new StdLib(9, ls.getMethod(objectClass, "__setter__")));
+        ls.setMethod(objectClass, "hasOwnProperty", new StdLib(19));
+        ls.setMethod(objectClass, "__iter__", new StdLib(21));
 
         ls.set("Array", new StdLib(6));
         Class arrayClass = (new Stack()).getClass();
@@ -170,6 +235,7 @@ class StdLib implements LightScriptFunction {
         ls.setMethod(arrayClass, "__iter__", new StdLib(1));
         ls.setMethod(arrayClass, "push", new StdLib(4));
         ls.setMethod(arrayClass, "pop", new StdLib(5));
+        ls.setMethod(arrayClass, "join", new StdLib(20, ls));
 
         ls.set("String", new StdLib(14, ""));
         Class stringClass = "".getClass();
