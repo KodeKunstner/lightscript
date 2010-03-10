@@ -1,24 +1,16 @@
+% LightScript - a scripting language for low-end mobile phones
+% Rasmus Jensen
+% 
+
 LightScript is a subscript of EcmaScript,
 with a compact implementation running
 on low end mobile devices.
 
-./net/lightscript class files and generated Java source files,
-this is what is needed when embedding the scripting language.
+todo more introduction...
 
-./src contains the actual source code, from which ./net/lightscript
-is generated. Some contains CPP-directives, and is thus not directly
-compilable, - use the Makefile
+Examples
+========
 
-./doc contains documentation, and generated javadoc
+todo: some examples her
 
-./TODO to do list, and roadmap
-Changelog
-com
-COPYING
-doc
-examples
-external_dependencies
-Makefile
-README
-src
-web
+Longer examples can be found in the examples/ catalogue in the source distribution

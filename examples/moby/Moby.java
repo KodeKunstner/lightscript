@@ -3,9 +3,9 @@ import java.io.InputStream;
 import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Form;
 import javax.microedition.midlet.MIDlet;
-import net.lightscript.i1.*;
+import com.solsort.lightscript.*;
 
-public class Moby extends MIDlet implements LightScriptFunction {
+public class Moby extends MIDlet implements Function {
     static Form form;
 
     public void startApp() {
@@ -17,7 +17,7 @@ public class Moby extends MIDlet implements LightScriptFunction {
         ls.set("print", this);
         try {
             ls.eval("print('Hello world')");
-        } catch(LightScriptException e) {
+        } catch(ScriptException e) {
             System.err.println(e.getMessage());
             e.printStackTrace();
         }
@@ -29,7 +29,7 @@ public class Moby extends MIDlet implements LightScriptFunction {
     public void destroyApp(boolean unconditional) {
     }
 
-    public Object apply(Object[] args, int argpos, int argcount) throws LightScriptException {
+    public Object apply(Object[] args, int argpos, int argcount) throws ScriptException {
         Object obj = args[argpos + 1];
         Moby.form.append(obj==null?"nil":obj.toString());
         return obj;

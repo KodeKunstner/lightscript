@@ -83,7 +83,7 @@ class Code implements Function {
 
         // CLASS DISPATCH
 
-        throw new UnsupportedOperationException("Not yet implemented");
+        throw new Error("Not yet implemented");
     }
 
     private static boolean toBool(LightScript ls, Object stack[], int sp) throws ScriptException  {

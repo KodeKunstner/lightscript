@@ -9,8 +9,8 @@
 -injars  in.jar
 -outjars out.jar
 
--libraryjars ../dependencies/midpapi10.jar
--libraryjars ../dependencies/cldcapi10.jar
+-libraryjars ../external_dependencies/midpapi10.jar
+-libraryjars ../external_dependencies/cldcapi10.jar
 
 # Preverify the code suitably for Java Micro Edition.
 

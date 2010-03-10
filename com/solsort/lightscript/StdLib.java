@@ -9,7 +9,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Random;
 import java.util.Stack;
-import com.solsort.mobile.Util;
+//import com.solsort.mobile.Util;
 
 class StdLib implements Function {
 
@@ -231,7 +231,8 @@ class StdLib implements Function {
             }
             case STD_ARRAY_SORT: {
                 Stack s = (Stack) thisPtr;
-                Util.qsort(s, 0, s.size() - 1, (Function) arg1);
+                // TODO
+                //Util.qsort(s, 0, s.size() - 1, (Function) arg1);
                 return thisPtr;
             }
             case STD_ARRAY_SLICE: {
@@ -274,7 +275,8 @@ class StdLib implements Function {
             }
             case STD_TO_STRING: {
                 StringBuffer sb = new StringBuffer();
-                Util.convertToString(thisPtr, sb);
+                // TODO
+                //Util.convertToString(thisPtr, sb);
                 return sb.toString();
             }
         }
