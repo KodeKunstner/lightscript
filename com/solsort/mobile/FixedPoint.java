@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package com.solsort.lightscript;
+package com.solsort.mobile;
 
 /**
  *
