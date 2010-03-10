@@ -294,7 +294,7 @@ class StdLib implements Function {
                 return new Integer(0);
             }
             case STD_FLOOR: {
-                return new Integer(LightScript.toInt(arg1));
+                return new Integer(Code.toInt(arg1));
             }
             case STD_TO_STRING: {
                 StringBuffer sb = new StringBuffer();

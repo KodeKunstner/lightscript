@@ -14,7 +14,7 @@ import java.util.Stack;
  */
 class Compiler {
     private String stringify(Object o) {
-        return LightScript.stringify(o);
+        return OpCodes.stringify(o);
     }
     private static final boolean DEBUG_ENABLED = true;
     /* Constructors for nodes of the Abstract Syntax Tree.
@@ -156,7 +156,7 @@ class Compiler {
             compiledCode.closure[i] = box;
         }
         Object stack[] = {LightScript.oldGlobalObject};
-        return LightScript.execute(compiledCode, stack, 0);
+        return Code.execute(compiledCode, stack, 0);
     }
 
     public Compiler(InputStream is, LightScript ls) {

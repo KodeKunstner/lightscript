@@ -83,4 +83,75 @@ class OpCodes {
     public static final int BITWISE_XOR = 82;
     public static final int BITWISE_AND = 83;
     public static final int BITWISE_NOT = 84;
+
+    private static final String[] idNames = {
+        "", "", "", "", "PAREN", "LIST_LITERAL", "CURLY", "VAR",
+        "BUILD_FUNCTION", "IF", "WHILE", "CALL_FUNCTION", "AND",
+        "OR", "ELSE", "SET", "IDENT", "BLOCK", "SEP", "IN", "FOR",
+        "END", "CATCH", "DO", "INC", "DEC", "ADD", "EQUALS",
+        "NOT_USED_ANYMORE", "LESS", "LESS_EQUALS", "LITERAL", "MUL", "NEG",
+        "NOT", "NOT_EQUALS", "NOT_USED_ANYMORE", "REM", "RETURN", ">>",
+        "SUB", "SUBSCRIPT", "THIS", "THROW", "TRY", "UNTRY", "BOX_IT",
+        "BUILD_FN", "CALL_FN", "DROP", "DUP", "NOT_USED_ANYMORE",
+        "GET_BOXED", "GET_BOXED_CLOSURE", "GET_CLOSURE", "GET_LOCAL",
+        "INC_SP", "JUMP", "JUMP_IF_FALSE", "JUMP_IF_TRUE", "NEW_DICT",
+        "NEW_LIST", "NEXT", "POP", "PUSH", "PUT", "SAVE_PC",
+        "SET_BOXED", "SET_CLOSURE", "SET_LOCAL", "SET_THIS", "SWAP",
+        "DIV", "NEW_ITER", "JUMP_IF_UNDEFINED", "DELETE", "NEW", "GLOBAL",
+        "SHIFT_RIGHT", "SHIFT_LEFT", "BITWISE_OR", "BITWISE_XOR", "BITWISE_AND",
+        "OpCodes.BITWISE_NOT"
+    };
+
+    /** Function that maps from ID to a string representation of the ID,
+     * robust for integers which is not IDs */
+    public static String idName(int id) {
+        return "" + id + ((id > 0 && id < idNames.length) ? idNames[id] : "");
+    }
+
+    /** A toString, that also works nicely on arrays, and LightScript code */
+    public static String stringify(Object o) {
+            if (o == null) {
+                return "null";
+            } else if (o instanceof Object[]) {
+                StringBuffer sb = new StringBuffer();
+                Object[] os = (Object[]) o;
+                sb.append("[");
+                if (os.length > 0 && os[0] instanceof Integer) {
+                    int id = ((Integer) os[0]).intValue();
+                    sb.append(idName(id));
+                } else if (os.length > 0) {
+                    sb.append(os[0]);
+                }
+                for (int i = 1; i < os.length; i++) {
+                    sb.append(" " + stringify(os[i]));
+                }
+                sb.append("]");
+                return sb.toString();
+            } else if (o instanceof Code) {
+                Code c = (Code) o;
+                StringBuffer sb = new StringBuffer();
+                sb.append("closure" + c.argc + "{\n\tcode:");
+                for (int i = 0; i < c.code.length; i++) {
+                    sb.append(" ");
+                    sb.append(idName(c.code[i]));
+                }
+                sb.append("\n\tclosure:");
+                for (int i = 0; i < c.closure.length; i++) {
+                    sb.append(" " + i + ":");
+                    sb.append(stringify(c.closure[i]));
+                }
+                sb.append("\n\tconstPool:");
+                for (int i = 0; i < c.constPool.length; i++) {
+                    sb.append(" " + i + ":");
+                    sb.append(stringify(c.constPool[i]));
+                }
+                sb.append("\n}");
+                return sb.toString();
+            } else {
+                return o.toString();
+            }
+    }
+    /*`\subsection{Utility classes}'*/
+    /*`\subsubsection{StdLib}'*/
+
 }
