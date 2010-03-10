@@ -94,7 +94,7 @@ class Code implements Function {
         if (o == LightScript.FALSE || o == LightScript.NULL || o == LightScript.UNDEFINED) {
             return false;
         }
-        return Code.unop(ls, stack, sp, "__toBool__") == LightScript.TRUE;
+        return Code.unop(ls, stack, sp, "toBool") == LightScript.TRUE;
     }
 
     private static Object[] ensureSpace(Object[] stack, int sp, int maxDepth) {
@@ -111,7 +111,7 @@ class Code implements Function {
     }
 
     private static Object unop(LightScript ls, Object stack[], int sp, String name) throws ScriptException {
-          Object o = ls.subscript(stack[sp], name);
+          Object o = ls.getTypeMethod(stack[sp].getClass(), name);
           if(o!= LightScript.UNDEFINED) {
               o = ((Function) o).apply(stack, sp, 0);
           }
@@ -120,12 +120,12 @@ class Code implements Function {
     }
 
     private static Object binop(LightScript ls, Object stack[], int sp, String name) throws ScriptException {
-        Object o = ls.subscript(stack[sp], name);
+        Object o = ls.getTypeMethod(stack[sp].getClass(), name);
         if (o != LightScript.UNDEFINED) {
             o = ((Function) o).apply(stack, sp, 1);
         }
         if (o == LightScript.UNDEFINED) {
-            o = ls.subscript(stack[sp + 1], name);
+            o = ls.getTypeMethod(stack[sp + 1].getClass(), name);
             if (o != LightScript.UNDEFINED) {
                 o = ((Function) o).apply(stack, sp, 1);
             }
@@ -342,7 +342,7 @@ class Code implements Function {
                         if (o instanceof Integer) {
                             o = new Integer(-((Integer) o).intValue());
                         } else {
-                            o = Code.unop(ls, stack, sp, "__negate__");
+                            o = Code.unop(ls, stack, sp, "-");
                         }
                         stack[sp] = o;
                         break;
@@ -356,7 +356,7 @@ class Code implements Function {
                             result += ((Integer) o2).intValue();
                             o = new Integer(result);
                         } else {
-                            o = Code.binop(ls, stack, sp, "__add__");
+                            o = Code.binop(ls, stack, sp, "+");
                         }
                         stack[sp] = o;
                         break;
@@ -368,7 +368,7 @@ class Code implements Function {
                             o = new Integer(((Integer) o).intValue()
                                     - ((Integer) o2).intValue());
                         } else {
-                            o = Code.binop(ls, stack, sp, "__sub__");
+                            o = Code.binop(ls, stack, sp, "-");
                         }
                         stack[sp] = o;
                         break;
@@ -386,14 +386,14 @@ class Code implements Function {
                             o = new Integer(((Integer) o).intValue()
                                     * ((Integer) o2).intValue());
                         } else {
-                            o = Code.binop(ls, stack, sp, "__mul__");
+                            o = Code.binop(ls, stack, sp, "*");
                         }
                         stack[sp] = o;
                         break;
                     }
                     case OpCodes.DIV: {
                         --sp;
-                        stack[sp] = Code.binop(ls, stack, sp, "__div__");
+                        stack[sp] = Code.binop(ls, stack, sp, "/");
                         break;
                     }
                     case OpCodes.REM: {
@@ -403,7 +403,7 @@ class Code implements Function {
                             o = new Integer(((Integer) o).intValue()
                                     % ((Integer) o2).intValue());
                         } else /* float */ {
-                            o = Code.binop(ls, stack, sp, "__rem__");
+                            o = Code.binop(ls, stack, sp, "%");
                         }
                         stack[sp] = o;
                         break;
@@ -427,17 +427,13 @@ class Code implements Function {
                         break;
                     }
                     case OpCodes.PUT: {
-                        Object val = stack[sp];
-                        Object key = stack[--sp];
-                        Object container = stack[--sp];
-
-                        ls.subscriptAssign(container, key, val);
+                        sp -= 2;
+                        ls.getSetter(stack[sp].getClass()).apply(stack, sp, 2);
                         break;
                     }
                     case OpCodes.SUBSCRIPT: {
-                        Object key = stack[sp];
-                        Object container = stack[--sp];
-                        stack[sp] = ls.subscript(container, key);
+                        sp -= 1;
+                        stack[sp] = ls.getGetter(stack[sp].getClass()).apply(stack, sp, 1);
                         break;
                     }
                     case OpCodes.PUSH: {
@@ -456,7 +452,7 @@ class Code implements Function {
                             o1 = ((Integer) o1).intValue()
                                     < ((Integer) o2).intValue() ? LightScript.TRUE : LightScript.FALSE;
                         } else {
-                            o1 = Code.binop(ls, stack, sp, "__less__");
+                            o1 = Code.binop(ls, stack, sp, "<");
                         }
                         stack[sp] = o1;
                         break;
@@ -468,7 +464,7 @@ class Code implements Function {
                             o1 = ((Integer) o1).intValue()
                                     <= ((Integer) o2).intValue() ? LightScript.TRUE : LightScript.FALSE;
                         } else {
-                            o1 = Code.binop(ls, stack, sp, "__less_equal__");
+                            o1 = Code.binop(ls, stack, sp, "<=");
 
                         }
                         stack[sp] = o1;
@@ -588,9 +584,10 @@ class Code implements Function {
                         break;
                     }
                     case OpCodes.DELETE: {
-                        Object key = stack[sp];
-                        Object container = stack[--sp];
-                        ls.subscriptAssign(container, key, null);
+                        stack = Code.ensureSpace(stack, sp, 1);
+                        stack[sp+1] = null;
+                        --sp;
+                        ls.getSetter(stack[sp].getClass()).apply(stack, sp, 2);
                         break;
                     }
                     case OpCodes.SHIFT_RIGHT: {

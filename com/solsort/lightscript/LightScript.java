@@ -16,7 +16,6 @@ Contact for other licensing options.
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 import java.util.Hashtable;
-import java.util.Stack;
 
 /*`\subsection{Variables}'*/
 /** Instances of the LightScript object, is an execution context,
@@ -41,35 +40,92 @@ public final class LightScript {
     public static final Object FALSE = new StringBuffer("false");
     // </editor-fold>
     // <editor-fold desc="types">
-    Hashtable types = new Hashtable();
-    Type defaultType = new Type();
 
-    Object subscript(Object obj, Object key) {
-        Object o = types.get(obj.getClass());
-        if (o != null) {
-            o = ((Type) o).get(obj, key);
+    private static class Type implements Function {
+
+        java.util.Hashtable methods;
+        Function setter;
+        Function getter;
+
+        Type() {
+            setter = this;
+            getter = this;
+            methods = new Hashtable();
+            methods.put("__getter__", getter);
         }
-        if (o != null) {
-            return o;
+
+        public Object apply(Object[] args, int argpos, int argcount) throws ScriptException {
+            Object o = methods.get(args[argpos + 1]);
+            return o != null ? o : LightScript.UNDEFINED;
         }
-        o = defaultType.get(obj, key);
-        if (o != null) {
-            return o;
-        }
-        return UNDEFINED;
     }
 
-    void subscriptAssign(Object obj, Object key, Object val) {
-        Object o = types.get(obj.getClass());
-        Type thisClass;
+    private Hashtable types = new Hashtable();
+    private Type defaultType = new Type();
+
+    Function getGetter(Class c) {
+        Object o = types.get(c);
+        if (o != null) {
+            o = ((Type) o).getter;
+        }
         if (o == null) {
-            thisClass = defaultType;
-        } else {
-            thisClass = (Type) o;
+            o = defaultType.getter;
         }
-        thisClass.set(obj, key, val);
+        return (Function) o;
     }
 
+    Function getSetter(Class c) {
+        Object o = types.get(c);
+        if (o != null) {
+            o = ((Type) o).setter;
+        }
+        if (o == null) {
+            o = defaultType.setter;
+        }
+        return (Function) o;
+    }
+
+    public Function getTypeMethod(Class c, String method) {
+        Object o = null;
+        if (c != null) {
+            o = types.get(c);
+        }
+        if (o != null) {
+            o = ((Type) o).methods.get(method);
+        }
+        if (o == null) {
+            o = defaultType.methods.get(method);
+        }
+        return o == null ? null : (Function) o;
+    }
+
+    /**
+     * "__setter__", "__getter__", "__iter__", "toBool", "-", "+", "*", "/", "!", "&lt;", "&lt;=", "toString"
+     * @param c
+     * @param method
+     * @param function
+     */
+    public void setTypeMethod(Class c, String method, Function function) {
+        Type t;
+        if (c == null) {
+            t = defaultType;
+        } else {
+            Object o = types.get(c);
+            if (o == null) {
+                t = new Type();
+                types.put(c, t);
+            } else {
+                t = (Type) o;
+            }
+        }
+        if ("__setter__".equals(method)) {
+            t.setter = function;
+        } else if ("__getter__".equals(method)) {
+            t.getter = function;
+        }
+        t.methods.put(method, function);
+
+    }
     // </editor-fold>
     //<editor-fold desc="globals">
     /** Hashtable containing boxed global values */
@@ -103,10 +159,6 @@ public final class LightScript {
 
     /** Constructor, loading standard library */
     public LightScript() {
-        types.put((new String()).getClass(), new StringType());
-        types.put((new Hashtable()), new HashtableType());
-        types.put((new Stack()), new StackType());
-        types.put((new Object[1]).getClass(), new ObjectArrayType());
         StdLib.register(this);
     }
 
