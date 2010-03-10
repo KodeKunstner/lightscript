@@ -571,7 +571,7 @@ class Code implements LightScriptFunction {
                         break;
                     }
                     case OpCodes.NEW_ITER: {
-                        Code.unop(ls, stack, sp, "__iter__");
+                        stack[sp] = Code.unop(ls, stack, sp, "__iter__");
                         break;
                     }
                     case OpCodes.NEXT: {

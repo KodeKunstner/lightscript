@@ -4,7 +4,7 @@ import java.io.*;
 
 class LightScriptTest implements LightScriptFunction {
     public Object apply(Object[] args, int argpos, int argc) throws LightScriptException {
-        String str = (String) args[argpos+1];
+        str = (String) args[argpos+1];
         Object result = ls.eval(str);
         ++testno;
         if(result.equals(args[argpos+2])) {
@@ -19,6 +19,7 @@ class LightScriptTest implements LightScriptFunction {
     }
     static LightScript ls;
     static int testno;
+    static String str;
     static int errorcount = 0;
     static int totalcount = 0;
     public static void main(String args[]) throws FileNotFoundException{
@@ -29,9 +30,12 @@ class LightScriptTest implements LightScriptFunction {
             try {
                 testno = 0;
                 ls.eval(new FileInputStream(args[i]));
-            } catch(LightScriptException e) {
+            } catch(Throwable e) {
                 ++errorcount;
-                System.out.println("Error: got LightScriptException during evaluation: " + e.value.toString());
+                if(e instanceof LightScriptException) {
+                    System.out.println("Error: got LightScriptException during evaluation: " + ((LightScriptException)e).value.toString());
+                }
+                System.out.println("Exception with code: " + str);
                 e.printStackTrace();
             }
             totalcount += testno;

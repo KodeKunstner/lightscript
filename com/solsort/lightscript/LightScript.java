@@ -51,7 +51,7 @@ public final class LightScript {
             setter = this;
             getter = this;
             methods = new Hashtable();
-            methods.put("__getter__", getter);
+            methods.put("__getter__", this);
         }
 
         public Object apply(Object[] args, int argpos, int argcount) throws LightScriptException {
@@ -89,9 +89,12 @@ public final class LightScript {
         if (c != null) {
             o = types.get(c);
         }
-        if (o != null) {
-            o = ((Type) o).methods.get(method);
+        if (o == null) {
+            o = new Type();
+            types.put(c, o);
         }
+        o = ((Type) o).methods.get(method);
+
         if (o == null) {
             o = defaultType.methods.get(method);
         }
@@ -124,7 +127,6 @@ public final class LightScript {
             t.getter = function;
         }
         t.methods.put(method, function);
-
     }
     // </editor-fold>
     //<editor-fold desc="globals">
