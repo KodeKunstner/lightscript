@@ -118,29 +118,68 @@ class StdLib implements LightScriptFunction {
                 ls.set(args[argpos+1], args[argpos +2]);
                 return ls;
             }
+            case 13: { // String.toInt
+                return Integer.valueOf((String)args[argpos]);
+            }
+            case 14: { // Return constant, (new String)
+                return closure;
+            }
+            case 15: { // print
+                System.out.println(((LightScript)closure).callMethod(args[argpos+1],"toString"));
+                return args[argpos+1];
+            }
+            case 16: { // toString
+                return args[argpos].toString();
+            }
+            // TODO:
+            // typeof
+            // parseint
+            // clone
+            // has_own_property
+            // array.join
+            // hashtable-iterator
+            // hashtable-getter-__proto__
+            // array.concat
+            // array.sort
+            // array.slice
+            // string.charcodeat
+            // string.fromchar
+            // string.concat
+            // string getter
+            // string slice
         }
         return LightScript.UNDEFINED;
     }
 
     public static void register(LightScript ls) {
+
+        ls.setMethod(null, "+", new StdLib(3));
+        ls.setMethod(null, "toString", new StdLib(16));
+
+        ls.set("print", new StdLib(15));
+
         ls.set("Object", new StdLib(7));
         Class objectClass = (new Hashtable()).getClass();
-        ls.setTypeMethod(objectClass, "__getter__", new StdLib(8, ls.getTypeMethod(objectClass, "__getter__")));
-        ls.setTypeMethod(objectClass, "__setter__", new StdLib(9, ls.getTypeMethod(objectClass, "__setter__")));
+        ls.setMethod(objectClass, "__getter__", new StdLib(8, ls.getMethod(objectClass, "__getter__")));
+        ls.setMethod(objectClass, "__setter__", new StdLib(9, ls.getMethod(objectClass, "__setter__")));
 
         ls.set("Array", new StdLib(6));
         Class arrayClass = (new Stack()).getClass();
-        ls.setTypeMethod(arrayClass, "__getter__", new StdLib(0, ls.getTypeMethod(arrayClass, "__getter__")));
-        ls.setTypeMethod(arrayClass, "__setter__", new StdLib(10, ls.getTypeMethod(arrayClass, "__setter__")));
-        ls.setTypeMethod(arrayClass, "__iter__", new StdLib(1));
-        ls.setTypeMethod(arrayClass, "push", new StdLib(4));
-        ls.setTypeMethod(arrayClass, "pop", new StdLib(5));
+        ls.setMethod(arrayClass, "__getter__", new StdLib(0, ls.getMethod(arrayClass, "__getter__")));
+        ls.setMethod(arrayClass, "__setter__", new StdLib(10, ls.getMethod(arrayClass, "__setter__")));
+        ls.setMethod(arrayClass, "__iter__", new StdLib(1));
+        ls.setMethod(arrayClass, "push", new StdLib(4));
+        ls.setMethod(arrayClass, "pop", new StdLib(5));
 
-        ls.setTypeMethod(null, "+", new StdLib(3));
+        ls.set("String", new StdLib(14, ""));
+        Class stringClass = "".getClass();
+        ls.setMethod(stringClass, "toInt", new StdLib(13));
 
-        Object ls_getter_args[] = {ls, ls.getTypeMethod(ls.getClass(), "__getter__")};
-        ls.setTypeMethod(ls.getClass(), "__getter__", new StdLib(11, ls_getter_args));
-        ls.setTypeMethod(ls.getClass(), "__setter__", new StdLib(12, ls));
+        ls.set("global", ls);
+        Class globalClass = ls.getClass();
+        Object ls_getter_args[] = {ls, ls.getMethod(globalClass, "__getter__")};
+        ls.setMethod(globalClass, "__getter__", new StdLib(11, ls_getter_args));
+        ls.setMethod(globalClass, "__setter__", new StdLib(12, ls));
     }
 }
 

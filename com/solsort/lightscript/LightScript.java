@@ -84,7 +84,7 @@ public final class LightScript {
         return (LightScriptFunction) o;
     }
 
-    public LightScriptFunction getTypeMethod(Class c, String method) {
+    public LightScriptFunction getMethod(Class c, String methodName) {
         Object o = null;
         if (c != null) {
             o = types.get(c);
@@ -93,22 +93,22 @@ public final class LightScript {
             o = new Type();
             types.put(c, o);
         }
-        o = ((Type) o).methods.get(method);
+        o = ((Type) o).methods.get(methodName);
 
         if (o == null) {
-            o = defaultType.methods.get(method);
+            o = defaultType.methods.get(methodName);
         }
         return o == null ? null : (LightScriptFunction) o;
     }
 
     /**
      * Set a named method on a given class. Special methodnames are
-     * "__setter__", "__getter__", "__iter__", "toBool", "-", "+", "*", "/", "!", "&lt;", "&lt;="
+     * "__setter__", "__getter__", "__iter__", "toInt", "toBool", "-", "+", "*", "/", "!", "&lt;", "&lt;="
      * @param c the class on which to set the method. If c is null, the default class is used instead.
-     * @param method the name of the method to set
+     * @param methodName the name of the method to set
      * @param function 
      */
-    public void setTypeMethod(Class c, String method, LightScriptFunction function) {
+    public void setMethod(Class c, String methodName, LightScriptFunction function) {
         Type t;
         if (c == null) {
             t = defaultType;
@@ -121,12 +121,12 @@ public final class LightScript {
                 t = (Type) o;
             }
         }
-        if ("__setter__".equals(method)) {
+        if ("__setter__".equals(methodName)) {
             t.setter = function;
-        } else if ("__getter__".equals(method)) {
+        } else if ("__getter__".equals(methodName)) {
             t.getter = function;
         }
-        t.methods.put(method, function);
+        t.methods.put(methodName, function);
     }
     // </editor-fold>
     //<editor-fold desc="globals">

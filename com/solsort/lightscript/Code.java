@@ -76,14 +76,12 @@ class Code implements LightScriptFunction {
         return (short) (((code[++pc] & 0xff) << 8) | (code[++pc] & 0xff));
     }
 
-    public static int toInt(Object object) {
-        if (object instanceof Integer) {
-            return ((Integer) object).intValue();
+    static int toInt(LightScript ls, Object[] stack, int sp) throws LightScriptException {
+        if (stack[sp] instanceof Integer) {
+            return ((Integer) stack[sp]).intValue();
+        } else {
+            return ((Integer)Code.unop(ls, stack, sp, "toInt")).intValue();
         }
-
-        // CLASS DISPATCH
-
-        throw new Error("Not yet implemented");
     }
 
     private static boolean toBool(LightScript ls, Object stack[], int sp) throws LightScriptException  {
@@ -111,7 +109,7 @@ class Code implements LightScriptFunction {
     }
 
     private static Object unop(LightScript ls, Object stack[], int sp, String name) throws LightScriptException {
-          Object o = ls.getTypeMethod(stack[sp].getClass(), name);
+          Object o = ls.getMethod(stack[sp].getClass(), name);
           if(o!= LightScript.UNDEFINED) {
               o = ((LightScriptFunction) o).apply(stack, sp, 0);
           }
@@ -120,12 +118,12 @@ class Code implements LightScriptFunction {
     }
 
     private static Object binop(LightScript ls, Object stack[], int sp, String name) throws LightScriptException {
-        Object o = ls.getTypeMethod(stack[sp].getClass(), name);
+        Object o = ls.getMethod(stack[sp].getClass(), name);
         if (o != LightScript.UNDEFINED) {
             o = ((LightScriptFunction) o).apply(stack, sp, 1);
         }
         if (o == LightScript.UNDEFINED) {
-            o = ls.getTypeMethod(stack[sp + 1].getClass(), name);
+            o = ls.getMethod(stack[sp + 1].getClass(), name);
             if (o != LightScript.UNDEFINED) {
                 o = ((LightScriptFunction) o).apply(stack, sp, 1);
             }
@@ -136,7 +134,7 @@ class Code implements LightScriptFunction {
     /**
      * evaluate some bytecode
      */
-    public static Object execute(Code cl, Object[] stack, int argcount) throws LightScriptException {
+    private static Object execute(Code cl, Object[] stack, int argcount) throws LightScriptException {
         //if(!DEBUG_ENABLED) {
         try {
             //}
@@ -374,8 +372,8 @@ class Code implements LightScriptFunction {
                         break;
                     }
                     case OpCodes.SHIFT_RIGHT_ARITHMETIC: {
-                        int result = toInt(stack[sp]);
-                        result = toInt(stack[--sp]) >> result;
+                        int result = toInt(ls, stack, sp);
+                        result = toInt(ls, stack, --sp) >> result;
                         stack[sp] = new Integer(result);
                         break;
                     }
@@ -591,37 +589,37 @@ class Code implements LightScriptFunction {
                         break;
                     }
                     case OpCodes.SHIFT_RIGHT: {
-                        int result = toInt(stack[sp]);
-                        result = toInt(stack[--sp]) >>> result;
+                        int result = toInt(ls, stack, sp);
+                        result = toInt(ls, stack, --sp) >>> result;
                         stack[sp] = new Integer(result);
                         break;
                     }
                     case OpCodes.SHIFT_LEFT: {
-                        int result = toInt(stack[sp]);
-                        result = toInt(stack[--sp]) << result;
+                        int result = toInt(ls, stack, sp);
+                        result = toInt(ls, stack, --sp) << result;
                         stack[sp] = new Integer(result);
                         break;
                     }
                     case OpCodes.BITWISE_OR: {
-                        int result = toInt(stack[sp]);
-                        result = toInt(stack[--sp]) | result;
+                        int result = toInt(ls, stack, sp);
+                        result = toInt(ls, stack, --sp) | result;
                         stack[sp] = new Integer(result);
                         break;
                     }
                     case OpCodes.BITWISE_XOR: {
-                        int result = toInt(stack[sp]);
-                        result = toInt(stack[--sp]) ^ result;
+                        int result = toInt(ls, stack, sp);
+                        result = toInt(ls, stack, --sp) ^ result;
                         stack[sp] = new Integer(result);
                         break;
                     }
                     case OpCodes.BITWISE_AND: {
-                        int result = toInt(stack[sp]);
-                        result = toInt(stack[--sp]) & result;
+                        int result = toInt(ls, stack, sp);
+                        result = toInt(ls, stack, --sp) & result;
                         stack[sp] = new Integer(result);
                         break;
                     }
                     case OpCodes.BITWISE_NOT: {
-                        int result = ~toInt(stack[sp]);
+                        int result = ~toInt(ls, stack, sp);
                         stack[sp] = new Integer(result);
                         break;
                     }
