@@ -101,13 +101,13 @@ public final class LightScript {
 
     /** Parse and execute LightScript code read from an input stream */
     public Object eval(InputStream is) throws ScriptException {
-        Object result, t = UNDEFINED;
+        Object result = UNDEFINED, t = UNDEFINED;
         Compiler c = new Compiler(is, this);
-        do {
-            result = t;
-            t = c.evalNext(is);
-        } while (t != null);
-
+        Function stmt = c.compileNextStatement();
+        while(stmt != null) {
+            result = apply(oldGlobalObject, stmt);
+            stmt = c.compileNextStatement();
+        }
         return result;
     }
 

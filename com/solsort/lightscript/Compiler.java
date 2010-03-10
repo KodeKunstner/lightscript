@@ -134,8 +134,11 @@ class Compiler {
      * tokens: "(", "EOF", and ")". */
     private static final String EOF = "(EOF)";
 
-    /** Evaluate the next statement from an input stream */
-    public Object evalNext(InputStream is) throws ScriptException {
+    /**
+     * Compile the next statement from the inputstream
+     * @return An argumentless function, whose execution correspond the execution of the statement.
+     */
+    public Function compileNextStatement() {
 // if we debug, we want the real exception, with line number..
         while (token == TOKEN_SEP) {
             nextToken();
@@ -152,11 +155,9 @@ class Compiler {
         Code compiledCode = compile(os);
         // create closure from globals
         for (int i = 0; i < compiledCode.closure.length; i++) {
-            Object box = ls.getBox(compiledCode.closure[i]);
-            compiledCode.closure[i] = box;
+            compiledCode.closure[i] = ls.getBox(compiledCode.closure[i]);
         }
-        Object stack[] = {LightScript.oldGlobalObject};
-        return Code.execute(compiledCode, stack, 0);
+        return compiledCode;
     }
 
     public Compiler(InputStream is, LightScript ls) {
