@@ -16,7 +16,6 @@ Contact for other licensing options.
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 import java.util.Hashtable;
-import java.util.Stack;
 
 /*`\subsection{Variables}'*/
 /** Instances of the LightScript object, is an execution context,
