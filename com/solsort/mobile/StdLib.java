@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package com.solsort.mobile;
+package com.solsort.lightscript;
 
 import java.util.Enumeration;
 import java.util.Hashtable;

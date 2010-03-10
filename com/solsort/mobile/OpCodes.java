@@ -1,4 +1,4 @@
-package com.solsort.mobile;
+package com.solsort.lightscript;
 
 class OpCodes {
     public static final int NONE = 127;
