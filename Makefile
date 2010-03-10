@@ -23,8 +23,8 @@ examples/Main.class: $(DEFAULT_VER)$(LS).class
 	ls -l $(DEFAULT_VER)$(LS).class
 
 doc: . com/solsort/mobile $(INT_VER)$(LS).java $(FP_VER)$(LS).java
-	javadoc -d doc/public com.solsort.mobile
-	javadoc -private -d doc/private com.solsort.mobile
+	javadoc -d doc/public com.solsort.mobile com.solsort.lightscript
+	javadoc -private -d doc/private com.solsort.mobile com.solsort.lightscript
 	javadoc -d doc/old-public/ net.lightscript.f1
 	javadoc -d doc/old-public-intonly/ net.lightscript.i1
 	javadoc -private -d doc/old-private net.lightscript.f1
