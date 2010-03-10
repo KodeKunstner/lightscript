@@ -200,7 +200,6 @@ class StdLib implements LightScriptFunction {
             }
             // TODO:
             // parseint
-            // hashtable-iterator
             // array.concat
             // array.sort
             // array.slice

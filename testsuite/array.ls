@@ -9,3 +9,6 @@ test('arr = []; arr[1000] = 17; arr[1000]', 17);
 test('arr = []; arr[1000] = 17; arr[500]', undefined);
 test('arr = []; arr[1000] = 17; arr[1500]', undefined);
 test('arr = []; arr[1000] = 17; arr[-1]', undefined);
+test('["a", "b", "c"].join()', "a,b,c");
+test('["a", "b", "c"].join("")', "abc");
+test('["a", "b", "c"].join("ZZ")', "aZZbZZc");
