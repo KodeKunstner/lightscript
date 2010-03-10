@@ -24,13 +24,13 @@ class Code implements Function {
             throw new ScriptException("Wrong number of arguments");
         }
     }
-    public int argc;
-    public byte[] code;
-    public Object[] constPool;
-    public Object[] closure;
-    public int maxDepth;
+    int argc;
+    byte[] code;
+    Object[] constPool;
+    Object[] closure;
+    int maxDepth;
 
-    public Code(int argc, byte[] code, Object[] constPool, Object[] closure, int maxDepth) {
+    Code(int argc, byte[] code, Object[] constPool, Object[] closure, int maxDepth) {
         this.argc = argc;
         this.code = code;
         this.constPool = constPool;
@@ -38,7 +38,7 @@ class Code implements Function {
         this.maxDepth = maxDepth;
     }
 
-    public Code(Code cl) {
+    Code(Code cl) {
         this.argc = cl.argc;
         this.code = cl.code;
         this.constPool = cl.constPool;
@@ -62,37 +62,8 @@ class Code implements Function {
     // </editor-fold>
     // <editor-fold desc="defines">
     /** Sizes of different kinds of stack frames */
-    public static final int RET_FRAME_SIZE = 4;
-    public static final int TRY_FRAME_SIZE = 5;
-    /** The globals variables in this execution context.
-     * they are boxed, in such that they can be passed
-     * to the closure of af function, which will then
-     * be able to modify it without looking it up here */
-    private static final int EC_GLOBALS = 0;
-    private static final int EC_OBJECT_PROTOTYPE = 1;
-    private static final int EC_ARRAY_PROTOTYPE = 2;
-    private static final int EC_FUNCTION_PROTOTYPE = 3;
-    private static final int EC_STRING_PROTOTYPE = 4;
-    /* Index in executionContext for the default setter function,
-     * which is called when a property is set on
-     * an object which is neither a Stack, Hashtable nor LightScriptObject
-     *
-     * The apply method of the setter gets the container as thisPtr,
-     * and takes the key and value as arguments
-     */
-    private static final int EC_SETTER = 5;
-    /* Index in executionContext for the default getter function,
-     * called when subscripting an object
-     * which is not a Stack, Hashtable, String nor LightScriptObject
-     * or when the subscripting of any of those objects returns null.
-     * (non-integer on stacks/strings, keys not found in Hashtable or
-     * its prototypes, when LightScriptObject.get returns null)
-     *
-     * The apply method of the getter gets the container as thisPtr,
-     * and takes the key as argument
-     */
-    private static final int EC_GETTER = 6;
-    private static final int EC_NEW_ITER = 8;
+    static final int RET_FRAME_SIZE = 4;
+    static final int TRY_FRAME_SIZE = 5;
 
     /*`\subsubsection{Code}'*/
     /**
@@ -161,7 +132,7 @@ class Code implements Function {
             byte[] code = cl.code;
             Object[] constPool = cl.constPool;
             Object[] closure = cl.closure;
-            Object[] executionContext = ((LightScript) constPool[0]).executionContext;
+            LightScript executionContext = (LightScript) constPool[0];
             int exceptionHandler = - 1;
             stack = ensureSpace(stack, sp, cl.maxDepth);
             Object thisPtr = stack[0];
@@ -204,7 +175,7 @@ class Code implements Function {
                         pc = ((Integer) stack[--sp]).intValue();
                         code = (byte[]) stack[--sp];
                         constPool = (Object[]) stack[--sp];
-                        executionContext = ((LightScript) constPool[0]).executionContext;
+                        executionContext = (LightScript) constPool[0];
                         closure = (Object[]) stack[--sp];
                         thisPtr = stack[--sp];
                         stack[sp] = result;
@@ -243,7 +214,7 @@ class Code implements Function {
                             pc = -1;
                             code = fn.code;
                             constPool = fn.constPool;
-                            executionContext = ((LightScript) constPool[0]).executionContext;
+                        executionContext = (LightScript) constPool[0];
                             closure = fn.closure;
                         } else if (o instanceof Function) {
                             try {
@@ -260,7 +231,7 @@ class Code implements Function {
                                     pc = ((Integer) stack[--sp]).intValue();
                                     code = (byte[]) stack[--sp];
                                     constPool = (Object[]) stack[--sp];
-                                    executionContext = ((LightScript) constPool[0]).executionContext;
+                        executionContext = (LightScript) constPool[0];
                                     closure = (Object[]) stack[--sp];
                                     stack[sp] = e.value;
                                 }
@@ -458,7 +429,7 @@ class Code implements Function {
                                 ((Hashtable) container).put(key, val);
                             }
                         } else {
-                            ((Function) executionContext[EC_SETTER]).apply(stack, sp, 2);
+                            //CLASS DISPATCH ((Function) executionContext[EC_SETTER]).apply(stack, sp, 2);
                         }
                         break;
                     }
@@ -494,7 +465,7 @@ class Code implements Function {
                             } else if ("length".equals(key)) {
                                 result = new Integer(((Stack) container).size());
                             } else {
-                                result = ((Hashtable) executionContext[EC_ARRAY_PROTOTYPE]).get(key);
+                                //CLASS DISPATCH result = ((Hashtable) executionContext[EC_ARRAY_PROTOTYPE]).get(key);
                             }
 
                             // "String"
@@ -508,26 +479,26 @@ class Code implements Function {
                             } else if ("length".equals(key)) {
                                 result = new Integer(((String) container).length());
                             } else {
-                                result = ((Hashtable) executionContext[EC_STRING_PROTOTYPE]).get(key);
+                                //CLASS DISPATCH result = ((Hashtable) executionContext[EC_STRING_PROTOTYPE]).get(key);
                             }
 
                             // Other builtin types, by calling userdefined default getter
                         } else {
-                            result = ((Function) executionContext[EC_GETTER]).apply(stack, sp, 1);
+                            // CLASS DISPATCH result = ((Function) executionContext[EC_GETTER]).apply(stack, sp, 1);
                         }
 
                         // prototype property or element within (super-)prototype
                         if (result == null) {
                             if ("__proto__".equals(key)) {
                                 if (container instanceof Stack) {
-                                    result = (Hashtable) executionContext[EC_ARRAY_PROTOTYPE];
+                                    // CLASS_DISPATCH result = (Hashtable) executionContext[EC_ARRAY_PROTOTYPE];
                                 } else if (container instanceof String) {
-                                    result = (Hashtable) executionContext[EC_STRING_PROTOTYPE];
+                                    // CLASS_DISPATCH result = (Hashtable) executionContext[EC_STRING_PROTOTYPE];
                                 } else {
-                                    result = (Hashtable) executionContext[EC_OBJECT_PROTOTYPE];
+                                    // CLASS_DISPATCH result = (Hashtable) executionContext[EC_OBJECT_PROTOTYPE];
                                 }
                             } else {
-                                result = ((Hashtable) executionContext[EC_OBJECT_PROTOTYPE]).get(key);
+                                //CLASS_DISPATCH result = ((Hashtable) executionContext[EC_OBJECT_PROTOTYPE]).get(key);
                                 if (result == null) {
                                     result = LightScript.UNDEFINED;
                                 }
@@ -650,7 +621,7 @@ class Code implements Function {
                             pc = ((Integer) stack[--sp]).intValue();
                             code = (byte[]) stack[--sp];
                             constPool = (Object[]) stack[--sp];
-                            executionContext = ((LightScript) constPool[0]).executionContext;
+                        executionContext = (LightScript) constPool[0];
                             closure = (Object[]) stack[--sp];
                             stack[sp] = result;
                         }
@@ -672,7 +643,7 @@ class Code implements Function {
                         break;
                     }
                     case OpCodes.NEW_ITER: {
-                        stack[sp] = ((Function) executionContext[EC_NEW_ITER]).apply(stack, sp, 0);
+                        // CLASS_DISPATCH stack[sp] = ((Function) executionContext[EC_NEW_ITER]).apply(stack, sp, 0);
                         break;
                     }
                     case OpCodes.NEXT: {

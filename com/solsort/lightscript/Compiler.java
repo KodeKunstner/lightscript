@@ -1308,7 +1308,7 @@ class Compiler {
 
                 // save program counter
                 emit(OpCodes.SAVE_PC);
-                addDepth(LightScript.RET_FRAME_SIZE);
+                addDepth(Code.RET_FRAME_SIZE);
 
 
                 // find the method/function
@@ -1345,7 +1345,7 @@ class Compiler {
                     }
                 }
                 emit(expr.length - 2);
-                addDepth(1 - expr.length - LightScript.RET_FRAME_SIZE);
+                addDepth(1 - expr.length - Code.RET_FRAME_SIZE);
 
                 hasResult = true;
                 break;
@@ -1630,13 +1630,13 @@ class Compiler {
                 emit(OpCodes.TRY);
                 pushShort(0);
                 pos0 = code.length();
-                addDepth(LightScript.TRY_FRAME_SIZE);
+                addDepth(Code.TRY_FRAME_SIZE);
 
                 curlyToBlock(expr[1]);
                 compile(expr[1], false);
 
                 emit(OpCodes.UNTRY);
-                addDepth(-LightScript.TRY_FRAME_SIZE);
+                addDepth(-Code.TRY_FRAME_SIZE);
 
                 emit(OpCodes.JUMP);
                 pushShort(0);

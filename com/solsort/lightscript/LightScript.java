@@ -29,43 +29,11 @@ public final class LightScript {
     // TODO: globals object
 
     public static Object oldGlobalObject = null;
-    private static Hashtable globals = new Hashtable();
-
-
-    /*`\subsection{Public functions}'*/
-    // <editor-fold desc="public api">
-    /** Get the default-setter function */
-    public Function defaultSetter() {
-        return (Function) executionContext[EC_SETTER];
-    }
-
-    /** Set the default-setter function.
-     * The default setter function is called as a method on the object,
-     * with the key and the value as arguments. */
-    public void defaultSetter(Function f) {
-        executionContext[EC_SETTER] = f;
-    }
-
-    /** Get the default-getter function */
-    public Function defaultGetter() {
-        return (Function) executionContext[EC_GETTER];
-    }
-
-    /** Set the default-getter function.
-     * The default getter function is called as a method on the object,
-     * with a single argument, which is the key */
-    public void defaultGetter(Function f) {
-        executionContext[EC_GETTER] = f;
-    }
-    /**
-     * context for execution
-     */
-    public Object[] executionContext;
+    private static Hashtable globals;
 
     /** Constructor, loading standard library */
     public LightScript() {
-        executionContext = new Object[9];
-        executionContext[EC_GLOBALS] = new Hashtable();
+        globals = new Hashtable();
         StdLib.register(this);
     }
 
@@ -140,62 +108,4 @@ public final class LightScript {
     public static final Object FALSE = new StringBuffer("false");
     // </editor-fold>
     // <editor-fold desc="options">
-    /*`\section{Definitions, API, and utility functions}'*/
-
-    /* If debugging is enabled, more tests are run during run-time,
-     * and errors may be caught in a more readable way.
-     * It also adds support for more readable printing of
-     * id, etc.
-     */
-    private static final boolean DEBUG_ENABLED = true;
-    private static final boolean __PRINT_EXECUTED_INSTRUCTIONS__ = false;
-    private static final boolean __DO_YIELD__ = true;
-
-    /* If enabled, wipe the stack on function exit,
-     * to kill dangling pointers on execution stack,
-     * for better GC at performance price
-     */
-    private static final boolean __CLEAR_STACK__ = true;
-    // </editor-fold>
-    // <editor-fold desc="defines">
-
-    /** Sizes of different kinds of stack frames */
-    public static final int RET_FRAME_SIZE = 4;
-    public static final int TRY_FRAME_SIZE = 5;
-    /** Token used for separators (;,:), which are just discarded */
-    private static final Object[] SEP_TOKEN = {new Integer(OpCodes.SEP)};
-    /** The globals variables in this execution context.
-     * they are boxed, in such that they can be passed
-     * to the closure of af function, which will then
-     * be able to modify it without looking it up here */
-    private static final int EC_GLOBALS = 0;
-    private static final int EC_OBJECT_PROTOTYPE = 1;
-    private static final int EC_ARRAY_PROTOTYPE = 2;
-    private static final int EC_FUNCTION_PROTOTYPE = 3;
-    private static final int EC_STRING_PROTOTYPE = 4;
-    /* Index in executionContext for the default setter function,
-     * which is called when a property is set on
-     * an object which is neither a Stack, Hashtable nor LightScriptObject
-     *
-     * The apply method of the setter gets the container as thisPtr,
-     * and takes the key and value as arguments
-     */
-    private static final int EC_SETTER = 5;
-    /* Index in executionContext for the default getter function,
-     * called when subscripting an object
-     * which is not a Stack, Hashtable, String nor LightScriptObject
-     * or when the subscripting of any of those objects returns null.
-     * (non-integer on stacks/strings, keys not found in Hashtable or
-     * its prototypes, when LightScriptObject.get returns null)
-     *
-     * The apply method of the getter gets the container as thisPtr,
-     * and takes the key as argument
-     */
-    private static final int EC_GETTER = 6;
-    private static final int EC_NEW_ITER = 8;
-    //</editor-fold>
-    /*`\subsection{Debugging}'*/
-    //<editor-fold>
-    /** Mapping from ID to name of ID */
-
 }

@@ -13,31 +13,6 @@ import com.solsort.mobile.Util;
 
 class StdLib implements Function {
 
-    private static final int EC_OBJECT_PROTOTYPE = 1;
-    private static final int EC_ARRAY_PROTOTYPE = 2;
-    private static final int EC_FUNCTION_PROTOTYPE = 3;
-    private static final int EC_STRING_PROTOTYPE = 4;
-    /* Index in executionContext for the default setter function,
-     * which is called when a property is set on
-     * an object which is neither a Stack, Hashtable nor LightScriptObject
-     *
-     * The apply method of the setter gets the container as thisPtr,
-     * and takes the key and value as arguments
-     */
-    private static final int EC_SETTER = 5;
-    /* Index in executionContext for the default getter function,
-     * called when subscripting an object
-     * which is not a Stack, Hashtable, String nor LightScriptObject
-     * or when the subscripting of any of those objects returns null.
-     * (non-integer on stacks/strings, keys not found in Hashtable or
-     * its prototypes, when LightScriptObject.get returns null)
-     *
-     * The apply method of the getter gets the container as thisPtr,
-     * and takes the key as argument
-     */
-    private static final int EC_GETTER = 6;
-    private static final int EC_NEW_ITER = 8;
-
     private int id;
     private Object closure[];
     private static Random rnd = new Random();
@@ -309,26 +284,26 @@ class StdLib implements Function {
     public static void register(LightScript ls) {
 
         Hashtable objectPrototype = new Hashtable();
-        ls.executionContext[EC_OBJECT_PROTOTYPE] = objectPrototype;
+        //ls.executionContext[EC_OBJECT_PROTOTYPE] = objectPrototype;
 
         Hashtable arrayPrototype = new Hashtable();
-        ls.executionContext[EC_ARRAY_PROTOTYPE] = arrayPrototype;
+        //ls.executionContext[EC_ARRAY_PROTOTYPE] = arrayPrototype;
 
         Hashtable stringPrototype = clone(objectPrototype);
-        ls.executionContext[EC_STRING_PROTOTYPE] = stringPrototype;
+        //ls.executionContext[EC_STRING_PROTOTYPE] = stringPrototype;
 
         Hashtable functionPrototype = clone(objectPrototype);
-        ls.executionContext[EC_FUNCTION_PROTOTYPE] = functionPrototype;
+        //ls.executionContext[EC_FUNCTION_PROTOTYPE] = functionPrototype;
 
-        ls.executionContext[EC_SETTER] = new StdLib(STD_DEFAULT_SETTER);
+        //ls.executionContext[EC_SETTER] = new StdLib(STD_DEFAULT_SETTER);
 
 
         StdLib defaultGetter = new StdLib(STD_DEFAULT_GETTER);
         defaultGetter.closure = new Object[1];
         defaultGetter.closure[0] = objectPrototype;
-        ls.executionContext[EC_GETTER] = defaultGetter;
+        //ls.executionContext[EC_GETTER] = defaultGetter;
 
-        ls.executionContext[EC_NEW_ITER] = new StdLib(STD_NEW_ITERATOR);
+        //ls.executionContext[EC_NEW_ITER] = new StdLib(STD_NEW_ITERATOR);
 
 
         for (int i = 0; i < names.length; i++) {
