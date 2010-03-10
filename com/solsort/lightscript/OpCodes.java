@@ -31,7 +31,7 @@ class OpCodes {
     public static final int ADD = 26;
     public static final int EQUALS = 27;
     public static final int LESS = 29;
-    public static final int LESS_EQUALS = 30;
+    public static final int LESS_EQUAL = 30;
     public static final int LITERAL = 31;
     public static final int MUL = 32;
     public static final int NEG = 33;
@@ -89,7 +89,7 @@ class OpCodes {
         "BUILD_FUNCTION", "IF", "WHILE", "CALL_FUNCTION", "AND",
         "OR", "ELSE", "SET", "IDENT", "BLOCK", "SEP", "IN", "FOR",
         "END", "CATCH", "DO", "INC", "DEC", "ADD", "EQUALS",
-        "NOT_USED_ANYMORE", "LESS", "LESS_EQUALS", "LITERAL", "MUL", "NEG",
+        "NOT_USED_ANYMORE", "LESS", "LESS_EQUAL", "LITERAL", "MUL", "NEG",
         "NOT", "NOT_EQUALS", "NOT_USED_ANYMORE", "REM", "RETURN", ">>",
         "SUB", "SUBSCRIPT", "THIS", "THROW", "TRY", "UNTRY", "BOX_IT",
         "BUILD_FN", "CALL_FN", "DROP", "DUP", "NOT_USED_ANYMORE",

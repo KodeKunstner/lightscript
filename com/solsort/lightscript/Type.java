@@ -15,10 +15,6 @@ public class Type {
 
     public void set(Object thisPtr, Object key, Object val) {
     }
-
-    public boolean toBool(Object thisPtr) {
-        return true;
-    }
 }
 
 

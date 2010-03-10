@@ -80,29 +80,21 @@ class Code implements Function {
         if (object instanceof Integer) {
             return ((Integer) object).intValue();
         }
+
         // CLASS DISPATCH
 
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    private static boolean toBool(Object o) {
+    private static boolean toBool(LightScript ls, Object stack[], int sp) throws ScriptException  {
+        Object o = stack[sp];
         if (o == LightScript.TRUE) {
             return true;
         }
         if (o == LightScript.FALSE || o == LightScript.NULL || o == LightScript.UNDEFINED) {
             return false;
         }
-        if (o instanceof String) {
-            return !((String) o).equals("");
-        }
-        if (DEBUG_ENABLED) {
-            if (o instanceof Integer) {
-                return ((Integer) o).intValue() != 0;
-            }
-            throw new Error("unhandled toBool case for:" + o.toString());
-        } else {
-            return ((Integer) o).intValue() != 0;
-        }
+        return Code.unop(ls, stack, sp, "__toBool__") == LightScript.TRUE;
     }
 
     private static Object[] ensureSpace(Object[] stack, int sp, int maxDepth) {
@@ -116,6 +108,29 @@ class Code implements Function {
             return newstack;
         }
         return stack;
+    }
+
+    private static Object unop(LightScript ls, Object stack[], int sp, String name) throws ScriptException {
+          Object o = ls.subscript(stack[sp], name);
+          if(o!= LightScript.UNDEFINED) {
+              o = ((Function) o).apply(stack, sp, 0);
+          }
+          return o;
+
+    }
+
+    private static Object binop(LightScript ls, Object stack[], int sp, String name) throws ScriptException {
+        Object o = ls.subscript(stack[sp], name);
+        if (o != LightScript.UNDEFINED) {
+            o = ((Function) o).apply(stack, sp, 1);
+        }
+        if (o == LightScript.UNDEFINED) {
+            o = ls.subscript(stack[sp + 1], name);
+            if (o != LightScript.UNDEFINED) {
+                o = ((Function) o).apply(stack, sp, 1);
+            }
+        }
+        return o;
     }
 
     /**
@@ -132,7 +147,7 @@ class Code implements Function {
             byte[] code = cl.code;
             Object[] constPool = cl.constPool;
             Object[] closure = cl.closure;
-            LightScript executionContext = (LightScript) constPool[0];
+            LightScript ls = (LightScript) constPool[0];
             int exceptionHandler = - 1;
             stack = ensureSpace(stack, sp, cl.maxDepth);
             Object thisPtr = stack[0];
@@ -175,7 +190,7 @@ class Code implements Function {
                         pc = ((Integer) stack[--sp]).intValue();
                         code = (byte[]) stack[--sp];
                         constPool = (Object[]) stack[--sp];
-                        executionContext = (LightScript) constPool[0];
+                        ls = (LightScript) constPool[0];
                         closure = (Object[]) stack[--sp];
                         thisPtr = stack[--sp];
                         stack[sp] = result;
@@ -214,7 +229,7 @@ class Code implements Function {
                             pc = -1;
                             code = fn.code;
                             constPool = fn.constPool;
-                        executionContext = (LightScript) constPool[0];
+                            ls = (LightScript) constPool[0];
                             closure = fn.closure;
                         } else if (o instanceof Function) {
                             try {
@@ -231,7 +246,7 @@ class Code implements Function {
                                     pc = ((Integer) stack[--sp]).intValue();
                                     code = (byte[]) stack[--sp];
                                     constPool = (Object[]) stack[--sp];
-                        executionContext = (LightScript) constPool[0];
+                                    ls = (LightScript) constPool[0];
                                     closure = (Object[]) stack[--sp];
                                     stack[sp] = e.value;
                                 }
@@ -319,15 +334,15 @@ class Code implements Function {
                         break;
                     }
                     case OpCodes.NOT: {
-                        stack[sp] = toBool(stack[sp]) ? LightScript.FALSE : LightScript.TRUE;
+                        stack[sp] = toBool(ls, stack, sp) ? LightScript.FALSE : LightScript.TRUE;
                         break;
                     }
                     case OpCodes.NEG: {
                         Object o = stack[sp];
                         if (o instanceof Integer) {
                             o = new Integer(-((Integer) o).intValue());
-                        } else /* if o is float */ {
-// CLASS DISPATCH
+                        } else {
+                            o = Code.unop(ls, stack, sp, "__negate__");
                         }
                         stack[sp] = o;
                         break;
@@ -339,22 +354,23 @@ class Code implements Function {
                         if (o instanceof Integer && o2 instanceof Integer) {
                             int result = ((Integer) o).intValue();
                             result += ((Integer) o2).intValue();
-                            stack[sp] = new Integer(result);
+                            o = new Integer(result);
                         } else {
-// CLASS DISPATCH
-                            stack[sp] = String.valueOf(o) + String.valueOf(o2);
+                            o = Code.binop(ls, stack, sp, "__add__");
                         }
+                        stack[sp] = o;
                         break;
                     }
                     case OpCodes.SUB: {
                         Object o2 = stack[sp];
-                        Object o1 = stack[--sp];
-                        if (o1 instanceof Integer && o2 instanceof Integer) {
-                            stack[sp] = new Integer(((Integer) o1).intValue()
+                        Object o = stack[--sp];
+                        if (o instanceof Integer && o2 instanceof Integer) {
+                            o = new Integer(((Integer) o).intValue()
                                     - ((Integer) o2).intValue());
-                        } else /* float */ {
-// CLASS DISPATCH
+                        } else {
+                            o = Code.binop(ls, stack, sp, "__sub__");
                         }
+                        stack[sp] = o;
                         break;
                     }
                     case OpCodes.SHIFT_RIGHT_ARITHMETIC: {
@@ -365,31 +381,31 @@ class Code implements Function {
                     }
                     case OpCodes.MUL: {
                         Object o2 = stack[sp];
-                        Object o1 = stack[--sp];
-                        if (o1 instanceof Integer && o2 instanceof Integer) {
-                            stack[sp] = new Integer(((Integer) o1).intValue()
+                        Object o = stack[--sp];
+                        if (o instanceof Integer && o2 instanceof Integer) {
+                            o = new Integer(((Integer) o).intValue()
                                     * ((Integer) o2).intValue());
                         } else {
-// CLASS DISPATCH
+                            o = Code.binop(ls, stack, sp, "__mul__");
                         }
+                        stack[sp] = o;
                         break;
                     }
                     case OpCodes.DIV: {
-                        Object o2 = stack[sp];
-                        Object o1 = stack[--sp];
-// CLASS DISPATCH
-//                        stack[sp] = fpDiv(toFp(o1), toFp(o2));
+                        --sp;
+                        stack[sp] = Code.binop(ls, stack, sp, "__div__");
                         break;
                     }
                     case OpCodes.REM: {
                         Object o2 = stack[sp];
-                        Object o1 = stack[--sp];
-                        if (o1 instanceof Integer && o2 instanceof Integer) {
-                            stack[sp] = new Integer(((Integer) o1).intValue()
+                        Object o = stack[--sp];
+                        if (o instanceof Integer && o2 instanceof Integer) {
+                            o = new Integer(((Integer) o).intValue()
                                     % ((Integer) o2).intValue());
                         } else /* float */ {
-// CLASS DISPATCH
+                            o = Code.binop(ls, stack, sp, "__rem__");
                         }
+                        stack[sp] = o;
                         break;
                     }
                     case OpCodes.NOT_EQUALS: {
@@ -398,6 +414,7 @@ class Code implements Function {
                         stack[sp] = (o == null)
                                 ? (stack[sp] == null ? LightScript.FALSE : LightScript.TRUE)
                                 : (o.equals(stack[sp]) ? LightScript.FALSE : LightScript.TRUE);
+                        // CLASS DISPATCH
                         break;
                     }
                     case OpCodes.EQUALS: {
@@ -406,6 +423,7 @@ class Code implements Function {
                         stack[sp] = (o == null)
                                 ? (stack[sp] == null ? LightScript.TRUE : LightScript.FALSE)
                                 : (o.equals(stack[sp]) ? LightScript.TRUE : LightScript.FALSE);
+                        // CLASS DISPATCH
                         break;
                     }
                     case OpCodes.PUT: {
@@ -413,98 +431,13 @@ class Code implements Function {
                         Object key = stack[--sp];
                         Object container = stack[--sp];
 
-                        //CLASS DISPATCH replace below
-                        if (container instanceof Stack) {
-                            int pos = toInt(key);
-                            Stack s = (Stack) container;
-                            if (pos >= s.size()) {
-                                s.setSize(pos + 1);
-                            }
-                            s.setElementAt(val, pos);
-
-                        } else if (container instanceof Hashtable) {
-                            if (val == null) {
-                                ((Hashtable) container).remove(key);
-                            } else {
-                                ((Hashtable) container).put(key, val);
-                            }
-                        } else {
-                            //CLASS DISPATCH ((Function) executionContext[EC_SETTER]).apply(stack, sp, 2);
-                        }
+                        ls.subscriptAssign(container, key, val);
                         break;
                     }
                     case OpCodes.SUBSCRIPT: {
                         Object key = stack[sp];
                         Object container = stack[--sp];
-                        Object result = null;
-
-
-                        // "Object"
-                        //CLASS DISPATCH replace below
-                        if (container instanceof Hashtable) {
-                            result = ((Hashtable) container).get(key);
-                            if (result == null) {
-                                Object prototype = ((Hashtable) container).get("__proto__");
-                                // repeat case OpCodes.SUBSCRIPT with prototype as container
-                                if (prototype != null) {
-                                    stack[sp] = prototype;
-                                    sp += 1;
-                                    pc -= 1;
-                                    break;
-                                }
-                            }
-
-                            // "Array"
-                        } else if (container instanceof Stack) {
-                            if (key instanceof Integer) {
-                                int pos = ((Integer) key).intValue();
-                                Stack s = (Stack) container;
-                                result = 0 <= pos && pos < s.size()
-                                        ? s.elementAt(pos)
-                                        : null;
-                            } else if ("length".equals(key)) {
-                                result = new Integer(((Stack) container).size());
-                            } else {
-                                //CLASS DISPATCH result = ((Hashtable) executionContext[EC_ARRAY_PROTOTYPE]).get(key);
-                            }
-
-                            // "String"
-                        } else if (container instanceof String) {
-                            if (key instanceof Integer) {
-                                int pos = ((Integer) key).intValue();
-                                String s = (String) container;
-                                result = 0 <= pos && pos < s.length()
-                                        ? s.substring(pos, pos + 1)
-                                        : null;
-                            } else if ("length".equals(key)) {
-                                result = new Integer(((String) container).length());
-                            } else {
-                                //CLASS DISPATCH result = ((Hashtable) executionContext[EC_STRING_PROTOTYPE]).get(key);
-                            }
-
-                            // Other builtin types, by calling userdefined default getter
-                        } else {
-                            // CLASS DISPATCH result = ((Function) executionContext[EC_GETTER]).apply(stack, sp, 1);
-                        }
-
-                        // prototype property or element within (super-)prototype
-                        if (result == null) {
-                            if ("__proto__".equals(key)) {
-                                if (container instanceof Stack) {
-                                    // CLASS_DISPATCH result = (Hashtable) executionContext[EC_ARRAY_PROTOTYPE];
-                                } else if (container instanceof String) {
-                                    // CLASS_DISPATCH result = (Hashtable) executionContext[EC_STRING_PROTOTYPE];
-                                } else {
-                                    // CLASS_DISPATCH result = (Hashtable) executionContext[EC_OBJECT_PROTOTYPE];
-                                }
-                            } else {
-                                //CLASS_DISPATCH result = ((Hashtable) executionContext[EC_OBJECT_PROTOTYPE]).get(key);
-                                if (result == null) {
-                                    result = LightScript.UNDEFINED;
-                                }
-                            }
-                        }
-                        stack[sp] = result;
+                        stack[sp] = ls.subscript(container, key);
                         break;
                     }
                     case OpCodes.PUSH: {
@@ -520,26 +453,25 @@ class Code implements Function {
                         Object o2 = stack[sp];
                         Object o1 = stack[--sp];
                         if (o1 instanceof Integer && o2 instanceof Integer) {
-                            stack[sp] = ((Integer) o1).intValue()
+                            o1 = ((Integer) o1).intValue()
                                     < ((Integer) o2).intValue() ? LightScript.TRUE : LightScript.FALSE;
                         } else {
-// CLASS DISPATCH
-                            stack[sp] = o1.toString().compareTo(o2.toString())
-                                    < 0 ? LightScript.TRUE : LightScript.FALSE;
+                            o1 = Code.binop(ls, stack, sp, "__less__");
                         }
+                        stack[sp] = o1;
                         break;
                     }
-                    case OpCodes.LESS_EQUALS: {
+                    case OpCodes.LESS_EQUAL: {
                         Object o2 = stack[sp];
                         Object o1 = stack[--sp];
                         if (o1 instanceof Integer && o2 instanceof Integer) {
-                            stack[sp] = ((Integer) o1).intValue()
+                            o1 = ((Integer) o1).intValue()
                                     <= ((Integer) o2).intValue() ? LightScript.TRUE : LightScript.FALSE;
                         } else {
-// CLASS DISPATCH
-                            stack[sp] = o1.toString().compareTo(o2.toString())
-                                    <= 0 ? LightScript.TRUE : LightScript.FALSE;
+                            o1 = Code.binop(ls, stack, sp, "__less_equal__");
+
                         }
+                        stack[sp] = o1;
                         break;
                     }
                     case OpCodes.JUMP: {
@@ -562,7 +494,7 @@ class Code implements Function {
                         break;
                     }
                     case OpCodes.JUMP_IF_FALSE: {
-                        if (toBool(stack[sp])) {
+                        if (toBool(ls, stack, sp)) {
                             pc += 2;
                         } else {
                             pc += readShort(pc, code) + 2;
@@ -574,7 +506,7 @@ class Code implements Function {
                         break;
                     }
                     case OpCodes.JUMP_IF_TRUE: {
-                        if (toBool(stack[sp])) {
+                        if (toBool(ls, stack, sp)) {
                             pc += readShort(pc, code) + 2;
                         } else {
                             pc += 2;
@@ -621,7 +553,7 @@ class Code implements Function {
                             pc = ((Integer) stack[--sp]).intValue();
                             code = (byte[]) stack[--sp];
                             constPool = (Object[]) stack[--sp];
-                        executionContext = (LightScript) constPool[0];
+                            ls = (LightScript) constPool[0];
                             closure = (Object[]) stack[--sp];
                             stack[sp] = result;
                         }
@@ -643,7 +575,7 @@ class Code implements Function {
                         break;
                     }
                     case OpCodes.NEW_ITER: {
-                        // CLASS_DISPATCH stack[sp] = ((Function) executionContext[EC_NEW_ITER]).apply(stack, sp, 0);
+                        Code.unop(ls, stack, sp, "__iter__");
                         break;
                     }
                     case OpCodes.NEXT: {
@@ -652,22 +584,13 @@ class Code implements Function {
                         break;
                     }
                     case OpCodes.GLOBAL: {
-                        stack[++sp] = executionContext;
+                        stack[++sp] = ls;
                         break;
                     }
                     case OpCodes.DELETE: {
                         Object key = stack[sp];
                         Object container = stack[--sp];
-                        //CLASS DISPATCH replace below
-                        if (container instanceof Hashtable) {
-                            ((Hashtable) container).remove(key);
-                        } else if (container instanceof Stack && key instanceof Integer) {
-                            ((Stack) container).setElementAt(LightScript.UNDEFINED, ((Integer) key).intValue());
-                        } else {
-                            if (DEBUG_ENABLED) {
-                                throw new Error("deleting non-deletable");
-                            }
-                        }
+                        ls.subscriptAssign(container, key, null);
                         break;
                     }
                     case OpCodes.SHIFT_RIGHT: {

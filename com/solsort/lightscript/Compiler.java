@@ -741,7 +741,7 @@ class Compiler {
                 + (char) NUD_NONE
                 + (char) OpCodes.NONE
                 + (char) LED_INFIX
-                + (char) OpCodes.LESS_EQUALS
+                + (char) OpCodes.LESS_EQUAL
                 + "<"
                 + (char) 4
                 + (char) NUD_NONE
@@ -753,7 +753,7 @@ class Compiler {
                 + (char) NUD_NONE
                 + (char) OpCodes.NONE
                 + (char) LED_INFIX_SWAP
-                + (char) OpCodes.LESS_EQUALS
+                + (char) OpCodes.LESS_EQUAL
                 + ">"
                 + (char) 4
                 + (char) NUD_NONE
@@ -1154,7 +1154,7 @@ class Compiler {
             case OpCodes.EQUALS:
             case OpCodes.NOT_EQUALS:
             case OpCodes.SUBSCRIPT:
-            case OpCodes.LESS_EQUALS:
+            case OpCodes.LESS_EQUAL:
             case OpCodes.LESS: {
                 compile(expr[1], true);
                 compile(expr[2], true);

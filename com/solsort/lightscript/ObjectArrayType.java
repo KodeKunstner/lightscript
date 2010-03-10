@@ -27,8 +27,4 @@ class ObjectArrayType extends Type {
             }
         }
     }
-
-    public boolean toBool(Object thisPtr) {
-        return ((Object[]) thisPtr).length != 0;
-    }
 }

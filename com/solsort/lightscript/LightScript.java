@@ -70,23 +70,6 @@ public final class LightScript {
         thisClass.set(obj, key, val);
     }
 
-    boolean toBool(Object obj) {
-        if (obj == TRUE) {
-            return true;
-        }
-        if (obj == UNDEFINED || obj == FALSE || obj == null || obj == NULL) {
-            return false;
-        }
-
-        Object o = types.get(obj.getClass());
-        Type thisClass;
-        if (o == null) {
-            thisClass = defaultType;
-        } else {
-            thisClass = (Type) o;
-        }
-        return thisClass.toBool(obj);
-    }
     // </editor-fold>
     //<editor-fold desc="globals">
     /** Hashtable containing boxed global values */

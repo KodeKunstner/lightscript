@@ -16,8 +16,4 @@ class StringType extends Type {
         }
         return super.get(thisPtr, key);
     }
-
-    public boolean toBool(Object thisPtr) {
-        return ((java.lang.String) thisPtr).length() != 0;
-    }
 }
