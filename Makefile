@@ -27,12 +27,17 @@ examples/Main.class: $(DEFAULT_VER)$(LS).class
 	javac -source 1.2 examples/Main.java
 	ls -l $(DEFAULT_VER)$(LS).class
 
-doc: * $(DEPS)
+doc: doc/javadoc doc/README.html doc/TODO.html
+doc/javadoc: $(DEPS)
 	mkdir -p doc/javadoc
 	javadoc -d doc/javadoc/public com.solsort.mobile com.solsort.lightscript
 	javadoc -package -d doc/javadoc/package com.solsort.mobile com.solsort.lightscript
 	javadoc -private -d doc/javadoc/private com.solsort.mobile com.solsort.lightscript
+
+doc/README.html: README.md
 	pandoc -s README.md -o doc/README.html
+
+doc/TODO.html: TODO
 	pandoc -s TODO -o doc/TODO.html
 
 clean:
