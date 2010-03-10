@@ -32,7 +32,7 @@ doc: * $(DEPS)
 	javadoc -d doc/javadoc/public com.solsort.mobile com.solsort.lightscript
 	javadoc -package -d doc/javadoc/package com.solsort.mobile com.solsort.lightscript
 	javadoc -private -d doc/javadoc/private com.solsort.mobile com.solsort.lightscript
-	pandoc -s README -o doc/README.html
+	pandoc -s README.md -o doc/README.html
 	pandoc -s TODO -o doc/TODO.html
 
 clean:
