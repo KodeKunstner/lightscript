@@ -171,7 +171,7 @@ public final class LightScript {
         Compiler c = new Compiler(is, this);
         LightScriptFunction stmt = c.compileNextStatement();
         while (stmt != null) {
-            result = apply(this, stmt);
+            result = call(stmt);
             stmt = c.compileNextStatement();
         }
         return result;
@@ -184,28 +184,77 @@ public final class LightScript {
     // </editor-fold>
     //<editor-fold desc="apply(...)">
 
-    /** Shorthands for executing a LightScript function */
-    public static Object apply(Object thisPtr, LightScriptFunction f) throws LightScriptException {
+    private Object apply(String fn, Object args[]) throws LightScriptException {
+        Object[] lookupArgs= { args[0], fn };
+        return ((LightScriptFunction)getGetter(args[0].getClass()).apply(lookupArgs, 0, 1)).apply(args, 0, args.length-1);
+    }
+    private Object apply(LightScriptFunction fn, Object args[]) throws LightScriptException {
+        return fn.apply(args, 0, args.length - 1);
+    }
+
+    public Object call(LightScriptFunction fn) throws LightScriptException {
+        Object args[] = {this};
+        return apply(fn, args);
+    }
+    public Object call(LightScriptFunction fn, Object arg1) throws LightScriptException {
+        Object args[] = {this, arg1};
+        return apply(fn, args);
+    }
+    public Object call(LightScriptFunction fn, Object arg1, Object arg2) throws LightScriptException {
+        Object args[] = {this, arg1, arg2};
+        return apply(fn, args);
+    }
+    public Object call(LightScriptFunction fn, Object arg1, Object arg2, Object arg3) throws LightScriptException {
+        Object args[] = {this, arg1, arg2, arg3};
+        return apply(fn, args);
+    }
+    public Object callMethod(Object thisPtr, LightScriptFunction fn) throws LightScriptException {
         Object args[] = {thisPtr};
-        return f.apply(args, 0, 0);
+        return apply(fn, args);
     }
-
-    /** Shorthands for executing a LightScript function */
-    public static Object apply(Object thisPtr, LightScriptFunction f, Object arg1) throws LightScriptException {
+    public Object callMethod(Object thisPtr, LightScriptFunction fn, Object arg1) throws LightScriptException {
         Object args[] = {thisPtr, arg1};
-        return f.apply(args, 0, 1);
+        return apply(fn, args);
     }
-
-    /** Shorthands for executing a LightScript function */
-    public static Object apply(Object thisPtr, LightScriptFunction f, Object arg1, Object arg2) throws LightScriptException {
+    public Object callMethod(Object thisPtr, LightScriptFunction fn, Object arg1, Object arg2) throws LightScriptException {
         Object args[] = {thisPtr, arg1, arg2};
-        return f.apply(args, 0, 2);
+        return apply(fn, args);
     }
-
-    /** Shorthands for executing a LightScript function */
-    public static Object apply(Object thisPtr, LightScriptFunction f, Object arg1, Object arg2, Object arg3) throws LightScriptException {
+    public Object callMethod(Object thisPtr, LightScriptFunction fn, Object arg1, Object arg2, Object arg3) throws LightScriptException {
         Object args[] = {thisPtr, arg1, arg2, arg3};
-        return f.apply(args, 0, 3);
+        return apply(fn, args);
+    }
+    public Object call(String fn) throws LightScriptException {
+        Object args[] = {this};
+        return apply(fn, args);
+    }
+    public Object call(String fn, Object arg1) throws LightScriptException {
+        Object args[] = {this, arg1};
+        return apply(fn, args);
+    }
+    public Object call(String fn, Object arg1, Object arg2) throws LightScriptException {
+        Object args[] = {this, arg1, arg2};
+        return apply(fn, args);
+    }
+    public Object call(String fn, Object arg1, Object arg2, Object arg3) throws LightScriptException {
+        Object args[] = {this, arg1, arg2, arg3};
+        return apply(fn, args);
+    }
+    public Object callMethod(Object thisPtr, String fn) throws LightScriptException {
+        Object args[] = {thisPtr};
+        return apply(fn, args);
+    }
+    public Object callMethod(Object thisPtr, String fn, Object arg1) throws LightScriptException {
+        Object args[] = {thisPtr, arg1};
+        return apply(fn, args);
+    }
+    public Object callMethod(Object thisPtr, String fn, Object arg1, Object arg2) throws LightScriptException {
+        Object args[] = {thisPtr, arg1, arg2};
+        return apply(fn, args);
+    }
+    public Object callMethod(Object thisPtr, String fn, Object arg1, Object arg2, Object arg3) throws LightScriptException {
+        Object args[] = {thisPtr, arg1, arg2, arg3};
+        return apply(fn, args);
     }
     // </editor-fold>
 }

@@ -105,6 +105,19 @@ class StdLib implements LightScriptFunction {
                 }
                 return s;
             }
+            case 11: { // lightscript global getter
+                LightScript ls = (LightScript)((Object [])closure)[0];
+                Object o = ls.get(args[argpos + 1]);
+                if(o == null) {
+                    return ((LightScriptFunction) ((Object[])closure)[1]).apply(args, argpos, argcount);
+                }
+                return o;
+            }
+            case 12: { // lightscript global setter
+                LightScript ls = (LightScript)closure;
+                ls.set(args[argpos+1], args[argpos +2]);
+                return ls;
+            }
         }
         return LightScript.UNDEFINED;
     }
@@ -124,6 +137,10 @@ class StdLib implements LightScriptFunction {
         ls.setTypeMethod(arrayClass, "pop", new StdLib(5));
 
         ls.setTypeMethod(null, "+", new StdLib(3));
+
+        Object ls_getter_args[] = {ls, ls.getTypeMethod(ls.getClass(), "__getter__")};
+        ls.setTypeMethod(ls.getClass(), "__getter__", new StdLib(11, ls_getter_args));
+        ls.setTypeMethod(ls.getClass(), "__setter__", new StdLib(12, ls));
     }
 }
 
