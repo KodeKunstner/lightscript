@@ -439,10 +439,6 @@ class LightScriptCode implements LightScriptFunction {
                         ((Stack) stack[--sp]).push(o);
                         break;
                     }
-                    case LightScriptOpCodes.POP: {
-                        stack[sp] = ((Stack) stack[sp]).pop();
-                        break;
-                    }
                     case LightScriptOpCodes.LESS: {
                         Object o2 = stack[sp];
                         Object o1 = stack[--sp];

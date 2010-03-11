@@ -62,7 +62,6 @@ class LightScriptOpCodes {
     public static final int NEW_DICT = 60;
     public static final int NEW_LIST = 61;
     public static final int NEXT = 62;
-    public static final int POP = 63;
     public static final int PUSH = 64;
     public static final int PUT = 65;
     public static final int SAVE_PC = 66;
@@ -95,7 +94,7 @@ class LightScriptOpCodes {
         "BUILD_FN", "CALL_FN", "DROP", "DUP", "NOT_USED_ANYMORE",
         "GET_BOXED", "GET_BOXED_CLOSURE", "GET_CLOSURE", "GET_LOCAL",
         "INC_SP", "JUMP", "JUMP_IF_FALSE", "JUMP_IF_TRUE", "NEW_DICT",
-        "NEW_LIST", "NEXT", "POP", "PUSH", "PUT", "SAVE_PC",
+        "NEW_LIST", "NEXT", "NOT_USED_ANYMORE", "PUSH", "PUT", "SAVE_PC",
         "SET_BOXED", "SET_CLOSURE", "SET_LOCAL", "SET_THIS", "SWAP",
         "DIV", "NEW_ITER", "JUMP_IF_UNDEFINED", "DELETE", "NEW", "GLOBAL",
         "SHIFT_RIGHT", "SHIFT_LEFT", "BITWISE_OR", "BITWISE_XOR", "BITWISE_AND",
