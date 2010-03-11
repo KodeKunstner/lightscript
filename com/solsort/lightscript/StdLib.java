@@ -73,8 +73,8 @@ class StdLib implements LightScriptFunction {
             case 6: { // new Array
                 return new Stack();
             }
-            case 7: { // new Object
-                return new Hashtable();
+            case 7: { // new String
+                return "";
             }
             case 8: { // hashtable getter
                 Hashtable h = (Hashtable) args[argpos];
@@ -141,7 +141,7 @@ class StdLib implements LightScriptFunction {
             }
             case 17: { // clone
                 Hashtable h = new Hashtable();
-                h.put("__prototype__", args[argpos+1]);
+                h.put("__prototype__", args[argpos+argcount]);
                 return h;
             }
             case 18: { // typeof
@@ -212,8 +212,32 @@ class StdLib implements LightScriptFunction {
             case 24: { // identity, Integer.toInt
                 return args[argpos];
             }
+            case 25: { // array.concat
+                Stack result = new Stack();
+                for(int i = 1; i <= argcount; ++i) {
+                   Object o = args[argpos + i];
+                    if (o instanceof Stack) {
+                        Stack s = (Stack) o;
+                        for (int j = 0; j < s.size(); ++j) {
+                            result.push(s.elementAt(j));
+                        }
+                    } else {
+                        result.push(o);
+                    }
+                }
+                return result;
+            }
+            case 26: { // StdLib.subscript
+                LightScript ls = (LightScript)closure;
+                Object inner = ((StdLib)args[argpos]).closure;
+                return ls.callMethod(inner, "__getter__", args[argpos+1]);
+            }
+            case 27: { // 
+            }
+            case 28: { // new object
+                return new Hashtable();
+            }
             // TODO:
-            // array.concat
             // array.sort
             // array.slice
             // string.charcodeat
@@ -234,14 +258,16 @@ class StdLib implements LightScriptFunction {
         ls.set("clone", new StdLib(17));
         ls.set("parseint", new StdLib(23, ls));
 
-        ls.set("Object", new StdLib(7));
+        Hashtable object = new Hashtable();
+        ls.set("Object", new StdLib(28, object));
         Class objectClass = (new Hashtable()).getClass();
         ls.setMethod(objectClass, "__getter__", new StdLib(8, ls.getMethod(objectClass, "__getter__")));
         ls.setMethod(objectClass, "__setter__", new StdLib(9, ls.getMethod(objectClass, "__setter__")));
         ls.setMethod(objectClass, "hasOwnProperty", new StdLib(19));
         ls.setMethod(objectClass, "__iter__", new StdLib(21));
 
-        ls.set("Array", new StdLib(6));
+        Hashtable array = new Hashtable();
+        ls.set("Array", new StdLib(6, array));
         Class arrayClass = (new Stack()).getClass();
         ls.setMethod(arrayClass, "__getter__", new StdLib(0, ls.getMethod(arrayClass, "__getter__")));
         ls.setMethod(arrayClass, "__setter__", new StdLib(10, ls.getMethod(arrayClass, "__setter__")));
@@ -249,8 +275,9 @@ class StdLib implements LightScriptFunction {
         ls.setMethod(arrayClass, "push", new StdLib(4));
         ls.setMethod(arrayClass, "pop", new StdLib(5));
         ls.setMethod(arrayClass, "join", new StdLib(20, ls));
+        array.put("concat", new StdLib(25, ls));
 
-        ls.set("String", new StdLib(14, ""));
+        ls.set("String", new StdLib(7, new Hashtable()));
         Class stringClass = "".getClass();
         ls.setMethod(stringClass, "toInt", new StdLib(13));
 
@@ -262,6 +289,9 @@ class StdLib implements LightScriptFunction {
 
         Class numberClass = (new Integer(0)).getClass();
         ls.setMethod(numberClass, "toInt", new StdLib(24));
+
+        Class stdlibClass = (new StdLib(0)).getClass();
+        ls.setMethod(stdlibClass, "__getter__", new StdLib(26, ls));
     }
 }
 

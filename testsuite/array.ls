@@ -12,3 +12,5 @@ test('arr = []; arr[1000] = 17; arr[-1]', undefined);
 test('["a", "b", "c"].join()', "a,b,c");
 test('["a", "b", "c"].join("")', "abc");
 test('["a", "b", "c"].join("ZZ")', "aZZbZZc");
+test('["foo", ["bar", "baz"], "quux"]', "aZZbZZc");
+test('Array.concat("foo", ["bar", "baz"], "quux")', "aZZbZZc");
