@@ -17,13 +17,15 @@ class Compiler {
         return OpCodes.stringify(o);
     }
     private static final boolean DEBUG_ENABLED = true;
-    private static final boolean DUMP_PARSE_TREE = true;
+    private static final boolean DUMP_PARSE_TREE = false;
     /* Constructors for nodes of the Abstract Syntax Tree.
      * Each node is an array containing an ID, followed by
      * its children or literal values */
 
- /** Token used for separators (;,:), which are just discarded */
+ /** Token used for separators (,:), which are just discarded */
     private static final Object[] SEP_TOKEN = {new Integer(OpCodes.SEP)};
+ /** Token used for separator (;), which are just discarded */
+    private static final Object[] SEP_TOKEN_SEMI = {new Integer(OpCodes.SEP)};
 
     /** (id, o) -> (Object []) {new Integer(id), o} */
     private static Object[] v(int id, Object o) {
@@ -366,6 +368,21 @@ class Compiler {
         return left;
     }
 
+    private Object[] readVars(Stack s) {
+        while (token != TOKEN_SEP) {
+            Object[] p = parse(0);
+            while(getType(p) == OpCodes.SEP && p.length == 2) {
+                s.push(SEP_TOKEN);
+                p = (Object[])p[1];
+            } 
+            s.push(p);
+        }
+
+        Object[] result = new Object[s.size()];
+        s.copyInto(result);
+        return result;
+    }
+
     /** Read expressions until an end-token is reached.
      * @param s an accumulator stack where the expressions are appended
      * @return an array of parsed expressions, with s prepended
@@ -373,12 +390,11 @@ class Compiler {
     private Object[] readList(Stack s) {
         while (token != TOKEN_END) {
             Object[] p = parse(0);
-            if(getType(p) == OpCodes.SEP && p.length == 2) {
+            while(getType(p) == OpCodes.SEP && p.length == 2) {
                 s.push(SEP_TOKEN);
-                s.push(p[1]);
-            } else {
-                s.push(p);
-            }
+                p = (Object[])p[1];
+            } 
+            s.push(p);
         }
         nextToken();
 
@@ -410,7 +426,7 @@ class Compiler {
                 return null;// result does not matter,
             // as this is removed during parsing
             case NUD_SEP:
-                return SEP_TOKEN;
+                return SEP_TOKEN_SEMI;
             case NUD_LIST: {
                 Stack s = new Stack();
                 s.push(new Integer(nudId));
@@ -521,24 +537,31 @@ class Compiler {
             }
             case NUD_VAR:
                 // TODO: rewrite with support for several vars in var
-                Object[] expr = parse(0);
-                int type = ((Integer) expr[0]).intValue();
-                if (type == OpCodes.IDENT) {
-                    stackAdd(varsLocals, expr[1]);
-                } else {
-                    Object[] expr2 = (Object[]) expr[1];
-                    if (DEBUG_ENABLED) {
-                        if (type == OpCodes.SET
-                                && ((Integer) expr2[0]).intValue() == OpCodes.IDENT) {
-                            stackAdd(varsLocals, expr2[1]);
-                        } else {
-                            throw new Error("Error in var");
-                        }
+                Object[] expr;
+                Stack s = new Stack();
+                s.push(new Integer(OpCodes.BLOCK));
+                Object[] exprs = stripSep(readVars(s));
+                for(int i=1; i <exprs.length; ++i) {
+                    expr = (Object[])exprs[i];
+                    int type = getType(expr);
+                    if (type == OpCodes.IDENT) {
+                        stackAdd(varsLocals, expr[1]);
+                        exprs[i] = SEP_TOKEN;
                     } else {
-                        stackAdd(varsLocals, expr2[1]);
+                        Object[] expr2 = (Object[]) expr[1];
+                        if (DEBUG_ENABLED) {
+                            if (type == OpCodes.SET
+                                    && ((Integer) expr2[0]).intValue() == OpCodes.IDENT) {
+                                stackAdd(varsLocals, expr2[1]);
+                            } else {
+                                throw new Error("Error in var");
+                            }
+                        } else {
+                            stackAdd(varsLocals, expr2[1]);
+                        }
                     }
                 }
-                return v(nudId, expr);
+                return stripSep(exprs);
             default:
                 if (DEBUG_ENABLED) {
                     throw new Error("Unknown token: " + token + ", val: " + val);
@@ -1271,6 +1294,7 @@ class Compiler {
                 break;
             }
             case OpCodes.VAR: {
+                // TODO: delete this case -- unused
                 int id2 = childType(expr, 1);
                 if (id2 == OpCodes.IDENT) {
                     hasResult = false;
@@ -1461,10 +1485,10 @@ class Compiler {
                     //for(..;..;..)
                     int pos = 1;
                     init = args[pos];
-                    pos += (init == SEP_TOKEN) ? 1 : 2;
+                    pos += (init == SEP_TOKEN_SEMI) ? 1 : 2;
                     cond = args[pos];
-                    pos += (cond == SEP_TOKEN) ? 1 : 2;
-                    step = (pos < args.length) ? args[pos] : SEP_TOKEN;
+                    pos += (cond == SEP_TOKEN_SEMI) ? 1 : 2;
+                    step = (pos < args.length) ? args[pos] : SEP_TOKEN_SEMI;
                     curlyToBlock(expr[2]);
                     compile(v(OpCodes.BLOCK, init, v(OpCodes.WHILE, cond,
                             v(OpCodes.BLOCK, expr[2], step))), yieldResult);

@@ -13,3 +13,5 @@ test('["a", "b", "c"].join()', "a,b,c");
 test('["a", "b", "c"].join("")', "abc");
 test('["a", "b", "c"].join("ZZ")', "aZZbZZc");
 test('Array.concat("foo", ["bar", "baz"], "quux").toString()', "[foo, bar, baz, quux]");
+test('perm = []; for (var i = 0; i < 5; ++i) perm[i] = i; perm.join("")', "01234");
+
