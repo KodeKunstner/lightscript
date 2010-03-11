@@ -1,6 +1,6 @@
 package com.solsort.mobile;
 
-class LightScriptOpCodes {
+final class LightScriptOpCodes {
     public static final int NONE = 127;
     public static final int TRUE = 0;
     public static final int FALSE = 1;

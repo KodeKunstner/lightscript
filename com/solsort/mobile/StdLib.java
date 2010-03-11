@@ -54,12 +54,6 @@ public final class StdLib implements LightScriptFunction {
         }
     }
 
-    public static Stack tupleToStack(Object tuple[]) {
-        Stack result = new Stack();
-        tupleCopyInto(tuple, result);
-        return result;
-    }
-
     static void convertToString(Object o, StringBuffer sb) {
         if (o instanceof Object[]) {
             String sep = "";
@@ -345,7 +339,8 @@ public final class StdLib implements LightScriptFunction {
                 return args[argpos];
             }
             case 25: { // array.concat
-                Stack result = new Stack();
+                LightScript ls = (LightScript) closure;
+                Stack result = (Stack) ls.call("Array");
                 for (int i = 0; i <= argcount; ++i) {
                     if (!(i == 0 && args[argpos] instanceof StdLib)) {
                         Object o = args[argpos + i];
@@ -387,7 +382,7 @@ public final class StdLib implements LightScriptFunction {
                 }
                 if (o instanceof Stack) {
                     Stack s = (Stack) o;
-                    Stack result = new Stack();
+                    Stack result = (Stack) ls.call("Array");
                     while (start < end) {
                         result.push(s.elementAt(start));
                         ++start;
@@ -487,13 +482,22 @@ public final class StdLib implements LightScriptFunction {
                 return stackToTuple((Stack) args[argpos]);
             }
             case 38: { // tuple.toArray
-                return tupleToStack((Object[]) args[argpos]);
+                LightScript ls = (LightScript) closure;
+                Stack result = (Stack)ls.call("Array");
+                tupleCopyInto((Object[]) args[argpos], result);
+                return result;
             }
         }
         return LightScript.UNDEFINED;
     }
 
     public static void register(LightScript ls) {
+
+        ls.set("global", ls);
+        Class globalClass = ls.getClass();
+        Object ls_getter_args[] = {ls, ls.getMethod(globalClass, "__getter__")};
+        ls.setMethod(globalClass, "__getter__", new StdLib(11, ls_getter_args));
+        ls.setMethod(globalClass, "__setter__", new StdLib(12, ls));
 
         ls.setMethod(null, "+", new StdLib(3));
         ls.setMethod(null, "toString", new StdLib(16));
@@ -540,12 +544,6 @@ public final class StdLib implements LightScriptFunction {
         Class tupleClass = emptyTuple.getClass();
         ls.setMethod(tupleClass, "sort", new StdLib(36, ls));
         ls.setMethod(tupleClass, "toArray", new StdLib(38, ls));
-
-        ls.set("global", ls);
-        Class globalClass = ls.getClass();
-        Object ls_getter_args[] = {ls, ls.getMethod(globalClass, "__getter__")};
-        ls.setMethod(globalClass, "__getter__", new StdLib(11, ls_getter_args));
-        ls.setMethod(globalClass, "__setter__", new StdLib(12, ls));
 
         Class numberClass = integerOne.getClass();
         ls.setMethod(numberClass, "toInt", new StdLib(24));

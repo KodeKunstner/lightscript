@@ -1,3 +1,4 @@
+test('Array()', []);
 test('(["a", "b", "c"])[1]', "b");
 test('["a", "b", "c"][1]', "b");
 test('["a", "b", "c"].length', 3);

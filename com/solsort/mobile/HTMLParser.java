@@ -15,7 +15,7 @@ import java.util.Stack;
  * ["html" [] ["body" ["bgcolor" "#123123" "text" "#ffffff"] "Hello world"]]
  * where [...] has type Object[], and "..." has type string.
  */
-public class HTMLParser implements LightScriptFunction {
+public class HTMLParser {
 
     public static boolean doTrim = true;
     /**
@@ -255,15 +255,5 @@ public class HTMLParser implements LightScriptFunction {
             closeTag();
         }
         return (Object[]) currentTag.elementAt(0);
-    }
-
-    public Object apply(Object[] args, int argpos, int argcount) throws LightScriptException {
-        return parse((InputStream)args[argpos+argcount]);
-    }
-    private HTMLParser() {
-    }
-    private final static HTMLParser parserFunction = new HTMLParser();
-    public static void register(LightScript ls) {
-        ls.setMethod(null, "parseHtml", parserFunction);
     }
 }

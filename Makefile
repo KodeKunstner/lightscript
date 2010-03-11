@@ -22,9 +22,9 @@ dist: clean all
 doc: doc/javadoc doc/README.html doc/TODO.html
 doc/javadoc: $(DEPS)
 	mkdir -p doc/javadoc
-	javadoc -d doc/javadoc/public com.solsort.mobile com.solsort.mobile
-	javadoc -package -d doc/javadoc/package com.solsort.mobile com.solsort.mobile
-	javadoc -private -d doc/javadoc/private com.solsort.mobile com.solsort.mobile
+	javadoc -d doc/javadoc/public com.solsort.mobile
+	javadoc -package -d doc/javadoc/package com.solsort.mobile
+	javadoc -private -d doc/javadoc/private com.solsort.mobile
 
 doc/README.html: README.md
 	pandoc -s README.md -o doc/README.html

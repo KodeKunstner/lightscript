@@ -3,13 +3,11 @@ package com.solsort.mobile;
 import java.util.Hashtable;
 import java.util.Stack;
 
-class LightScriptCode implements LightScriptFunction {
-
-    private static final boolean DEBUG_ENABLED = true;
+final class LightScriptCode implements LightScriptFunction {
 
     public Object apply(Object[] args, int argpos, int argcount)
             throws LightScriptException {
-        if (!DEBUG_ENABLED || argcount == argc) {
+        if (!LightScript.DEBUG_ENABLED || argcount == argc) {
             Object stack[];
             if (argpos != 0) {
                 stack = new Object[argcount + 1];
@@ -135,7 +133,7 @@ class LightScriptCode implements LightScriptFunction {
      * evaluate some bytecode
      */
     private static Object execute(LightScriptCode cl, Object[] stack, int argcount) throws LightScriptException {
-        //if(!DEBUG_ENABLED) {
+        //if(!LightScript.DEBUG_ENABLED) {
         try {
             //}
             int sp = argcount;
@@ -174,7 +172,7 @@ class LightScriptCode implements LightScriptFunction {
                         if (sp == 0) {
                             return result;
                         }
-                        if (DEBUG_ENABLED) {
+                        if (LightScript.DEBUG_ENABLED) {
                             if (sp < 0) {
                                 throw new Error("Wrong stack discipline"
                                         + sp);
@@ -251,7 +249,7 @@ class LightScriptCode implements LightScriptFunction {
                                 break;
                             }
                         } else {
-                            if (DEBUG_ENABLED) {
+                            if (LightScript.DEBUG_ENABLED) {
                                 throw new Error("Unknown function:" + o);
                             }
                         }
@@ -510,11 +508,11 @@ class LightScriptCode implements LightScriptFunction {
                         break;
                     }
                     case LightScriptOpCodes.NEW_LIST: {
-                        stack[++sp] = new Stack();
+                        stack[++sp] = ((LightScriptFunction)ls.newArrayFunctionBoxed[0]).apply(stack, sp, -1);
                         break;
                     }
                     case LightScriptOpCodes.NEW_DICT: {
-                        stack[++sp] = new Hashtable();
+                        stack[++sp] = ((LightScriptFunction)ls.newObjectFunctionBoxed[0]).apply(stack, sp, -1);
                         break;
                     }
                     case LightScriptOpCodes.SET_THIS: {
@@ -620,7 +618,7 @@ class LightScriptCode implements LightScriptFunction {
                         break;
                     }
                     default: {
-                        if (DEBUG_ENABLED) {
+                        if (LightScript.DEBUG_ENABLED) {
                             throw new Error("Unknown opcode: " + code[pc]);
                         }
                     }
@@ -628,7 +626,7 @@ class LightScriptCode implements LightScriptFunction {
             }
 // if we debug, we want the real exception, with line number..
         } catch (Error e) {
-            if (!DEBUG_ENABLED) {
+            if (!LightScript.DEBUG_ENABLED) {
                 throw new LightScriptException(e);
             } else {
                 throw e;

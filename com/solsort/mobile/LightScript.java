@@ -27,6 +27,7 @@ import java.util.Stack;
  */
 // </editor-fold>
 public final class LightScript {
+    static final boolean DEBUG_ENABLED = true;
     // <editor-fold desc="TRUE NULL FALSE UNDEFINED">
 
     /** The true truth value of results
@@ -150,6 +151,9 @@ public final class LightScript {
         return box;
     }
 
+    Object[] newObjectFunctionBoxed = getBox("Object");
+    Object[] newArrayFunctionBoxed = getBox("Array");
+
     /** Set a global value */
     public void set(Object key, Object value) {
         getBox(key)[0] = value;
@@ -264,22 +268,22 @@ public final class LightScript {
 
     public Object call(String fn) throws LightScriptException {
         Object args[] = {this};
-        return apply(fn, args);
+        return apply((LightScriptFunction)get(fn), args);
     }
 
     public Object call(String fn, Object arg1) throws LightScriptException {
         Object args[] = {this, arg1};
-        return apply(fn, args);
+        return apply((LightScriptFunction)get(fn), args);
     }
 
     public Object call(String fn, Object arg1, Object arg2) throws LightScriptException {
         Object args[] = {this, arg1, arg2};
-        return apply(fn, args);
+        return apply((LightScriptFunction)get(fn), args);
     }
 
     public Object call(String fn, Object arg1, Object arg2, Object arg3) throws LightScriptException {
         Object args[] = {this, arg1, arg2, arg3};
-        return apply(fn, args);
+        return apply((LightScriptFunction)get(fn), args);
     }
 
     public Object callMethod(Object thisPtr, String fn) throws LightScriptException {

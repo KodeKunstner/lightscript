@@ -12,11 +12,10 @@ import java.util.Stack;
  *
  * @author rje
  */
-class LightScriptCompiler {
+final class LightScriptCompiler {
     private String stringify(Object o) {
         return LightScriptOpCodes.stringify(o);
     }
-    private static final boolean DEBUG_ENABLED = true;
     private static final boolean DUMP_PARSE_TREE = false;
     /* Constructors for nodes of the Abstract Syntax Tree.
      * Each node is an array containing an ID, followed by
@@ -462,7 +461,7 @@ class LightScriptCompiler {
                 if (getType(args) == LightScriptOpCodes.PAREN) {
                     for (int i = 1; i < args.length; i++) {
                         Object[] os = (Object[]) args[i];
-                        if (DEBUG_ENABLED) {
+                        if (LightScript.DEBUG_ENABLED) {
                             if (getType(os) != LightScriptOpCodes.IDENT) {
                                 throw new Error("parameter not variable name"
                                         + stringify(args));
@@ -471,7 +470,7 @@ class LightScriptCompiler {
                         varsLocals.push(os[1]);
                     }
                 } else {
-                    if (DEBUG_ENABLED) {
+                    if (LightScript.DEBUG_ENABLED) {
                         if (getType(args) != LightScriptOpCodes.CALL_FUNCTION) {
                             throw new Error("parameter not variable name"
                                     + stringify(args));
@@ -539,7 +538,7 @@ class LightScriptCompiler {
                         exprs[i] = SEP_TOKEN;
                     } else {
                         Object[] expr2 = (Object[]) expr[1];
-                        if (DEBUG_ENABLED) {
+                        if (LightScript.DEBUG_ENABLED) {
                             if (type == LightScriptOpCodes.SET
                                     && getType(expr2) == LightScriptOpCodes.IDENT) {
                                 StdLib.stackPushUnique(varsLocals, expr2[1]);
@@ -553,7 +552,7 @@ class LightScriptCompiler {
                 }
                 return stripSep(exprs);
             default:
-                if (DEBUG_ENABLED) {
+                if (LightScript.DEBUG_ENABLED) {
                     throw new Error("Unknown token: " + token + ", val: " + val);
                 } else {
                     return null;
@@ -588,7 +587,7 @@ class LightScriptCompiler {
                 varsUsed = null;
                 Object[] right = parse(bp);
                 varsUsed = t;
-                if (DEBUG_ENABLED) {
+                if (LightScript.DEBUG_ENABLED) {
                     if (getType(right) != LightScriptOpCodes.IDENT) {
                         throw new Error("right side of dot not a string: "
                                 + stringify(right));
@@ -601,7 +600,7 @@ class LightScriptCompiler {
             case LED_INFIX_IF: {
                 Object branch1 = parse(0);
                 Object[] branch2 = parse(0);
-                if (DEBUG_ENABLED) {
+                if (LightScript.DEBUG_ENABLED) {
                     if (getType(branch2) != LightScriptOpCodes.SEP || branch2.length != 2 || !(branch2[1] instanceof Object[])) {
                         throw new Error("infix if error");
                     }
@@ -610,7 +609,7 @@ class LightScriptCompiler {
                 return v(LightScriptOpCodes.IF, left, v(LightScriptOpCodes.ELSE, branch1, branch2));
             }
             default:
-                if (DEBUG_ENABLED) {
+                if (LightScript.DEBUG_ENABLED) {
                     throw new Error("Unknown led token: " + token);
                 } else {
                     return null;
@@ -1207,7 +1206,7 @@ class LightScriptCompiler {
                 if (subtype == LightScriptOpCodes.SUBSCRIPT) {
                     compile(expr2[1], true);
                     compile(expr2[2], true);
-                } else if (DEBUG_ENABLED && subtype != LightScriptOpCodes.IDENT) {
+                } else if (LightScript.DEBUG_ENABLED && subtype != LightScriptOpCodes.IDENT) {
                     throw new Error("Deleting non-var");
                 } else {
                     emit(LightScriptOpCodes.GLOBAL);
@@ -1265,7 +1264,7 @@ class LightScriptCompiler {
                     pushShort(pos);
                 } else {
                     pos = varsLocals.indexOf(name);
-                    if (DEBUG_ENABLED) {
+                    if (LightScript.DEBUG_ENABLED) {
                         if (pos == -1) {
                             throw new Error("Unfound var: " + stringify(expr));
                         }
@@ -1290,7 +1289,7 @@ class LightScriptCompiler {
                     compile(expr[1], yieldResult);
                     hasResult = yieldResult;
                 } else {
-                    if (DEBUG_ENABLED) {
+                    if (LightScript.DEBUG_ENABLED) {
                         throw new Error("Error in var statement: "
                                 + stringify(expr));
                     } else {
@@ -1315,7 +1314,7 @@ class LightScriptCompiler {
                     emit(LightScriptOpCodes.PUT);
                     addDepth(-2);
                 } else {
-                    if (DEBUG_ENABLED) {
+                    if (LightScript.DEBUG_ENABLED) {
                         throw new Error("Uncompilable assignment operator: "
                                 + stringify(expr));
                     }
@@ -1323,7 +1322,7 @@ class LightScriptCompiler {
                 break;
             }
             case LightScriptOpCodes.PAREN: {
-                if (DEBUG_ENABLED) {
+                if (LightScript.DEBUG_ENABLED) {
                     if (expr.length != 2) {
                         throw new Error("Unexpected content of parenthesis: "
                                 + stringify(expr));
@@ -1370,7 +1369,7 @@ class LightScriptCompiler {
 
                 // call the function
                 emit(LightScriptOpCodes.CALL_FN);
-                if (DEBUG_ENABLED) {
+                if (LightScript.DEBUG_ENABLED) {
                     if (expr.length > 129) {
                         throw new Error("too many parameters");
                     }
@@ -1503,7 +1502,7 @@ class LightScriptCompiler {
                         // var name
                         name = ((Object[]) name)[1];
                     }
-                    if (DEBUG_ENABLED) {
+                    if (LightScript.DEBUG_ENABLED) {
                         if (!(name instanceof String)) {
                             throw new Error("for-in has no var");
                         }
@@ -1751,7 +1750,7 @@ class LightScriptCompiler {
                 return;
             }
             default:
-                if (DEBUG_ENABLED) {
+                if (LightScript.DEBUG_ENABLED) {
                     throw new Error("Uncompilable expression: " + stringify(expr));
                 } else {
                     return;
