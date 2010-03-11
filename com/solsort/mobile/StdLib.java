@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.solsort.lightscript;
+package com.solsort.mobile;
 
 //</editor-fold>
 import java.util.Stack;

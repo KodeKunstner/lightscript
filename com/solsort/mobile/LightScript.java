@@ -1,5 +1,5 @@
 //<editor-fold desc="license and imports">
-package com.solsort.lightscript;
+package com.solsort.mobile;
 
 /**
 This software is released under the 

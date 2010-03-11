@@ -1,4 +1,4 @@
-package com.solsort.lightscript;
+package com.solsort.mobile;
 
 public interface LightScriptFunction {
 

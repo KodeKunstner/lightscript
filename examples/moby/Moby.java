@@ -3,7 +3,7 @@ import java.io.InputStream;
 import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Form;
 import javax.microedition.midlet.MIDlet;
-import com.solsort.lightscript.*;
+import com.solsort.mobile.*;
 
 public class Moby extends MIDlet implements LightScriptFunction {
     static Form form;

@@ -7,8 +7,8 @@ import java.util.Stack;
 import java.io.InputStream;
 import javax.microedition.io.Connector;
 import javax.microedition.io.HttpConnection;
-import com.solsort.lightscript.LightScriptFunction;
-import com.solsort.lightscript.LightScriptException;
+import com.solsort.mobile.LightScriptFunction;
+import com.solsort.mobile.LightScriptException;
 
 /**
  * Utility functions

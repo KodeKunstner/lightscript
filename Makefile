@@ -22,9 +22,9 @@ dist: clean all
 doc: doc/javadoc doc/README.html doc/TODO.html
 doc/javadoc: $(DEPS)
 	mkdir -p doc/javadoc
-	javadoc -d doc/javadoc/public com.solsort.mobile com.solsort.lightscript
-	javadoc -package -d doc/javadoc/package com.solsort.mobile com.solsort.lightscript
-	javadoc -private -d doc/javadoc/private com.solsort.mobile com.solsort.lightscript
+	javadoc -d doc/javadoc/public com.solsort.mobile com.solsort.mobile
+	javadoc -package -d doc/javadoc/package com.solsort.mobile com.solsort.mobile
+	javadoc -private -d doc/javadoc/private com.solsort.mobile com.solsort.mobile
 
 doc/README.html: README.md
 	pandoc -s README.md -o doc/README.html
@@ -50,7 +50,7 @@ diff: clean
 	git diff 
 
 commit: clean
-	git add `find * -name "*.java"` testsuite/*.ls Makefile README.md 
+	git add `find * -name "*.java"` testsuite/*.ls Makefile README.md TODO
 	git commit -m autocommit
 
 .SUFFIXES: .java .class
