@@ -66,17 +66,6 @@ class Compiler {
         return ((Integer)expr[0]).intValue();
     }
 
-    /** Push a value into a stack if it is not already there */
-    private static void stackAdd(Stack s, Object val) {
-        if (s == null) {
-            return;
-        }
-        int pos = s.indexOf(val);
-        if (pos == -1) {
-            pos = s.size();
-            s.push(val);
-        }
-    }
     //</editor-fold>
     /* The function id for the null denominator functions */
     private static final int NUD_NONE = 13;
@@ -414,7 +403,7 @@ class Compiler {
         // extract the token function id from tok
         switch ((tok >> (SIZE_ID * 2 + SIZE_FN)) & ((1 << SIZE_FN) - 1)) {
             case NUD_IDENT:
-                stackAdd(varsUsed, val);
+                Util.stackAdd(varsUsed, val);
                 return v(OpCodes.IDENT, val);
             case NUD_LITERAL:
                 return v(OpCodes.LITERAL, val);
@@ -444,7 +433,7 @@ class Compiler {
                 return v(nudId, parse(0), parse(0));
             case NUD_CATCH: {
                 Object[] o = parse(0);
-                stackAdd(varsLocals, ((Object[]) o[1])[1]);
+                Util.stackAdd(varsLocals, ((Object[]) o[1])[1]);
                 return v(nudId, o, parse(0));
             }
             case NUD_FUNCTION: {
@@ -506,7 +495,7 @@ class Compiler {
                 for (int i = 0; i < varsUsed.size(); i++) {
                     Object o = varsUsed.elementAt(i);
                     if (!varsLocals.contains(o)) {
-                        stackAdd(varsBoxed, o);
+                        Util.stackAdd(varsBoxed, o);
                     }
                 }
 
@@ -516,14 +505,14 @@ class Compiler {
                 for (int i = 0; i < varsBoxed.size(); i++) {
                     Object o = varsBoxed.elementAt(i);
                     if (!varsLocals.contains(o)) {
-                        stackAdd(prevBoxed, o);
-                        stackAdd(varsClosure, o);
+                        Util.stackAdd(prevBoxed, o);
+                        Util.stackAdd(varsClosure, o);
                     }
                 }
                 Object[] result = v(nudId, compile(body));
                 if (isNamed) {
                     result = v(OpCodes.SET, v(OpCodes.IDENT, fnName), result);
-                    stackAdd(prevUsed, fnName);
+                    Util.stackAdd(prevUsed, fnName);
                 }
                 varsClosure = null;
 
@@ -546,19 +535,19 @@ class Compiler {
                     expr = (Object[])exprs[i];
                     int type = getType(expr);
                     if (type == OpCodes.IDENT) {
-                        stackAdd(varsLocals, expr[1]);
+                        Util.stackAdd(varsLocals, expr[1]);
                         exprs[i] = SEP_TOKEN;
                     } else {
                         Object[] expr2 = (Object[]) expr[1];
                         if (DEBUG_ENABLED) {
                             if (type == OpCodes.SET
                                     && getType(expr2) == OpCodes.IDENT) {
-                                stackAdd(varsLocals, expr2[1]);
+                                Util.stackAdd(varsLocals, expr2[1]);
                             } else {
                                 throw new Error("Error in var");
                             }
                         } else {
-                            stackAdd(varsLocals, expr2[1]);
+                            Util.stackAdd(varsLocals, expr2[1]);
                         }
                     }
                 }

@@ -13,7 +13,19 @@ import com.solsort.mobile.LightScriptException;
  */
 public final class Util {
 
-    public static final Object emptyObjectArray[] = {};
+    static final Object emptyObjectArray[] = {};
+
+    /** Push a value into a stack if it is not already there */
+    static void stackAdd(Stack s, Object val) {
+        if (s == null) {
+            return;
+        }
+        int pos = s.indexOf(val);
+        if (pos == -1) {
+            pos = s.size();
+            s.push(val);
+        }
+    }
 
     public static int arraysearch(Object[] os, Object o) {
         for (int i = 0; i < os.length; ++i) {
