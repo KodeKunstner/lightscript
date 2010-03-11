@@ -1,6 +1,5 @@
 package com.solsort.mobile;
 
-import java.util.Hashtable;
 import java.util.Stack;
 
 final class LightScriptCode implements LightScriptFunction {

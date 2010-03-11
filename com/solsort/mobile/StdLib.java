@@ -7,8 +7,11 @@ import java.util.Enumeration;
 public final class StdLib implements LightScriptFunction {
     //<editor-fold desc="constants">
 
-    public static final Object emptyTuple[] = {};
+    /** new Object[0]. Defined as property for caching. */
+    public static final Object emptyTuple[] = new Object[0];
+    /** new Integer(1). Defined as property for caching. */
     public static final Integer integerOne = new Integer(1);
+    /** new Integer(-1). Defined as property for caching. */
     public static final Integer integerMinusOne = new Integer(-1);
     //</editor-fold>
 
@@ -97,10 +100,6 @@ public final class StdLib implements LightScriptFunction {
         } else {
             sb.append(o);
         }
-    }
-
-    public static void qsort(Object tuple[], LightScriptFunction cmp) throws LightScriptException {
-        qsort(tuple, cmp, 0, tuple.length);
     }
 
     public static void qsort(Object tuple[], LightScriptFunction cmp, int first, int last) throws LightScriptException {
@@ -321,7 +320,7 @@ public final class StdLib implements LightScriptFunction {
                         return LightScript.UNDEFINED;
                     }
                     o = e.nextElement();
-                } while ("__proto__".equals(o));
+                } while ("__prototype__".equals(o));
                 return o;
             }
             case 23: { // parseint
@@ -404,7 +403,7 @@ public final class StdLib implements LightScriptFunction {
                     cmp = new StdLib(30);
                 }
                 Object[] t = stackToTuple(s);
-                qsort(t, cmp);
+                qsort(t, cmp, 0, t.length);
                 tupleCopyInto(t, s);
                 return s;
             }

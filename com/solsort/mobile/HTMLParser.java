@@ -17,13 +17,13 @@ import java.util.Stack;
  */
 public class HTMLParser {
 
-    public static boolean doTrim = true;
+    static boolean doTrim = true;
     /**
      * Parse a HTML document from an input stream
      * @param is the inputstream to parse
      * @return the html document as an SXML-like structure
      */
-    public static Object parse(InputStream is) {
+    public static Object[] parse(InputStream is) {
         return (new HTMLParser(is)).doParse();
     }
 //

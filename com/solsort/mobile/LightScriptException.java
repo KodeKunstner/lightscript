@@ -8,12 +8,10 @@ public final class LightScriptException extends Exception {
         super(value.toString());
         this.value = value;
     }
-    /*
     public void printStackTrace() {
-    if(value instanceof Throwable) {
-    ((Throwable)value).printStackTrace();
+        if(value instanceof Throwable) {
+            ((Throwable)value).printStackTrace();
+        }
+        super.printStackTrace();
     }
-    super.printStackTrace();
-    }
-     */
 }
