@@ -11,7 +11,7 @@ import com.solsort.mobile.LightScriptFunction;
 import com.solsort.mobile.LightScriptException;
 
 /**
- * Utility functions
+ * StdLibity functions
  */
 public final class Cldc10{
     private static Hashtable cookies = new Hashtable();

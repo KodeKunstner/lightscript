@@ -14,7 +14,126 @@ import java.util.Enumeration;
  * @author rje
  */
 class StdLib implements LightScriptFunction {
+    //<editor-fold desc="constants">
+    static final Object emptyObjectArray[] = {};
+    private static final Integer one = new Integer(1);
+    private static final Integer minusOne = new Integer(-1);
+    //</editor-fold>
 
+    //<editor-fold desc="utility-functions">
+    /** Push a value into a stack if it is not already there */
+    static void stackAppendUnique(Stack s, Object val) {
+        if (s == null) {
+            return;
+        }
+        int pos = s.indexOf(val);
+        if (pos == -1) {
+            pos = s.size();
+            s.push(val);
+        }
+    }
+
+    public static int arraysearch(Object[] os, Object o) {
+        for (int i = 0; i < os.length; ++i) {
+            if (os[i].equals(o)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public static Object[] stack2array(Stack s) {
+        if (s.empty()) {
+            return emptyObjectArray;
+        }
+        Object[] result = new Object[s.size()];
+        s.copyInto(result);
+        return result;
+    }
+
+    public static void convertToString(Object o, StringBuffer sb) {
+        if (o instanceof Object[]) {
+            String sep = "";
+            Object[] os = (Object[]) o;
+
+            sb.append("[");
+            for (int i = 0; i < os.length; ++i) {
+                sb.append(sep);
+                convertToString(os[i], sb);
+                sep = ", ";
+            }
+            sb.append("]");
+        } else if (o instanceof Stack) {
+            String sep = "";
+            Stack s = (Stack) o;
+
+            sb.append("[");
+            for (int i = 0; i < s.size(); ++i) {
+                sb.append(sep);
+                convertToString(s.elementAt(i), sb);
+                sep = ", ";
+            }
+            sb.append("]");
+        } else if (o instanceof Hashtable) {
+            String sep = "";
+            Hashtable h = (Hashtable) o;
+            sb.append("{");
+            for (Enumeration e = h.keys(); e.hasMoreElements();) {
+                Object key = e.nextElement();
+                sb.append(sep);
+                convertToString(key, sb);
+                sb.append(": ");
+                convertToString(h.get(key), sb);
+                sep = ", ";
+            }
+            sb.append("}");
+        } else if (o instanceof String) {
+            sb.append("\"");
+            sb.append(o);
+            sb.append("\"");
+        } else {
+            sb.append(o);
+        }
+    }
+
+
+    private static void qsort(Stack arr, int first, int last, LightScriptFunction cmp) throws LightScriptException {
+        Object args[] = {arr, null, null};
+        while (first < last) {
+            int l = first;
+            int r = last;
+            Object pivot = arr.elementAt((l + r) / 2);
+            arr.setElementAt(arr.elementAt(r), (l + r) / 2);
+            arr.setElementAt(pivot, r);
+
+            while (l < r) {
+                --l;
+                do {
+                    ++l;
+                    args[1] = arr.elementAt(l);
+                    args[2] = pivot;
+                } while (((Integer) cmp.apply(args, 0, 2)).intValue() <= 0 && l < r);
+                if (l < r) {
+                    arr.setElementAt(arr.elementAt(l), r);
+                    r--;
+                }
+                ++r;
+                do {
+                    r--;
+                    args[1] = pivot;
+                    args[2] = arr.elementAt(r);
+                } while (((Integer) cmp.apply(args, 0, 2)).intValue() <= 0 && l < r);
+                if (l < r) {
+                    arr.setElementAt(arr.elementAt(r), l);
+                    l++;
+                }
+            }
+            arr.setElementAt(pivot, r);
+            qsort(arr, l + 1, last, cmp);
+            last = l - 1;
+        }
+    }
+    //</editor-fold>
     //<editor-fold desc="properties and constructors">
     private int fn;
     private Object closure;
@@ -318,8 +437,6 @@ class StdLib implements LightScriptFunction {
         }
         return LightScript.UNDEFINED;
     }
-    private static final Integer one = new Integer(1);
-    private static final Integer minusOne = new Integer(-1);
 
     public static void register(LightScript ls) {
 
@@ -373,43 +490,6 @@ class StdLib implements LightScriptFunction {
 
         Class stdlibClass = (new StdLib(0)).getClass();
         ls.setMethod(stdlibClass, "__getter__", new StdLib(26, ls));
-    }
-
-    private static void qsort(Stack arr, int first, int last, LightScriptFunction cmp) throws LightScriptException {
-        Object args[] = {arr, null, null};
-        while (first < last) {
-            int l = first;
-            int r = last;
-            Object pivot = arr.elementAt((l + r) / 2);
-            arr.setElementAt(arr.elementAt(r), (l + r) / 2);
-            arr.setElementAt(pivot, r);
-
-            while (l < r) {
-                --l;
-                do {
-                    ++l;
-                    args[1] = arr.elementAt(l);
-                    args[2] = pivot;
-                } while (((Integer) cmp.apply(args, 0, 2)).intValue() <= 0 && l < r);
-                if (l < r) {
-                    arr.setElementAt(arr.elementAt(l), r);
-                    r--;
-                }
-                ++r;
-                do {
-                    r--;
-                    args[1] = pivot;
-                    args[2] = arr.elementAt(r);
-                } while (((Integer) cmp.apply(args, 0, 2)).intValue() <= 0 && l < r);
-                if (l < r) {
-                    arr.setElementAt(arr.elementAt(r), l);
-                    l++;
-                }
-            }
-            arr.setElementAt(pivot, r);
-            qsort(arr, l + 1, last, cmp);
-            last = l - 1;
-        }
     }
 }
 

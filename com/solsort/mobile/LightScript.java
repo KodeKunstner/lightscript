@@ -169,7 +169,7 @@ public final class LightScript {
     /** Parse and execute LightScript code read from an input stream */
     public Object eval(InputStream is) throws LightScriptException {
         Object result = UNDEFINED, t = UNDEFINED;
-        Compiler c = new Compiler(is, this);
+        LightScriptCompiler c = new LightScriptCompiler(is, this);
         LightScriptFunction stmt = c.compileNextStatement();
         while (stmt != null) {
             result = call(stmt);
