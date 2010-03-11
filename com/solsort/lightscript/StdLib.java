@@ -198,8 +198,21 @@ class StdLib implements LightScriptFunction {
                 } while("__proto__".equals(o));
                 return o;
             }
+            case 23: { // parseint
+                int base;
+                LightScript ls = (LightScript)closure;
+                if(argcount == 2) {
+                    base = ((Integer)ls.callMethod(args[argpos + 2], "toInt")).intValue();
+                } else {
+                    base = 10;
+                }
+                String str = (String)ls.callMethod(args[argpos + 1], "toString");
+                return Integer.valueOf(str, base);
+            }
+            case 24: { // identity, Integer.toInt
+                return args[argpos];
+            }
             // TODO:
-            // parseint
             // array.concat
             // array.sort
             // array.slice
@@ -219,6 +232,7 @@ class StdLib implements LightScriptFunction {
 
         ls.set("print", new StdLib(15));
         ls.set("clone", new StdLib(17));
+        ls.set("parseint", new StdLib(23, ls));
 
         ls.set("Object", new StdLib(7));
         Class objectClass = (new Hashtable()).getClass();
@@ -245,6 +259,9 @@ class StdLib implements LightScriptFunction {
         Object ls_getter_args[] = {ls, ls.getMethod(globalClass, "__getter__")};
         ls.setMethod(globalClass, "__getter__", new StdLib(11, ls_getter_args));
         ls.setMethod(globalClass, "__setter__", new StdLib(12, ls));
+
+        Class numberClass = (new Integer(0)).getClass();
+        ls.setMethod(numberClass, "toInt", new StdLib(24));
     }
 }
 

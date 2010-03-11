@@ -55,7 +55,11 @@ public final class LightScript {
         }
 
         public Object apply(Object[] args, int argpos, int argcount) throws LightScriptException {
-            return methods.get(args[argpos + 1]);
+            Object o = methods.get(args[argpos + 1]);
+            if(o == null) {
+                o = defaultType.methods.get(args[argpos + 1]);
+            }
+            return o;
         }
     }
     private Hashtable types = new Hashtable();
@@ -65,8 +69,7 @@ public final class LightScript {
         Object o = types.get(c);
         if (o != null) {
             o = ((Type) o).getter;
-        }
-        if (o == null) {
+        } else {
             o = defaultType.getter;
         }
         return (LightScriptFunction) o;
@@ -76,8 +79,7 @@ public final class LightScript {
         Object o = types.get(c);
         if (o != null) {
             o = ((Type) o).setter;
-        }
-        if (o == null) {
+        } else {
             o = defaultType.setter;
         }
         return (LightScriptFunction) o;

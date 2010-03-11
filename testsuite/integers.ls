@@ -7,3 +7,5 @@ test("3*4", 12);
 test("17%10", 7);
 test("17 ^ '24'", 9);
 test("(17).toString()", "17");
+test('parseint("17")', 17);
+test('parseint(31, 8)', 25);
