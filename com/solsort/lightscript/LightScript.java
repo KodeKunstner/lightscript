@@ -188,7 +188,7 @@ public final class LightScript {
         return ((Integer)callMethod(obj, "toInt")).intValue();
     }
     public String toString(Object obj) throws LightScriptException {
-        return (String)callMethod(obj, "toInt");
+        return (String)callMethod(obj, "toString");
     }
     public boolean toBool(Object obj) throws LightScriptException {
         if (obj == LightScript.TRUE) {

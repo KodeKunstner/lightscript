@@ -133,7 +133,7 @@ class StdLib implements LightScriptFunction {
                 return closure;
             }
             case 15: { // print
-                System.out.println(((LightScript)closure).callMethod(args[argpos+1],"toString"));
+                System.out.println(((LightScript)closure).toInt(args[argpos+1]));
                 return args[argpos+1];
             }
             case 16: { // toString
@@ -173,13 +173,13 @@ class StdLib implements LightScriptFunction {
                 Stack s = (Stack)args[argpos];
                 String sep2;
                 if(argcount > 0) {
-                    sep2 = (String)((LightScript)closure).callMethod(args[argpos+1], "toString");
+                    sep2 = ((LightScript)closure).toString(args[argpos+1]);
                 } else {
                     sep2 = ",";
                 }
                 for(int i=0; i<s.size(); ++i) {
                     sb.append(sep);
-                    sb.append((String)((LightScript)closure).callMethod(s.elementAt(i), "toString"));
+                    sb.append(((LightScript)closure).toString(s.elementAt(i)));
                     sep = sep2;
                 }
                 return sb.toString();
@@ -202,11 +202,11 @@ class StdLib implements LightScriptFunction {
                 int base;
                 LightScript ls = (LightScript)closure;
                 if(argcount == 2) {
-                    base = ((Integer)ls.callMethod(args[argpos + 2], "toInt")).intValue();
+                    base = ls.toInt(args[argpos + 2]);
                 } else {
                     base = 10;
                 }
-                String str = (String)ls.callMethod(args[argpos + 1], "toString");
+                String str = ls.toString(args[argpos + 1]);
                 return Integer.valueOf(str, base);
             }
             case 24: { // identity, Integer.toInt
@@ -238,13 +238,13 @@ class StdLib implements LightScriptFunction {
                 LightScript ls = (LightScript)closure;
                 Object o = args[argpos];
                 int len = o instanceof Stack ? ((Stack)o).size() : ((String)o).length();
-                int start = ((Integer)ls.callMethod(args[argpos+1], "toInt")).intValue();
+                int start = ls.toInt(args[argpos+1]);
                 if(start < 0) {
                     start = len + start;
                 }
                 int end;
                 if(argcount > 1) {
-                    end = ((Integer)ls.callMethod(args[argpos+2], "toInt")).intValue();
+                    end = ls.toInt(args[argpos+2]);
                 } else {
                     end = len;
                 }
@@ -284,7 +284,7 @@ class StdLib implements LightScriptFunction {
             }
             case 31: { // string.charCodeAt
                 LightScript ls = (LightScript)closure;
-                return new Integer(((String)args[argpos]).charAt(((Integer)ls.callMethod(args[argpos+1], "toInt")).intValue()));
+                return new Integer(((String)args[argpos]).charAt(ls.toInt(args[argpos+1])));
             }
             case 32: { // string __getter__
                 if (args[argpos + 1] instanceof Integer) {
@@ -306,7 +306,7 @@ class StdLib implements LightScriptFunction {
                 StringBuffer sb = new StringBuffer();
                 for(int i = 0; i <= argcount; ++i) {
                     if(!(i == 0 && args[argpos] instanceof StdLib)) {
-                    sb.append((String)ls.callMethod(args[argpos+i], "toString"));
+                    sb.append(ls.toString(args[argpos+i]));
                     }
                 }
                 return sb.toString();
