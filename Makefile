@@ -44,10 +44,10 @@ examples/moby/moby.jar: examples/moby/*.java examples/moby/manifest examples/mob
 ex: examples/moby/moby.jar
 
 st: clean
-	git status
+	git status || echo
 
 diff: clean
-	git diff
+	git diff 
 
 commit: clean
 	git add `find * -name "*.java"` testsuite/*.ls Makefile README.md 
