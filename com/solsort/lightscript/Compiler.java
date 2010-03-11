@@ -17,7 +17,7 @@ class Compiler {
         return OpCodes.stringify(o);
     }
     private static final boolean DEBUG_ENABLED = true;
-    private static final boolean DUMP_PARSE_TREE = false;
+    private static final boolean DUMP_PARSE_TREE = true;
     /* Constructors for nodes of the Abstract Syntax Tree.
      * Each node is an array containing an ID, followed by
      * its children or literal values */
@@ -587,14 +587,13 @@ class Compiler {
             }
             case LED_INFIX_IF: {
                 Object branch1 = parse(0);
+                Object[] branch2 = parse(0);
                 if (DEBUG_ENABLED) {
-                    if (parse(0) != SEP_TOKEN) {
+                    if (getType(branch2) != OpCodes.SEP || branch2.length != 2 || !(branch2[1] instanceof Object[])) {
                         throw new Error("infix if error");
                     }
-                } else {
-                    parse(0);
-                }
-                Object branch2 = parse(0);
+                } 
+                branch2 = (Object[])branch2[1];
                 return v(OpCodes.IF, left, v(OpCodes.ELSE, branch1, branch2));
             }
             default:
