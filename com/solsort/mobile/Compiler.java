@@ -59,9 +59,7 @@ class Compiler {
             }
 
         }
-        os = new Object[s.size()];
-        s.copyInto(os);
-        return os;
+        return Util.stack2array(s);
     }
 
     private static int getType(Object []expr) {
@@ -386,9 +384,7 @@ class Compiler {
             s.push(p);
         }
 
-        Object[] result = new Object[s.size()];
-        s.copyInto(result);
-        return result;
+        return Util.stack2array(s);
     }
 
     /** Read expressions until an end-token is reached.
@@ -406,9 +402,7 @@ class Compiler {
         }
         nextToken();
 
-        Object[] result = new Object[s.size()];
-        s.copyInto(result);
-        return result;
+        return Util.stack2array(s);
     }
 
     /** Call the null denominator function for a given token
@@ -1142,11 +1136,9 @@ class Compiler {
 
         // create a new code object;
         Code result = new Code(varsArgc, new byte[code.length()],
-                new Object[constPool.size()], new Object[varsClosure.size()], maxDepth);
+                Util.stack2array(constPool), Util.stack2array(varsClosure), maxDepth);
 
         // copy values into the code object
-        constPool.copyInto(result.constPool);
-        varsClosure.copyInto(result.closure);
         for (int i = 0; i < result.code.length; i++) {
             result.code[i] = (byte) code.charAt(i);
         }

@@ -10,7 +10,4 @@
 - update javadocs
 - Syntax
   - support postfix ++/--
-  - support ',' in var statements
   - support for decimal numbers
-- use getType within Compiler
-- maybe split parser/compiler

@@ -9,7 +9,7 @@ import java.util.Stack;
  * Parse a HTML document from an inputstream.
  * It will be mapped to an SXML-like structure,
  * so some ugly site like:
- * <!DOCTYPE html-foo><html><body bgcolor=#123123 jhjhj text="#ffffff" xf>Hello world</body></html>
+ * &lt;!DOCTYPE html-foo&gt;&lt;html&gt;&lt;body bgcolor=#123123 jhjhj text="#ffffff" xf&gt;Hello world&lt;/body&gt;&lt;/html&gt;
  *
  * will be transformed into something like:
  * ["html" [] ["body" ["bgcolor" "#123123" "text" "#ffffff"] "Hello world"]]
