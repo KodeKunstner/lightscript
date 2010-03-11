@@ -49,7 +49,7 @@ class Compiler {
     private static Object[] stripSep(Object[] os) {
         Stack s = new Stack();
         for (int i = 0; i < os.length; i++) {
-            if(os[i] instanceof Object[] && ((Integer) ((Object[])os[i])[0]).intValue() == OpCodes.SEP) {
+            if(os[i] instanceof Object[] && getType((Object[])os[i]) == OpCodes.SEP) {
                 Object expr[] = (Object[]) os[i];
                 if(expr.length == 2) {
                     s.push(expr[1]);
@@ -476,11 +476,11 @@ class Compiler {
                 String fnName = null;
                 // add function arguments to statistics
                 varsArgc = args.length - 1;
-                if (((Integer) args[0]).intValue() == OpCodes.PAREN) {
+                if (getType(args) == OpCodes.PAREN) {
                     for (int i = 1; i < args.length; i++) {
                         Object[] os = (Object[]) args[i];
                         if (DEBUG_ENABLED) {
-                            if (((Integer) os[0]).intValue() != OpCodes.IDENT) {
+                            if (getType(os) != OpCodes.IDENT) {
                                 throw new Error("parameter not variable name"
                                         + stringify(args));
                             }
@@ -489,7 +489,7 @@ class Compiler {
                     }
                 } else {
                     if (DEBUG_ENABLED) {
-                        if (((Integer) args[0]).intValue() != OpCodes.CALL_FUNCTION) {
+                        if (getType(args) != OpCodes.CALL_FUNCTION) {
                             throw new Error("parameter not variable name"
                                     + stringify(args));
                         }
@@ -558,7 +558,7 @@ class Compiler {
                         Object[] expr2 = (Object[]) expr[1];
                         if (DEBUG_ENABLED) {
                             if (type == OpCodes.SET
-                                    && ((Integer) expr2[0]).intValue() == OpCodes.IDENT) {
+                                    && getType(expr2) == OpCodes.IDENT) {
                                 stackAdd(varsLocals, expr2[1]);
                             } else {
                                 throw new Error("Error in var");
@@ -606,7 +606,7 @@ class Compiler {
                 Object[] right = parse(bp);
                 varsUsed = t;
                 if (DEBUG_ENABLED) {
-                    if (((Integer) right[0]).intValue() != OpCodes.IDENT) {
+                    if (getType(right) != OpCodes.IDENT) {
                         throw new Error("right side of dot not a string: "
                                 + stringify(right));
                     }
@@ -1097,7 +1097,7 @@ class Compiler {
 
     private static void curlyToBlock(Object oexpr) {
         Object[] expr = (Object[]) oexpr;
-        if (((Integer) expr[0]).intValue() == OpCodes.CURLY) {
+        if (getType(expr) == OpCodes.CURLY) {
             expr[0] = new Integer(OpCodes.BLOCK);
         }
     }
@@ -1160,7 +1160,7 @@ class Compiler {
     }
 
     private static int childType(Object[] expr, int i) {
-        return ((Integer) ((Object[]) expr[i])[0]).intValue();
+        return getType((Object[]) expr[i]);
     }
 
     /**
@@ -1187,7 +1187,7 @@ class Compiler {
     private void compile(Object rawexpr, boolean yieldResult) {
         boolean hasResult;
         Object[] expr = (Object[]) rawexpr;
-        int id = ((Integer) expr[0]).intValue();
+        int id = getType(expr);
         switch (id) {
             case OpCodes.ADD:
             case OpCodes.MUL:
@@ -1222,7 +1222,7 @@ class Compiler {
             }
             case OpCodes.DELETE: {
                 Object[] expr2 = (Object[]) expr[1];
-                int subtype = ((Integer) expr2[0]).intValue();
+                int subtype = getType(expr2);
                 if (subtype == OpCodes.SUBSCRIPT) {
                     compile(expr2[1], true);
                     compile(expr2[2], true);
