@@ -17,6 +17,7 @@ class Compiler {
         return OpCodes.stringify(o);
     }
     private static final boolean DEBUG_ENABLED = true;
+    private static final boolean DUMP_PARSE_TREE = false;
     /* Constructors for nodes of the Abstract Syntax Tree.
      * Each node is an array containing an ID, followed by
      * its children or literal values */
@@ -46,13 +47,23 @@ class Compiler {
     private static Object[] stripSep(Object[] os) {
         Stack s = new Stack();
         for (int i = 0; i < os.length; i++) {
-            if (os[i] != SEP_TOKEN) {
+            if(os[i] instanceof Object[] && ((Integer) ((Object[])os[i])[0]).intValue() == OpCodes.SEP) {
+                Object expr[] = (Object[]) os[i];
+                if(expr.length == 2) {
+                    s.push(expr[1]);
+                }
+            } else {
                 s.push(os[i]);
             }
+
         }
         os = new Object[s.size()];
         s.copyInto(os);
         return os;
+    }
+
+    private static int getType(Object []expr) {
+        return ((Integer)expr[0]).intValue();
     }
 
     /** Push a value into a stack if it is not already there */
@@ -151,6 +162,9 @@ class Compiler {
         Object[] os = parse(0);
         varsClosure = varsUsed;
 
+        if(DUMP_PARSE_TREE) {
+            System.out.println(stringify(os));
+        }
         // compile
         Code compiledCode = compile(os);
         // create closure from globals
@@ -359,7 +373,12 @@ class Compiler {
     private Object[] readList(Stack s) {
         while (token != TOKEN_END) {
             Object[] p = parse(0);
-            s.push(p);
+            if(getType(p) == OpCodes.SEP && p.length == 2) {
+                s.push(SEP_TOKEN);
+                s.push(p[1]);
+            } else {
+                s.push(p);
+            }
         }
         nextToken();
 
@@ -501,6 +520,7 @@ class Compiler {
                 return result;
             }
             case NUD_VAR:
+                // TODO: rewrite with support for several vars in var
                 Object[] expr = parse(0);
                 int type = ((Integer) expr[0]).intValue();
                 if (type == OpCodes.IDENT) {
@@ -840,8 +860,8 @@ class Compiler {
                 + (char) OpCodes.NONE
                 + ":"
                 + (char) 1
-                + (char) NUD_SEP
-                + (char) OpCodes.NONE
+                + (char) NUD_PREFIX // SKIP
+                + (char) OpCodes.SEP
                 + (char) LED_NONE
                 + (char) OpCodes.NONE
                 + ";"
@@ -852,8 +872,8 @@ class Compiler {
                 + (char) OpCodes.NONE
                 + ","
                 + (char) 1
-                + (char) NUD_SEP
-                + (char) OpCodes.NONE
+                + (char) NUD_PREFIX // SKIP
+                + (char) OpCodes.SEP
                 + (char) LED_NONE
                 + (char) OpCodes.NONE
                 + "{"
@@ -1515,6 +1535,7 @@ class Compiler {
 
             }
             case OpCodes.SEP: {
+                assertLength(expr, 1);
                 hasResult = false;
                 break;
             }

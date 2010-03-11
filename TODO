@@ -1,4 +1,3 @@
-- Split parser/compiler
 - avoid public functions...
 - reimplement and extend stdlib + float + gui
 - More apis
@@ -9,3 +8,9 @@
 - Website for project
 - Error-logging with upload to server.
 - update javadocs
+- Syntax
+  - support postfix ++/--
+  - support ',' in var statements
+  - support for decimal numbers
+- use getType within Compiler
+- maybe split parser/compiler

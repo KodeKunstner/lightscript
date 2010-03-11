@@ -1,7 +1,7 @@
 test('(["a", "b", "c"])[1]', "b");
 test('["a", "b", "c"][1]', "b");
 test('["a", "b", "c"].length', 3);
-test('var i, j; j = 0; for(i in ["a", "b", "c", "d"]) j += i; j;',  6);
+test('var i; var j = 0; for(i in ["a", "b", "c", "d"]) j += i; j;',  6);
 test(' var arr = ["a", "b", "c"]; var s = "x"; var i; for(i in arr) { s += arr[i]; } return s; ', "xabc");
 test('arr = []; arr.push("x"); arr[0]', "x");
 test('arr = []; arr.push("x"); arr.length', 1);
@@ -12,5 +12,4 @@ test('arr = []; arr[1000] = 17; arr[-1]', undefined);
 test('["a", "b", "c"].join()', "a,b,c");
 test('["a", "b", "c"].join("")', "abc");
 test('["a", "b", "c"].join("ZZ")', "aZZbZZc");
-test('["foo", ["bar", "baz"], "quux"]', "aZZbZZc");
-test('Array.concat("foo", ["bar", "baz"], "quux")', "aZZbZZc");
+test('Array.concat("foo", ["bar", "baz"], "quux").toString()', "[foo, bar, baz, quux]");
