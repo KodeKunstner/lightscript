@@ -49,26 +49,26 @@ class StdLib implements LightScriptFunction {
             case 1: { // Stack __iter__
                 int[] o = new int[2];
                 o[0] = -1;
-                o[1] = ((Stack)args[argpos]).size();
+                o[1] = ((Stack) args[argpos]).size();
                 return new StdLib(2, o);
             }
             case 2: { // Stack iterator object
-                int[] is = (int[])closure;
+                int[] is = (int[]) closure;
                 ++is[0];
-                if(is[0] < is[1]) {
+                if (is[0] < is[1]) {
                     return new Integer(is[0]);
                 } else {
                     return LightScript.UNDEFINED;
                 }
             }
             case 3: { // default add
-                return args[argpos].toString() + args[argpos+1].toString();
+                return args[argpos].toString() + args[argpos + 1].toString();
             }
             case 4: { // stack push
-                return ((Stack)args[argpos]).push(args[argpos+1]);
+                return ((Stack) args[argpos]).push(args[argpos + 1]);
             }
             case 5: { // stack pop
-                return ((Stack)args[argpos]).pop();
+                return ((Stack) args[argpos]).pop();
             }
             case 6: { // new Array
                 return new Stack();
@@ -78,16 +78,16 @@ class StdLib implements LightScriptFunction {
             }
             case 8: { // hashtable getter
                 Hashtable h = (Hashtable) args[argpos];
-                for(;;) {
+                for (;;) {
                     Object o = h.get(args[argpos + 1]);
-                    if(o != null) {
+                    if (o != null) {
                         return o;
                     }
                     o = h.get("__prototype__");
-                    if(o == null || ! (h instanceof Hashtable)) {
+                    if (o == null || !(h instanceof Hashtable)) {
                         return ((LightScriptFunction) closure).apply(args, argpos, argcount);
                     }
-                    h = (Hashtable)o;
+                    h = (Hashtable) o;
                 }
             }
             case 9: { // hashtable setter
@@ -97,51 +97,51 @@ class StdLib implements LightScriptFunction {
             }
             case 10: { // stack setter
                 Stack s = (Stack) args[argpos];
-                if(args[argpos + 1] instanceof Integer) {
-                    int pos = ((Integer) args[argpos+1]).intValue();
-                    if(pos >= s.size()) {
+                if (args[argpos + 1] instanceof Integer) {
+                    int pos = ((Integer) args[argpos + 1]).intValue();
+                    if (pos >= s.size()) {
                         int i = s.size();
-                        s.setSize(pos +1);
-                        while(i < pos) {
+                        s.setSize(pos + 1);
+                        while (i < pos) {
                             s.setElementAt(LightScript.UNDEFINED, i);
                             ++i;
                         }
                     }
-                    if(pos >= 0) {
-                        s.setElementAt(args[argpos+2], pos);
+                    if (pos >= 0) {
+                        s.setElementAt(args[argpos + 2], pos);
                     }
                 }
                 return s;
             }
             case 11: { // lightscript global getter
-                LightScript ls = (LightScript)((Object [])closure)[0];
+                LightScript ls = (LightScript) ((Object[]) closure)[0];
                 Object o = ls.get(args[argpos + 1]);
-                if(o == null) {
-                    return ((LightScriptFunction) ((Object[])closure)[1]).apply(args, argpos, argcount);
+                if (o == null) {
+                    return ((LightScriptFunction) ((Object[]) closure)[1]).apply(args, argpos, argcount);
                 }
                 return o;
             }
             case 12: { // lightscript global setter
-                LightScript ls = (LightScript)closure;
-                ls.set(args[argpos+1], args[argpos +2]);
+                LightScript ls = (LightScript) closure;
+                ls.set(args[argpos + 1], args[argpos + 2]);
                 return ls;
             }
             case 13: { // String.toInt
-                return Integer.valueOf((String)args[argpos]);
+                return Integer.valueOf((String) args[argpos]);
             }
             case 14: { // Return constant, (new String)
                 return closure;
             }
             case 15: { // print
-                System.out.println(((LightScript)closure).toInt(args[argpos+1]));
-                return args[argpos+1];
+                System.out.println(((LightScript) closure).toString(args[argpos + 1]));
+                return args[argpos + 1];
             }
             case 16: { // toString
                 return args[argpos].toString();
             }
             case 17: { // clone
                 Hashtable h = new Hashtable();
-                h.put("__prototype__", args[argpos+argcount]);
+                h.put("__prototype__", args[argpos + argcount]);
                 return h;
             }
             case 18: { // typeof
@@ -165,43 +165,43 @@ class StdLib implements LightScriptFunction {
                 }
             }
             case 19: { // hashtable hasOwnProperty
-                return ((Hashtable)args[argpos]).containsKey(args[argpos+1])?LightScript.TRUE:LightScript.FALSE;
+                return ((Hashtable) args[argpos]).containsKey(args[argpos + 1]) ? LightScript.TRUE : LightScript.FALSE;
             }
             case 20: { // array join
                 StringBuffer sb = new StringBuffer();
                 String sep = "";
-                Stack s = (Stack)args[argpos];
+                Stack s = (Stack) args[argpos];
                 String sep2;
-                if(argcount > 0) {
-                    sep2 = ((LightScript)closure).toString(args[argpos+1]);
+                if (argcount > 0) {
+                    sep2 = ((LightScript) closure).toString(args[argpos + 1]);
                 } else {
                     sep2 = ",";
                 }
-                for(int i=0; i<s.size(); ++i) {
+                for (int i = 0; i < s.size(); ++i) {
                     sb.append(sep);
-                    sb.append(((LightScript)closure).toString(s.elementAt(i)));
+                    sb.append(((LightScript) closure).toString(s.elementAt(i)));
                     sep = sep2;
                 }
                 return sb.toString();
             }
             case 21: { // hashtable __iter__
-                return new StdLib(22, ((Hashtable)args[argpos]).keys());
+                return new StdLib(22, ((Hashtable) args[argpos]).keys());
             }
             case 22: { // hashtable iterator
-                Enumeration e = (Enumeration)closure;
+                Enumeration e = (Enumeration) closure;
                 Object o;
                 do {
-                    if(!e.hasMoreElements()) {
+                    if (!e.hasMoreElements()) {
                         return LightScript.UNDEFINED;
                     }
                     o = e.nextElement();
-                } while("__proto__".equals(o));
+                } while ("__proto__".equals(o));
                 return o;
             }
             case 23: { // parseint
                 int base;
-                LightScript ls = (LightScript)closure;
-                if(argcount == 2) {
+                LightScript ls = (LightScript) closure;
+                if (argcount == 2) {
                     base = ls.toInt(args[argpos + 2]);
                 } else {
                     base = 10;
@@ -214,55 +214,55 @@ class StdLib implements LightScriptFunction {
             }
             case 25: { // array.concat
                 Stack result = new Stack();
-                for(int i = 0; i <= argcount; ++i) {
-                    if(!(i == 0 && args[argpos] instanceof StdLib)) {
-                    Object o = args[argpos + i];
-                    if (o instanceof Stack) {
-                        Stack s = (Stack) o;
-                        for (int j = 0; j < s.size(); ++j) {
-                            result.push(s.elementAt(j));
+                for (int i = 0; i <= argcount; ++i) {
+                    if (!(i == 0 && args[argpos] instanceof StdLib)) {
+                        Object o = args[argpos + i];
+                        if (o instanceof Stack) {
+                            Stack s = (Stack) o;
+                            for (int j = 0; j < s.size(); ++j) {
+                                result.push(s.elementAt(j));
+                            }
+                        } else {
+                            result.push(o);
                         }
-                    } else {
-                        result.push(o);
-                    }
                     }
                 }
                 return result;
             }
             case 26: { // StdLib.subscript
-                LightScript ls = (LightScript)closure;
-                Object inner = ((StdLib)args[argpos]).closure;
-                return ls.callMethod(inner, "__getter__", args[argpos+1]);
+                LightScript ls = (LightScript) closure;
+                Object inner = ((StdLib) args[argpos]).closure;
+                return ls.callMethod(inner, "__getter__", args[argpos + 1]);
             }
             case 27: { // (string|array).slice
-                LightScript ls = (LightScript)closure;
+                LightScript ls = (LightScript) closure;
                 Object o = args[argpos];
-                int len = o instanceof Stack ? ((Stack)o).size() : ((String)o).length();
-                int start = ls.toInt(args[argpos+1]);
-                if(start < 0) {
+                int len = o instanceof Stack ? ((Stack) o).size() : ((String) o).length();
+                int start = ls.toInt(args[argpos + 1]);
+                if (start < 0) {
                     start = len + start;
                 }
                 int end;
-                if(argcount > 1) {
-                    end = ls.toInt(args[argpos+2]);
+                if (argcount > 1) {
+                    end = ls.toInt(args[argpos + 2]);
                 } else {
                     end = len;
                 }
-                if(end < 0) {
+                if (end < 0) {
                     end = len + end;
-                } else if(end > len) {
+                } else if (end > len) {
                     end = len;
                 }
-                if(o instanceof Stack) {
-                    Stack s = (Stack)o;
+                if (o instanceof Stack) {
+                    Stack s = (Stack) o;
                     Stack result = new Stack();
-                    while(start < end) {
+                    while (start < end) {
                         result.push(s.elementAt(start));
                         ++start;
                     }
                     return result;
                 } else {
-                    return ((String)o).substring(start, end);
+                    return ((String) o).substring(start, end);
                 }
             }
             case 28: { // new object
@@ -271,8 +271,8 @@ class StdLib implements LightScriptFunction {
             case 29: { // array.sort
                 Stack s = (Stack) args[argpos];
                 LightScriptFunction cmp;
-                if(argcount  > 0 && args[argpos+1] instanceof LightScriptFunction) {
-                    cmp = (LightScriptFunction)args[argpos+1];
+                if (argcount > 0 && args[argpos + 1] instanceof LightScriptFunction) {
+                    cmp = (LightScriptFunction) args[argpos + 1];
                 } else {
                     cmp = new StdLib(30);
                 }
@@ -280,15 +280,15 @@ class StdLib implements LightScriptFunction {
                 return s;
             }
             case 30: { // default sort comparison
-                return args[argpos+1].toString().compareTo(args[argpos+2].toString()) >= 0? one : minusOne;
+                return args[argpos + 1].toString().compareTo(args[argpos + 2].toString()) >= 0 ? one : minusOne;
             }
             case 31: { // string.charCodeAt
-                LightScript ls = (LightScript)closure;
-                return new Integer(((String)args[argpos]).charAt(ls.toInt(args[argpos+1])));
+                LightScript ls = (LightScript) closure;
+                return new Integer(((String) args[argpos]).charAt(ls.toInt(args[argpos + 1])));
             }
             case 32: { // string __getter__
                 if (args[argpos + 1] instanceof Integer) {
-                    String s = (String)args[argpos];
+                    String s = (String) args[argpos];
                     int pos = ((Integer) args[argpos + 1]).intValue();
                     if (pos >= 0 && pos < s.length()) {
                         return String.valueOf(s.charAt(pos));
@@ -302,18 +302,18 @@ class StdLib implements LightScriptFunction {
                 }
             }
             case 33: { // string.concat
-                LightScript ls = (LightScript)closure;
+                LightScript ls = (LightScript) closure;
                 StringBuffer sb = new StringBuffer();
-                for(int i = 0; i <= argcount; ++i) {
-                    if(!(i == 0 && args[argpos] instanceof StdLib)) {
-                    sb.append(ls.toString(args[argpos+i]));
+                for (int i = 0; i <= argcount; ++i) {
+                    if (!(i == 0 && args[argpos] instanceof StdLib)) {
+                        sb.append(ls.toString(args[argpos + i]));
                     }
                 }
                 return sb.toString();
             }
             case 34: { // string.fromCharCode
-                LightScript ls = (LightScript)closure;
-                return String.valueOf((char)ls.toInt(args[argpos + 1]));
+                LightScript ls = (LightScript) closure;
+                return String.valueOf((char) ls.toInt(args[argpos + 1]));
             }
         }
         return LightScript.UNDEFINED;

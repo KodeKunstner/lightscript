@@ -43,6 +43,16 @@ examples/moby/moby.jar: examples/moby/*.java examples/moby/manifest examples/mob
 
 ex: examples/moby/moby.jar
 
+st: clean
+	git status
+
+diff: clean
+	git diff
+
+commit: clean
+	git add `find * -name "*.java"` testsuite/*.ls Makefile README.md 
+	git commit -m autocommit
+
 .SUFFIXES: .java .class
 
 .java.class: $(DEPS)
