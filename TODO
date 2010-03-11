@@ -1,3 +1,6 @@
+TODO
+====
+
 - Before 2.0
     - language
         - support postfix ++/--
@@ -5,7 +8,15 @@
     - library
         - fixed-point library
         - simple non-finalised gui library
+            - Page()
+            - Page.addItem(string-item)
+            - Page.addItem(link-name, callback)
+            - Page.show()
         - simple non-finalised http-get library
+            - HttpClient.get(url, callback)
+        - simple non-finalised storage library
+            - Storage.get(key)
+            - Storage.set(key, value)
         - remove Cldc10 class
     - documentation
         - library reference and language documentation in README.md
@@ -16,12 +27,14 @@
         - support new
         - support arguments
     - library
+        - InsertOrderedHashtable
         - Error-logging with upload to server.
         - Turtle
         - larger part of EcmaScript std. library.
         - floating point
         - regex
         - better gui library
+        - InputStream support
     - Include applications
     - documentation, including benchmarks from thesis
     - Website for project

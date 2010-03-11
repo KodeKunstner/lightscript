@@ -20,8 +20,11 @@ dist: clean all
 	tar cv --no-recursion `find Makefile src README COPYING | grep -v svn` | gzip > dist.tar.gz 
 
 doc: doc/javadoc doc/README.html doc/TODO.html
-doc/javadoc: $(DEPS)
+doc/javadoc: $(DEPS) README.md TODO
 	mkdir -p doc/javadoc
+	echo '<html><body><p>This package contains the LightScript scripting language and various utility functions for mobile applications. The LightScript documentation is included below:</p>' > com/solsort/mobile/package.html
+	pandoc README.md >> com/solsort/mobile/package.html
+	echo '</body></html>' >> com/solsort/mobile/package.html
 	javadoc -d doc/javadoc/public com.solsort.mobile
 	javadoc -package -d doc/javadoc/package com.solsort.mobile
 	javadoc -private -d doc/javadoc/private com.solsort.mobile
@@ -33,7 +36,7 @@ doc/TODO.html: TODO
 	pandoc -s TODO -o doc/TODO.html
 
 clean:
-	rm -rf doc/javadoc doc/TODO.html doc/README.html `find com examples testsuite -name "*.class"` examples/*.jar examples/*/*.jar
+	rm -rf doc/javadoc doc/TODO.html doc/README.html `find com examples testsuite -name "*.class"` examples/*.jar examples/*/*.jar com/solsort/mobile/package.html
 
 examples/moby/moby.jar: examples/moby/*.java examples/moby/manifest examples/moby/*.jad $(DEPS)
 	javac -source 1.2 -classpath .:external_dependencies/midpapi10.jar examples/moby/*.java

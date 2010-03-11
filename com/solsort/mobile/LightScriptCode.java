@@ -623,13 +623,8 @@ final class LightScriptCode implements LightScriptFunction {
                     }
                 }
             }
-// if we debug, we want the real exception, with line number..
         } catch (Error e) {
-            if (!LightScript.DEBUG_ENABLED) {
-                throw new LightScriptException(e);
-            } else {
-                throw e;
-            }
+            throw new LightScriptException(e);
         }
     }
     //</editor-fold>
