@@ -120,6 +120,12 @@ class Compiler {
     private static final int MASK_BP = (-1 << (2 * SIZE_ID + 2 * SIZE_FN));
     /** The sep token, encoded as an integer */
     private static final int TOKEN_SEP = ((((((((0 << SIZE_FN)
+            | NUD_PREFIX) << SIZE_ID)
+            | OpCodes.SEP) << SIZE_FN)
+            | LED_NONE) << SIZE_ID)
+            | OpCodes.NONE);
+    /** The semicolon sep token, encoded as an integer */
+    private static final int TOKEN_SEP_SEMI = ((((((((0 << SIZE_FN)
             | NUD_SEP) << SIZE_ID)
             | OpCodes.NONE) << SIZE_FN)
             | LED_NONE) << SIZE_ID)
@@ -153,7 +159,7 @@ class Compiler {
      */
     public LightScriptFunction compileNextStatement() {
 // if we debug, we want the real exception, with line number..
-        while (token == TOKEN_SEP) {
+        while (token == TOKEN_SEP_SEMI) {
             nextToken();
         }
         if (tokenVal == EOF || token == TOKEN_END) {
@@ -369,8 +375,10 @@ class Compiler {
     }
 
     private Object[] readVars(Stack s) {
-        while (token != TOKEN_SEP) {
+        s.push(parse(0));
+        while(token == TOKEN_SEP) {
             Object[] p = parse(0);
+            // TODO: this need not be a while
             while(getType(p) == OpCodes.SEP && p.length == 2) {
                 s.push(SEP_TOKEN);
                 p = (Object[])p[1];
@@ -536,7 +544,6 @@ class Compiler {
                 return result;
             }
             case NUD_VAR:
-                // TODO: rewrite with support for several vars in var
                 Object[] expr;
                 Stack s = new Stack();
                 s.push(new Integer(OpCodes.BLOCK));
