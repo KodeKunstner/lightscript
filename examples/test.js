@@ -1,3 +1,6 @@
+print([[1],[2]]);
+print(1,-1);
+/*
 x = {};
 x.a = function() { print(this); };
 //x.a();
@@ -19,6 +22,7 @@ function test() {
 }
 x.prototype.test = test;
 
+*/
 /*
 print(x);
 print(x.test());
@@ -35,6 +39,7 @@ print(1);
 print(1+1/4);
 */
 
+/*
 x = {"foo": 1, "bar":2};
 y = Object.create(x);
 
@@ -48,3 +53,4 @@ for(i = 0; i < 1000; ++i) {
     x += y;
 }
 //print("avg: " + x / 1000);
+*/

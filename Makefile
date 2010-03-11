@@ -2,18 +2,14 @@ LS = LightScript
 DEPS = com/solsort/*/*
 BACKUP=
 
-SRCPATH = src/
-INT_VER= net/lightscript/i1/
-FP_VER= net/lightscript/f1/
-DEFAULT_VER=$(INT_VER)
+run: examples/Main.class examples/test.js
+	java examples/Main examples/test.js
+examples/Main.class: $(DEPS)
 
 test: testsuite/LightScriptTest.class
 	java testsuite.LightScriptTest testsuite/*.ls
 
 testsuite/LightScriptTest.class: $(DEPS)
-
-run: examples/Main.class examples/test.js
-	java examples/Main examples/test.js
 
 all: doc 
 
@@ -22,10 +18,6 @@ backup: clean
 
 dist: clean all
 	tar cv --no-recursion `find Makefile src README COPYING | grep -v svn` | gzip > dist.tar.gz 
-
-examples/Main.class: $(DEFAULT_VER)$(LS).class
-	javac -source 1.2 examples/Main.java
-	ls -l $(DEFAULT_VER)$(LS).class
 
 doc: doc/javadoc doc/README.html doc/TODO.html
 doc/javadoc: $(DEPS)

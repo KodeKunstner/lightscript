@@ -3,7 +3,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Hashtable;
-import net.lightscript.i1.*;
+import com.solsort.lightscript.*;
 
 public class Main {
     /**
@@ -17,16 +17,6 @@ public class Main {
             is = System.in;
         }
         LightScript ls = new LightScript();
-        Object result = null;
-        do {
-            try {
-                result = ls.evalNext(is);
-            } catch(LightLightScriptException e) {
-                System.out.println(e);
-            }
-            if(args.length != 1 && result != null) {
-                System.out.println(" -> " + result);
-            }
-        } while(result != null);
+        ls.eval(is);
     }
 }

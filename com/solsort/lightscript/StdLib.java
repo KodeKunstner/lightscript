@@ -254,7 +254,7 @@ class StdLib implements LightScriptFunction {
         ls.setMethod(null, "+", new StdLib(3));
         ls.setMethod(null, "toString", new StdLib(16));
 
-        ls.set("print", new StdLib(15));
+        ls.set("print", new StdLib(15, ls));
         ls.set("clone", new StdLib(17));
         ls.set("parseint", new StdLib(23, ls));
 
