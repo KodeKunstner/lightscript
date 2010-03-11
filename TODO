@@ -1,13 +1,27 @@
-- avoid public functions...
-- reimplement and extend stdlib + float + gui
-- More apis
-- Testsuite
-- Include applications
-- Documentation in readme as markdown
-    - including benchmarks from thesis
-- Website for project
-- Error-logging with upload to server.
-- update javadocs
-- Syntax
-  - support postfix ++/--
-  - support for decimal numbers
+- Before 2.0
+    - language
+        - support postfix ++/--
+        - support for decimal numbers
+    - library
+        - fixed-point library
+        - simple non-finalised gui library
+        - simple non-finalised http-get library
+        - remove Cldc10 class
+    - documentation
+        - library reference and language documentation in README.md
+        - javadoc to all methods
+- Later
+    - Full code coverage for testsuite
+    - language
+        - support new
+        - support arguments
+    - library
+        - Error-logging with upload to server.
+        - Turtle
+        - larger part of EcmaScript std. library.
+        - floating point
+        - regex
+        - better gui library
+    - Include applications
+    - documentation, including benchmarks from thesis
+    - Website for project
