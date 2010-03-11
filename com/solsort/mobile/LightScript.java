@@ -16,6 +16,7 @@ Contact for other licensing options.
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 import java.util.Hashtable;
+import java.util.Stack;
 
 /*`\subsection{Variables}'*/
 /** Instances of the LightScript object, is an execution context,
@@ -191,6 +192,14 @@ public final class LightScript {
 
     public String toString(Object obj) throws LightScriptException {
         return (String) callMethod(obj, "toString");
+    }
+
+    public Object[] toTuple(Object obj) throws LightScriptException {
+        return (Object[]) callMethod(obj, "toTuple");
+    }
+
+    public Stack toArray(Object obj) throws LightScriptException {
+        return (Stack) callMethod(obj, "toArray");
     }
 
     public boolean toBool(Object obj) throws LightScriptException {

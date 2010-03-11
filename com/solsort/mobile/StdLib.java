@@ -1,28 +1,20 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.solsort.mobile;
 
-//</editor-fold>
 import java.util.Stack;
 import java.util.Hashtable;
 import java.util.Enumeration;
 
-/**
- *
- * @author rje
- */
-class StdLib implements LightScriptFunction {
+public final class StdLib implements LightScriptFunction {
     //<editor-fold desc="constants">
-    static final Object emptyObjectArray[] = {};
-    private static final Integer one = new Integer(1);
-    private static final Integer minusOne = new Integer(-1);
+
+    public static final Object emptyTuple[] = {};
+    public static final Integer integerOne = new Integer(1);
+    public static final Integer integerMinusOne = new Integer(-1);
     //</editor-fold>
 
     //<editor-fold desc="utility-functions">
     /** Push a value into a stack if it is not already there */
-    static void stackAppendUnique(Stack s, Object val) {
+    public static void stackPushUnique(Stack s, Object val) {
         if (s == null) {
             return;
         }
@@ -33,25 +25,42 @@ class StdLib implements LightScriptFunction {
         }
     }
 
-    public static int arraysearch(Object[] os, Object o) {
-        for (int i = 0; i < os.length; ++i) {
-            if (os[i].equals(o)) {
+    public static int tupleIndexOf(Object[] tuple, Object o) {
+        return tupleIndexOf(tuple, o, 0);
+    }
+
+    public static int tupleIndexOf(Object[] tuple, Object o, int fromIndex) {
+        for (int i = fromIndex; i < tuple.length; ++i) {
+            if (tuple[i].equals(o)) {
                 return i;
             }
         }
         return -1;
     }
 
-    public static Object[] stack2array(Stack s) {
+    public static Object[] stackToTuple(Stack s) {
         if (s.empty()) {
-            return emptyObjectArray;
+            return emptyTuple;
         }
         Object[] result = new Object[s.size()];
         s.copyInto(result);
         return result;
     }
 
-    public static void convertToString(Object o, StringBuffer sb) {
+    public static void tupleCopyInto(Object tuple[], Stack stack) {
+        stack.setSize(tuple.length);
+        for (int i = tuple.length - 1; i >= 0; --i) {
+            stack.setElementAt(tuple[i], i);
+        }
+    }
+
+    public static Stack tupleToStack(Object tuple[]) {
+        Stack result = new Stack();
+        tupleCopyInto(tuple, result);
+        return result;
+    }
+
+    static void convertToString(Object o, StringBuffer sb) {
         if (o instanceof Object[]) {
             String sep = "";
             Object[] os = (Object[]) o;
@@ -96,40 +105,44 @@ class StdLib implements LightScriptFunction {
         }
     }
 
+    public static void qsort(Object tuple[], LightScriptFunction cmp) throws LightScriptException {
+        qsort(tuple, cmp, 0, tuple.length);
+    }
 
-    private static void qsort(Stack arr, int first, int last, LightScriptFunction cmp) throws LightScriptException {
-        Object args[] = {arr, null, null};
+    public static void qsort(Object tuple[], LightScriptFunction cmp, int first, int last) throws LightScriptException {
+        Object args[] = {tuple, null, null};
+        --last;
         while (first < last) {
             int l = first;
             int r = last;
-            Object pivot = arr.elementAt((l + r) / 2);
-            arr.setElementAt(arr.elementAt(r), (l + r) / 2);
-            arr.setElementAt(pivot, r);
+            Object pivot = tuple[(l + r) / 2];
+            tuple[(l + r) / 2] = tuple[r];
+            tuple[r] = pivot;
 
             while (l < r) {
                 --l;
                 do {
                     ++l;
-                    args[1] = arr.elementAt(l);
+                    args[1] = tuple[l];
                     args[2] = pivot;
                 } while (((Integer) cmp.apply(args, 0, 2)).intValue() <= 0 && l < r);
                 if (l < r) {
-                    arr.setElementAt(arr.elementAt(l), r);
+                    tuple[r] = tuple[l];
                     r--;
                 }
                 ++r;
                 do {
                     r--;
                     args[1] = pivot;
-                    args[2] = arr.elementAt(r);
+                    args[2] = tuple[r];
                 } while (((Integer) cmp.apply(args, 0, 2)).intValue() <= 0 && l < r);
                 if (l < r) {
-                    arr.setElementAt(arr.elementAt(r), l);
+                    tuple[l] = tuple[r];
                     l++;
                 }
             }
-            arr.setElementAt(pivot, r);
-            qsort(arr, l + 1, last, cmp);
+            tuple[r] = pivot;
+            qsort(tuple, cmp, l + 1, last + 1);
             last = l - 1;
         }
     }
@@ -395,11 +408,13 @@ class StdLib implements LightScriptFunction {
                 } else {
                     cmp = new StdLib(30);
                 }
-                qsort(s, 0, s.size() - 1, cmp);
+                Object[] t = stackToTuple(s);
+                qsort(t, cmp);
+                tupleCopyInto(t, s);
                 return s;
             }
             case 30: { // default sort comparison
-                return args[argpos + 1].toString().compareTo(args[argpos + 2].toString()) >= 0 ? one : minusOne;
+                return args[argpos + 1].toString().compareTo(args[argpos + 2].toString()) >= 0 ? integerOne : integerMinusOne;
             }
             case 31: { // string.charCodeAt
                 LightScript ls = (LightScript) closure;
@@ -433,6 +448,46 @@ class StdLib implements LightScriptFunction {
             case 34: { // string.fromCharCode
                 LightScript ls = (LightScript) closure;
                 return String.valueOf((char) ls.toInt(args[argpos + 1]));
+            }
+            case 35: { // Tuple
+                Object result[] = new Object[argcount];
+                for (int i = result.length - 1; i >= 0; --i) {
+                    result[i] = args[argpos + i + 1];
+                }
+                return result;
+            }
+            case 36: { // tuple.sort
+                LightScript ls = (LightScript) closure;
+                Object tuple[] = (Object[]) args[argpos];
+                LightScriptFunction cmp;
+                if (argcount > 0 && args[argpos + 1] instanceof LightScriptFunction) {
+                    cmp = (LightScriptFunction) args[argpos + 1];
+                } else {
+                    cmp = new StdLib(30);
+                }
+                int start = 0;
+                if (argcount > 1) {
+                    start = ls.toInt(args[argpos + 2]);
+                }
+                if (start < 0) {
+                    start = start + tuple.length;
+                }
+                int end = -1;
+                if (argcount > 2) {
+                    end = ls.toInt(args[argpos + 2]);
+                }
+                if (end < 0) {
+                    end = end + tuple.length;
+                }
+
+                qsort(tuple, cmp, start, end);
+                return tuple;
+            }
+            case 37: { // stack.toTuple
+                return stackToTuple((Stack) args[argpos]);
+            }
+            case 38: { // tuple.toArray
+                return tupleToStack((Object[]) args[argpos]);
             }
         }
         return LightScript.UNDEFINED;
@@ -468,6 +523,7 @@ class StdLib implements LightScriptFunction {
         ls.setMethod(arrayClass, "concat", new StdLib(25, ls));
         array.put("concat", new StdLib(25, ls));
         ls.setMethod(arrayClass, "sort", new StdLib(29));
+        ls.setMethod(arrayClass, "toTuple", new StdLib(37));
 
         Hashtable string = new Hashtable();
         ls.set("String", new StdLib(7, string));
@@ -479,13 +535,19 @@ class StdLib implements LightScriptFunction {
         ls.setMethod(stringClass, "concat", new StdLib(33, ls));
         string.put("fromCharCode", new StdLib(34, ls));
 
+        Hashtable tuple = new Hashtable();
+        ls.set("Tuple", new StdLib(35, tuple));
+        Class tupleClass = emptyTuple.getClass();
+        ls.setMethod(tupleClass, "sort", new StdLib(36, ls));
+        ls.setMethod(tupleClass, "toArray", new StdLib(38, ls));
+
         ls.set("global", ls);
         Class globalClass = ls.getClass();
         Object ls_getter_args[] = {ls, ls.getMethod(globalClass, "__getter__")};
         ls.setMethod(globalClass, "__getter__", new StdLib(11, ls_getter_args));
         ls.setMethod(globalClass, "__setter__", new StdLib(12, ls));
 
-        Class numberClass = (new Integer(0)).getClass();
+        Class numberClass = integerOne.getClass();
         ls.setMethod(numberClass, "toInt", new StdLib(24));
 
         Class stdlibClass = (new StdLib(0)).getClass();

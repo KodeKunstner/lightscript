@@ -15,7 +15,7 @@ import java.util.Stack;
  * ["html" [] ["body" ["bgcolor" "#123123" "text" "#ffffff"] "Hello world"]]
  * where [...] has type Object[], and "..." has type string.
  */
-public class HTMLParser {
+public class HTMLParser implements LightScriptFunction {
 
     public static boolean doTrim = true;
     /**
@@ -181,8 +181,8 @@ public class HTMLParser {
                     }
                 }
                 skip(1);
-                params = StdLib.stack2array(paramsStack);
-                if (StdLib.arraysearch(autoclose, content) != -1) {
+                params = StdLib.stackToTuple(paramsStack);
+                if (StdLib.tupleIndexOf(autoclose, content) != -1) {
                     tokentype = SINGLETAG;
                 }
             } else {
@@ -204,7 +204,7 @@ public class HTMLParser {
 //
     private void closeTag() {
         if (!tagStack.empty()) {
-            Object[] tag = StdLib.stack2array(currentTag);
+            Object[] tag = StdLib.stackToTuple(currentTag);
             currentTag = (Stack) tagStack.pop();
             currentTag.push(tag);
         }
@@ -219,7 +219,7 @@ public class HTMLParser {
 
     private void tryCloseTags(String tags[]) {
         while (!tagStack.empty()
-                && -1 != StdLib.arraysearch(tags, ((Stack) tagStack.peek()).elementAt(0))) {
+                && -1 != StdLib.tupleIndexOf(tags, ((Stack) tagStack.peek()).elementAt(0))) {
             closeTag();
         }
     }
@@ -229,7 +229,7 @@ public class HTMLParser {
             nextToken();
             switch (tokentype) {
                 case STARTTAG:
-                    int closetag = StdLib.arraysearch(closingTags, content);
+                    int closetag = StdLib.tupleIndexOf(closingTags, content);
                     if (closetag != -1) {
                         tryCloseTags(closedTags[closetag]);
                     }
@@ -255,5 +255,15 @@ public class HTMLParser {
             closeTag();
         }
         return (Object[]) currentTag.elementAt(0);
+    }
+
+    public Object apply(Object[] args, int argpos, int argcount) throws LightScriptException {
+        return parse((InputStream)args[argpos+argcount]);
+    }
+    private HTMLParser() {
+    }
+    private final static HTMLParser parserFunction = new HTMLParser();
+    public static void register(LightScript ls) {
+        ls.setMethod(null, "parseHtml", parserFunction);
     }
 }

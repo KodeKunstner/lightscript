@@ -59,7 +59,7 @@ class LightScriptCompiler {
             }
 
         }
-        return StdLib.stack2array(s);
+        return StdLib.stackToTuple(s);
     }
 
     private static int getType(Object []expr) {
@@ -373,7 +373,7 @@ class LightScriptCompiler {
             s.push(p);
         }
 
-        return StdLib.stack2array(s);
+        return StdLib.stackToTuple(s);
     }
 
     /** Read expressions until an end-token is reached.
@@ -391,7 +391,7 @@ class LightScriptCompiler {
         }
         nextToken();
 
-        return StdLib.stack2array(s);
+        return StdLib.stackToTuple(s);
     }
 
     /** Call the null denominator function for a given token
@@ -403,7 +403,7 @@ class LightScriptCompiler {
         // extract the token function id from tok
         switch ((tok >> (SIZE_ID * 2 + SIZE_FN)) & ((1 << SIZE_FN) - 1)) {
             case NUD_IDENT:
-                StdLib.stackAppendUnique(varsUsed, val);
+                StdLib.stackPushUnique(varsUsed, val);
                 return v(LightScriptOpCodes.IDENT, val);
             case NUD_LITERAL:
                 return v(LightScriptOpCodes.LITERAL, val);
@@ -433,7 +433,7 @@ class LightScriptCompiler {
                 return v(nudId, parse(0), parse(0));
             case NUD_CATCH: {
                 Object[] o = parse(0);
-                StdLib.stackAppendUnique(varsLocals, ((Object[]) o[1])[1]);
+                StdLib.stackPushUnique(varsLocals, ((Object[]) o[1])[1]);
                 return v(nudId, o, parse(0));
             }
             case NUD_FUNCTION: {
@@ -495,7 +495,7 @@ class LightScriptCompiler {
                 for (int i = 0; i < varsUsed.size(); i++) {
                     Object o = varsUsed.elementAt(i);
                     if (!varsLocals.contains(o)) {
-                        StdLib.stackAppendUnique(varsBoxed, o);
+                        StdLib.stackPushUnique(varsBoxed, o);
                     }
                 }
 
@@ -505,14 +505,14 @@ class LightScriptCompiler {
                 for (int i = 0; i < varsBoxed.size(); i++) {
                     Object o = varsBoxed.elementAt(i);
                     if (!varsLocals.contains(o)) {
-                        StdLib.stackAppendUnique(prevBoxed, o);
-                        StdLib.stackAppendUnique(varsClosure, o);
+                        StdLib.stackPushUnique(prevBoxed, o);
+                        StdLib.stackPushUnique(varsClosure, o);
                     }
                 }
                 Object[] result = v(nudId, compile(body));
                 if (isNamed) {
                     result = v(LightScriptOpCodes.SET, v(LightScriptOpCodes.IDENT, fnName), result);
-                    StdLib.stackAppendUnique(prevUsed, fnName);
+                    StdLib.stackPushUnique(prevUsed, fnName);
                 }
                 varsClosure = null;
 
@@ -535,19 +535,19 @@ class LightScriptCompiler {
                     expr = (Object[])exprs[i];
                     int type = getType(expr);
                     if (type == LightScriptOpCodes.IDENT) {
-                        StdLib.stackAppendUnique(varsLocals, expr[1]);
+                        StdLib.stackPushUnique(varsLocals, expr[1]);
                         exprs[i] = SEP_TOKEN;
                     } else {
                         Object[] expr2 = (Object[]) expr[1];
                         if (DEBUG_ENABLED) {
                             if (type == LightScriptOpCodes.SET
                                     && getType(expr2) == LightScriptOpCodes.IDENT) {
-                                StdLib.stackAppendUnique(varsLocals, expr2[1]);
+                                StdLib.stackPushUnique(varsLocals, expr2[1]);
                             } else {
                                 throw new Error("Error in var");
                             }
                         } else {
-                            StdLib.stackAppendUnique(varsLocals, expr2[1]);
+                            StdLib.stackPushUnique(varsLocals, expr2[1]);
                         }
                     }
                 }
@@ -1125,7 +1125,7 @@ class LightScriptCompiler {
 
         // create a new code object;
         LightScriptCode result = new LightScriptCode(varsArgc, new byte[code.length()],
-                StdLib.stack2array(constPool), StdLib.stack2array(varsClosure), maxDepth);
+                StdLib.stackToTuple(constPool), StdLib.stackToTuple(varsClosure), maxDepth);
 
         // copy values into the code object
         for (int i = 0; i < result.code.length; i++) {
@@ -1742,12 +1742,12 @@ class LightScriptCompiler {
             }
             case LightScriptOpCodes.DEC: {
                 compile(v(LightScriptOpCodes.SET, expr[1], v(LightScriptOpCodes.SUB, expr[1],
-                        v(LightScriptOpCodes.LITERAL, new Integer(1)))), yieldResult);
+                        v(LightScriptOpCodes.LITERAL, StdLib.integerOne))), yieldResult);
                 return;
             }
             case LightScriptOpCodes.INC: {
                 compile(v(LightScriptOpCodes.SET, expr[1], v(LightScriptOpCodes.ADD, expr[1],
-                        v(LightScriptOpCodes.LITERAL, new Integer(1)))), yieldResult);
+                        v(LightScriptOpCodes.LITERAL, StdLib.integerOne))), yieldResult);
                 return;
             }
             default:
