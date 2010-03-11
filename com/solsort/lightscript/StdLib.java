@@ -232,19 +232,46 @@ class StdLib implements LightScriptFunction {
                 Object inner = ((StdLib)args[argpos]).closure;
                 return ls.callMethod(inner, "__getter__", args[argpos+1]);
             }
-            case 27: { // 
+            case 27: { // (string|array).slice
+                LightScript ls = (LightScript)closure;
+                Object o = args[argpos];
+                int len = o instanceof Stack ? ((Stack)o).size() : ((String)o).length();
+                int start = ((Integer)ls.callMethod(args[argpos+1], "toInt")).intValue();
+                if(start < 0) {
+                    start = len + start;
+                }
+                int end;
+                if(argcount > 1) {
+                    end = ((Integer)ls.callMethod(args[argpos+2], "toInt")).intValue();
+                } else {
+                    end = len;
+                }
+                if(end < 0) {
+                    end = len + end;
+                } else if(end > len) {
+                    end = len;
+                }
+                if(o instanceof Stack) {
+                    Stack s = (Stack)o;
+                    Stack result = new Stack();
+                    while(start < end) {
+                        result.push(s.elementAt(start));
+                        ++start;
+                    }
+                    return result;
+                } else {
+                    return ((String)o).substring(start, end);
+                }
             }
             case 28: { // new object
                 return new Hashtable();
             }
             // TODO:
             // array.sort
-            // array.slice
             // string.charcodeat
             // string.fromchar
             // string.concat
             // string getter
-            // string slice
         }
         return LightScript.UNDEFINED;
     }
@@ -275,11 +302,13 @@ class StdLib implements LightScriptFunction {
         ls.setMethod(arrayClass, "push", new StdLib(4));
         ls.setMethod(arrayClass, "pop", new StdLib(5));
         ls.setMethod(arrayClass, "join", new StdLib(20, ls));
+        ls.setMethod(arrayClass, "slice", new StdLib(27, ls));
         array.put("concat", new StdLib(25, ls));
 
         ls.set("String", new StdLib(7, new Hashtable()));
         Class stringClass = "".getClass();
         ls.setMethod(stringClass, "toInt", new StdLib(13));
+        ls.setMethod(stringClass, "slice", new StdLib(27, ls));
 
         ls.set("global", ls);
         Class globalClass = ls.getClass();
