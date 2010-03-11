@@ -183,6 +183,23 @@ public final class LightScript {
         return eval(new ByteArrayInputStream(s.getBytes()));
     }
     // </editor-fold>
+    // <editor-fold desc="type conversion">
+    public int toInt(Object obj) throws LightScriptException {
+        return ((Integer)callMethod(obj, "toInt")).intValue();
+    }
+    public String toString(Object obj) throws LightScriptException {
+        return (String)callMethod(obj, "toInt");
+    }
+    public boolean toBool(Object obj) throws LightScriptException {
+        if (obj == LightScript.TRUE) {
+            return true;
+        }
+        if (obj == LightScript.FALSE || obj == LightScript.NULL || obj == LightScript.UNDEFINED) {
+            return false;
+        }
+        return callMethod(obj, "toBool") == LightScript.TRUE;
+    }
+    // </editor-fold>
     //<editor-fold desc="apply(...)">
 
     private Object apply(String fn, Object args[]) throws LightScriptException {

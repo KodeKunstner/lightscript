@@ -214,8 +214,9 @@ class StdLib implements LightScriptFunction {
             }
             case 25: { // array.concat
                 Stack result = new Stack();
-                for(int i = 1; i <= argcount; ++i) {
-                   Object o = args[argpos + i];
+                for(int i = 0; i <= argcount; ++i) {
+                    if(!(i == 0 && args[argpos] instanceof StdLib)) {
+                    Object o = args[argpos + i];
                     if (o instanceof Stack) {
                         Stack s = (Stack) o;
                         for (int j = 0; j < s.size(); ++j) {
@@ -223,6 +224,7 @@ class StdLib implements LightScriptFunction {
                         }
                     } else {
                         result.push(o);
+                    }
                     }
                 }
                 return result;
@@ -266,15 +268,58 @@ class StdLib implements LightScriptFunction {
             case 28: { // new object
                 return new Hashtable();
             }
-            // TODO:
-            // array.sort
-            // string.charcodeat
-            // string.fromchar
-            // string.concat
-            // string getter
+            case 29: { // array.sort
+                Stack s = (Stack) args[argpos];
+                LightScriptFunction cmp;
+                if(argcount  > 0 && args[argpos+1] instanceof LightScriptFunction) {
+                    cmp = (LightScriptFunction)args[argpos+1];
+                } else {
+                    cmp = new StdLib(30);
+                }
+                qsort(s, 0, s.size() - 1, cmp);
+                return s;
+            }
+            case 30: { // default sort comparison
+                return args[argpos+1].toString().compareTo(args[argpos+2].toString()) >= 0? one : minusOne;
+            }
+            case 31: { // string.charCodeAt
+                LightScript ls = (LightScript)closure;
+                return new Integer(((String)args[argpos]).charAt(((Integer)ls.callMethod(args[argpos+1], "toInt")).intValue()));
+            }
+            case 32: { // string __getter__
+                if (args[argpos + 1] instanceof Integer) {
+                    String s = (String)args[argpos];
+                    int pos = ((Integer) args[argpos + 1]).intValue();
+                    if (pos >= 0 && pos < s.length()) {
+                        return String.valueOf(s.charAt(pos));
+                    } else {
+                        return LightScript.UNDEFINED;
+                    }
+                } else if ("length".equals(args[argpos + 1])) {
+                    return new Integer(((String) args[argpos]).length());
+                } else {
+                    return ((LightScriptFunction) closure).apply(args, argpos, argcount);
+                }
+            }
+            case 33: { // string.concat
+                LightScript ls = (LightScript)closure;
+                StringBuffer sb = new StringBuffer();
+                for(int i = 0; i <= argcount; ++i) {
+                    if(!(i == 0 && args[argpos] instanceof StdLib)) {
+                    sb.append((String)ls.callMethod(args[argpos+i], "toString"));
+                    }
+                }
+                return sb.toString();
+            }
+            case 34: { // string.fromCharCode
+                LightScript ls = (LightScript)closure;
+                return String.valueOf((char)ls.toInt(args[argpos + 1]));
+            }
         }
         return LightScript.UNDEFINED;
     }
+    private static final Integer one = new Integer(1);
+    private static final Integer minusOne = new Integer(-1);
 
     public static void register(LightScript ls) {
 
@@ -303,12 +348,19 @@ class StdLib implements LightScriptFunction {
         ls.setMethod(arrayClass, "pop", new StdLib(5));
         ls.setMethod(arrayClass, "join", new StdLib(20, ls));
         ls.setMethod(arrayClass, "slice", new StdLib(27, ls));
+        ls.setMethod(arrayClass, "concat", new StdLib(25, ls));
         array.put("concat", new StdLib(25, ls));
+        ls.setMethod(arrayClass, "sort", new StdLib(29));
 
-        ls.set("String", new StdLib(7, new Hashtable()));
+        Hashtable string = new Hashtable();
+        ls.set("String", new StdLib(7, string));
         Class stringClass = "".getClass();
+        ls.setMethod(stringClass, "__getter__", new StdLib(32, ls.getMethod(stringClass, "__getter__")));
         ls.setMethod(stringClass, "toInt", new StdLib(13));
         ls.setMethod(stringClass, "slice", new StdLib(27, ls));
+        ls.setMethod(stringClass, "charCodeAt", new StdLib(31, ls));
+        ls.setMethod(stringClass, "concat", new StdLib(33, ls));
+        string.put("fromCharCode", new StdLib(34, ls));
 
         ls.set("global", ls);
         Class globalClass = ls.getClass();
@@ -321,6 +373,43 @@ class StdLib implements LightScriptFunction {
 
         Class stdlibClass = (new StdLib(0)).getClass();
         ls.setMethod(stdlibClass, "__getter__", new StdLib(26, ls));
+    }
+
+    private static void qsort(Stack arr, int first, int last, LightScriptFunction cmp) throws LightScriptException {
+        Object args[] = {arr, null, null};
+        while (first < last) {
+            int l = first;
+            int r = last;
+            Object pivot = arr.elementAt((l + r) / 2);
+            arr.setElementAt(arr.elementAt(r), (l + r) / 2);
+            arr.setElementAt(pivot, r);
+
+            while (l < r) {
+                --l;
+                do {
+                    ++l;
+                    args[1] = arr.elementAt(l);
+                    args[2] = pivot;
+                } while (((Integer) cmp.apply(args, 0, 2)).intValue() <= 0 && l < r);
+                if (l < r) {
+                    arr.setElementAt(arr.elementAt(l), r);
+                    r--;
+                }
+                ++r;
+                do {
+                    r--;
+                    args[1] = pivot;
+                    args[2] = arr.elementAt(r);
+                } while (((Integer) cmp.apply(args, 0, 2)).intValue() <= 0 && l < r);
+                if (l < r) {
+                    arr.setElementAt(arr.elementAt(r), l);
+                    l++;
+                }
+            }
+            arr.setElementAt(pivot, r);
+            qsort(arr, l + 1, last, cmp);
+            last = l - 1;
+        }
     }
 }
 

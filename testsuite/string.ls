@@ -7,3 +7,7 @@ test('"foo".toString()', "foo");
 test('"abcde".slice(2,4)', "cd");
 test('"abcde".slice(-3,-1)', "cd");
 test('"abcde".slice(0)', "abcde");
+test('"a b".charCodeAt(1)', 32);
+test('"a".concat("b", "c")', "abc");
+test('String.fromCharCode(65)', "A");
+test('"abc"[1]', "b");

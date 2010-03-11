@@ -76,7 +76,7 @@ class Code implements LightScriptFunction {
         return (short) (((code[++pc] & 0xff) << 8) | (code[++pc] & 0xff));
     }
 
-    static int toInt(LightScript ls, Object[] stack, int sp) throws LightScriptException {
+    private static int toInt(LightScript ls, Object[] stack, int sp) throws LightScriptException {
         if (stack[sp] instanceof Integer) {
             return ((Integer) stack[sp]).intValue();
         } else {

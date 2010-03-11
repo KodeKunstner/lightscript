@@ -13,7 +13,9 @@ test('["a", "b", "c"].join()', "a,b,c");
 test('["a", "b", "c"].join("")', "abc");
 test('["a", "b", "c"].join("ZZ")', "aZZbZZc");
 test('Array.concat("foo", ["bar", "baz"], "quux").toString()', "[foo, bar, baz, quux]");
+test('["foo", "bar"].concat(["bar", "baz"], "quux").toString()', "[foo, bar, bar, baz, quux]");
 test('perm = []; for (var i = 0; i < 5; ++i) perm[i] = i; perm.join("")', "01234");
 test('["a", "b", "c", "d", "e"].slice(1,4).join("")', "bcd");
 test('["a", "b", "c", "d", "e"].slice(-2).join("")', "de");
-
+test('[2, 15, 1].sort().join()', "1,15,2");
+test('[2, 15, 1].sort(function(a, b) { return a - b; }).join()', "1,2,15");
