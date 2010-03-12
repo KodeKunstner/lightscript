@@ -4,14 +4,7 @@ TODO
 - Before 2.0
     - language
         - support postfix ++/--
-        - support for decimal numbers
     - library
-        - fixed-point library
-        - simple non-finalised gui library
-            - Page()
-            - Page.addItem(string-item)
-            - Page.addItem(link-name, callback)
-            - Page.show()
         - simple non-finalised http-get library
             - HttpClient.get(url, callback)
         - simple non-finalised storage library
@@ -20,18 +13,28 @@ TODO
         - remove Cldc10 class
     - documentation
         - library reference and language documentation in README.md
-        - javadoc to all methods
+        - javadoc to all methods and classes
+    - done
+        - New class system
+        - Major refactoring
+        - API improvements, including shorthands
+        - Gui library
+        
 - Later
     - Full code coverage for testsuite
     - language
         - support new
         - support arguments
+        - support for decimal numbers
     - library
+        - fixed-point library
         - InsertOrderedHashtable
         - Error-logging with upload to server.
         - Turtle
         - larger part of EcmaScript std. library.
         - floating point
+        - backed up storage
+        - Cryptography
         - regex
         - better gui library
         - InputStream support
