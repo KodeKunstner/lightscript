@@ -3,7 +3,7 @@ package com.solsort.mobile;
 import javax.microedition.lcdui.Display;
 import javax.microedition.midlet.MIDlet;
 
-public class MidpGui implements LightScriptFunction {
+public class Midp1 implements LightScriptFunction {
 
     int fn;
     static Display disp;
@@ -44,7 +44,7 @@ public class MidpGui implements LightScriptFunction {
         return null;
     }
 
-    private MidpGui(int fn) {
+    private Midp1(int fn) {
         this.fn = fn;
     }
 
@@ -52,10 +52,10 @@ public class MidpGui implements LightScriptFunction {
         disp = Display.getDisplay(mid);
         
         Class cls = new MidpMenu("").getClass();
-        ls.set("Menu", new MidpGui(0));
-        ls.setMethod(cls, "addItem", new MidpGui(1));
-        ls.setMethod(cls, "show", new MidpGui(2));
-        ls.set("TextInput", new MidpGui(3));
+        ls.set("Menu", new Midp1(0));
+        ls.setMethod(cls, "addItem", new Midp1(1));
+        ls.setMethod(cls, "show", new Midp1(2));
+        ls.set("TextInput", new Midp1(3));
 
     }
 }
