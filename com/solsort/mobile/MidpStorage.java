@@ -1,5 +1,6 @@
 package com.solsort.mobile;
 
+import java.util.Enumeration;
 import java.util.Hashtable;
 import javax.microedition.rms.RecordEnumeration;
 import javax.microedition.rms.RecordStore;
@@ -9,6 +10,9 @@ public class MidpStorage {
     private Hashtable names;
     private String storeName;
 
+    public Enumeration keys() {
+        return names.keys();
+    }
     public void set(String key, String value) throws LightScriptException {
         RecordStore records = openStore();
         try {
@@ -30,7 +34,7 @@ public class MidpStorage {
     }
 
     public String get(String key) throws LightScriptException {
-        String result = "";
+        String result = null;
         Object o = names.get(key);
         if (o != null) {
             RecordStore records = openStore();
@@ -65,37 +69,39 @@ public class MidpStorage {
     private MidpStorage(String storeName) throws LightScriptException {
         this.names = new Hashtable();
         this.storeName = storeName;
-        RecordStore records = openStore();
-        try {
-            RecordEnumeration iter = records.enumerateRecords(null, null, false);
-            int ids[] = new int[10];
-            int count = 0;
-            while (iter.hasNextElement()) {
-                if (count >= ids.length) {
-                    int t[] = new int[(count * 3) / 2];
-                    System.arraycopy(ids, 0, t, 0, count);
-                    ids = t;
+        if (StdLib.tupleIndexOf(RecordStore.listRecordStores(), storeName) != -1) {
+            RecordStore records = openStore();
+            try {
+                RecordEnumeration iter = records.enumerateRecords(null, null, false);
+                int ids[] = new int[10];
+                int count = 0;
+                while (iter.hasNextElement()) {
+                    if (count >= ids.length) {
+                        int t[] = new int[(count * 3) / 2];
+                        System.arraycopy(ids, 0, t, 0, count);
+                        ids = t;
+                    }
+                    ids[count] = iter.nextRecordId();
+                    ++count;
                 }
-                ids[count] = iter.nextRecordId();
-                ++count;
+                for (int i = 0; i < count; ++i) {
+                    byte record[] = records.getRecord(ids[i]);
+                    int namelen = 0;
+                    while (namelen < record.length && record[namelen] != 0) {
+                        ++namelen;
+                    }
+                    char[] chars = new char[namelen];
+                    for (int j = 0; j < namelen; ++j) {
+                        chars[j] = (char) record[j];
+                    }
+                    names.put(String.valueOf(chars), new Integer(ids[i]));
+                }
+            } catch (Exception ex) {
+                this.closeStore(records);
+                throw new LightScriptException(ex);
             }
-            for (int i = 0; i < count; ++i) {
-                byte record[] = records.getRecord(ids[i]);
-                int namelen = 0;
-                while (namelen < record.length && record[namelen] != 0) {
-                    ++namelen;
-                }
-                char[] chars = new char[namelen];
-                for (int j = 0; j < namelen; ++j) {
-                    chars[j] = (char) record[j];
-                }
-                names.put(String.valueOf(chars), new Integer(ids[i]));
-            }
-        } catch (Exception ex) {
             this.closeStore(records);
-            throw new LightScriptException(ex);
         }
-        this.closeStore(records);
     }
 
     private RecordStore openStore() throws LightScriptException {

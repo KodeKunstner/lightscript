@@ -27,9 +27,9 @@ import java.util.Stack;
  */
 // </editor-fold>
 public final class LightScript {
+
     static final boolean DEBUG_ENABLED = true;
     // <editor-fold desc="TRUE NULL FALSE UNDEFINED">
-
     /** The true truth value of results
      * of tests/comparisons within LightScript */
     public static final Object TRUE = new StringBuffer("true");
@@ -40,6 +40,22 @@ public final class LightScript {
     /** The false truth value of results
      * of tests/comparisons within LightScript */
     public static final Object FALSE = new StringBuffer("false");
+
+    private Type getType(Class c) {
+        Type t;
+        Object o = types.get(c);
+        if (o == null) {
+            t = new Type();
+            types.put(c, t);
+        } else {
+            t = (Type) o;
+        }
+        return t;
+    }
+
+    LightScriptFunction getDefaultGetter(Class cls) {
+        return (LightScriptFunction)getType(cls);
+    }
     // </editor-fold>
     // <editor-fold desc="types">
 
@@ -60,6 +76,9 @@ public final class LightScript {
             Object o = methods.get(args[argpos + 1]);
             if (o == null) {
                 o = defaultType.methods.get(args[argpos + 1]);
+                if(o == null) {
+                    o = UNDEFINED;
+                }
             }
             return o;
         }
@@ -116,13 +135,7 @@ public final class LightScript {
         if (c == null) {
             t = defaultType;
         } else {
-            Object o = types.get(c);
-            if (o == null) {
-                t = new Type();
-                types.put(c, t);
-            } else {
-                t = (Type) o;
-            }
+            t = getType(c);
         }
         if ("__setter__".equals(methodName)) {
             t.setter = function;
@@ -150,7 +163,6 @@ public final class LightScript {
         }
         return box;
     }
-
     Object[] newObjectFunctionBoxed = getBox("Object");
     Object[] newArrayFunctionBoxed = getBox("Array");
 
@@ -268,22 +280,22 @@ public final class LightScript {
 
     public Object call(String fn) throws LightScriptException {
         Object args[] = {this};
-        return apply((LightScriptFunction)get(fn), args);
+        return apply((LightScriptFunction) get(fn), args);
     }
 
     public Object call(String fn, Object arg1) throws LightScriptException {
         Object args[] = {this, arg1};
-        return apply((LightScriptFunction)get(fn), args);
+        return apply((LightScriptFunction) get(fn), args);
     }
 
     public Object call(String fn, Object arg1, Object arg2) throws LightScriptException {
         Object args[] = {this, arg1, arg2};
-        return apply((LightScriptFunction)get(fn), args);
+        return apply((LightScriptFunction) get(fn), args);
     }
 
     public Object call(String fn, Object arg1, Object arg2, Object arg3) throws LightScriptException {
         Object args[] = {this, arg1, arg2, arg3};
-        return apply((LightScriptFunction)get(fn), args);
+        return apply((LightScriptFunction) get(fn), args);
     }
 
     public Object callMethod(Object thisPtr, String fn) throws LightScriptException {

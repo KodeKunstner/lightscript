@@ -23,8 +23,8 @@ class MidpMenu implements CommandListener, Runnable {
         disp.setCurrent(menu);
     }
 
-    public MidpMenu(String name) {
-        menu = new List(name, List.IMPLICIT);
+    public MidpMenu() {
+        menu = new List("...", List.IMPLICIT);
         menuHandlers = new Stack();
         menu.setCommandListener(this);
         menu.addCommand(new Command("...", Command.OK, 0));

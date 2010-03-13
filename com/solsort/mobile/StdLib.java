@@ -7,6 +7,8 @@ import java.util.Enumeration;
 public final class StdLib implements LightScriptFunction {
     //<editor-fold desc="constants">
 
+    static final int ENUMERATION_ITERATOR = 22;
+
     /** new Object[0]. Defined as property for caching. */
     public static final Object emptyTuple[] = new Object[0];
     /** new Integer(1). Defined as property for caching. */
@@ -33,6 +35,9 @@ public final class StdLib implements LightScriptFunction {
     }
 
     public static int tupleIndexOf(Object[] tuple, Object o, int fromIndex) {
+        if(tuple == null) {
+            return -1;
+        }
         for (int i = fromIndex; i < tuple.length; ++i) {
             if (tuple[i].equals(o)) {
                 return i;
@@ -144,11 +149,11 @@ public final class StdLib implements LightScriptFunction {
     private int fn;
     private Object closure;
 
-    private StdLib(int fn) {
+    StdLib(int fn) {
         this.fn = fn;
     }
 
-    private StdLib(int fn, Object closure) {
+    StdLib(int fn, Object closure) {
         this.fn = fn;
         this.closure = closure;
     }
@@ -187,7 +192,8 @@ public final class StdLib implements LightScriptFunction {
                 }
             }
             case 3: { // default add
-                return args[argpos].toString() + args[argpos + 1].toString();
+                LightScript ls = (LightScript) closure;
+                return ls.toString(args[argpos]) + ls.toString(args[argpos + 1]);
             }
             case 4: { // stack push
                 return ((Stack) args[argpos]).push(args[argpos + 1]);
@@ -262,7 +268,7 @@ public final class StdLib implements LightScriptFunction {
                 return args[argpos + 1];
             }
             case 16: { // toString
-                return args[argpos].toString();
+                return String.valueOf(args[argpos]);
             }
             case 17: { // clone
                 Hashtable h = new Hashtable();
@@ -310,9 +316,9 @@ public final class StdLib implements LightScriptFunction {
                 return sb.toString();
             }
             case 21: { // hashtable __iter__
-                return new StdLib(22, ((Hashtable) args[argpos]).keys());
+                return new StdLib(ENUMERATION_ITERATOR, ((Hashtable) args[argpos]).keys());
             }
-            case 22: { // hashtable iterator
+            case ENUMERATION_ITERATOR: { // iterator, should have an enumeration as closure
                 Enumeration e = (Enumeration) closure;
                 Object o;
                 do {
@@ -486,11 +492,31 @@ public final class StdLib implements LightScriptFunction {
                 tupleCopyInto((Object[]) args[argpos], result);
                 return result;
             }
+            case 39: {
+                LightScriptFunction ls[] = (LightScriptFunction[])closure;
+                Object result = ls[0].apply(args, argpos, argcount);
+                if(result == null) {
+                    result = ls[1].apply(args, argpos, argcount);
+                }
+                return result;
+            }
         }
         return LightScript.UNDEFINED;
     }
 
-    public static void register(LightScript ls) {
+    // TODO use newGetter for getters here
+    static void setGetter(LightScript ls, Class cls, LightScriptFunction fn) {
+        LightScriptFunction closure[] = { fn, ls.getDefaultGetter(cls) };
+        ls.setMethod(cls, "__getter__", new StdLib(39, closure));
+    }
+    /*
+    static void setGetter(LightScript ls, Class cls, LightScriptFunction fn) {
+        LightScriptFunction closure[] = { fn, ls.getDefaultGetter() };
+        ls.setMethod(cls, "__getter__", new StdLib(39, closure));
+    }
+
+     */
+    static void register(LightScript ls) {
 
         ls.set("global", ls);
         Class globalClass = ls.getClass();
@@ -498,7 +524,7 @@ public final class StdLib implements LightScriptFunction {
         ls.setMethod(globalClass, "__getter__", new StdLib(11, ls_getter_args));
         ls.setMethod(globalClass, "__setter__", new StdLib(12, ls));
 
-        ls.setMethod(null, "+", new StdLib(3));
+        ls.setMethod(null, "+", new StdLib(3, ls));
         ls.setMethod(null, "toString", new StdLib(16));
 
         ls.set("print", new StdLib(15, ls));
