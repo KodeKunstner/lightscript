@@ -7,25 +7,26 @@ TODO
     - library
         - simple non-finalised http-get library
             - HttpClient.get(url, callback)
-        - simple non-finalised storage library
-            - Storage.get(key)
-            - Storage.set(key, value)
         - remove Cldc10 class
     - documentation
         - library reference and language documentation in README.md
+        - document class system
         - javadoc to all methods and classes
     - done
         - New class system
         - Major refactoring
         - API improvements, including shorthands
         - Gui library
+        - Storage library
         
 - Later
     - Full code coverage for testsuite
     - language
         - support new
-        - support arguments
+        - support special arguments
         - support for decimal numbers
+        - Make null, true and false be java-null, Boolean(true), Boolean(false)
+            - better handling of null within runtime.
     - library
         - fixed-point library
         - InsertOrderedHashtable
@@ -41,3 +42,4 @@ TODO
     - Include applications
     - documentation, including benchmarks from thesis
     - Website for project
+
