@@ -16,16 +16,17 @@ Current Standard Library
 - clone(Object)
 - parseint(string, base)
 - global
-    - .__getter__(key)
-    - .__setter__(key, val)
-- All types
+    - .\_\_getter\_\_(key)
+    - .\_\_setter\_\_(key, val)
+- *All types*
     - .toString()
     - +
-- Stack type 
-    - Array(), [...]
-    - .__getter__(key)
-    - .__setter__(key, val)
-    - .__iter__()
+- *java.util.Stack type*
+    - [elem1, elem2, ...]
+    - Array()
+    - .\_\_getter\_\_(key)
+    - .\_\_setter\_\_(key, val)
+    - .\_\_iter\_\_()
     - .push(val)
     - .pop()
     - .join([seperator])
@@ -34,25 +35,29 @@ Current Standard Library
     - Array.concat(...)
     - .sort([compare function])
     - .toTuple()
-- Hashtable type 
-    - Object(), {...}
+- *java.util.Hashtable type*
+    - { key: val, key:val, ... }
+    - Object()
     - .hasOwnProperty(x)
-    - .__getter__(key)
-    - .__setter__(key, val)
-    - .__iterator__
-- String type
+    - .\_\_getter\_\_(key)
+    - .\_\_setter\_\_(key, val)
+    - .\_\_iterator\_\_
+- *java.lang.String type*
+    - "..."
+    - '...'
     - String()
-    - .__getter__(key)
+    - .\_\_getter\_\_(key)
     - .toInt()
     - .slice(start[, end])
     - .charCodeAt(pos)
     - .concat
     - String.fromCharCode(code)
-- Object[] type
+- *java.lang.Object[] type*
     - Tuple(...)
     - .sort([compare function[, start[, end]]])
     - .toArray()
-- Integer type
+- *java.lang.Integer type*
+    - 123...
     - .toInt()
 
 Midp1 library (api not stabilised)
