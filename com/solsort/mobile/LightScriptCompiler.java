@@ -1,17 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.solsort.mobile;
 
 import java.io.InputStream;
 import java.util.Hashtable;
 import java.util.Stack;
 
-/**
- *
- * @author rje
- */
 final class LightScriptCompiler {
     private String stringify(Object o) {
         return LightScriptOpCodes.stringify(o);
