@@ -80,6 +80,7 @@ final class LightScriptCompiler {
     private static final int NUD_ATOM = 10;
     private static final int NUD_CATCH = 11;
     private static final int NUD_CONST = 12;
+    private static final int NUD_FOR = 13;
 
     /* The function id for the null denominator functions */
     private static final int LED_NONE = 8;
@@ -393,6 +394,29 @@ final class LightScriptCompiler {
         return StdLib.stackToTuple(s);
     }
 
+    private void doAssert(boolean b) {
+        if(!b) throw new Error("Assert error");
+    }
+
+    private Object[] readForList() {
+        nextToken(); // skip "("
+        Object o[] = (token == TOKEN_SEP_SEMI) ? SEP_TOKEN : parse(0);
+        if(token == TOKEN_END) {
+            nextToken();
+            return o;
+        } else {
+            doAssert(token==TOKEN_SEP_SEMI);
+            nextToken();
+            Object o2[] = (token == TOKEN_SEP_SEMI) ? SEP_TOKEN : parse(0);
+            doAssert(token==TOKEN_SEP_SEMI);
+            nextToken();
+            Object o3[] = (token == TOKEN_END) ? SEP_TOKEN : parse(0);
+            doAssert(token==TOKEN_END);
+            nextToken();
+            return v(LightScriptOpCodes.PAREN, o, o2, o3);
+        }
+    }
+
     /** Call the null denominator function for a given token
      * and also read the next token. */
     private Object[] nud(int tok) {
@@ -412,6 +436,8 @@ final class LightScriptCompiler {
                         : nudId == LightScriptOpCodes.FALSE ? LightScript.FALSE
                         : nudId == LightScriptOpCodes.NULL ? LightScript.NULL
                         : LightScript.UNDEFINED);
+            case NUD_FOR: 
+                return v(nudId, readForList(), parse(0));
             case NUD_END:
                 return null;// result does not matter,
             // as this is removed during parsing
@@ -955,7 +981,7 @@ final class LightScriptCompiler {
                 + (char) LightScriptOpCodes.NONE
                 + "for"
                 + (char) 1
-                + (char) NUD_PREFIX2
+                + (char) NUD_FOR
                 + (char) LightScriptOpCodes.FOR
                 + (char) LED_NONE
                 + (char) LightScriptOpCodes.NONE
@@ -1466,22 +1492,21 @@ final class LightScriptCompiler {
                 }
             }
             case LightScriptOpCodes.FOR: {
+                assertLength(expr, 3);
                 Object[] args = (Object[]) expr[1];
                 Object init, cond, step;
-                if (args.length > 2) {
-                    //for(..;..;..)
-                    int pos = 1;
-                    init = args[pos];
-                    pos += (init == SEP_TOKEN_SEMI) ? 1 : 2;
-                    cond = args[pos];
-                    pos += (cond == SEP_TOKEN_SEMI) ? 1 : 2;
-                    step = (pos < args.length) ? args[pos] : SEP_TOKEN_SEMI;
+                if (args.length == 4) {
+                    init = args[1];
+                    cond = args[2];
+                    step = args[3];
                     curlyToBlock(expr[2]);
                     compile(v(LightScriptOpCodes.BLOCK, init, v(LightScriptOpCodes.WHILE, cond,
                             v(LightScriptOpCodes.BLOCK, expr[2], step))), yieldResult);
                     hasResult = yieldResult;
                     break;
                 } else {
+                    assertLength(args, 3);
+                    doAssert(getType(args) == LightScriptOpCodes.IN);
                     // for(a in b) c
                     //
                     //   evalute b
@@ -1496,7 +1521,7 @@ final class LightScriptCompiler {
                     int pos0, pos1;
 
                     // find the name
-                    Object[] in = (Object[]) ((Object[]) expr[1])[1];
+                    Object[] in = args;
                     Object name = ((Object[]) in[1])[1];
                     if (!(name instanceof String)) {
                         // var name
