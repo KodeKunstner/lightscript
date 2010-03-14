@@ -64,7 +64,7 @@ diff: clean
 	git diff 
 
 commit: clean
-	git add `find * -name "*.java"` testsuite/*.ls Makefile README.md TODO
+	git add `find * -name "*.java"` `find * -name "*.ls"` Makefile README.md TODO
 	git commit -m autocommit
 
 .SUFFIXES: .java .class
