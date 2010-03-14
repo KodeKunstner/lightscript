@@ -57,6 +57,9 @@ guitest: examples/guitest/guitest.jar
 
 ex: examples/moby/moby.jar
 
+reindent:
+	astyle `find * -name "*.java"`
+
 st: clean
 	git status || echo
 
