@@ -5,8 +5,7 @@ LightScript is a subscript of EcmaScript,
 with a compact implementation running
 on low end mobile devices.
 
-Currently under major redevelopment
-todo more introduction...
+Currently under major redevelopment.
 
 Current Standard Library
 ------------------------

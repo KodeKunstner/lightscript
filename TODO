@@ -3,7 +3,10 @@ TODO
 
 - Before 2.0
     - language
-        - support postfix ++/--
+        - refactor compiler
+        - reimplement for-handling, not depending on parsing separators (a la var);
+        - drop separators during parsing
+        - support prefix/postfix ++/--
     - library
         - simple non-finalised http-get library
             - HttpClient.get(url, callback)
