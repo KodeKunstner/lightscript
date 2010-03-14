@@ -7,7 +7,7 @@ class LightScriptTest implements LightScriptFunction {
         str = (String) args[argpos+1];
         Object result = ls.eval(str);
         ++testno;
-        if(result.equals(args[argpos+2])) {
+        if (result.equals(args[argpos+2])) {
             System.out.print(testno % 10);
         } else {
             ++errorcount;
@@ -22,17 +22,17 @@ class LightScriptTest implements LightScriptFunction {
     static String str;
     static int errorcount = 0;
     static int totalcount = 0;
-    public static void main(String args[]) throws FileNotFoundException{
+    public static void main(String args[]) throws FileNotFoundException {
         ls = new LightScript();
         ls.set("test", new LightScriptTest());
-        for(int i = 0; i < args.length; ++i) {
+        for (int i = 0; i < args.length; ++i) {
             System.out.print("\nTesting " + args[i] + ": ");
             try {
                 testno = 0;
                 ls.eval(new FileInputStream(args[i]));
-            } catch(Throwable e) {
+            } catch (Throwable e) {
                 ++errorcount;
-                if(e instanceof LightScriptException) {
+                if (e instanceof LightScriptException) {
                     System.out.println("Error: got LightScriptException during evaluation: " + ((LightScriptException)e).value.toString());
                 }
                 System.out.println("Exception with code: " + str);

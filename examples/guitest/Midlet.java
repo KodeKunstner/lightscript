@@ -9,7 +9,7 @@ public class Midlet extends MIDlet {
         try {
             Midp1.register(ls, this, "foo");
             ls.eval(this.getClass().getResourceAsStream("script.ls"));
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }

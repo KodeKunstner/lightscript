@@ -109,46 +109,46 @@ final class LightScriptOpCodes {
 
     /** A toString, that also works nicely on arrays, and LightScript code */
     public static String stringify(Object o) {
-            if (o == null) {
-                return "null";
-            } else if (o instanceof Object[]) {
-                StringBuffer sb = new StringBuffer();
-                Object[] os = (Object[]) o;
-                sb.append("[");
-                if (os.length > 0 && os[0] instanceof Integer) {
-                    int id = ((Integer) os[0]).intValue();
-                    sb.append(idName(id));
-                } else if (os.length > 0) {
-                    sb.append(os[0]);
-                }
-                for (int i = 1; i < os.length; i++) {
-                    sb.append(" " + stringify(os[i]));
-                }
-                sb.append("]");
-                return sb.toString();
-            } else if (o instanceof LightScriptCode) {
-                LightScriptCode c = (LightScriptCode) o;
-                StringBuffer sb = new StringBuffer();
-                sb.append("closure" + c.argc + "{\n\tcode:");
-                for (int i = 0; i < c.code.length; i++) {
-                    sb.append(" ");
-                    sb.append(idName(c.code[i]));
-                }
-                sb.append("\n\tclosure:");
-                for (int i = 0; i < c.closure.length; i++) {
-                    sb.append(" " + i + ":");
-                    sb.append(stringify(c.closure[i]));
-                }
-                sb.append("\n\tconstPool:");
-                for (int i = 0; i < c.constPool.length; i++) {
-                    sb.append(" " + i + ":");
-                    sb.append(stringify(c.constPool[i]));
-                }
-                sb.append("\n}");
-                return sb.toString();
-            } else {
-                return o.toString();
+        if (o == null) {
+            return "null";
+        } else if (o instanceof Object[]) {
+            StringBuffer sb = new StringBuffer();
+            Object[] os = (Object[]) o;
+            sb.append("[");
+            if (os.length > 0 && os[0] instanceof Integer) {
+                int id = ((Integer) os[0]).intValue();
+                sb.append(idName(id));
+            } else if (os.length > 0) {
+                sb.append(os[0]);
             }
+            for (int i = 1; i < os.length; i++) {
+                sb.append(" " + stringify(os[i]));
+            }
+            sb.append("]");
+            return sb.toString();
+        } else if (o instanceof LightScriptCode) {
+            LightScriptCode c = (LightScriptCode) o;
+            StringBuffer sb = new StringBuffer();
+            sb.append("closure" + c.argc + "{\n\tcode:");
+            for (int i = 0; i < c.code.length; i++) {
+                sb.append(" ");
+                sb.append(idName(c.code[i]));
+            }
+            sb.append("\n\tclosure:");
+            for (int i = 0; i < c.closure.length; i++) {
+                sb.append(" " + i + ":");
+                sb.append(stringify(c.closure[i]));
+            }
+            sb.append("\n\tconstPool:");
+            for (int i = 0; i < c.constPool.length; i++) {
+                sb.append(" " + i + ":");
+                sb.append(stringify(c.constPool[i]));
+            }
+            sb.append("\n}");
+            return sb.toString();
+        } else {
+            return o.toString();
+        }
     }
     /*`\subsection{StdLibity classes}'*/
     /*`\subsubsection{StdLib}'*/

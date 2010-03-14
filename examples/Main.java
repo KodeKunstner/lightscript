@@ -11,8 +11,8 @@ public class Main {
      */
     public static void main(String[] args) throws Exception {
         InputStream is;
-        if(args.length == 1) {
-	    is = new FileInputStream(new File(args[0]));
+        if (args.length == 1) {
+            is = new FileInputStream(new File(args[0]));
         } else {
             is = System.in;
         }

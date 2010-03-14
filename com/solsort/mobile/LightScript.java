@@ -2,7 +2,7 @@
 package com.solsort.mobile;
 
 /**
-This software is released under the 
+This software is released under the
 AFFERO GENERAL PUBLIC LICENSE version 3
 
 (the actual license text can be retrieved
@@ -76,7 +76,7 @@ public final class LightScript {
             Object o = methods.get(args[argpos + 1]);
             if (o == null) {
                 o = defaultType.methods.get(args[argpos + 1]);
-                if(o == null) {
+                if (o == null) {
                     o = UNDEFINED;
                 }
             }
@@ -128,7 +128,7 @@ public final class LightScript {
      * "__setter__", "__getter__", "__iter__", "toInt", "toBool", "-", "+", "*", "/", "!", "&lt;", "&lt;="
      * @param c the class on which to set the method. If c is null, the default class is used instead.
      * @param methodName the name of the method to set
-     * @param function 
+     * @param function
      */
     public void setMethod(Class c, String methodName, LightScriptFunction function) {
         Type t;
@@ -149,7 +149,7 @@ public final class LightScript {
     /** Hashtable containing boxed global values */
     private Hashtable globals = new Hashtable();
 
-    /** 
+    /**
      * Retrieve a boxed global.
      * @param key the name of the global
      * @return an array of length one, containing the global value.

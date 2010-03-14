@@ -40,7 +40,7 @@ class FixedPoint {
     }
 }
 class FixedPointOps {
-/*`\subsection{Arithmetics}'*/
+    /*`\subsection{Arithmetics}'*/
     //<editor-fold>
 
     static int toInt(Object o) {
@@ -132,5 +132,5 @@ class FixedPointOps {
     }
 
     //</editor-fold>
-    
+
 }

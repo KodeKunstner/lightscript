@@ -13,7 +13,7 @@ import com.solsort.mobile.LightScriptException;
 /**
  * In progress, do not use...
  */
-public final class Cldc10{
+public final class Cldc10 {
     private static Hashtable cookies = new Hashtable();
 
     /**
@@ -50,7 +50,7 @@ public final class Cldc10{
                 }
 
                 cookies.put(cookie.substring(0, eqPos),
-                        cookie.substring(eqPos + 1, semiPos));
+                            cookie.substring(eqPos + 1, semiPos));
             }
         }
         return con.openInputStream();

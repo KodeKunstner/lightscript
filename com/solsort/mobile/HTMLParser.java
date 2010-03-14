@@ -192,7 +192,7 @@ public class HTMLParser {
                     appendc();
                 }
                 content = readbuffer.toString();
-                if(doTrim) {
+                if (doTrim) {
                     content = content.trim();
                 }
             }
@@ -228,27 +228,27 @@ public class HTMLParser {
         while (!eof) {
             nextToken();
             switch (tokentype) {
-                case STARTTAG:
-                    int closetag = StdLib.tupleIndexOf(closingTags, content);
-                    if (closetag != -1) {
-                        tryCloseTags(closedTags[closetag]);
-                    }
+            case STARTTAG:
+                int closetag = StdLib.tupleIndexOf(closingTags, content);
+                if (closetag != -1) {
+                    tryCloseTags(closedTags[closetag]);
+                }
 
-                    tagStack.push(currentTag);
-                    currentTag = new Stack();
-                    currentTag.push(content);
-                    currentTag.push(params);
-                    break;
-                case ENDTAG:
-                    forceCloseTag(content);
-                    break;
-                case SINGLETAG:
-                    Object tag[] = {content, params};
-                    currentTag.push(tag);
-                    break;
-                case TEXT:
-                    currentTag.push(content);
-                    break;
+                tagStack.push(currentTag);
+                currentTag = new Stack();
+                currentTag.push(content);
+                currentTag.push(params);
+                break;
+            case ENDTAG:
+                forceCloseTag(content);
+                break;
+            case SINGLETAG:
+                Object tag[] = {content, params};
+                currentTag.push(tag);
+                break;
+            case TEXT:
+                currentTag.push(content);
+                break;
             }
         }
         while (!tagStack.empty()) {

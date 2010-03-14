@@ -11,13 +11,13 @@ public class Moby extends MIDlet implements LightScriptFunction {
     public void startApp() {
         form = new Form("Moby");
         Display.getDisplay(this).setCurrent(form);
-     
+
 //	InputStream is = this.getClass().getResourceAsStream("test.js");
         LightScript ls = new LightScript();
         ls.set("print", this);
         try {
             ls.eval("print('Hello world')");
-        } catch(LightScriptException e) {
+        } catch (LightScriptException e) {
             System.err.println(e.getMessage());
             e.printStackTrace();
         }

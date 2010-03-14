@@ -9,7 +9,7 @@ public final class LightScriptException extends Exception {
         this.value = value;
     }
     public void printStackTrace() {
-        if(value instanceof Throwable) {
+        if (value instanceof Throwable) {
             ((Throwable)value).printStackTrace();
         }
         super.printStackTrace();
