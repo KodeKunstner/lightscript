@@ -44,6 +44,17 @@ examples/moby/moby.jar: examples/moby/*.java examples/moby/manifest examples/mob
 	java -jar external_dependencies/proguard.jar @examples/midlets.pro
 	mv examples/out.jar examples/moby/moby.jar
 
+examples/guitest/guitest.jar: examples/guitest/* $(DEPS)
+	cd examples/guitest; ln -sf ../../com .
+	cd examples/guitest; javac -source 1.2 -classpath .:../../external_dependencies/midpapi10.jar *.java
+	cd examples/guitest; jar -cvfm ../in.jar manifest com/solsort/*/*.class *.class script.ls
+	cd examples/guitest; rm -f com
+	java -jar external_dependencies/proguard.jar @examples/midlets.pro
+	mv examples/out.jar examples/guitest/guitest.jar
+
+guitest: examples/guitest/guitest.jar
+	../../WTK2.5.2/bin/emulator -cp examples/guitest/guitest.jar Midlet
+
 ex: examples/moby/moby.jar
 
 st: clean
