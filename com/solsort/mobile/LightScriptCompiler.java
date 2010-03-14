@@ -46,9 +46,7 @@ final class LightScriptCompiler {
         return ((Integer)expr[0]).intValue();
     }
 
-    //</editor-fold>
     /* The function id for the null denominator functions */
-    private static final int NUD_NONE = 13;
     private static final int NUD_IDENT = 1;
     private static final int NUD_LITERAL = 2;
     private static final int NUD_END = 3;
@@ -61,10 +59,10 @@ final class LightScriptCompiler {
     private static final int NUD_ATOM = 10;
     private static final int NUD_CATCH = 11;
     private static final int NUD_CONST = 12;
-    private static final int NUD_FOR = 13;
+    private static final int NUD_NONE = 13;
+    private static final int NUD_FOR = 14;
 
     /* The function id for the null denominator functions */
-    private static final int LED_NONE = 8;
     private static final int LED_DOT = 1;
     private static final int LED_INFIX = 2;
     private static final int LED_INFIXR = 3;
@@ -72,13 +70,13 @@ final class LightScriptCompiler {
     private static final int LED_INFIX_IF = 5;
     private static final int LED_OPASSIGN = 6;
     private static final int LED_INFIX_SWAP = 7;
+    private static final int LED_NONE = 8;
 
     /* Tokens objects are encoded as integers */
     /** The number of bits per denominator function */
     private static final int SIZE_FN = 4;
     /** The number of bits per id */
     private static final int SIZE_ID = 7;
-    //</editor-fold>
 
     /* Masks for function/id */
     private static final int MASK_ID = ((1 << SIZE_ID) - 1);
@@ -93,7 +91,7 @@ final class LightScriptCompiler {
             | LED_NONE) << SIZE_ID)
             | LightScriptOpCodes.NONE);
     /** The semicolon sep token, encoded as an integer */
-    private static final int TOKEN_SEP_SEMI = ((((((((0 << SIZE_FN)
+    private static final int TOKEN_SEMICOLON = ((((((((0 << SIZE_FN)
             | NUD_SEP) << SIZE_ID)
             | LightScriptOpCodes.NONE) << SIZE_FN)
             | LED_NONE) << SIZE_ID)
@@ -126,10 +124,7 @@ final class LightScriptCompiler {
      * @return An argumentless function, whose execution correspond the execution of the statement.
      */
     public LightScriptFunction compileNextStatement() {
-// if we debug, we want the real exception, with line number..
-        while (token == TOKEN_SEP_SEMI) {
-            nextToken();
-        }
+        skipSep();
         if (tokenVal == EOF || token == TOKEN_END) {
             return null;
         }
@@ -158,9 +153,13 @@ final class LightScriptCompiler {
         this.varsArgc = 0;
         nextToken();
     }
-    private LightScript ls;
+
     private static Hashtable idMapping;
+
     // <editor-fold desc="properties">
+
+    private LightScript ls;
+
     /** This stack is used during compilation to build the constant pool
      * of the compiled function. The constant pool contains the constants
      * that are used during execution of the function */
@@ -325,6 +324,7 @@ final class LightScriptCompiler {
         return;
     }
     //</editor-fold>
+
     /*`\section{Parser}\label{code-lightscript-parser}
     \index{Top down operator precedence parser}'*/
     //<editor-fold>
@@ -344,7 +344,7 @@ final class LightScriptCompiler {
     }
 
     private void skipSep() {
-        while(token == TOKEN_SEP || token == TOKEN_SEP_SEMI) {
+        while(token == TOKEN_SEP || token == TOKEN_SEMICOLON) {
             nextToken();
         }
     }
@@ -372,20 +372,22 @@ final class LightScriptCompiler {
     }
 
     private void doAssert(boolean b) {
-        if(!b) throw new Error("Assert error");
+        if(LightScript.DEBUG_ENABLED) {
+            if(!b) throw new Error("Syntax error");
+        }
     }
 
     private Object[] readForList() {
         nextToken(); // skip "("
-        Object o[] = (token == TOKEN_SEP_SEMI) ? SEP_TOKEN : parse(0);
+        Object o[] = (token == TOKEN_SEMICOLON) ? SEP_TOKEN : parse(0);
         if(token == TOKEN_END) {
             nextToken();
             return o;
         } else {
-            doAssert(token==TOKEN_SEP_SEMI);
+            doAssert(token==TOKEN_SEMICOLON);
             nextToken();
-            Object o2[] = (token == TOKEN_SEP_SEMI) ? SEP_TOKEN : parse(0);
-            doAssert(token==TOKEN_SEP_SEMI);
+            Object o2[] = (token == TOKEN_SEMICOLON) ? SEP_TOKEN : parse(0);
+            doAssert(token==TOKEN_SEMICOLON);
             nextToken();
             Object o3[] = (token == TOKEN_END) ? SEP_TOKEN : parse(0);
             doAssert(token==TOKEN_END);
@@ -869,19 +871,19 @@ final class LightScriptCompiler {
                 + (char) LightScriptOpCodes.NONE
                 + ":"
                 + (char) 1
-                + (char) NUD_SEP // SKIP
+                + (char) NUD_SEP 
                 + (char) LightScriptOpCodes.SEP
                 + (char) LED_NONE
                 + (char) LightScriptOpCodes.NONE
                 + ";"
                 + (char) 1
                 + (char) NUD_SEP
-                + (char) LightScriptOpCodes.NONE
+                + (char) LightScriptOpCodes.NONE // Different than for ":" and ","
                 + (char) LED_NONE
                 + (char) LightScriptOpCodes.NONE
                 + ","
                 + (char) 1
-                + (char) NUD_SEP // SKIP
+                + (char) NUD_SEP
                 + (char) LightScriptOpCodes.SEP
                 + (char) LED_NONE
                 + (char) LightScriptOpCodes.NONE
@@ -1036,6 +1038,7 @@ final class LightScriptCompiler {
         }
     }
     //</editor-fold>
+
     /*`\section{Compiler}'*/
     //<editor-fold>
 
@@ -1057,8 +1060,10 @@ final class LightScriptCompiler {
     }
 
     private void assertLength(Object[] list, int len) {
-        if (list.length != len) {
-            throw new Error("Wrong number of parameters:" + stringify(list));
+        if(LightScript.DEBUG_ENABLED) {
+            if (list.length != len) {
+                throw new Error("Wrong number of parameters:" + stringify(list));
+            }
         }
     }
 
@@ -1278,24 +1283,6 @@ final class LightScriptCompiler {
                 hasResult = true;
                 break;
             }
-            case LightScriptOpCodes.VAR: {
-                // TODO: delete this case -- unused
-                int id2 = childType(expr, 1);
-                if (id2 == LightScriptOpCodes.IDENT) {
-                    hasResult = false;
-                } else if (id2 == LightScriptOpCodes.SET) {
-                    compile(expr[1], yieldResult);
-                    hasResult = yieldResult;
-                } else {
-                    if (LightScript.DEBUG_ENABLED) {
-                        throw new Error("Error in var statement: "
-                                + stringify(expr));
-                    } else {
-                        return;
-                    }
-                }
-                break;
-            }
             case LightScriptOpCodes.SET: {
                 assertLength(expr, 3);
                 int targetType = childType(expr, 1);
@@ -1320,24 +1307,17 @@ final class LightScriptCompiler {
                 break;
             }
             case LightScriptOpCodes.PAREN: {
-                if (LightScript.DEBUG_ENABLED) {
-                    if (expr.length != 2) {
-                        throw new Error("Unexpected content of parenthesis: "
-                                + stringify(expr));
-                    }
-                }
+                assertLength(expr, 2);
                 compile(expr[1], yieldResult);
                 hasResult = yieldResult;
                 break;
             }
             case LightScriptOpCodes.CALL_FUNCTION: {
-                expr = expr;
                 boolean methodcall = (childType(expr, 1) == LightScriptOpCodes.SUBSCRIPT);
 
                 // save program counter
                 emit(LightScriptOpCodes.SAVE_PC);
                 addDepth(LightScriptCode.RET_FRAME_SIZE);
-
 
                 // find the method/function
                 if (methodcall) {
