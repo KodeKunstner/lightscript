@@ -42,23 +42,6 @@ final class LightScriptCompiler {
         return result;
     }
 
-    /** Returns a new object array, with the seperator tokens removed */
-    private static Object[] stripSep(Object[] os) {
-        Stack s = new Stack();
-        for (int i = 0; i < os.length; i++) {
-            if(os[i] instanceof Object[] && getType((Object[])os[i]) == LightScriptOpCodes.SEP) {
-                Object expr[] = (Object[]) os[i];
-                if(expr.length == 2) {
-                    s.push(expr[1]);
-                }
-            } else {
-                s.push(os[i]);
-            }
-
-        }
-        return StdLib.stackToTuple(s);
-    }
-
     private static int getType(Object []expr) {
         return ((Integer)expr[0]).intValue();
     }
@@ -317,6 +300,7 @@ final class LightScriptCompiler {
             do {
                 pushc();
             } while (isNum());
+            // TODO: handle floating point here...
             token = TOKEN_LITERAL;
             tokenVal = Integer.valueOf(sb.toString());
             return;
@@ -366,11 +350,10 @@ final class LightScriptCompiler {
     }
 
     private Object[] readVars(Stack s) {
-        s.push(parse(0));
-        while(token == TOKEN_SEP) {
+        { do { 
             skipSep();
             s.push(parse(0));
-        }
+        } while(token == TOKEN_SEP); }
 
         return StdLib.stackToTuple(s);
     }
@@ -380,7 +363,6 @@ final class LightScriptCompiler {
      * @return an array of parsed expressions, with s prepended
      */
     private Object[] readList(Stack s) {
-        skipSep();
         while (token != TOKEN_END) {
             s.push(parse(0));
             skipSep();
@@ -473,7 +455,7 @@ final class LightScriptCompiler {
                 varsLocals = new Stack();
 
                 // parse arguments
-                Object[] args = stripSep(parse(0));
+                Object[] args = parse(0);
 
                 boolean isNamed = false;
                 String fnName = null;
@@ -550,7 +532,7 @@ final class LightScriptCompiler {
                 Object[] expr;
                 Stack s = new Stack();
                 s.push(new Integer(LightScriptOpCodes.BLOCK));
-                Object[] exprs = stripSep(readVars(s));
+                Object[] exprs = readVars(s);
                 for(int i=1; i <exprs.length; ++i) {
                     expr = (Object[])exprs[i];
                     int type = getType(expr);
@@ -571,7 +553,7 @@ final class LightScriptCompiler {
                         }
                     }
                 }
-                return stripSep(exprs);
+                return exprs;
             default:
                 if (LightScript.DEBUG_ENABLED) {
                     throw new Error("Unknown token: " + token + ", val: " + val);
@@ -1349,7 +1331,7 @@ final class LightScriptCompiler {
                 break;
             }
             case LightScriptOpCodes.CALL_FUNCTION: {
-                expr = stripSep(expr);
+                expr = expr;
                 boolean methodcall = (childType(expr, 1) == LightScriptOpCodes.SUBSCRIPT);
 
                 // save program counter
