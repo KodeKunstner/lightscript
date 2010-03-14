@@ -4,8 +4,6 @@ TODO
 - Before 2.0
     - language
         - refactor compiler
-        - reimplement for-handling, not depending on parsing separators (a la var);
-        - drop separators during parsing
         - support prefix/postfix ++/--
     - library
         - simple non-finalised http-get library
@@ -21,6 +19,8 @@ TODO
         - API improvements, including shorthands
         - Gui library
         - Storage library
+        - reimplement for-handling, not depending on parsing separators (a la var);
+        - drop separators during parsing
         
 - Later
     - Full code coverage for testsuite

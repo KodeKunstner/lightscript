@@ -16,7 +16,7 @@ final class LightScriptCompiler {
     private String stringify(Object o) {
         return LightScriptOpCodes.stringify(o);
     }
-    private static final boolean DUMP_PARSE_TREE = false;
+    private static final boolean DUMP_PARSE_TREE = true;
     /* Constructors for nodes of the Abstract Syntax Tree.
      * Each node is an array containing an ID, followed by
      * its children or literal values */
@@ -620,8 +620,13 @@ final class LightScriptCompiler {
             }
             case LED_INFIX_IF: {
                 Object branch1 = parse(0);
-                skipSep();
-                Object branch2 = parse(0);
+                Object[] branch2 = parse(0);
+                if (LightScript.DEBUG_ENABLED) {
+                    if (getType(branch2) != LightScriptOpCodes.SEP || branch2.length != 2 || !(branch2[1] instanceof Object[])) {
+                        throw new Error("infix if error");
+                    }
+                } 
+                branch2 = (Object[])branch2[1];
                 return v(LightScriptOpCodes.IF, left, v(LightScriptOpCodes.ELSE, branch1, branch2));
             }
             default:
@@ -1637,10 +1642,14 @@ final class LightScriptCompiler {
                 addDepth(1);
 
                 int i = 0;
-                while (i < expr.length - 2) {
-                    ++i;
+                while (i < expr.length - 3) {
+                    do {
+                        ++i;
+                    } while (childType(expr, i) == LightScriptOpCodes.SEP);
                     compile(expr[i], true);
-                    ++i;
+                    do {
+                        ++i;
+                    } while (childType(expr, i) == LightScriptOpCodes.SEP);
                     compile(expr[i], true);
                     emit(LightScriptOpCodes.PUT);
                     addDepth(-2);
