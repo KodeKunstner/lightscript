@@ -8,30 +8,27 @@ import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.Image;
 import javax.microedition.lcdui.List;
 
-class MidpMenu implements CommandListener, Runnable {
+public class MidpMenu implements CommandListener, Runnable {
 
     private List menu;
     private Stack menuHandlers;
-    private static Image linkLogo;
-
-    static {
-        linkLogo = Image.createImage(5, 5);
-        linkLogo.getGraphics().drawRect(1, 1, 3, 3);
-    }
 
     public void show(Display disp) {
         disp.setCurrent(menu);
     }
 
     public MidpMenu() {
-        menu = new List("...", List.IMPLICIT);
+        menu = new List("", List.IMPLICIT);
         menuHandlers = new Stack();
         menu.setCommandListener(this);
-        menu.addCommand(new Command("...", Command.OK, 0));
+        menu.addCommand(new Command("-", Command.OK, 0));
     }
 
     public void addItem(String text, LightScriptFunction callback) {
-        menu.append(text, callback == null ? null : linkLogo);
+        if(callback != null) {
+            text = "- " + text;
+        }
+        menu.append(text, null);
         menuHandlers.push(callback);
     }
 

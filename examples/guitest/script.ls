@@ -1,27 +1,20 @@
-menu = Menu()
-  .addItem("Hello")
-  .addItem("foobar", function() {
-     Menu().addItem("blah").show();
-   })
-   .show();
-
-/* menu0 = Menu('front page')
+menu0 = Menu()
   .addItem("Hello world!")
   .addItem("Menu1", function() { menu1.show(); })
   .addItem("Menu2", function() { menu2.show(); })
   .show();
 
-menu1 = Menu('menu1')
+menu1 = Menu()
   .addItem("tada", function() { TextInput("Title", foop);});
 
-menu2 = Menu('menu2')
+menu2 = Menu()
   .addItem("to menu 1", function() { menu1.show();});
 
 function foop(text) {
-   Menu(text)
+   Menu()
       .addItem(text, function() {menu0.show()})
       .show();
-}*/
+}
 /*
 function editfoo() {
     TextInput("foo", Storage["foo"], commitfoo);

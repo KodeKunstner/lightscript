@@ -1,18 +1,6 @@
-//<editor-fold desc="license and imports">
+/* Copyright, 2009-2010, Rasmus Jensen, rasmus@solsort.com */
 package com.solsort.mobile;
 
-/**
-This software is released under the
-AFFERO GENERAL PUBLIC LICENSE version 3
-
-(the actual license text can be retrieved
-from the Free Software Foundation:
-http://www.gnu.org/licenses/agpl-3.0.html)
-
-Copyright, 2009-2010, Rasmus Jensen, rasmus@solsort.com
-
-Contact for other licensing options.
- */
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 import java.util.Hashtable;
@@ -41,14 +29,14 @@ public final class LightScript {
      * of tests/comparisons within LightScript */
     public static final Object FALSE = new StringBuffer("false");
 
-    private Type getType(Class c) {
-        Type t;
+    private LightScriptType getType(Class c) {
+        LightScriptType t;
         Object o = types.get(c);
         if (o == null) {
-            t = new Type();
+            t = new LightScriptType(this);
             types.put(c, t);
         } else {
-            t = (Type) o;
+            t = (LightScriptType) o;
         }
         return t;
     }
@@ -59,37 +47,13 @@ public final class LightScript {
     // </editor-fold>
     // <editor-fold desc="types">
 
-    private class Type implements LightScriptFunction {
-
-        java.util.Hashtable methods;
-        LightScriptFunction setter;
-        LightScriptFunction getter;
-
-        Type() {
-            setter = this;
-            getter = this;
-            methods = new Hashtable();
-            methods.put("__getter__", this);
-        }
-
-        public Object apply(Object[] args, int argpos, int argcount) throws LightScriptException {
-            Object o = methods.get(args[argpos + 1]);
-            if (o == null) {
-                o = defaultType.methods.get(args[argpos + 1]);
-                if (o == null) {
-                    o = UNDEFINED;
-                }
-            }
-            return o;
-        }
-    }
     private Hashtable types = new Hashtable();
-    private Type defaultType = new Type();
+    LightScriptType defaultType = new LightScriptType(this);
 
     LightScriptFunction getGetter(Class c) {
         Object o = types.get(c);
         if (o != null) {
-            o = ((Type) o).getter;
+            o = ((LightScriptType) o).getter;
         } else {
             o = defaultType.getter;
         }
@@ -99,7 +63,7 @@ public final class LightScript {
     LightScriptFunction getSetter(Class c) {
         Object o = types.get(c);
         if (o != null) {
-            o = ((Type) o).setter;
+            o = ((LightScriptType) o).setter;
         } else {
             o = defaultType.setter;
         }
@@ -112,10 +76,10 @@ public final class LightScript {
             o = types.get(c);
         }
         if (o == null) {
-            o = new Type();
+            o = new LightScriptType(this);
             types.put(c, o);
         }
-        o = ((Type) o).methods.get(methodName);
+        o = ((LightScriptType) o).methods.get(methodName);
 
         if (o == null) {
             o = defaultType.methods.get(methodName);
@@ -131,7 +95,7 @@ public final class LightScript {
      * @param function
      */
     public void setMethod(Class c, String methodName, LightScriptFunction function) {
-        Type t;
+        LightScriptType t;
         if (c == null) {
             t = defaultType;
         } else {
