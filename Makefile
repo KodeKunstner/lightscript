@@ -21,10 +21,20 @@ dist: clean all
 
 doc: doc/javadoc doc/README.html doc/TODO.html
 doc/javadoc: $(DEPS) README.md TODO
-	echo '<html><body><p>This package contains the LightScript scripting language and various utility functions for mobile applications. The LightScript documentation is included below:</p>' > com/solsort/mobile/package.html
-	pandoc README.md >> com/solsort/mobile/package.html
-	echo '</body></html>' >> com/solsort/mobile/package.html
-	javadoc -use -notree -nodeprecatedlist -stylesheetfile doc/static/style.css -doctitle doctitleX -top '<div id=header><img id=logo src="../../../../static/lightscript650x80.png" /></div><div id=javadoc>' -bottom "</div>" -d doc/javadoc com.solsort.mobile
+	cat doc/source/header.inc > doc/index.html
+	cat doc/source/logo.inc >> doc/index.html
+	cat doc/source/menu.readme.inc >> doc/index.html
+	pandoc README.md >> doc/index.html
+	cat doc/source/footer.inc >> doc/index.html
+	
+	cat doc/source/header.inc > doc/roadmap.html
+	cat doc/source/logo.inc >> doc/roadmap.html
+	cat doc/source/menu.roadmap.inc >> doc/roadmap.html
+	pandoc TODO >> doc/roadmap.html
+	pandoc Changelog >> doc/roadmap.html
+	cat doc/source/footer.inc >> doc/roadmap.html
+	
+	javadoc -use -notree -nodeprecatedlist -stylesheetfile doc/static/style.css -doctitle doctitleX -top "`cat doc/source/logo.inc doc/source/menu.javadoc.inc` <h1>Java API</h1>" -bottom "`cat doc/source/menu.javadoc.inc`" -d doc/javadoc com.solsort.mobile
 	javadoc -package -d doc/javadoc/package com.solsort.mobile
 	javadoc -private -d doc/javadoc/private com.solsort.mobile
 
@@ -35,7 +45,7 @@ doc/TODO.html: TODO
 	pandoc -s TODO -o doc/TODO.html
 
 clean:
-	rm -rf doc/javadoc doc/TODO.html doc/README.html `find com examples testsuite -name "*.class"` examples/*.jar examples/*/*.jar com/solsort/mobile/package.html `find * -name "*.java.orig"`
+	rm -rf doc/javadoc doc/TODO.html doc/README.html `find com examples testsuite -name "*.class"` examples/*.jar examples/*/*.jar com/solsort/mobile/package.html `find * -name "*.java.orig"` doc/*.html
 
 examples/moby/moby.jar: examples/moby/*.java examples/moby/manifest examples/moby/*.jad $(DEPS)
 	javac -source 1.2 -classpath .:external_dependencies/midpapi10.jar examples/moby/*.java

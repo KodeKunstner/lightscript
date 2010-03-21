@@ -19,8 +19,8 @@ Features include:
 - Good integration with Java
 
 
-Content
--------
+Content of this document
+------------------------
 
 - Library Reference
 - Language Reference
