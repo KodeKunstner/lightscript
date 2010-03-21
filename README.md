@@ -7,9 +7,9 @@ on low end mobile devices.
 
 Currently under major redevelopment.
 
-- Documentation is available on http://www.lightscript.net/
-- Latest source code can be downloaded from http://github.com/rasmusjensen/lightscript
-- Updates on recent commits on http://twitter.com/lightscript
+- Documentation is available on [lightscript.net](http://www.lightscript.com/)
+- Latest source code can be downloaded from [github.com/rasmusjensen/lightscript](http://github.com/rasmusjensen/lightscript)
+- Updates on recent commits on [twitter.com/lightscript](http://twitter.com/lightscript)
 
 
 Content
