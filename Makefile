@@ -49,7 +49,7 @@ doc/TODO.html: TODO
 	pandoc -s TODO -o doc/TODO.html
 
 clean:
-	rm -rf doc/javadoc doc/TODO.html doc/README.html `find com examples testsuite -name "*.class"` examples/*.jar examples/*/*.jar com/solsort/mobile/package.html `find * -name "*.java.orig"` doc/*.html doc/*.pdf
+	rm -rf doc/javadoc doc/TODO.html doc/README.html `find com examples testsuite -name "*.class"` examples/*.jar examples/*/*.jar com/solsort/mobile/package.html `find * -name "*.java.orig"` doc/*.html doc/*.pdf doc/index.yaml
 
 examples/moby/moby.jar: examples/moby/*.java examples/moby/manifest examples/moby/*.jad $(DEPS)
 	javac -source 1.2 -classpath .:external_dependencies/midpapi10.jar examples/moby/*.java

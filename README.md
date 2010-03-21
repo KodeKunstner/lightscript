@@ -2,6 +2,9 @@
 % Rasmus Jensen @ lightscript.net
 % 2010
 
+Introduction
+============
+
 LightScript is a scripting language for rapid application development for mobile phones.
 
 - Documentation is available from lightscript.net in [online](http://www.lightscript.net/) and [printable](http://www.lightscript.net/README.pdf) form.
@@ -18,17 +21,6 @@ Features include:
 - Small size ( < 30KB code footprint) and fast execution
 - Exceptions, object literals
 - Good integration with Java
-
-
-Content of this document
-------------------------
-
-- Library Reference
-- Language Reference
-- Implementation details
-
-For details on the Java API and embedding the language, see the Javadoc on [lightscript.net](http://www.lightscript.net/javadoc/com/solsort/lightscript/package-summary.html)
-
 
 Library Reference
 =================

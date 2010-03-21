@@ -1,0 +1,327 @@
+Intro
+LightScript is a scripting language targeting mobile devices.
+Features include:
+
+    * Runs even on very low end mobile phone, on top of Java Micro Edition, requires only CLDC/1.0
+    * JavaScript/EcmaScript-like semantics and syntax
+    * Closures and first class functions
+    * Objects with prototypical inheritance
+    * Small size ( < 20KB code footprint) and fast execution
+    * Exceptions, object literals, and fractional numbers (doubles, or fixed point on integer only devices)
+    * Open Source
+
+The language
+The language is essentially a subset of JavaScript,
+making it easy to learn for web developers,
+and users who are already acquainted with JavaScript.
+The obligatory "Hello world" is:
+
+   print("Hello world!");
+
+Integration with Java
+It is easy to integrate with Java,
+below is a Java program demonstrating
+how to initialise LightScript,
+access global variables,
+and execute literal scripts:
+
+class Application {
+    public static void main(String args[]) {
+        LightScript ls = new LightScript();
+        ls.set("x", 6);
+        ls.eval("result = 'The answer is ' + 7 * x;");
+        System.out.println(ls.get("result"));
+    }
+}
+
+which prints out: The answer is 42
+
+Features
+The following main features are discussed more in details below:
+
+    * Partial JavaScript/EcmaScript compatibility
+    * Good integration with Java
+    * Support for very low-end phones - optional fixed point numbers, small size and good performance
+    * Integrated compiler and virtual machine, supporting on-line on-device execution of source code at run-time
+
+Other features include:
+
+    * Runs on Java Micro Edition including CLDC/1.0 MIDP/1.0, on Java Standard Edition, and likely also on Android
+    * Objects and prototypical inheritance
+    * Closures and first class functions
+    * Static scope
+    * Dynamic type system
+    * Exceptions
+    * Open source
+    * ...
+
+And some of the limitations of the language are:
+
+    * Includes some quircks from JavaScript for compatibility reasons.
+    * Does not have builtin support for regular expressions
+    * ...
+
+JavaScript/EcmaScript compatibility
+
+LightScript is a subset of JavaScript, meaning that LightScript scripts can be executed on top of existing JavaScript implementations, which are already deployed with most browsers, including on smarphones -- a notable example here is the iPhone, which disallows third-party scripting languages, but includes support for JavaScript via WebKit, and thus allows LightScript to be executed on that platform nonetheless. Another benefit of being a JavaScript subset, is that it is easier to get started on for web developers and advanced users who already have some exposure to JavaScript, and thus the familarity may remove the mental barriers of learning a new language, as LightScript can be peceived as a flavor of an existing known language.
+Java integration
+
+It is easy to use LightScript from within Java. LightScript datatypes are represented with standard Java classes, meaning that it is already familiar and easy to use for developers.
+
+LightScript can be used to work on Java objects of existing classes, it does not require that the classes implements certain interfaces or are subclasses of a particular class, but any Java object can be passed around within the LightScript run-time. This allows easy integration, and adding of scriptability, to existing applications.
+Platform support and performance
+
+LightScript runs on even the lowest end mobile devices. The code footprint is a major limitation on the very low end phones, and the LightScript implementation is designed to overcome this: a full LightScript version 1.2 only adds about 15KB to the optimised JAR-size, where the limit for the entire application can be around 64KB on low end phones. It also runs on integer-only platforms, in which case fractional numbers are represented as fixed-point numbers instead of floats.
+
+Benchmarks indicate that the performance of LightScript is an order of magnitude faster than many of the other scripting languages that have a small enough code footprint to run on the lowest end mobile phones, and is similare in performance to other larger scripting languages. Thereby execution of scripts may be feasible even on already slow mobile devices.
+
+In this way LightScript allows scripting where it would otherwise not be possible.
+Compiler and virtual machine, and on-line on-device execution
+
+Scripts are compiled to, and executed on, a virtual machine on the device at run-time, making it usable for configuration files and user defined scripts. This also means that scripts can be updated without needing to reinstall the application, allowing dynamic scriptable content, and updateable buissness logic, if it is kept in LightScript, rather than hardcoded in Java.
+
+Scripts can be executed as they are read from an InputStream. This means that the entire script does not need to be in memory, and also that execution may start before the entire script has been downloaded.
+
+
+Documentation
+
+Programming in LightScript is similar to JavaScript/EcmaScript, and resources for learning EcmaScript can also be used to learn LightScript, albeit with some exceptions:
+
+    * Library functions depend on the embedding application, and thus there is no DOM, etc .
+    * Regular expressions are not supported
+    * switch, case, break, and continue is not support ed. These can be implemented with if/else-if instead which is just as efficient (due to the semantic s of EcmaScript switch statement)
+    * with and eval are not supported
+    * Only a subset of the standard library is implemented, the language reference
+    * Postfix increment/decrement (i++ and i--) is not supported. In most cases this can b e rewritten as a prefix increment/decrement (++i and --i), or else it can be done, introducing a tem porary variable
+    * Inheritance is done with Object.create(...), see http://javascript.crockford.com/prototypal.html.
+    * The typeof operator is not supported, but replaced with a getType function, which also differentiates between arrays and null
+
+A a good resource for programming style and variouse JavaScript programming concepts are http://javascript.crockford.com/.
+
+The remaining documentation focusses on embedding LightScript, rather than how to program in it.
+Embedding LightScript in Java
+
+To evaluate code with LightScript, the developer first has to instantiate a LightScript object, which keeps track of global values, loaded libraries, and the internal compiler state. The c onstructor takes no parameters, and is used as:
+
+    LightScript lsContext = new LightScript();
+
+The LightScript object is a context that can be used to evaluate LightScript code, using the eval method. This method either takes a string or an java.io.InputStream as param eter, which is then read and executed:
+
+    lsContext.eval("print(\"Hello world \" + 17 * 42);");
+    lsContext.eval(new FileInputStream(new File("myscript.js")));
+
+Global variables of the context can be read and written with the get and set metho d, so for example:
+
+    lsContext.set("foo", new Integer(17));
+    lsContext.eval("bar = 'The answer is ' + foo + 25;");
+    System.out.println(lsContext.get("bar");
+
+would print: The answer is 42
+Adding native functions to the runtime
+
+A method of a Java object can be called from LightScript if the object implements the LightScriptFunction interface, which defines an apply method. The interface is:
+
+public interface LightScriptFunction {
+    /** 
+     * Method callable from LightScript.
+     *
+     * @param args      An array that contains the parameters,
+     *                  this is READ ONLY. The n'th parameter is
+     *                  args[argpos + n], i.e:
+     *                  The first parameter is at args[argpos + 1], and 
+     *                  the last parameter is at args[argpos + argcount].
+     *                  "this" is passed as a special zero'th parameter,
+     *                  and is thus available as args[argpos].
+     *
+     * @param argpos    The offset in args, where the parameters lies.
+     *
+     * @param argcount  The number of parameters.
+     *
+     * @return          An object that is returned to LightScript
+     */
+    public Object apply(Object[] args, int argpos, int argcount) 
+                                            throws LightScriptException;
+}
+
+So, for example, a function that returns the current number of milliseconds could be implemented as:
+
+class MillisecondsFunction implements LightScriptFunction {
+    public Object apply(Object thisPtr, Object[] args, int argpos, 
+                        int argcount) throws LightScriptException {
+        return new Integer((int)System.currentTimeMillis());
+    }
+}
+
+Adding a function to the runtime is just like adding any other variable, via the put method of the LightScript object. So the function above can be used to perform some timings in LightScript as follows:
+
+    lsContext.set("timer",new MillisecondsFunction());
+    lsContext.eval("begin = timer();"
+                  +"for(i=0;i<1000000;++i);"
+                  +"print(\"Time used: \" + (timer() - begin));");
+
+When registering several functions, it is more compact to join them via a dispatch, so a class implementing several functions could be implemented as follows:
+
+class FunctionLibrary implements LightScriptFunction {
+    int id; // This tells which function the object represents
+    public Object apply(Object thisPtr, Object[] args, int argpos, 
+                        int argcount) throws LightScriptException {
+        switch(id) {
+            case 0: // integer division
+                return new Integer(((Integer)args[argpos+1]).intValue()
+                                  /((Integer)args[argpos+2]).intValue());
+             case 1: // increment property i, not of superclass
+                int i = ((Integer)((Hashtable)args[argpos]).get("i")).intValue();
+                ((Hashtable)thisPtr).put("i", new Integer(i + 1));
+        }
+        return null;
+    }
+    private FunctionLibrary(int id) { this.id = id; }
+    public static void register(LightScript lsContext) {
+        lsContext.set("div", new FunctionLibrary(0));
+        lsContext.set("propinc", new FunctionLibrary(1));
+    }
+}
+
+which could be used like:
+
+    FunctionLibrary.register(lsContext);
+    lsContext.eval("obj = {}; obj.i = 1; obj.inc = propinc;"
+                  +"while(obj.i < 10) {"
+                  +"  print(div(42, obj.i));"
+                  +"  obj.inc();"
+                  +"}");
+
+Datatypes
+
+LightScript uses ordinary Java objects for most data. Strings, stacks, tables, are implemented using the standard Java classes. Boolean values are the constants LightScript.TRUE and LightScript.FALSE, instead of Java Booleans as that improves performance, as we can just do a pointer comparison, rather than first casting to the Boolean class followed by a method call to retrieve the boolean value.
+
+LightScript objects are instances of java.lang.Hashtable. Objects can be cloned self-like with the function Object.create, for prototypical inheritance. This is implemented by a special key in the hashtable: __proto__, which is searched as the prototype if it is present.
+
+Exceptions that can be thrown to/from LightScript are of the class LightScriptException. This exception has a property value that is the object that is thrown/caught within LightScript. The exception constructor just takes the value as an argument.
+
+
+
+Roadmap
+
+The version number consist of a major version number, a minor version number and a revision number. The major version number is incremented at major rewrites and redesign. The minor version number is incremented with milestones and expansions of language/added functionality, it uses an even/odd strategy, such that even minor versions get bugfixes, and the odd minor versions are development versions where the new features are added. The revision number correspond to the svn version, and is incremented on each commit.
+
+The current version is version 1.2, which is a stable/bugfix release.
+Roadmap
+
+    * Version 1.2 - stable release
+          o More documentation
+          o More example code
+                + Including reusable wrappers for standard Java libraries
+          o More exhaustive test code
+    * Version 1.3 - development version
+          o Support for automatic generation of wrappers for Java objects
+          o Add more traditional object syntax, in addition to the self-like protypical approach
+          o Move to publicly hosted version control
+          o Restructure the source structure and build system
+                + Maybe change from make/cpp to ant
+                + Replace the seperate packages for integer-only/floating point, with a single package and seperate classes, if it can be done elegantly without to much overhead (currently some parts of the implementations are intertwined for optimisation reasons and preprocessed to different versions of the full implementation within different packages)
+          o ...
+    * Later versions
+          o Lint/prettyprinter for easier development
+          o Maybe port LightScript to C and embedded systems (Lego NXT as first target platform)
+          o ...
+
+History
+
+    * Version 1.1 - development version
+          o More operators, larger built-in library
+          o Support for fractional numbers, fixed-point on integer-only platforms, and otherwise floats.
+          o Changing the this semantics to be more EcmaScript-compliant, better implementation of functions/method-calls
+          o Distinction between false, undefined and false
+          o Optional stack clearing, yielding better GC costing a bit of runtime performance
+          o Optional forced interpreter thread preemption, allowing it to run nicely in multithreaded programs on JVM's with cooperative multitasking
+          o Variable number of arguments to functions
+          o Generalisation of for-in loops, using LightScriptFunctions as generators, rather than Java Enumerations
+          o Added LightScriptObject interface for easy wrapping of Java classes, where it is possible to make changes to the source.
+          o Custom getter/setter functions, making it possible to make any kind of Java object behave as an object within LightScript
+          o More kinds of string quoting and comments
+          o Optimised JAR-size approximately 15KB.
+    * Version 1.0 - thesis version
+          o Closures, first class functions
+          o Objects with prototypical inheritance
+          o Parser, compiler, and virtual machine
+          o Dynamic type system, static scope
+          o Supports loading and execution of source code at run time
+          o Subject of the thesis: ``Design and Implementation of a Scripting Language for Mobile Devices''
+          o Second iteration, based on earlier prototypes of mobile languages, virtual machines and top-down-operator-precedense parsers
+          o Performance similar to SpiderMonkey, Rhino and Kahlua, and much faster than JScheme, Hecl and FScriptME
+          o Optimised JAR-size approximately 11KB, and thus smaller code footprint than existing languages
+
+
+
+
+
+Links
+Scripting languages for mobile devices
+
+http://www.hecl.org/
+    This is the scripting language on mobile devices, which has the largest community.
+http://code.google.com/p/kahlua/
+    An implementation of the Lua virtual machine on Java Micro Edition, CLDC/1.1. Lua is an elegant scripting language, suitable for low end devices. The Lua code needs to be compiled somewhere else before it can be loaded on the VM.
+
+JavaScript/EcmaScript
+
+http://javascript.crockford.com/
+    Various topics on JavaScript/EcmaScript. This is IMHO a must read for every JavaScript/EcmaScript and LightScript developers. There are further links to other JavaScript/EcmaScript resources from this site.
+http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf
+    The EcmaScript language specification. Ecma even sends you hardcopies of this if you ask nicely. A subset of this is the basis of LightScript. Only recommendable if you are not afraid of technical specifications.
+http://code.google.com/p/v8/
+    The V8 JavaScript implementation
+https://developer.mozilla.org/en/JavaScript
+    Mozilla, which is responsible for the Rhino and SpiderMonkey/TraceMonkey JavaScript implementations
+http://www.webkit.org/
+    The Webkit project, which is responsible for the JavaScriptCore/SquirrelFish JavaScript implementation
+
+
+
+
+News
+Subscribe to posts
+Thesis uploaded
+posted Jun 13, 2009 12:59 AM by Rasmus Jensen   [ updated Jun 13, 2009 1:00 AM ]
+
+See the download section.
+
+LightScript 1.2 available
+posted May 12, 2009 12:07 PM by Rasmus Jensen   [ updated May 12, 2009 12:08 PM ]
+
+See roadmap for further information.
+
+LightScript 1.1 available
+posted May 5, 2009 10:46 AM by Rasmus Jensen   [ updated May 5, 2009 10:55 AM ]
+
+Latest version of LightScript has just been uploaded.
+Changes include:
+
+    * Larger standard library
+    * Support for fractional numbers (Floating point, or 64bit fixed point on integer only platforms)
+    * Better support for global object via this
+    * JavaDoc and preprocessed files included in distribution
+    * More operators, including bitwise
+    * Distinction between null, false, and undefined
+    * Even better Java integration
+    * Bug-fixes
+    * Supporting more kinds of comments and string literals
+
+LightScript version 1.0.447 uploaded
+posted Apr 12, 2009 12:24 AM by Rasmus Jensen
+
+Source code for version 1.0.447
+is uploaded to the download-section
+of the site.
+It includes Makefile for easier
+building under Unix like operating systems.
+
+Website online
+posted Apr 9, 2009 9:59 AM by Rasmus Jensen   [ updated Apr 9, 2009 10:35 AM ]
+
+    * lightscript.net is now online.
+    * The current version of LightScript is 1.0.439 (not published yet)
+    * The implementation and documentation will be uploaded in May
+
+
