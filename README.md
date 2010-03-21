@@ -1,5 +1,5 @@
-LightScript - a scripting language for low-end mobile phones
-============================================================
+README
+======
 
 LightScript is a subscript of EcmaScript,
 with a compact implementation running
@@ -7,8 +7,25 @@ on low end mobile devices.
 
 Currently under major redevelopment.
 
-Current Standard Library
-------------------------
+- Documentation is available on http://www.lightscript.net/
+- Latest source code can be downloaded from http://github.com/rasmusjensen/lightscript
+- Updates on recent commits on http://twitter.com/lightscript
+
+
+Content
+-------
+
+- Library Reference
+- Language Reference
+- Implementation notes
+
+
+
+Library Reference
+=================
+
+Standard Library
+----------------
 (to be more in concordance with standard soon. Non-EcmaScript-functions may change api before in next version)
 
 - print(text)
@@ -69,9 +86,7 @@ Midp1 library (api not stabilised)
 - Storage.set(key, value)
 - Storage.get(key)
 
-Examples
---------
 
-todo: some examples her
+Language Reference
+==================
 
-Longer examples can be found in the examples/ catalogue in the source distribution
