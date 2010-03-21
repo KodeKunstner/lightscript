@@ -1,8 +1,12 @@
 Roadmap
 =======
 
-
 - Version 1.3 - done in current git version
+    - Next tasks
+        - homepage
+            - ensure all information from lightscript.net is there
+            - page generation script
+            - script for uploading
     - LightScript Library
         - Simple GUI
         - HTML parser
@@ -21,13 +25,12 @@ Roadmap
 
 - Version 1.4 - Practical tool for mobile mashups
     - LightScript Library
-        - System library for reading/writing files, glob, and calling shell-commands
         - HTTP-client HttpClient.get(url, callback)
         - Tuple pattern matching visitor
     - Documentation
         - Update Java API documentation, full coverage of public API
         - Updated LightScript library reference
-        - New website for project generated via a LightScript script
+        - New website for project
         - Internal documentation on classsystem, parser/compiler/runtime, mobile optimisations
         - Sample mobile mashup applications
 
@@ -48,6 +51,7 @@ Roadmap
 
 - Maybe in future versions, not yet scheduled
     - Library
+        - System library for reading/writing files, glob, and calling shell-commands
         - Versioning in storage library
         - Cryptography
         - Error-logging with upload to server.
