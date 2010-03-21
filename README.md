@@ -1,15 +1,21 @@
 README
 ======
 
-LightScript is a subscript of EcmaScript,
-with a compact implementation running
-on low end mobile devices.
-
-Currently under major redevelopment.
+LightScript is a scripting language for rapid application development for mobile phones.
 
 - Documentation is available on [lightscript.net](http://www.lightscript.net/)
 - Latest source code can be downloaded from [github.com/rasmusjensen/lightscript](http://github.com/rasmusjensen/lightscript)
 - Updates on recent commits on [twitter.com/lightscript](http://twitter.com/lightscript)
+
+
+Features include:
+- Runs on very low end mobile phone, requires only CLDC/1.0
+- JavaScript/EcmaScript-like semantics and syntax
+- Closures and first class functions
+- Objects with prototypical inheritance
+- Small size ( < 30KB code footprint) and fast execution
+- Exceptions, object literals
+- Good integration with Java
 
 
 Content
@@ -17,8 +23,9 @@ Content
 
 - Library Reference
 - Language Reference
-- Implementation notes
+- Implementation details
 
+For details on the Java API and embedding the language, see the Javadoc on [lightscript.net](http://www.lightscript.net/javadoc/com/solsort/lightscript/package-summary.html)
 
 
 Library Reference
@@ -90,3 +97,26 @@ Midp1 library (api not stabilised)
 Language Reference
 ==================
 
+Data types
+----------
+
+Builtin operations
+------------------
+
+Incompatibilities with JavaScript
+---------------------------------
+
+Implementation details
+======================
+
+Type system
+-----------
+
+Exception handling
+------------------
+
+Implementation internals
+------------------------
+
+Optimisation for Java Mobile Edition
+------------------------------------
