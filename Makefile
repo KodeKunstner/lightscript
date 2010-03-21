@@ -21,11 +21,10 @@ dist: clean all
 
 doc: doc/javadoc doc/README.html doc/TODO.html
 doc/javadoc: $(DEPS) README.md TODO
-	mkdir -p doc/javadoc
 	echo '<html><body><p>This package contains the LightScript scripting language and various utility functions for mobile applications. The LightScript documentation is included below:</p>' > com/solsort/mobile/package.html
 	pandoc README.md >> com/solsort/mobile/package.html
 	echo '</body></html>' >> com/solsort/mobile/package.html
-	javadoc -d doc/javadoc/public com.solsort.mobile
+	javadoc -use -notree -nodeprecatedlist -stylesheetfile doc/static/style.css -doctitle doctitleX -top '<div id=header><img id=logo src="../../../../static/lightscript650x80.png" /></div><div id=javadoc>' -bottom "</div>" -d doc/javadoc com.solsort.mobile
 	javadoc -package -d doc/javadoc/package com.solsort.mobile
 	javadoc -private -d doc/javadoc/private com.solsort.mobile
 
