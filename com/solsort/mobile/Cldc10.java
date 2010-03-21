@@ -13,7 +13,7 @@ import com.solsort.mobile.LightScriptException;
 /**
  * In progress, do not use...
  */
-public final class Cldc10 {
+class Cldc10 {
     private static Hashtable cookies = new Hashtable();
 
     /**

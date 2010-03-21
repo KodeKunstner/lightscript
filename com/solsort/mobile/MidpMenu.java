@@ -8,7 +8,7 @@ import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.Image;
 import javax.microedition.lcdui.List;
 
-public class MidpMenu implements CommandListener, Runnable {
+class MidpMenu implements CommandListener, Runnable {
 
     private List menu;
     private Stack menuHandlers;

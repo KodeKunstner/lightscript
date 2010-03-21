@@ -5,7 +5,7 @@ import java.util.Hashtable;
 import javax.microedition.rms.RecordEnumeration;
 import javax.microedition.rms.RecordStore;
 
-public class MidpStorage {
+class MidpStorage {
 
     private Hashtable names;
     private String storeName;

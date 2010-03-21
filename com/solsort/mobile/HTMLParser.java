@@ -15,7 +15,7 @@ import java.util.Stack;
  * ["html" [] ["body" ["bgcolor" "#123123" "text" "#ffffff"] "Hello world"]]
  * where [...] has type Object[], and "..." has type string.
  */
-public class HTMLParser {
+class HTMLParser {
 
     static boolean doTrim = true;
     /**

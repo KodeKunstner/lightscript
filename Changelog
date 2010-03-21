@@ -1,105 +1,133 @@
-1.2
-    Renamed package to com.solsort.mobile
-    Added html parser to package
-    Switched away from using macros (Cost: approx 1KB in optimised jar)
-    Only integer now.
-1.1.579
-    added Math.random and Math.floor
-1.1.578
-    moved TODO out of svn to my_todo
-    moved clone -> Object.create
-1.1.574
-    polish, function-list, 21795
-1.1.570
-    added api-functions
-    this and methods should now be working... fixed bug 21795
-1.1.566
-    Better exception handling. 21732
-    Optional apply api on LS-class
-1.1.565
-    New calling convention, updated function interface 21712
-1.1.557
-    integer as default, bugfix. 21996
-1.1.556
-    Added new-operator which just calls .constructor 21777
-1.1.555
-    Allowed fo also using ' ' for string quotes 21670
-1.1.555
-    added bitwise operators.  21653
-1.1.554
-    added delete. 21231
-1.1.553
-    this is global if not within methodcall
-1.1.548
-    Packaging, changed directory structure, updated makefile
-1.1.538
-    added error on yet delete
-    split object/function
-    20839
-1.1.537
-    added support for /* ... */ comments. 20753
-1.1.535
-    Added support for floating point on platforms where doubles are supported,
-    and mandatory fixed point otherwise. 20691
-1.1.531
-    Roadmap updates
-    Custom iterator functions
-    For-in works for Arrays
-    19125
-1.1.530
-    Replaced Function interface by Object
-    Improved API, and various updates.
-    19091
-1.1.524
-    Support for incremental evaluation. 18979
-1.1.522
-    Let eval return last value. 18969
-1.1.520
-    Made StdLib global object 18765
-1.1.519
-    Made fixed-point optional 18837
-1.1.518
-    Static execute again, moved execution context to code constpool
-    Moved stdlib to be nested class of LightScript
-    Reorganising code. 19839
-1.1.503
-    Removed support for not compiling different parts of LightScript
-1.1.502
-    Added iterators to stdlib
-1.1.501
-    Support for default getter/setter functions for non-LightScriptObjects,
-    Improved implementation of prototypes. 19907
-1.1.497
-    Replaced the LightScriptFunction interface with a LightScriptObject
-    interface. 19361
-1.1.486
-    Misc. improvements, and removed LightScriptObject class 19274
-1.1.480
-    Better execute function. 19253
-1.1.474
-    Optional stack zeroing, function prototype, undefined-false-null. 19388
-1.1.473
-    Support for variable number of arguments to functions... and bugfix. 19299
-1.1.471
-    Distinction between null, false and undefined on its way... 19208
-1.1.470
-    Added *=, /=, and support for ++ and -- as non-late postfix. classsize: 19118
-1.1.469
-    Removed instruction for allocating stack space, - done automatically per
-    class instead.
-    Current size of LightScript class is: 19075
-1.1.468
-    LightScript support for distinction between null, false and undefined on
-    its way. Fixed issue with out of bound array get
-1.1.467
-    Expriments with fork of LightScript with classes for types, disbanded
-1.1.450
-    Added support for fixed point numbers. L...S..class 18856 bytes, FixedPointClass 897 bytes.
-1.0.447
-    Fixed debugging bug introduced by reordering opcodes. LightScript.class 17513 bytes
-1.0.444
-    Reordered opcodes, LightScript.class 17513 bytes
-1.0.443
-    Documentation, LightScript.class 17690 bytes
-1.0.428 
-    Prototype of the language done
+Changelog
+=========
+
+- Version 1.2 [download source](static/lightscript-1.2.585.tar.bz2)
+    - More operators, larger built-in library
+    - Support for fractional numbers, fixed-point on integer-only platforms, and otherwise floats.
+    - Changing the this semantics to be more EcmaScript-compliant, better implementation of functions/method-calls
+    - Distinction between false, undefined and false
+    - Optional stack clearing, yielding better GC costing a bit of runtime performance
+    - Optional forced interpreter thread preemption, allowing it to run nicely in multithreaded programs on JVM's with cooperative multitasking
+    - Variable number of arguments to functions
+    - Generalisation of for-in loops, using LightScriptFunctions as generators, rather than Java Enumerations
+    - Added LightScriptObject interface for easy wrapping of Java classes, where it is possible to make changes to the source.
+    - Custom getter/setter functions, making it possible to make any kind of Java object behave as an object within LightScript
+    - More kinds of string quoting and comments
+    - Optimised JAR-size approximately 15KB.
+- Version 1.0 - thesis version - [download report](static/2009-Rasmus_Jensen-Design_and_Implementation_of_a_Scripting_Language_for_Mobile_Devices.pdf)
+    - Closures, first class functions
+    - Objects with prototypical inheritance
+    - Parser, compiler, and virtual machine
+    - Dynamic type system, static scope
+    - Supports loading and execution of source code at run time
+    - Subject of the thesis: ``Design and Implementation of a Scripting Language for Mobile Devices''
+    - Second iteration, based on earlier prototypes of mobile languages, virtual machines and top-down-operator-precedense parsers
+    - Performance similar to SpiderMonkey, Rhino and Kahlua, and much faster than JScheme, Hecl and FScriptME
+    - Optimised JAR-size approximately 11KB, and thus smaller code footprint than existing languages
+
+
+Detailed svn log of early versions
+----------------------------------
+
+- 1.2.585
+    - release
+- 1.1.579
+    - added Math.random and Math.floor
+- 1.1.578
+    - moved TODO out of svn to my_todo
+    - moved clone -> Object.create
+- 1.1.574
+    - polish, function-list, 21795
+- 1.1.570
+    - added api-functions
+    - this and methods should now be working... fixed bug 21795
+- 1.1.566
+    - Better exception handling. 21732
+    - Optional apply api on LS-class
+- 1.1.565
+    - New calling convention, updated function interface 21712
+- 1.1.557
+    - integer as default, bugfix. 21996
+- 1.1.556
+    - Added new-operator which just calls .constructor 21777
+- 1.1.555
+    - Allowed fo also using ' ' for string quotes 21670
+- 1.1.555
+    - added bitwise operators.  21653
+- 1.1.554
+    - added delete. 21231
+- 1.1.553
+    - this is global if not within methodcall
+- 1.1.548
+    - Packaging, changed directory structure, updated makefile
+- 1.1.538
+    - added error on yet delete
+    - split object/function
+    - 20839
+- 1.1.537
+    - added support for /* ... */ comments. 20753
+- 1.1.535
+    - Added support for floating point on platforms where doubles are supported,
+    - and mandatory fixed point otherwise. 20691
+- 1.1.531
+    - Roadmap updates
+    - Custom iterator functions
+    - For-in works for Arrays
+    - 19125
+- 1.1.530
+    - Replaced Function interface by Object
+    - Improved API, and various updates.
+    - 19091
+- 1.1.524
+    - Support for incremental evaluation. 18979
+- 1.1.522
+    - Let eval return last value. 18969
+- 1.1.520
+    - Made StdLib global object 18765
+- 1.1.519
+    - Made fixed-point optional 18837
+- 1.1.518
+    - Static execute again, moved execution context to code constpool
+    - Moved stdlib to be nested class of LightScript
+    - Reorganising code. 19839
+- 1.1.503
+    - Removed support for not compiling different parts of LightScript
+- 1.1.502
+    - Added iterators to stdlib
+- 1.1.501
+    - Support for default getter/setter functions for non-LightScriptObjects,
+    - Improved implementation of prototypes. 19907
+- 1.1.497
+    - Replaced the LightScriptFunction interface with a LightScriptObject
+    - interface. 19361
+- 1.1.486
+    - Misc. improvements, and removed LightScriptObject class 19274
+- 1.1.480
+    - Better execute function. 19253
+- 1.1.474
+    - Optional stack zeroing, function prototype, undefined-false-null. 19388
+- 1.1.473
+    - Support for variable number of arguments to functions... and bugfix. 19299
+- 1.1.471
+    - Distinction between null, false and undefined on its way... 19208
+- 1.1.470
+    - Added *=, /=, and support for ++ and -- as non-late postfix. classsize: 19118
+- 1.1.469
+    - Removed instruction for allocating stack space, - done automatically per
+    - class instead.
+    - Current size of LightScript class is: 19075
+- 1.1.468
+    - LightScript support for distinction between null, false and undefined on
+    - its way. Fixed issue with out of bound array get
+- 1.1.467
+    - Expriments with fork of LightScript with classes for types, disbanded
+- 1.1.450
+    - Added support for fixed point numbers. L...S..class 18856 bytes, FixedPointClass 897 bytes.
+- 1.0.447
+    - Fixed debugging bug introduced by reordering opcodes. LightScript.class 17513 bytes
+- 1.0.444
+    - Reordered opcodes, LightScript.class 17513 bytes
+- 1.0.443
+    - Documentation, LightScript.class 17690 bytes
+- 1.0.428 
+    - Prototype of the language done

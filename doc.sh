@@ -1,0 +1,1 @@
+javadoc -use -notree -nodeprecatedlist -stylesheetfile doc/static/style.css -doctitle doctitleX -top '<div id=header><img id=logo src="file:///home/rje/Desktop/lightscript/doc/static/lightscript650x80.png" /></div><div id=javadoc>' -bottom "</div>" -d doc/javadoc/public com.solsort.mobile

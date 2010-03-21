@@ -1,0 +1,17 @@
+body {
+    background-color: #ffffff;
+    font-family: sans-serif;
+}
+div.content {
+    margin: 5ex 10% 0% 10%;
+
+}
+div.logo{
+    text-align: center;
+}
+div.menu{
+    text-align: center;
+}
+div.menu a {
+    margin: 0 1ex 0 1ex;
+}

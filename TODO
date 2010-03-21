@@ -1,48 +1,78 @@
-TODO
-====
+Roadmap
+=======
 
-- Before 2.0
-    - language
-        - refactor compiler
-        - support prefix/postfix ++/--
-    - library
-        - simple non-finalised http-get library
-            - HttpClient.get(url, callback)
-        - remove Cldc10 class
-    - documentation
-        - library reference and language documentation in README.md
-        - document class system
-        - javadoc to all methods and classes
-    - done
-        - New class system
-        - Major refactoring
-        - API improvements, including shorthands
-        - Gui library
+
+- Version 1.3 - done in current git version
+    - LightScript Library
+        - Simple GUI
+        - HTML parser
         - Storage library
-        - reimplement for-handling, not depending on parsing separators (a la var);
-        - drop separators during parsing
-        
-- Later
-    - Full code coverage for testsuite
-    - language
-        - support new
-        - support special arguments
-        - support for decimal numbers
-        - Make null, true and false be java-null, Boolean(true), Boolean(false)
-            - better handling of null within runtime.
-    - library
-        - fixed-point library
-        - InsertOrderedHashtable
-        - Error-logging with upload to server.
-        - Turtle
-        - larger part of EcmaScript std. library.
-        - floating point
-        - backed up storage
-        - Cryptography
-        - regex
-        - better gui library
-        - InputStream support
-    - Include applications
-    - documentation, including benchmarks from thesis
-    - Website for project
+    - API
+        - Shorthands for function/method calling
+        - Simplified API
+    - Internal
+        - Major refactoring, getting rid of preprocessor
+        - New class system
+    - Documentation
+        - All documentation in markdown
+    - Test suite
+    - Regressions
+        - Decimal number support removed during refactoring, (but the new class system makes it easy to add pluggable number types, so this will reappear as a module in version 1.6)
 
+- Version 1.4 - Practical tool for mobile mashups
+    - LightScript Library
+        - System library for reading/writing files, glob, and calling shell-commands
+        - HTTP-client HttpClient.get(url, callback)
+        - Tuple pattern matching visitor
+    - Documentation
+        - Update Java API documentation, full coverage of public API
+        - Updated LightScript library reference
+        - New website for project generated via a LightScript script
+        - Internal documentation on classsystem, parser/compiler/runtime, mobile optimisations
+        - Sample mobile mashup applications
+
+- Version 1.6 - Polishing
+    - LightScript Library
+        - Pluggable decimal number type
+        - Pluggable Object-type which preserve insertion order
+        - GUI compatibility library for javascript-web/android/iphone/maemo
+        - Turtle graphics for tutorial
+    - Internal
+        - More refactoring, optimisation and code cleanup
+    - Documentation 
+        - Tutorial
+        - Update Java API documentation, full coverage of private API
+        - Updated LightScript language reference
+    - Test suite
+        - coverage analysis, ensure full coverage
+
+- Maybe in future versions, not yet scheduled
+    - Library
+        - Versioning in storage library
+        - Cryptography
+        - Error-logging with upload to server.
+        - larger part of EcmaScript std. library.
+        - simplified regex
+        - InputStream methods
+    - Language
+        - postfix ++
+        - new
+        - special arguments object
+        - Make null, true and false be java-null, Boolean(true), Boolean(false)
+            - better handling of java-null within runtime.
+    - Benchmarks vs. other languages
+    - Documentation
+        - Book
+    - Util
+        - Lint/prettyprinter
+        - Online development environment
+    - Type annotations and compiler to jvm
+
+
+Overview
+--------
+
+- 1.0 Core language, thesis version
+- 1.2 Polishing, improved standard library and support functions, public source code
+- 1.4 Practical tool for mobile mashup. New class system and major refactoring
+- 1.6 Polishing, tutorial
