@@ -21,17 +21,21 @@ dist: clean all
 
 doc: doc/javadoc doc/README.html doc/TODO.html
 doc/javadoc: $(DEPS) README.md TODO
+	markdown2pdf --toc README.md 
+	mv README.pdf doc/
+	
 	cat doc/source/header.inc > doc/index.html
 	cat doc/source/logo.inc >> doc/index.html
 	cat doc/source/menu.readme.inc >> doc/index.html
-	pandoc README.md >> doc/index.html
+	echo "<h1>README</h1>" >> doc/index.html
+	pandoc --toc README.md >> doc/index.html
 	cat doc/source/footer.inc >> doc/index.html
 	
 	cat doc/source/header.inc > doc/roadmap.html
 	cat doc/source/logo.inc >> doc/roadmap.html
 	cat doc/source/menu.roadmap.inc >> doc/roadmap.html
-	pandoc TODO >> doc/roadmap.html
-	pandoc Changelog >> doc/roadmap.html
+	echo "<h1>Roadmap</h1>" >> doc/roadmap.html
+	cat TODO Changelog | pandoc --toc >> doc/roadmap.html
 	cat doc/source/footer.inc >> doc/roadmap.html
 	
 	javadoc -use -notree -nodeprecatedlist -stylesheetfile doc/static/style.css -doctitle doctitleX -top "`cat doc/source/logo.inc doc/source/menu.javadoc.inc` <h1>Java API</h1>" -bottom "`cat doc/source/menu.javadoc.inc`" -d doc/javadoc com.solsort.mobile
@@ -45,7 +49,7 @@ doc/TODO.html: TODO
 	pandoc -s TODO -o doc/TODO.html
 
 clean:
-	rm -rf doc/javadoc doc/TODO.html doc/README.html `find com examples testsuite -name "*.class"` examples/*.jar examples/*/*.jar com/solsort/mobile/package.html `find * -name "*.java.orig"` doc/*.html
+	rm -rf doc/javadoc doc/TODO.html doc/README.html `find com examples testsuite -name "*.class"` examples/*.jar examples/*/*.jar com/solsort/mobile/package.html `find * -name "*.java.orig"` doc/*.html doc/*.pdf
 
 examples/moby/moby.jar: examples/moby/*.java examples/moby/manifest examples/moby/*.jad $(DEPS)
 	javac -source 1.2 -classpath .:external_dependencies/midpapi10.jar examples/moby/*.java

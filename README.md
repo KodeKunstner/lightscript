@@ -1,9 +1,10 @@
-README
-======
+% LightScript Documentation
+% Rasmus Jensen @ lightscript.net
+% 2010
 
 LightScript is a scripting language for rapid application development for mobile phones.
 
-- Documentation is available on [lightscript.net](http://www.lightscript.net/)
+- Documentation is available from lightscript.net in [online](http://www.lightscript.net/) and [printable](http://www.lightscript.net/README.pdf) form.
 - Latest source code can be downloaded from [github.com/rasmusjensen/lightscript](http://github.com/rasmusjensen/lightscript)
 - Updates on recent commits on [twitter.com/lightscript](http://twitter.com/lightscript)
 
