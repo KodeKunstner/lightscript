@@ -9,6 +9,7 @@ LightScript is a scripting language for rapid application development for mobile
 
 
 Features include:
+
 - Runs on very low end mobile phone, requires only CLDC/1.0
 - JavaScript/EcmaScript-like semantics and syntax
 - Closures and first class functions
