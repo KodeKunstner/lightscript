@@ -2,6 +2,7 @@ package com.solsort.lightscript;
 
 import javax.microedition.lcdui.Display;
 import javax.microedition.midlet.MIDlet;
+import com.solsort.mobile.*;
 
 public class Midp1 implements LightScriptFunction {
 

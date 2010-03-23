@@ -1,4 +1,4 @@
-package com.solsort.lightscript;
+package com.solsort.mobile;
 
 import java.io.IOException;
 import java.util.Enumeration;
@@ -13,7 +13,7 @@ import com.solsort.lightscript.LightScriptException;
 /**
  * In progress, do not use...
  */
-class Cldc10 {
+public final class HTTPClient {
     private static Hashtable cookies = new Hashtable();
 
     /**

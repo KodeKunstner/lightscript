@@ -1,11 +1,14 @@
-package com.solsort.lightscript;
+package com.solsort.mobile;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
 import javax.microedition.rms.RecordEnumeration;
 import javax.microedition.rms.RecordStore;
+import com.solsort.lightscript.LightScriptFunction;
+import com.solsort.lightscript.LightScriptException;
+import com.solsort.lightscript.StdLib;
 
-class MidpStorage {
+public class MidpStorage {
 
     private Hashtable names;
     private String storeName;

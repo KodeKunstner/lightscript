@@ -1,4 +1,4 @@
-package com.solsort.lightscript;
+package com.solsort.mobile;
 
 import java.util.Stack;
 import javax.microedition.lcdui.Command;
@@ -7,8 +7,10 @@ import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.Image;
 import javax.microedition.lcdui.List;
+import com.solsort.lightscript.LightScriptFunction;
+import com.solsort.lightscript.LightScriptException;
 
-class MidpMenu implements CommandListener, Runnable {
+public final class MidpMenu implements CommandListener, Runnable {
 
     private List menu;
     private Stack menuHandlers;
