@@ -1,5 +1,6 @@
 import javax.microedition.midlet.MIDlet;
 import com.solsort.lightscript.*;
+import com.solsort.mobile.*;
 
 public class Midlet extends MIDlet {
     protected void startApp() {
@@ -7,6 +8,8 @@ public class Midlet extends MIDlet {
         try {
             Midp1.register(ls, this, "storage-name");
             ls.eval(this.getClass().getResourceAsStream("script.ls"));
+            HTTPClient http = new HTTPClient();
+            http.openUrl("http://www.lightscript.net/", (LightScriptFunction)ls.get("f"));
         } catch (Throwable e) {
             e.printStackTrace();
         }

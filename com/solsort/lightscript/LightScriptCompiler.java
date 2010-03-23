@@ -1121,7 +1121,7 @@ final class LightScriptCompiler {
 
         // create a new code object;
         Code result = new Code(varsArgc, new byte[code.length()],
-                StdLib.stackToTuple(constPool), StdLib.stackToTuple(varsClosure), maxDepth);
+                               StdLib.stackToTuple(constPool), StdLib.stackToTuple(varsClosure), maxDepth);
 
         // copy values into the code object
         for (int i = 0; i < result.code.length; i++) {
@@ -1447,7 +1447,7 @@ final class LightScriptCompiler {
                 step = args[3];
                 curlyToBlock(expr[2]);
                 compile(v(Code.BLOCK, init, v(Code.WHILE, cond,
-                          v(Code.BLOCK, expr[2], step))), yieldResult);
+                                              v(Code.BLOCK, expr[2], step))), yieldResult);
                 hasResult = yieldResult;
                 break;
             } else {
@@ -1708,12 +1708,12 @@ final class LightScriptCompiler {
         }
         case Code.DEC: {
             compile(v(Code.SET, expr[1], v(Code.SUB, expr[1],
-                      v(Code.LITERAL, StdLib.integerOne))), yieldResult);
+                                           v(Code.LITERAL, StdLib.integerOne))), yieldResult);
             return;
         }
         case Code.INC: {
             compile(v(Code.SET, expr[1], v(Code.ADD, expr[1],
-                      v(Code.LITERAL, StdLib.integerOne))), yieldResult);
+                                           v(Code.LITERAL, StdLib.integerOne))), yieldResult);
             return;
         }
         default:

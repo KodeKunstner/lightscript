@@ -1,3 +1,4 @@
+f = function(x) { print(x); };
 menu0 = Menu()
   .addItem("Hello world!")
   .addItem("Menu1", function() { menu1.show(); })

@@ -27,7 +27,7 @@ public final class MidpMenu implements CommandListener, Runnable {
     }
 
     public void addItem(String text, LightScriptFunction callback) {
-        if(callback != null) {
+        if (callback != null) {
             text = "- " + text;
         }
         menu.append(text, null);

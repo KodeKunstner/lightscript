@@ -327,7 +327,7 @@ public final class StdLib implements LightScriptFunction {
                 }
                 o = e.nextElement();
 
-            // skip the "__proto__" property
+                // skip the "__proto__" property
             } while ("__proto__".equals(o));
             return o;
         }
