@@ -1,4 +1,4 @@
-package com.solsort.mobile;
+package com.solsort.lightscript;
 
 public final class LightScriptException extends Exception {
 

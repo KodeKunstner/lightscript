@@ -1,5 +1,5 @@
 /* Copyright, 2009-2010, Rasmus Jensen, rasmus@solsort.com */
-package com.solsort.mobile;
+package com.solsort.lightscript;
 
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;

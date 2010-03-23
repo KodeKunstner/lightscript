@@ -1,5 +1,5 @@
 import javax.microedition.midlet.MIDlet;
-import com.solsort.mobile.*;
+import com.solsort.lightscript.*;
 import javax.microedition.lcdui.*;
 
 public class Midlet extends MIDlet implements LightScriptFunction {

@@ -1,4 +1,4 @@
-package com.solsort.mobile;
+package com.solsort.lightscript;
 
 import java.io.IOException;
 import java.util.Enumeration;
@@ -7,8 +7,8 @@ import java.util.Stack;
 import java.io.InputStream;
 import javax.microedition.io.Connector;
 import javax.microedition.io.HttpConnection;
-import com.solsort.mobile.LightScriptFunction;
-import com.solsort.mobile.LightScriptException;
+import com.solsort.lightscript.LightScriptFunction;
+import com.solsort.lightscript.LightScriptException;
 
 /**
  * In progress, do not use...

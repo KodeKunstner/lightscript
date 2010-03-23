@@ -1,4 +1,4 @@
-package com.solsort.mobile;
+package com.solsort.lightscript;
 
 import javax.microedition.lcdui.Display;
 import javax.microedition.midlet.MIDlet;

@@ -1,4 +1,4 @@
-package com.solsort.mobile;
+package com.solsort.lightscript;
 
 import java.util.Stack;
 import java.util.Hashtable;

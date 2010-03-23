@@ -1,4 +1,4 @@
-package com.solsort.mobile;
+package com.solsort.lightscript;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,16 +15,16 @@ import java.util.Stack;
  * ["html" [] ["body" ["bgcolor" "#123123" "text" "#ffffff"] "Hello world"]]
  * where [...] has type Object[], and "..." has type string.
  */
-class HTMLParser {
+public class HTMLParser {
 
-    static boolean doTrim = true;
+    boolean doTrim;
     /**
      * Parse a HTML document from an input stream
      * @param is the inputstream to parse
      * @return the html document as an SXML-like structure
      */
-    public static Object[] parse(InputStream is) {
-        return (new HTMLParser(is)).doParse();
+    static Object[] parse(InputStream is) {
+        return (new HTMLParser(is, true)).doParse();
     }
 //
 // Variables

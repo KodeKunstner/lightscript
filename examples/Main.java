@@ -3,7 +3,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Hashtable;
-import com.solsort.mobile.*;
+import com.solsort.lightscript.*;
 
 public class Main {
     /**

@@ -1,5 +1,5 @@
 package testsuite;
-import com.solsort.mobile.*;
+import com.solsort.lightscript.*;
 import java.io.*;
 
 class LightScriptTest implements LightScriptFunction {

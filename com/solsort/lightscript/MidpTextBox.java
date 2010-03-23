@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.solsort.mobile;
+package com.solsort.lightscript;
 
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
