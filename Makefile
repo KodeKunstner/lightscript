@@ -38,9 +38,9 @@ doc/javadoc: $(DEPS) README.md TODO
 	cat TODO Changelog | pandoc --toc >> doc/roadmap.html
 	cat doc/source/footer.inc >> doc/roadmap.html
 	
-	javadoc -use -notree -nodeprecatedlist -stylesheetfile doc/static/style.css -doctitle doctitleX -top "`cat doc/source/logo.inc doc/source/menu.javadoc.inc` <h1>Java API</h1>" -bottom "`cat doc/source/menu.javadoc.inc`" -d doc/javadoc com.solsort.mobile
-	javadoc -package -d doc/javadoc/package com.solsort.mobile
-	javadoc -private -d doc/javadoc/private com.solsort.mobile
+	javadoc -use -notree -nodeprecatedlist -stylesheetfile doc/static/style.css -doctitle doctitleX -top "`cat doc/source/logo.inc doc/source/menu.javadoc.inc` <h1>Java API</h1>" -bottom "`cat doc/source/menu.javadoc.inc`" -d doc/javadoc com.solsort.lightscript
+	javadoc -package -d doc/javadoc/package com.solsort.lightscript
+	javadoc -private -d doc/javadoc/private com.solsort.lightscript
 
 doc/README.html: README.md
 	pandoc -s README.md -o doc/README.html
@@ -49,7 +49,7 @@ doc/TODO.html: TODO
 	pandoc -s TODO -o doc/TODO.html
 
 clean:
-	rm -rf doc/javadoc doc/TODO.html doc/README.html `find com examples testsuite -name "*.class"` examples/*.jar examples/*/*.jar com/solsort/mobile/package.html `find * -name "*.java.orig"` doc/*.html doc/*.pdf doc/index.yaml
+	rm -rf doc/javadoc doc/TODO.html doc/README.html `find com examples testsuite -name "*.class"` examples/*.jar examples/*/*.jar com.solsort.lightscript/package.html `find * -name "*.java.orig"` doc/*.html doc/*.pdf doc/index.yaml
 
 examples/moby/moby.jar: examples/moby/*.java examples/moby/manifest examples/moby/*.jad $(DEPS)
 	javac -source 1.2 -classpath .:external_dependencies/midpapi10.jar examples/moby/*.java
