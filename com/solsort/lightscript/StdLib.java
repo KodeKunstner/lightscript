@@ -214,7 +214,7 @@ public final class StdLib implements LightScriptFunction {
                 if (o != null) {
                     return o;
                 }
-                o = h.get("__prototype__");
+                o = h.get("__proto__");
                 if (o == null || !(h instanceof Hashtable)) {
                     return ((LightScriptFunction) closure).apply(args, argpos, argcount);
                 }
@@ -272,7 +272,7 @@ public final class StdLib implements LightScriptFunction {
         }
         case 17: { // clone
             Hashtable h = new Hashtable();
-            h.put("__prototype__", args[argpos + argcount]);
+            h.put("__proto__", args[argpos + argcount]);
             return h;
         }
         case 18: { // typeof
@@ -326,7 +326,9 @@ public final class StdLib implements LightScriptFunction {
                     return LightScript.UNDEFINED;
                 }
                 o = e.nextElement();
-            } while ("__prototype__".equals(o));
+
+            // skip the "__proto__" property
+            } while ("__proto__".equals(o));
             return o;
         }
         case 23: { // parseint
@@ -528,11 +530,11 @@ public final class StdLib implements LightScriptFunction {
         ls.setMethod(null, "toString", new StdLib(16));
 
         ls.set("print", new StdLib(15, ls));
-        ls.set("clone", new StdLib(17));
         ls.set("parseint", new StdLib(23, ls));
 
         Hashtable object = new Hashtable();
         ls.set("Object", new StdLib(28, object));
+        object.put("create", new StdLib(17));
         Class objectClass = (new Hashtable()).getClass();
         ls.setMethod(objectClass, "__getter__", new StdLib(8, ls.getMethod(objectClass, "__getter__")));
         ls.setMethod(objectClass, "__setter__", new StdLib(9, ls.getMethod(objectClass, "__setter__")));

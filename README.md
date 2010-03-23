@@ -23,18 +23,6 @@ Features include:
 - Good integration with Java
 
 
-Language Reference
-==================
-
-Data types
-----------
-
-Builtin operations
-------------------
-
-Incompatibilities with JavaScript
----------------------------------
-
 Library Reference
 =================
 
@@ -42,6 +30,7 @@ Standard Library
 ----------------
 (to be more in concordance with standard soon. Non-EcmaScript-functions may change api before in next version)
 
+- [Object.create](http://javascript.crockford.com/prototypal.html)
 - print(text)
 - clone(Object)
 - parseint(string, base)
@@ -101,6 +90,18 @@ Midp1 library (api not stabilised)
 - Storage.get(key)
 
 
+
+Language Reference
+==================
+
+Data types
+----------
+
+Builtin operations
+------------------
+
+Incompatibilities with JavaScript
+---------------------------------
 
 Embedding LightScript in Java
 =============================
