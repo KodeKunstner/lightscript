@@ -7,7 +7,7 @@ import java.util.Stack;
 import java.io.InputStream;
 import javax.microedition.io.Connector;
 import javax.microedition.io.HttpConnection;
-import com.solsort.lightscript.LightScriptFunction;
+import com.solsort.lightscript.Function;
 import com.solsort.lightscript.LightScriptException;
 
 public final class HTTPClient {
@@ -17,14 +17,14 @@ public final class HTTPClient {
         cookies = new Hashtable();
     }
 
-    public void openUrl(String url, LightScriptFunction callback) {
+    public void openUrl(String url, Function callback) {
         (new Thread(new RequestThread(url, callback))).start();
     }
 
     private class RequestThread implements Runnable {
-        private LightScriptFunction callback;
+        private Function callback;
         private String url;
-        RequestThread(String url, LightScriptFunction callback) {
+        RequestThread(String url, Function callback) {
             this.url = url;
             this.callback = callback;
         }

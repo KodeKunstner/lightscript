@@ -2,7 +2,7 @@ package testsuite;
 import com.solsort.lightscript.*;
 import java.io.*;
 
-class LightScriptTest implements LightScriptFunction {
+class LightScriptTest implements Function {
     public Object apply(Object[] args, int argpos, int argc) throws LightScriptException {
         str = (String) args[argpos+1];
         Object result = ls.eval(str);

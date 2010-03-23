@@ -2,7 +2,7 @@ package com.solsort.lightscript;
 
 import java.util.Stack;
 
-final class Code implements LightScriptFunction {
+final class Code implements Function {
 
     public static final int NONE = 127;
     public static final int TRUE = 0;
@@ -104,7 +104,7 @@ final class Code implements LightScriptFunction {
         "OpCodes.BITWISE_NOT"
     };
 
-    /** LightScriptFunction that maps from ID to a string representation of the ID,
+    /** Function that maps from ID to a string representation of the ID,
      * robust for integers which is not IDs */
     public static String idName(int id) {
         return "" + id + ((id > 0 && id < idNames.length) ? idNames[id] : "");
@@ -258,7 +258,7 @@ final class Code implements LightScriptFunction {
     private static Object unop(LightScript ls, Object stack[], int sp, String name) throws LightScriptException {
         Object o = ls.getMethod(stack[sp].getClass(), name);
         if (o!= LightScript.UNDEFINED) {
-            o = ((LightScriptFunction) o).apply(stack, sp, 0);
+            o = ((Function) o).apply(stack, sp, 0);
         }
         return o;
 
@@ -267,12 +267,12 @@ final class Code implements LightScriptFunction {
     private static Object binop(LightScript ls, Object stack[], int sp, String name) throws LightScriptException {
         Object o = ls.getMethod(stack[sp].getClass(), name);
         if (o != LightScript.UNDEFINED) {
-            o = ((LightScriptFunction) o).apply(stack, sp, 1);
+            o = ((Function) o).apply(stack, sp, 1);
         }
         if (o == LightScript.UNDEFINED) {
             o = ls.getMethod(stack[sp + 1].getClass(), name);
             if (o != LightScript.UNDEFINED) {
-                o = ((LightScriptFunction) o).apply(stack, sp, 1);
+                o = ((Function) o).apply(stack, sp, 1);
             }
         }
         return o;
@@ -376,9 +376,9 @@ final class Code implements LightScriptFunction {
                         constPool = fn.constPool;
                         ls = (LightScript) constPool[0];
                         closure = fn.closure;
-                    } else if (o instanceof LightScriptFunction) {
+                    } else if (o instanceof Function) {
                         try {
-                            Object result = ((LightScriptFunction) o).apply(stack, sp - argc, argc);
+                            Object result = ((Function) o).apply(stack, sp - argc, argc);
                             sp -= argc + 1 + RET_FRAME_SIZE;
                             stack[sp] = result;
                         } catch (LightScriptException e) {
@@ -657,11 +657,11 @@ final class Code implements LightScriptFunction {
                     break;
                 }
                 case Code.NEW_LIST: {
-                    stack[++sp] = ((LightScriptFunction)ls.newArrayFunctionBoxed[0]).apply(stack, sp, -1);
+                    stack[++sp] = ((Function)ls.newArrayFunctionBoxed[0]).apply(stack, sp, -1);
                     break;
                 }
                 case Code.NEW_DICT: {
-                    stack[++sp] = ((LightScriptFunction)ls.newObjectFunctionBoxed[0]).apply(stack, sp, -1);
+                    stack[++sp] = ((Function)ls.newObjectFunctionBoxed[0]).apply(stack, sp, -1);
                     break;
                 }
                 case Code.SET_THIS: {
@@ -716,7 +716,7 @@ final class Code implements LightScriptFunction {
                     break;
                 }
                 case Code.NEXT: {
-                    LightScriptFunction iter = (LightScriptFunction) stack[sp];
+                    Function iter = (Function) stack[sp];
                     stack[++sp] = iter.apply(stack, sp, 0);
                     break;
                 }

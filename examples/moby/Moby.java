@@ -5,7 +5,7 @@ import javax.microedition.lcdui.Form;
 import javax.microedition.midlet.MIDlet;
 import com.solsort.lightscript.*;
 
-public class Moby extends MIDlet implements LightScriptFunction {
+public class Moby extends MIDlet implements Function {
     static Form form;
 
     public void startApp() {

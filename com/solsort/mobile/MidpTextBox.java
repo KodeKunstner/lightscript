@@ -6,15 +6,15 @@ import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.TextBox;
 import javax.microedition.lcdui.TextField;
-import com.solsort.lightscript.LightScriptFunction;
+import com.solsort.lightscript.Function;
 import com.solsort.lightscript.LightScriptException;
 
 public final class MidpTextBox implements CommandListener, Runnable {
 
-    LightScriptFunction callback;
+    Function callback;
     String text;
 
-    public MidpTextBox(Display disp, String title, String text, LightScriptFunction callback) {
+    public MidpTextBox(Display disp, String title, String text, Function callback) {
         TextBox textbox = new TextBox(title, text, 10000, TextField.ANY);
         textbox.addCommand(new Command("...", Command.OK, 0));
         textbox.setCommandListener(this);

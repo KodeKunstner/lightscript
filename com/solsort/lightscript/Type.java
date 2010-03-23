@@ -2,14 +2,14 @@ package com.solsort.lightscript;
 
 import java.util.Hashtable;
 
-class LightScriptType implements LightScriptFunction {
+class Type implements Function {
 
     java.util.Hashtable methods;
-    LightScriptFunction setter;
-    LightScriptFunction getter;
+    Function setter;
+    Function getter;
     LightScript ls;
 
-    LightScriptType(LightScript ls) {
+    Type(LightScript ls) {
         setter = this;
         getter = this;
         methods = new Hashtable();

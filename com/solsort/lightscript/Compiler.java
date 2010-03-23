@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.util.Hashtable;
 import java.util.Stack;
 
-final class LightScriptCompiler {
+final class Compiler {
     private String stringify(Object o) {
         return Code.stringify(o);
     }
@@ -115,7 +115,7 @@ final class LightScriptCompiler {
      * Compile the next statement from the inputstream
      * @return An argumentless function, whose execution correspond the execution of the statement.
      */
-    public LightScriptFunction compileNextStatement() {
+    public Function compileNextStatement() {
         skipSep();
         if (tokenVal == EOF || token == TOKEN_END) {
             return null;
@@ -137,7 +137,7 @@ final class LightScriptCompiler {
         return compiledCode;
     }
 
-    public LightScriptCompiler(InputStream is, LightScript ls) {
+    public Compiler(InputStream is, LightScript ls) {
         this.ls = ls;
         this.is = is;
         this.sb = new StringBuffer();
@@ -191,7 +191,7 @@ final class LightScriptCompiler {
      * possible types are String and Integer */
     private Object tokenVal;
     /** The integer encoded token object, including priority, IDs
-     * and LightScriptFunction ids for null/left denominator functions */
+     * and Function ids for null/left denominator functions */
     private int token;
     //</editor-fold>
 
@@ -349,7 +349,7 @@ final class LightScriptCompiler {
             } while (token == TOKEN_SEP);
         }
 
-        return StdLib.stackToTuple(s);
+        return Util.stackToTuple(s);
     }
 
     /** Read expressions until an end-token is reached.
@@ -362,7 +362,7 @@ final class LightScriptCompiler {
             skipSep();
         }
         nextToken();
-        return StdLib.stackToTuple(s);
+        return Util.stackToTuple(s);
     }
 
     private void doAssert(boolean b) {
@@ -399,7 +399,7 @@ final class LightScriptCompiler {
         // extract the token function id from tok
         switch ((tok >> (SIZE_ID * 2 + SIZE_FN)) & ((1 << SIZE_FN) - 1)) {
         case NUD_IDENT:
-            StdLib.stackPushUnique(varsUsed, val);
+            Util.stackPushUnique(varsUsed, val);
             return v(Code.IDENT, val);
         case NUD_LITERAL:
             return v(Code.LITERAL, val);
@@ -431,7 +431,7 @@ final class LightScriptCompiler {
             return v(nudId, parse(0), parse(0));
         case NUD_CATCH: {
             Object[] o = parse(0);
-            StdLib.stackPushUnique(varsLocals, ((Object[]) o[1])[1]);
+            Util.stackPushUnique(varsLocals, ((Object[]) o[1])[1]);
             return v(nudId, o, parse(0));
         }
         case NUD_FUNCTION: {
@@ -493,7 +493,7 @@ final class LightScriptCompiler {
             for (int i = 0; i < varsUsed.size(); i++) {
                 Object o = varsUsed.elementAt(i);
                 if (!varsLocals.contains(o)) {
-                    StdLib.stackPushUnique(varsBoxed, o);
+                    Util.stackPushUnique(varsBoxed, o);
                 }
             }
 
@@ -503,14 +503,14 @@ final class LightScriptCompiler {
             for (int i = 0; i < varsBoxed.size(); i++) {
                 Object o = varsBoxed.elementAt(i);
                 if (!varsLocals.contains(o)) {
-                    StdLib.stackPushUnique(prevBoxed, o);
-                    StdLib.stackPushUnique(varsClosure, o);
+                    Util.stackPushUnique(prevBoxed, o);
+                    Util.stackPushUnique(varsClosure, o);
                 }
             }
             Object[] result = v(nudId, compile(body));
             if (isNamed) {
                 result = v(Code.SET, v(Code.IDENT, fnName), result);
-                StdLib.stackPushUnique(prevUsed, fnName);
+                Util.stackPushUnique(prevUsed, fnName);
             }
             varsClosure = null;
 
@@ -533,19 +533,19 @@ final class LightScriptCompiler {
                 expr = (Object[])exprs[i];
                 int type = getType(expr);
                 if (type == Code.IDENT) {
-                    StdLib.stackPushUnique(varsLocals, expr[1]);
+                    Util.stackPushUnique(varsLocals, expr[1]);
                     exprs[i] = SEP_TOKEN;
                 } else {
                     Object[] expr2 = (Object[]) expr[1];
                     if (LightScript.DEBUG_ENABLED) {
                         if (type == Code.SET
                                 && getType(expr2) == Code.IDENT) {
-                            StdLib.stackPushUnique(varsLocals, expr2[1]);
+                            Util.stackPushUnique(varsLocals, expr2[1]);
                         } else {
                             throw new Error("Error in var");
                         }
                     } else {
-                        StdLib.stackPushUnique(varsLocals, expr2[1]);
+                        Util.stackPushUnique(varsLocals, expr2[1]);
                     }
                 }
             }
@@ -1121,7 +1121,7 @@ final class LightScriptCompiler {
 
         // create a new code object;
         Code result = new Code(varsArgc, new byte[code.length()],
-                               StdLib.stackToTuple(constPool), StdLib.stackToTuple(varsClosure), maxDepth);
+                               Util.stackToTuple(constPool), Util.stackToTuple(varsClosure), maxDepth);
 
         // copy values into the code object
         for (int i = 0; i < result.code.length; i++) {
@@ -1708,12 +1708,12 @@ final class LightScriptCompiler {
         }
         case Code.DEC: {
             compile(v(Code.SET, expr[1], v(Code.SUB, expr[1],
-                                           v(Code.LITERAL, StdLib.integerOne))), yieldResult);
+                                           v(Code.LITERAL, Util.integerOne))), yieldResult);
             return;
         }
         case Code.INC: {
             compile(v(Code.SET, expr[1], v(Code.ADD, expr[1],
-                                           v(Code.LITERAL, StdLib.integerOne))), yieldResult);
+                                           v(Code.LITERAL, Util.integerOne))), yieldResult);
             return;
         }
         default:

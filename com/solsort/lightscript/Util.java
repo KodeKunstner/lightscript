@@ -4,7 +4,7 @@ import java.util.Stack;
 import java.util.Hashtable;
 import java.util.Enumeration;
 
-public final class StdLib implements LightScriptFunction {
+public final class Util implements Function {
     //<editor-fold desc="constants">
 
     static final int ENUMERATION_ITERATOR = 22;
@@ -107,7 +107,7 @@ public final class StdLib implements LightScriptFunction {
         }
     }
 
-    public static void qsort(Object tuple[], LightScriptFunction cmp, int first, int last) throws LightScriptException {
+    public static void qsort(Object tuple[], Function cmp, int first, int last) throws LightScriptException {
         Object args[] = {tuple, null, null};
         --last;
         while (first < last) {
@@ -149,11 +149,11 @@ public final class StdLib implements LightScriptFunction {
     private int fn;
     private Object closure;
 
-    StdLib(int fn) {
+    Util(int fn) {
         this.fn = fn;
     }
 
-    StdLib(int fn, Object closure) {
+    Util(int fn, Object closure) {
         this.fn = fn;
         this.closure = closure;
     }
@@ -173,14 +173,14 @@ public final class StdLib implements LightScriptFunction {
             } else if ("length".equals(args[argpos + 1])) {
                 return new Integer(((Stack) args[argpos]).size());
             } else {
-                return ((LightScriptFunction) closure).apply(args, argpos, argcount);
+                return ((Function) closure).apply(args, argpos, argcount);
             }
         }
         case 1: { // Stack __iter__
             int[] o = new int[2];
             o[0] = -1;
             o[1] = ((Stack) args[argpos]).size();
-            return new StdLib(2, o);
+            return new Util(2, o);
         }
         case 2: { // Stack iterator object
             int[] is = (int[]) closure;
@@ -216,7 +216,7 @@ public final class StdLib implements LightScriptFunction {
                 }
                 o = h.get("__proto__");
                 if (o == null || !(h instanceof Hashtable)) {
-                    return ((LightScriptFunction) closure).apply(args, argpos, argcount);
+                    return ((Function) closure).apply(args, argpos, argcount);
                 }
                 h = (Hashtable) o;
             }
@@ -248,7 +248,7 @@ public final class StdLib implements LightScriptFunction {
             LightScript ls = (LightScript) ((Object[]) closure)[0];
             Object o = ls.get(args[argpos + 1]);
             if (o == null) {
-                return ((LightScriptFunction) ((Object[]) closure)[1]).apply(args, argpos, argcount);
+                return ((Function) ((Object[]) closure)[1]).apply(args, argpos, argcount);
             }
             return o;
         }
@@ -316,7 +316,7 @@ public final class StdLib implements LightScriptFunction {
             return sb.toString();
         }
         case 21: { // hashtable __iter__
-            return new StdLib(ENUMERATION_ITERATOR, ((Hashtable) args[argpos]).keys());
+            return new Util(ENUMERATION_ITERATOR, ((Hashtable) args[argpos]).keys());
         }
         case ENUMERATION_ITERATOR: { // iterator, should have an enumeration as closure
             Enumeration e = (Enumeration) closure;
@@ -349,7 +349,7 @@ public final class StdLib implements LightScriptFunction {
             LightScript ls = (LightScript) closure;
             Stack result = (Stack) ls.call("Array");
             for (int i = 0; i <= argcount; ++i) {
-                if (!(i == 0 && args[argpos] instanceof StdLib)) {
+                if (!(i == 0 && args[argpos] instanceof Util)) {
                     Object o = args[argpos + i];
                     if (o instanceof Stack) {
                         Stack s = (Stack) o;
@@ -365,7 +365,7 @@ public final class StdLib implements LightScriptFunction {
         }
         case 26: { // StdLib.subscript
             LightScript ls = (LightScript) closure;
-            Object inner = ((StdLib) args[argpos]).closure;
+            Object inner = ((Util) args[argpos]).closure;
             return ls.callMethod(inner, "__getter__", args[argpos + 1]);
         }
         case 27: { // (string|array).slice
@@ -404,11 +404,11 @@ public final class StdLib implements LightScriptFunction {
         }
         case 29: { // array.sort
             Stack s = (Stack) args[argpos];
-            LightScriptFunction cmp;
-            if (argcount > 0 && args[argpos + 1] instanceof LightScriptFunction) {
-                cmp = (LightScriptFunction) args[argpos + 1];
+            Function cmp;
+            if (argcount > 0 && args[argpos + 1] instanceof Function) {
+                cmp = (Function) args[argpos + 1];
             } else {
-                cmp = new StdLib(30);
+                cmp = new Util(30);
             }
             Object[] t = stackToTuple(s);
             qsort(t, cmp, 0, t.length);
@@ -434,14 +434,14 @@ public final class StdLib implements LightScriptFunction {
             } else if ("length".equals(args[argpos + 1])) {
                 return new Integer(((String) args[argpos]).length());
             } else {
-                return ((LightScriptFunction) closure).apply(args, argpos, argcount);
+                return ((Function) closure).apply(args, argpos, argcount);
             }
         }
         case 33: { // string.concat
             LightScript ls = (LightScript) closure;
             StringBuffer sb = new StringBuffer();
             for (int i = 0; i <= argcount; ++i) {
-                if (!(i == 0 && args[argpos] instanceof StdLib)) {
+                if (!(i == 0 && args[argpos] instanceof Util)) {
                     sb.append(ls.toString(args[argpos + i]));
                 }
             }
@@ -461,11 +461,11 @@ public final class StdLib implements LightScriptFunction {
         case 36: { // tuple.sort
             LightScript ls = (LightScript) closure;
             Object tuple[] = (Object[]) args[argpos];
-            LightScriptFunction cmp;
-            if (argcount > 0 && args[argpos + 1] instanceof LightScriptFunction) {
-                cmp = (LightScriptFunction) args[argpos + 1];
+            Function cmp;
+            if (argcount > 0 && args[argpos + 1] instanceof Function) {
+                cmp = (Function) args[argpos + 1];
             } else {
-                cmp = new StdLib(30);
+                cmp = new Util(30);
             }
             int start = 0;
             if (argcount > 1) {
@@ -495,7 +495,7 @@ public final class StdLib implements LightScriptFunction {
             return result;
         }
         case 39: {
-            LightScriptFunction ls[] = (LightScriptFunction[])closure;
+            Function ls[] = (Function[])closure;
             Object result = ls[0].apply(args, argpos, argcount);
             if (result == null) {
                 result = ls[1].apply(args, argpos, argcount);
@@ -507,13 +507,13 @@ public final class StdLib implements LightScriptFunction {
     }
 
     // TODO use newGetter for getters here
-    static void setGetter(LightScript ls, Class cls, LightScriptFunction fn) {
-        LightScriptFunction closure[] = { fn, ls.getDefaultGetter(cls) };
-        ls.setMethod(cls, "__getter__", new StdLib(39, closure));
+    static void setGetter(LightScript ls, Class cls, Function fn) {
+        Function closure[] = { fn, ls.getDefaultGetter(cls) };
+        ls.setMethod(cls, "__getter__", new Util(39, closure));
     }
     /*
-    static void setGetter(LightScript ls, Class cls, LightScriptFunction fn) {
-        LightScriptFunction closure[] = { fn, ls.getDefaultGetter() };
+    static void setGetter(LightScript ls, Class cls, Function fn) {
+        Function closure[] = { fn, ls.getDefaultGetter() };
         ls.setMethod(cls, "__getter__", new StdLib(39, closure));
     }
 
@@ -523,60 +523,60 @@ public final class StdLib implements LightScriptFunction {
         ls.set("global", ls);
         Class globalClass = ls.getClass();
         Object ls_getter_args[] = {ls, ls.getMethod(globalClass, "__getter__")};
-        ls.setMethod(globalClass, "__getter__", new StdLib(11, ls_getter_args));
-        ls.setMethod(globalClass, "__setter__", new StdLib(12, ls));
+        ls.setMethod(globalClass, "__getter__", new Util(11, ls_getter_args));
+        ls.setMethod(globalClass, "__setter__", new Util(12, ls));
 
-        ls.setMethod(null, "+", new StdLib(3, ls));
-        ls.setMethod(null, "toString", new StdLib(16));
+        ls.setMethod(null, "+", new Util(3, ls));
+        ls.setMethod(null, "toString", new Util(16));
 
-        ls.set("print", new StdLib(15, ls));
-        ls.set("parseint", new StdLib(23, ls));
+        ls.set("print", new Util(15, ls));
+        ls.set("parseint", new Util(23, ls));
 
         Hashtable object = new Hashtable();
-        ls.set("Object", new StdLib(28, object));
-        object.put("create", new StdLib(17));
+        ls.set("Object", new Util(28, object));
+        object.put("create", new Util(17));
         Class objectClass = (new Hashtable()).getClass();
-        ls.setMethod(objectClass, "__getter__", new StdLib(8, ls.getMethod(objectClass, "__getter__")));
-        ls.setMethod(objectClass, "__setter__", new StdLib(9, ls.getMethod(objectClass, "__setter__")));
-        ls.setMethod(objectClass, "hasOwnProperty", new StdLib(19));
-        ls.setMethod(objectClass, "__iter__", new StdLib(21));
+        ls.setMethod(objectClass, "__getter__", new Util(8, ls.getMethod(objectClass, "__getter__")));
+        ls.setMethod(objectClass, "__setter__", new Util(9, ls.getMethod(objectClass, "__setter__")));
+        ls.setMethod(objectClass, "hasOwnProperty", new Util(19));
+        ls.setMethod(objectClass, "__iter__", new Util(21));
 
         Hashtable array = new Hashtable();
-        ls.set("Array", new StdLib(6, array));
+        ls.set("Array", new Util(6, array));
         Class arrayClass = (new Stack()).getClass();
-        ls.setMethod(arrayClass, "__getter__", new StdLib(0, ls.getMethod(arrayClass, "__getter__")));
-        ls.setMethod(arrayClass, "__setter__", new StdLib(10, ls.getMethod(arrayClass, "__setter__")));
-        ls.setMethod(arrayClass, "__iter__", new StdLib(1));
-        ls.setMethod(arrayClass, "push", new StdLib(4));
-        ls.setMethod(arrayClass, "pop", new StdLib(5));
-        ls.setMethod(arrayClass, "join", new StdLib(20, ls));
-        ls.setMethod(arrayClass, "slice", new StdLib(27, ls));
-        ls.setMethod(arrayClass, "concat", new StdLib(25, ls));
-        array.put("concat", new StdLib(25, ls));
-        ls.setMethod(arrayClass, "sort", new StdLib(29));
-        ls.setMethod(arrayClass, "toTuple", new StdLib(37));
+        ls.setMethod(arrayClass, "__getter__", new Util(0, ls.getMethod(arrayClass, "__getter__")));
+        ls.setMethod(arrayClass, "__setter__", new Util(10, ls.getMethod(arrayClass, "__setter__")));
+        ls.setMethod(arrayClass, "__iter__", new Util(1));
+        ls.setMethod(arrayClass, "push", new Util(4));
+        ls.setMethod(arrayClass, "pop", new Util(5));
+        ls.setMethod(arrayClass, "join", new Util(20, ls));
+        ls.setMethod(arrayClass, "slice", new Util(27, ls));
+        ls.setMethod(arrayClass, "concat", new Util(25, ls));
+        array.put("concat", new Util(25, ls));
+        ls.setMethod(arrayClass, "sort", new Util(29));
+        ls.setMethod(arrayClass, "toTuple", new Util(37));
 
         Hashtable string = new Hashtable();
-        ls.set("String", new StdLib(7, string));
+        ls.set("String", new Util(7, string));
         Class stringClass = "".getClass();
-        ls.setMethod(stringClass, "__getter__", new StdLib(32, ls.getMethod(stringClass, "__getter__")));
-        ls.setMethod(stringClass, "toInt", new StdLib(13));
-        ls.setMethod(stringClass, "slice", new StdLib(27, ls));
-        ls.setMethod(stringClass, "charCodeAt", new StdLib(31, ls));
-        ls.setMethod(stringClass, "concat", new StdLib(33, ls));
-        string.put("fromCharCode", new StdLib(34, ls));
+        ls.setMethod(stringClass, "__getter__", new Util(32, ls.getMethod(stringClass, "__getter__")));
+        ls.setMethod(stringClass, "toInt", new Util(13));
+        ls.setMethod(stringClass, "slice", new Util(27, ls));
+        ls.setMethod(stringClass, "charCodeAt", new Util(31, ls));
+        ls.setMethod(stringClass, "concat", new Util(33, ls));
+        string.put("fromCharCode", new Util(34, ls));
 
         Hashtable tuple = new Hashtable();
-        ls.set("Tuple", new StdLib(35, tuple));
+        ls.set("Tuple", new Util(35, tuple));
         Class tupleClass = emptyTuple.getClass();
-        ls.setMethod(tupleClass, "sort", new StdLib(36, ls));
-        ls.setMethod(tupleClass, "toArray", new StdLib(38, ls));
+        ls.setMethod(tupleClass, "sort", new Util(36, ls));
+        ls.setMethod(tupleClass, "toArray", new Util(38, ls));
 
         Class numberClass = integerOne.getClass();
-        ls.setMethod(numberClass, "toInt", new StdLib(24));
+        ls.setMethod(numberClass, "toInt", new Util(24));
 
-        Class stdlibClass = (new StdLib(0)).getClass();
-        ls.setMethod(stdlibClass, "__getter__", new StdLib(26, ls));
+        Class stdlibClass = (new Util(0)).getClass();
+        ls.setMethod(stdlibClass, "__getter__", new Util(26, ls));
     }
 }
 

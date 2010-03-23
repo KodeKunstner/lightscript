@@ -7,7 +7,7 @@ import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.Image;
 import javax.microedition.lcdui.List;
-import com.solsort.lightscript.LightScriptFunction;
+import com.solsort.lightscript.Function;
 import com.solsort.lightscript.LightScriptException;
 
 public final class MidpMenu implements CommandListener, Runnable {
@@ -26,7 +26,7 @@ public final class MidpMenu implements CommandListener, Runnable {
         menu.addCommand(new Command("-", Command.OK, 0));
     }
 
-    public void addItem(String text, LightScriptFunction callback) {
+    public void addItem(String text, Function callback) {
         if (callback != null) {
             text = "- " + text;
         }
@@ -45,7 +45,7 @@ public final class MidpMenu implements CommandListener, Runnable {
         Object o = menuHandlers.elementAt(i);
         if (o != null) {
             try {
-                ((LightScriptFunction) o).apply(new Object[1], 0, 0);
+                ((Function) o).apply(new Object[1], 0, 0);
             } catch (LightScriptException e) {
                 e.printStackTrace();
             }

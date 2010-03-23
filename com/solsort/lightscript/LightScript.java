@@ -29,62 +29,62 @@ public final class LightScript {
      * of tests/comparisons within LightScript */
     public static final Object FALSE = new StringBuffer("false");
 
-    private LightScriptType getType(Class c) {
-        LightScriptType t;
+    private Type getType(Class c) {
+        Type t;
         Object o = types.get(c);
         if (o == null) {
-            t = new LightScriptType(this);
+            t = new Type(this);
             types.put(c, t);
         } else {
-            t = (LightScriptType) o;
+            t = (Type) o;
         }
         return t;
     }
 
-    LightScriptFunction getDefaultGetter(Class cls) {
-        return (LightScriptFunction)getType(cls);
+    Function getDefaultGetter(Class cls) {
+        return (Function)getType(cls);
     }
     // </editor-fold>
     // <editor-fold desc="types">
 
     private Hashtable types = new Hashtable();
-    LightScriptType defaultType = new LightScriptType(this);
+    Type defaultType = new Type(this);
 
-    LightScriptFunction getGetter(Class c) {
+    Function getGetter(Class c) {
         Object o = types.get(c);
         if (o != null) {
-            o = ((LightScriptType) o).getter;
+            o = ((Type) o).getter;
         } else {
             o = defaultType.getter;
         }
-        return (LightScriptFunction) o;
+        return (Function) o;
     }
 
-    LightScriptFunction getSetter(Class c) {
+    Function getSetter(Class c) {
         Object o = types.get(c);
         if (o != null) {
-            o = ((LightScriptType) o).setter;
+            o = ((Type) o).setter;
         } else {
             o = defaultType.setter;
         }
-        return (LightScriptFunction) o;
+        return (Function) o;
     }
 
-    public LightScriptFunction getMethod(Class c, String methodName) {
+    public Function getMethod(Class c, String methodName) {
         Object o = null;
         if (c != null) {
             o = types.get(c);
         }
         if (o == null) {
-            o = new LightScriptType(this);
+            o = new Type(this);
             types.put(c, o);
         }
-        o = ((LightScriptType) o).methods.get(methodName);
+        o = ((Type) o).methods.get(methodName);
 
         if (o == null) {
             o = defaultType.methods.get(methodName);
         }
-        return o == null ? null : (LightScriptFunction) o;
+        return o == null ? null : (Function) o;
     }
 
     /**
@@ -94,8 +94,8 @@ public final class LightScript {
      * @param methodName the name of the method to set
      * @param function
      */
-    public void setMethod(Class c, String methodName, LightScriptFunction function) {
-        LightScriptType t;
+    public void setMethod(Class c, String methodName, Function function) {
+        Type t;
         if (c == null) {
             t = defaultType;
         } else {
@@ -143,15 +143,15 @@ public final class LightScript {
 
     /** Constructor, loading standard library */
     public LightScript() {
-        StdLib.register(this);
+        Util.register(this);
     }
 
     // <editor-fold desc="eval(...)">
     /** Parse and execute LightScript code read from an input stream */
     public Object eval(InputStream is) throws LightScriptException {
         Object result = UNDEFINED, t = UNDEFINED;
-        LightScriptCompiler c = new LightScriptCompiler(is, this);
-        LightScriptFunction stmt = c.compileNextStatement();
+        Compiler c = new Compiler(is, this);
+        Function stmt = c.compileNextStatement();
         while (stmt != null) {
             result = call(stmt);
             stmt = c.compileNextStatement();
@@ -198,68 +198,68 @@ public final class LightScript {
         return getMethod(args[0].getClass(), fn).apply(args, 0, args.length - 1);
     }
 
-    private Object apply(LightScriptFunction fn, Object args[]) throws LightScriptException {
+    private Object apply(Function fn, Object args[]) throws LightScriptException {
         return fn.apply(args, 0, args.length - 1);
     }
 
-    public Object call(LightScriptFunction fn) throws LightScriptException {
+    public Object call(Function fn) throws LightScriptException {
         Object args[] = {this};
         return apply(fn, args);
     }
 
-    public Object call(LightScriptFunction fn, Object arg1) throws LightScriptException {
+    public Object call(Function fn, Object arg1) throws LightScriptException {
         Object args[] = {this, arg1};
         return apply(fn, args);
     }
 
-    public Object call(LightScriptFunction fn, Object arg1, Object arg2) throws LightScriptException {
+    public Object call(Function fn, Object arg1, Object arg2) throws LightScriptException {
         Object args[] = {this, arg1, arg2};
         return apply(fn, args);
     }
 
-    public Object call(LightScriptFunction fn, Object arg1, Object arg2, Object arg3) throws LightScriptException {
+    public Object call(Function fn, Object arg1, Object arg2, Object arg3) throws LightScriptException {
         Object args[] = {this, arg1, arg2, arg3};
         return apply(fn, args);
     }
 
-    public Object callMethod(Object thisPtr, LightScriptFunction fn) throws LightScriptException {
+    public Object callMethod(Object thisPtr, Function fn) throws LightScriptException {
         Object args[] = {thisPtr};
         return apply(fn, args);
     }
 
-    public Object callMethod(Object thisPtr, LightScriptFunction fn, Object arg1) throws LightScriptException {
+    public Object callMethod(Object thisPtr, Function fn, Object arg1) throws LightScriptException {
         Object args[] = {thisPtr, arg1};
         return apply(fn, args);
     }
 
-    public Object callMethod(Object thisPtr, LightScriptFunction fn, Object arg1, Object arg2) throws LightScriptException {
+    public Object callMethod(Object thisPtr, Function fn, Object arg1, Object arg2) throws LightScriptException {
         Object args[] = {thisPtr, arg1, arg2};
         return apply(fn, args);
     }
 
-    public Object callMethod(Object thisPtr, LightScriptFunction fn, Object arg1, Object arg2, Object arg3) throws LightScriptException {
+    public Object callMethod(Object thisPtr, Function fn, Object arg1, Object arg2, Object arg3) throws LightScriptException {
         Object args[] = {thisPtr, arg1, arg2, arg3};
         return apply(fn, args);
     }
 
     public Object call(String fn) throws LightScriptException {
         Object args[] = {this};
-        return apply((LightScriptFunction) get(fn), args);
+        return apply((Function) get(fn), args);
     }
 
     public Object call(String fn, Object arg1) throws LightScriptException {
         Object args[] = {this, arg1};
-        return apply((LightScriptFunction) get(fn), args);
+        return apply((Function) get(fn), args);
     }
 
     public Object call(String fn, Object arg1, Object arg2) throws LightScriptException {
         Object args[] = {this, arg1, arg2};
-        return apply((LightScriptFunction) get(fn), args);
+        return apply((Function) get(fn), args);
     }
 
     public Object call(String fn, Object arg1, Object arg2, Object arg3) throws LightScriptException {
         Object args[] = {this, arg1, arg2, arg3};
-        return apply((LightScriptFunction) get(fn), args);
+        return apply((Function) get(fn), args);
     }
 
     public Object callMethod(Object thisPtr, String fn) throws LightScriptException {

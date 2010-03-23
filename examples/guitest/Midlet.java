@@ -9,7 +9,7 @@ public class Midlet extends MIDlet {
             Midp1.register(ls, this, "storage-name");
             ls.eval(this.getClass().getResourceAsStream("script.ls"));
             HTTPClient http = new HTTPClient();
-            http.openUrl("http://www.lightscript.net/", (LightScriptFunction)ls.get("f"));
+            http.openUrl("http://www.lightscript.net/", (Function)ls.get("f"));
         } catch (Throwable e) {
             e.printStackTrace();
         }

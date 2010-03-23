@@ -4,7 +4,7 @@ import javax.microedition.lcdui.Display;
 import javax.microedition.midlet.MIDlet;
 import com.solsort.mobile.*;
 
-public class Midp1 implements LightScriptFunction {
+public class Midp1 implements Function {
 
     Object closure;
     int fn;
@@ -21,7 +21,7 @@ public class Midp1 implements LightScriptFunction {
             midpmenu.addItem(ls.toString(args[argpos + 1]),
                              argcount < 2
                              ? null
-                             : (LightScriptFunction) args[argpos + 2]);
+                             : (Function) args[argpos + 2]);
             return midpmenu;
         }
         case 2: { // show
@@ -35,7 +35,7 @@ public class Midp1 implements LightScriptFunction {
             if (argcount > 2) {
                 s = ls.toString(args[argpos + 2]);
             }
-            return new MidpTextBox(disp, ls.toString(args[argpos + 1]), s, (LightScriptFunction) args[argpos + argcount]);
+            return new MidpTextBox(disp, ls.toString(args[argpos + 1]), s, (Function) args[argpos + argcount]);
         }
         case 4: {
             LightScript ls = (LightScript) closure;
@@ -47,7 +47,7 @@ public class Midp1 implements LightScriptFunction {
             return args[argpos];
         }
         case 6: { // storage __iter__
-            return new StdLib(StdLib.ENUMERATION_ITERATOR, ((MidpStorage) args[argpos]).keys());
+            return new Util(Util.ENUMERATION_ITERATOR, ((MidpStorage) args[argpos]).keys());
         }
 
         }
@@ -90,7 +90,7 @@ public class Midp1 implements LightScriptFunction {
         MidpStorage storage = MidpStorage.openStorage(recordStoreName);
         ls.set("Storage", storage);
         Class storageClass = storage.getClass();
-        StdLib.setGetter(ls, storageClass, new Midp1(4, ls));
+        Util.setGetter(ls, storageClass, new Midp1(4, ls));
         ls.setMethod(storageClass, "get", new Midp1(4, ls));
         ls.setMethod(storageClass, "__setter__", new Midp1(5, ls));
         ls.setMethod(storageClass, "set", new Midp1(5, ls));

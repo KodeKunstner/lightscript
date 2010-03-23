@@ -4,9 +4,9 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import javax.microedition.rms.RecordEnumeration;
 import javax.microedition.rms.RecordStore;
-import com.solsort.lightscript.LightScriptFunction;
+import com.solsort.lightscript.Function;
 import com.solsort.lightscript.LightScriptException;
-import com.solsort.lightscript.StdLib;
+import com.solsort.lightscript.Util;
 
 public class MidpStorage {
 
@@ -72,7 +72,7 @@ public class MidpStorage {
     private MidpStorage(String storeName) throws LightScriptException {
         this.names = new Hashtable();
         this.storeName = storeName;
-        if (StdLib.tupleIndexOf(RecordStore.listRecordStores(), storeName) != -1) {
+        if (Util.tupleIndexOf(RecordStore.listRecordStores(), storeName) != -1) {
             RecordStore records = openStore();
             try {
                 RecordEnumeration iter = records.enumerateRecords(null, null, false);

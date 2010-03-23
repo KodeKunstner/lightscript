@@ -1,6 +1,6 @@
 package com.solsort.lightscript;
 
-public interface LightScriptFunction {
+public interface Function {
 
     /**
      * Method callable from LightScript.

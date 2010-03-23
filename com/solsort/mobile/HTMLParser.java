@@ -1,5 +1,6 @@
 package com.solsort.mobile;
 
+import com.solsort.lightscript.Util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Stack;
@@ -77,8 +78,9 @@ public class HTMLParser {
 // Initialiseation
 //
 
-    private HTMLParser(InputStream is) {
+    private HTMLParser(InputStream is, boolean doTrim) {
         this.is = is;
+        this.doTrim = doTrim;
     }
 
 //
@@ -181,8 +183,8 @@ public class HTMLParser {
                     }
                 }
                 skip(1);
-                params = StdLib.stackToTuple(paramsStack);
-                if (StdLib.tupleIndexOf(autoclose, content) != -1) {
+                params = Util.stackToTuple(paramsStack);
+                if (Util.tupleIndexOf(autoclose, content) != -1) {
                     tokentype = SINGLETAG;
                 }
             } else {
@@ -204,7 +206,7 @@ public class HTMLParser {
 //
     private void closeTag() {
         if (!tagStack.empty()) {
-            Object[] tag = StdLib.stackToTuple(currentTag);
+            Object[] tag = Util.stackToTuple(currentTag);
             currentTag = (Stack) tagStack.pop();
             currentTag.push(tag);
         }
@@ -219,7 +221,7 @@ public class HTMLParser {
 
     private void tryCloseTags(String tags[]) {
         while (!tagStack.empty()
-                && -1 != StdLib.tupleIndexOf(tags, ((Stack) tagStack.peek()).elementAt(0))) {
+                && -1 != Util.tupleIndexOf(tags, ((Stack) tagStack.peek()).elementAt(0))) {
             closeTag();
         }
     }
@@ -229,7 +231,7 @@ public class HTMLParser {
             nextToken();
             switch (tokentype) {
             case STARTTAG:
-                int closetag = StdLib.tupleIndexOf(closingTags, content);
+                int closetag = Util.tupleIndexOf(closingTags, content);
                 if (closetag != -1) {
                     tryCloseTags(closedTags[closetag]);
                 }
