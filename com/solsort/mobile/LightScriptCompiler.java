@@ -6,7 +6,7 @@ import java.util.Stack;
 
 final class LightScriptCompiler {
     private String stringify(Object o) {
-        return LightScriptOpCodes.stringify(o);
+        return Code.stringify(o);
     }
     private static final boolean DUMP_PARSE_TREE = false;
     /* Constructors for nodes of the Abstract Syntax Tree.
@@ -14,7 +14,7 @@ final class LightScriptCompiler {
      * its children or literal values */
 
     /** Token used for separators (,:;), which are just discarded */
-    private static final Object[] SEP_TOKEN = {new Integer(LightScriptOpCodes.SEP)};
+    private static final Object[] SEP_TOKEN = {new Integer(Code.SEP)};
 
     /** (id, o) -> (Object []) {new Integer(id), o} */
     private static Object[] v(int id, Object o) {
@@ -79,33 +79,33 @@ final class LightScriptCompiler {
     /** The sep token, encoded as an integer */
     private static final int TOKEN_SEP = ((((((((0 << SIZE_FN)
                                             | NUD_SEP ) << SIZE_ID)
-                                            | LightScriptOpCodes.SEP) << SIZE_FN)
+                                            | Code.SEP) << SIZE_FN)
                                             | LED_NONE) << SIZE_ID)
-                                          | LightScriptOpCodes.NONE);
+                                          | Code.NONE);
     /** The semicolon sep token, encoded as an integer */
     private static final int TOKEN_SEMICOLON = ((((((((0 << SIZE_FN)
             | NUD_SEP) << SIZE_ID)
-            | LightScriptOpCodes.NONE) << SIZE_FN)
+            | Code.NONE) << SIZE_FN)
             | LED_NONE) << SIZE_ID)
-            | LightScriptOpCodes.NONE);
+            | Code.NONE);
     /** The end token, encoded as an integer */
     private static final int TOKEN_END = ((((((((0 << SIZE_FN)
                                             | NUD_END) << SIZE_ID)
-                                            | LightScriptOpCodes.NONE) << SIZE_FN)
+                                            | Code.NONE) << SIZE_FN)
                                             | LED_NONE) << SIZE_ID)
-                                          | LightScriptOpCodes.NONE);
+                                          | Code.NONE);
     /** The token used for literals, encoded as an integer */
     private static final int TOKEN_LITERAL = ((((((((0 << SIZE_FN)
             | NUD_LITERAL) << SIZE_ID)
-            | LightScriptOpCodes.NONE) << SIZE_FN)
+            | Code.NONE) << SIZE_FN)
             | LED_NONE) << SIZE_ID)
-            | LightScriptOpCodes.NONE);
+            | Code.NONE);
     /** The token used for identifiers, encoded as an integer */
     private static final int TOKEN_IDENT = ((((((((0 << SIZE_FN)
                                             | NUD_IDENT) << SIZE_ID)
-                                            | LightScriptOpCodes.NONE) << SIZE_FN)
+                                            | Code.NONE) << SIZE_FN)
                                             | LED_NONE) << SIZE_ID)
-                                            | LightScriptOpCodes.NONE);
+                                            | Code.NONE);
     /** Token string when reaching end of file, it can only occur
      * at end of file, as it would otherwise be parsed as three
      * tokens: "(", "EOF", and ")". */
@@ -129,7 +129,7 @@ final class LightScriptCompiler {
             System.out.println(stringify(os));
         }
         // compile
-        LightScriptCode compiledCode = compile(os);
+        Code compiledCode = compile(os);
         // create closure from globals
         for (int i = 0; i < compiledCode.closure.length; i++) {
             compiledCode.closure[i] = ls.getBox(compiledCode.closure[i]);
@@ -386,7 +386,7 @@ final class LightScriptCompiler {
             Object o3[] = (token == TOKEN_END) ? SEP_TOKEN : parse(0);
             doAssert(token==TOKEN_END);
             nextToken();
-            return v(LightScriptOpCodes.PAREN, o, o2, o3);
+            return v(Code.PAREN, o, o2, o3);
         }
     }
 
@@ -400,14 +400,14 @@ final class LightScriptCompiler {
         switch ((tok >> (SIZE_ID * 2 + SIZE_FN)) & ((1 << SIZE_FN) - 1)) {
         case NUD_IDENT:
             StdLib.stackPushUnique(varsUsed, val);
-            return v(LightScriptOpCodes.IDENT, val);
+            return v(Code.IDENT, val);
         case NUD_LITERAL:
-            return v(LightScriptOpCodes.LITERAL, val);
+            return v(Code.LITERAL, val);
         case NUD_CONST:
-            return v(LightScriptOpCodes.LITERAL,
-                     nudId == LightScriptOpCodes.TRUE ? LightScript.TRUE
-                     : nudId == LightScriptOpCodes.FALSE ? LightScript.FALSE
-                     : nudId == LightScriptOpCodes.NULL ? LightScript.NULL
+            return v(Code.LITERAL,
+                     nudId == Code.TRUE ? LightScript.TRUE
+                     : nudId == Code.FALSE ? LightScript.FALSE
+                     : nudId == Code.NULL ? LightScript.NULL
                      : LightScript.UNDEFINED);
         case NUD_FOR:
             return v(nudId, readForList(), parse(0));
@@ -457,11 +457,11 @@ final class LightScriptCompiler {
             String fnName = null;
             // add function arguments to statistics
             varsArgc = args.length - 1;
-            if (getType(args) == LightScriptOpCodes.PAREN) {
+            if (getType(args) == Code.PAREN) {
                 for (int i = 1; i < args.length; i++) {
                     Object[] os = (Object[]) args[i];
                     if (LightScript.DEBUG_ENABLED) {
-                        if (getType(os) != LightScriptOpCodes.IDENT) {
+                        if (getType(os) != Code.IDENT) {
                             throw new Error("parameter not variable name"
                                             + stringify(args));
                         }
@@ -470,7 +470,7 @@ final class LightScriptCompiler {
                 }
             } else {
                 if (LightScript.DEBUG_ENABLED) {
-                    if (getType(args) != LightScriptOpCodes.CALL_FUNCTION) {
+                    if (getType(args) != Code.CALL_FUNCTION) {
                         throw new Error("parameter not variable name"
                                         + stringify(args));
                     }
@@ -509,7 +509,7 @@ final class LightScriptCompiler {
             }
             Object[] result = v(nudId, compile(body));
             if (isNamed) {
-                result = v(LightScriptOpCodes.SET, v(LightScriptOpCodes.IDENT, fnName), result);
+                result = v(Code.SET, v(Code.IDENT, fnName), result);
                 StdLib.stackPushUnique(prevUsed, fnName);
             }
             varsClosure = null;
@@ -527,19 +527,19 @@ final class LightScriptCompiler {
         case NUD_VAR:
             Object[] expr;
             Stack s = new Stack();
-            s.push(new Integer(LightScriptOpCodes.BLOCK));
+            s.push(new Integer(Code.BLOCK));
             Object[] exprs = readVars(s);
             for (int i=1; i <exprs.length; ++i) {
                 expr = (Object[])exprs[i];
                 int type = getType(expr);
-                if (type == LightScriptOpCodes.IDENT) {
+                if (type == Code.IDENT) {
                     StdLib.stackPushUnique(varsLocals, expr[1]);
                     exprs[i] = SEP_TOKEN;
                 } else {
                     Object[] expr2 = (Object[]) expr[1];
                     if (LightScript.DEBUG_ENABLED) {
-                        if (type == LightScriptOpCodes.SET
-                                && getType(expr2) == LightScriptOpCodes.IDENT) {
+                        if (type == Code.SET
+                                && getType(expr2) == Code.IDENT) {
                             StdLib.stackPushUnique(varsLocals, expr2[1]);
                         } else {
                             throw new Error("Error in var");
@@ -572,7 +572,7 @@ final class LightScriptCompiler {
         case LED_INFIX_SWAP:
             return v(ledId, parse(bp), left);
         case LED_OPASSIGN:
-            return v(LightScriptOpCodes.SET, left, v(ledId, left, parse(bp - 1)));
+            return v(Code.SET, left, v(ledId, left, parse(bp - 1)));
         case LED_INFIXR:
             return v(ledId, left, parse(bp - 1));
         case LED_INFIX_LIST: {
@@ -587,20 +587,20 @@ final class LightScriptCompiler {
             Object[] right = parse(bp);
             varsUsed = t;
             if (LightScript.DEBUG_ENABLED) {
-                if (getType(right) != LightScriptOpCodes.IDENT) {
+                if (getType(right) != Code.IDENT) {
                     throw new Error("right side of dot not a string: "
                                     + stringify(right));
                 }
             }
 
-            right[0] = new Integer(LightScriptOpCodes.LITERAL);
-            return v(LightScriptOpCodes.SUBSCRIPT, left, right);
+            right[0] = new Integer(Code.LITERAL);
+            return v(Code.SUBSCRIPT, left, right);
         }
         case LED_INFIX_IF: {
             Object branch1 = parse(0);
             skipSep();
             Object branch2 = parse(0);
-            return v(LightScriptOpCodes.IF, left, v(LightScriptOpCodes.ELSE, branch1, branch2));
+            return v(Code.IF, left, v(Code.ELSE, branch1, branch2));
         }
         default:
             if (LightScript.DEBUG_ENABLED) {
@@ -626,375 +626,375 @@ final class LightScriptCompiler {
         + "(EOF)"
         + (char) 1
         + (char) NUD_END
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "]"
         + (char) 1
         + (char) NUD_END
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + ")"
         + (char) 1
         + (char) NUD_END
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "}"
         + (char) 1
         + (char) NUD_END
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "."
         + (char) 8
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_DOT
-        + (char) LightScriptOpCodes.SUBSCRIPT
+        + (char) Code.SUBSCRIPT
         + "("
         + (char) 7
         + (char) NUD_LIST
-        + (char) LightScriptOpCodes.PAREN
+        + (char) Code.PAREN
         + (char) LED_INFIX_LIST
-        + (char) LightScriptOpCodes.CALL_FUNCTION
+        + (char) Code.CALL_FUNCTION
         + "["
         + (char) 7
         + (char) NUD_LIST
-        + (char) LightScriptOpCodes.LIST_LITERAL
+        + (char) Code.LIST_LITERAL
         + (char) LED_INFIX_LIST
-        + (char) LightScriptOpCodes.SUBSCRIPT
+        + (char) Code.SUBSCRIPT
         + ">>"
         + (char) 6
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX
-        + (char) LightScriptOpCodes.SHIFT_RIGHT_ARITHMETIC
+        + (char) Code.SHIFT_RIGHT_ARITHMETIC
         + "<<"
         + (char) 6
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX
-        + (char) LightScriptOpCodes.SHIFT_LEFT
+        + (char) Code.SHIFT_LEFT
         + "|"
         + (char) 3
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX
-        + (char) LightScriptOpCodes.BITWISE_OR
+        + (char) Code.BITWISE_OR
         + "^"
         + (char) 3
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX
-        + (char) LightScriptOpCodes.BITWISE_XOR
+        + (char) Code.BITWISE_XOR
         + "&"
         + (char) 3
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX
-        + (char) LightScriptOpCodes.BITWISE_AND
+        + (char) Code.BITWISE_AND
         + "~"
         + (char) 1
         + (char) NUD_PREFIX
-        + (char) LightScriptOpCodes.BITWISE_NOT
+        + (char) Code.BITWISE_NOT
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + ">>>"
         + (char) 6
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX
-        + (char) LightScriptOpCodes.SHIFT_RIGHT
+        + (char) Code.SHIFT_RIGHT
         + "/"
         + (char) 6
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX
-        + (char) LightScriptOpCodes.DIV
+        + (char) Code.DIV
         + "*"
         + (char) 6
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX
-        + (char) LightScriptOpCodes.MUL
+        + (char) Code.MUL
         + "%"
         + (char) 6
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX
-        + (char) LightScriptOpCodes.REM
+        + (char) Code.REM
         + "+"
         + (char) 5
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX
-        + (char) LightScriptOpCodes.ADD
+        + (char) Code.ADD
         + "-"
         + (char) 5
         + (char) NUD_PREFIX
-        + (char) LightScriptOpCodes.NEG
+        + (char) Code.NEG
         + (char) LED_INFIX
-        + (char) LightScriptOpCodes.SUB
+        + (char) Code.SUB
         + "=="
         + (char) 4
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX
-        + (char) LightScriptOpCodes.EQUALS
+        + (char) Code.EQUALS
         + "==="
         + (char) 4
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX
-        + (char) LightScriptOpCodes.EQUALS
+        + (char) Code.EQUALS
         + "!="
         + (char) 4
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX
-        + (char) LightScriptOpCodes.NOT_EQUALS
+        + (char) Code.NOT_EQUALS
         + "!=="
         + (char) 4
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX
-        + (char) LightScriptOpCodes.NOT_EQUALS
+        + (char) Code.NOT_EQUALS
         + "<="
         + (char) 4
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX
-        + (char) LightScriptOpCodes.LESS_EQUAL
+        + (char) Code.LESS_EQUAL
         + "<"
         + (char) 4
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX
-        + (char) LightScriptOpCodes.LESS
+        + (char) Code.LESS
         + ">="
         + (char) 4
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX_SWAP
-        + (char) LightScriptOpCodes.LESS_EQUAL
+        + (char) Code.LESS_EQUAL
         + ">"
         + (char) 4
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX_SWAP
-        + (char) LightScriptOpCodes.LESS
+        + (char) Code.LESS
         + "&&"
         + (char) 3
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIXR
-        + (char) LightScriptOpCodes.AND
+        + (char) Code.AND
         + "||"
         + (char) 3
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIXR
-        + (char) LightScriptOpCodes.OR
+        + (char) Code.OR
         + "else"
         + (char) 3
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIXR
-        + (char) LightScriptOpCodes.ELSE
+        + (char) Code.ELSE
         + "in"
         + (char) 3
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIXR
-        + (char) LightScriptOpCodes.IN
+        + (char) Code.IN
         + "?"
         + (char) 3
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIX_IF
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "="
         + (char) 2
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_INFIXR
-        + (char) LightScriptOpCodes.SET
+        + (char) Code.SET
         + "+="
         + (char) 2
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_OPASSIGN
-        + (char) LightScriptOpCodes.ADD
+        + (char) Code.ADD
         + "-="
         + (char) 2
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_OPASSIGN
-        + (char) LightScriptOpCodes.SUB
+        + (char) Code.SUB
         + "*="
         + (char) 2
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_OPASSIGN
-        + (char) LightScriptOpCodes.MUL
+        + (char) Code.MUL
         + "/="
         + (char) 2
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_OPASSIGN
-        + (char) LightScriptOpCodes.DIV
+        + (char) Code.DIV
         + "%="
         + (char) 2
         + (char) NUD_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + (char) LED_OPASSIGN
-        + (char) LightScriptOpCodes.REM
+        + (char) Code.REM
         + "++"
         + (char) 1
         + (char) NUD_PREFIX
-        + (char) LightScriptOpCodes.INC
+        + (char) Code.INC
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "--"
         + (char) 1
         + (char) NUD_PREFIX
-        + (char) LightScriptOpCodes.DEC
+        + (char) Code.DEC
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + ":"
         + (char) 1
         + (char) NUD_SEP
-        + (char) LightScriptOpCodes.SEP
+        + (char) Code.SEP
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + ";"
         + (char) 1
         + (char) NUD_SEP
-        + (char) LightScriptOpCodes.NONE // Different than for ":" and ","
+        + (char) Code.NONE // Different than for ":" and ","
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + ","
         + (char) 1
         + (char) NUD_SEP
-        + (char) LightScriptOpCodes.SEP
+        + (char) Code.SEP
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "{"
         + (char) 1
         + (char) NUD_LIST
-        + (char) LightScriptOpCodes.CURLY
+        + (char) Code.CURLY
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "var"
         + (char) 1
         + (char) NUD_VAR
-        + (char) LightScriptOpCodes.VAR
+        + (char) Code.VAR
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "delete"
         + (char) 1
         + (char) NUD_PREFIX
-        + (char) LightScriptOpCodes.DELETE
+        + (char) Code.DELETE
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "new"
         + (char) 1
         + (char) NUD_PREFIX
-        + (char) LightScriptOpCodes.NEW
+        + (char) Code.NEW
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "return"
         + (char) 1
         + (char) NUD_PREFIX
-        + (char) LightScriptOpCodes.RETURN
+        + (char) Code.RETURN
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "!"
         + (char) 1
         + (char) NUD_PREFIX
-        + (char) LightScriptOpCodes.NOT
+        + (char) Code.NOT
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "throw"
         + (char) 1
         + (char) NUD_PREFIX
-        + (char) LightScriptOpCodes.THROW
+        + (char) Code.THROW
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "try"
         + (char) 1
         + (char) NUD_PREFIX2
-        + (char) LightScriptOpCodes.TRY
+        + (char) Code.TRY
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "catch"
         + (char) 1
         + (char) NUD_CATCH
-        + (char) LightScriptOpCodes.CATCH
+        + (char) Code.CATCH
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "function"
         + (char) 1
         + (char) NUD_FUNCTION
-        + (char) LightScriptOpCodes.BUILD_FUNCTION
+        + (char) Code.BUILD_FUNCTION
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "do"
         + (char) 1
         + (char) NUD_PREFIX2
-        + (char) LightScriptOpCodes.DO
+        + (char) Code.DO
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "for"
         + (char) 1
         + (char) NUD_FOR
-        + (char) LightScriptOpCodes.FOR
+        + (char) Code.FOR
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "if"
         + (char) 1
         + (char) NUD_PREFIX2
-        + (char) LightScriptOpCodes.IF
+        + (char) Code.IF
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "while"
         + (char) 1
         + (char) NUD_PREFIX2
-        + (char) LightScriptOpCodes.WHILE
+        + (char) Code.WHILE
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "undefined"
         + (char) 1
         + (char) NUD_CONST
-        + (char) LightScriptOpCodes.UNDEFINED
+        + (char) Code.UNDEFINED
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "null"
         + (char) 1
         + (char) NUD_CONST
-        + (char) LightScriptOpCodes.NULL
+        + (char) Code.NULL
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "false"
         + (char) 1
         + (char) NUD_CONST
-        + (char) LightScriptOpCodes.FALSE
+        + (char) Code.FALSE
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "this"
         + (char) 1
         + (char) NUD_ATOM
-        + (char) LightScriptOpCodes.THIS
+        + (char) Code.THIS
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE
+        + (char) Code.NONE
         + "true"
         + (char) 1
         + (char) NUD_CONST
-        + (char) LightScriptOpCodes.TRUE
+        + (char) Code.TRUE
         + (char) LED_NONE
-        + (char) LightScriptOpCodes.NONE;
+        + (char) Code.NONE;
         idMapping = new Hashtable();
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < identifiers.length(); i++) {
@@ -1076,12 +1076,12 @@ final class LightScriptCompiler {
 
     private static void curlyToBlock(Object oexpr) {
         Object[] expr = (Object[]) oexpr;
-        if (getType(expr) == LightScriptOpCodes.CURLY) {
-            expr[0] = new Integer(LightScriptOpCodes.BLOCK);
+        if (getType(expr) == Code.CURLY) {
+            expr[0] = new Integer(Code.BLOCK);
         }
     }
 
-    private LightScriptCode compile(Object[] body) {
+    private Code compile(Object[] body) {
         constPool = new Stack();
         constPool.push(ls);
         code = new StringBuffer();
@@ -1090,12 +1090,12 @@ final class LightScriptCompiler {
         maxDepth = depth = varsLocals.size();
         int framesize = depth - varsArgc;
         while (framesize >= 127) {
-            emit(LightScriptOpCodes.INC_SP);
+            emit(Code.INC_SP);
             emit(127);
             framesize -= 127;
         }
         if (framesize > 0) {
-            emit(LightScriptOpCodes.INC_SP);
+            emit(Code.INC_SP);
             emit(framesize);
         }
 
@@ -1103,7 +1103,7 @@ final class LightScriptCompiler {
         for (int i = 0; i < varsBoxed.size(); i++) {
             int pos = varsLocals.indexOf(varsBoxed.elementAt(i));
             if (pos != -1) {
-                emit(LightScriptOpCodes.BOX_IT);
+                emit(Code.BOX_IT);
                 pushShort(depth - pos - 1);
             }
         }
@@ -1113,14 +1113,14 @@ final class LightScriptCompiler {
         compile(body, true);
 
         // emit return code, including current stack depth to drop
-        emit(LightScriptOpCodes.RETURN);
+        emit(Code.RETURN);
         pushShort(depth);
 
         // patch amount of stack space needed
         maxDepth -= varsArgc;
 
         // create a new code object;
-        LightScriptCode result = new LightScriptCode(varsArgc, new byte[code.length()],
+        Code result = new Code(varsArgc, new byte[code.length()],
                 StdLib.stackToTuple(constPool), StdLib.stackToTuple(varsClosure), maxDepth);
 
         // copy values into the code object
@@ -1148,14 +1148,14 @@ final class LightScriptCompiler {
     private void compileSet(Object name) {
         int pos = varsClosure.indexOf(name);
         if (pos >= 0) {
-            emit(LightScriptOpCodes.SET_CLOSURE);
+            emit(Code.SET_CLOSURE);
             pushShort(pos);
         } else {
             pos = varsLocals.indexOf(name);
             if (varsBoxed.contains(name)) {
-                emit(LightScriptOpCodes.SET_BOXED);
+                emit(Code.SET_BOXED);
             } else {
-                emit(LightScriptOpCodes.SET_LOCAL);
+                emit(Code.SET_LOCAL);
             }
             pushShort(depth - pos - 1);
         }
@@ -1166,22 +1166,22 @@ final class LightScriptCompiler {
         Object[] expr = (Object[]) rawexpr;
         int id = getType(expr);
         switch (id) {
-        case LightScriptOpCodes.ADD:
-        case LightScriptOpCodes.MUL:
-        case LightScriptOpCodes.DIV:
-        case LightScriptOpCodes.SHIFT_RIGHT_ARITHMETIC:
-        case LightScriptOpCodes.SHIFT_RIGHT:
-        case LightScriptOpCodes.SHIFT_LEFT:
-        case LightScriptOpCodes.BITWISE_OR:
-        case LightScriptOpCodes.BITWISE_XOR:
-        case LightScriptOpCodes.BITWISE_AND:
-        case LightScriptOpCodes.REM:
-        case LightScriptOpCodes.SUB:
-        case LightScriptOpCodes.EQUALS:
-        case LightScriptOpCodes.NOT_EQUALS:
-        case LightScriptOpCodes.SUBSCRIPT:
-        case LightScriptOpCodes.LESS_EQUAL:
-        case LightScriptOpCodes.LESS: {
+        case Code.ADD:
+        case Code.MUL:
+        case Code.DIV:
+        case Code.SHIFT_RIGHT_ARITHMETIC:
+        case Code.SHIFT_RIGHT:
+        case Code.SHIFT_LEFT:
+        case Code.BITWISE_OR:
+        case Code.BITWISE_XOR:
+        case Code.BITWISE_AND:
+        case Code.REM:
+        case Code.SUB:
+        case Code.EQUALS:
+        case Code.NOT_EQUALS:
+        case Code.SUBSCRIPT:
+        case Code.LESS_EQUAL:
+        case Code.LESS: {
             compile(expr[1], true);
             compile(expr[2], true);
             emit(id);
@@ -1189,24 +1189,24 @@ final class LightScriptCompiler {
             hasResult = true;
             break;
         }
-        case LightScriptOpCodes.BITWISE_NOT:
-        case LightScriptOpCodes.NOT:
-        case LightScriptOpCodes.NEG: {
+        case Code.BITWISE_NOT:
+        case Code.NOT:
+        case Code.NEG: {
             compile(expr[1], true);
             emit(id);
             hasResult = true;
             break;
         }
-        case LightScriptOpCodes.DELETE: {
+        case Code.DELETE: {
             Object[] expr2 = (Object[]) expr[1];
             int subtype = getType(expr2);
-            if (subtype == LightScriptOpCodes.SUBSCRIPT) {
+            if (subtype == Code.SUBSCRIPT) {
                 compile(expr2[1], true);
                 compile(expr2[2], true);
-            } else if (LightScript.DEBUG_ENABLED && subtype != LightScriptOpCodes.IDENT) {
+            } else if (LightScript.DEBUG_ENABLED && subtype != Code.IDENT) {
                 throw new Error("Deleting non-var");
             } else {
-                emit(LightScriptOpCodes.GLOBAL);
+                emit(Code.GLOBAL);
                 addDepth(1);
                 compile(expr2[1], true);
             }
@@ -1215,49 +1215,49 @@ final class LightScriptCompiler {
             hasResult = true;
             break;
         }
-        case LightScriptOpCodes.NEW: {
+        case Code.NEW: {
             int subtype = childType(expr, 1);
-            if (subtype != LightScriptOpCodes.CALL_FUNCTION) {
-                expr = v(LightScriptOpCodes.CALL_FUNCTION, expr);
+            if (subtype != Code.CALL_FUNCTION) {
+                expr = v(Code.CALL_FUNCTION, expr);
             }
-            expr[1] = v(LightScriptOpCodes.SUBSCRIPT, expr, v(LightScriptOpCodes.LITERAL, "constructor"));
+            expr[1] = v(Code.SUBSCRIPT, expr, v(Code.LITERAL, "constructor"));
             compile(expr, yieldResult);
             hasResult = yieldResult;
             break;
         }
-        case LightScriptOpCodes.THIS: {
+        case Code.THIS: {
             emit(id);
             addDepth(1);
             hasResult = true;
             break;
         }
-        case LightScriptOpCodes.LITERAL: {
+        case Code.LITERAL: {
             emit(id);
             pushShort(constPoolId(expr[1]));
             hasResult = true;
             addDepth(1);
             break;
         }
-        case LightScriptOpCodes.BLOCK: {
+        case Code.BLOCK: {
             for (int i = 1; i < expr.length; i++) {
                 compile(expr[i], false);
             }
             hasResult = false;
             break;
         }
-        case LightScriptOpCodes.RETURN: {
+        case Code.RETURN: {
             compile(expr[1], true);
-            emit(LightScriptOpCodes.RETURN);
+            emit(Code.RETURN);
             pushShort(depth);
             addDepth(-1);
             hasResult = false;
             break;
         }
-        case LightScriptOpCodes.IDENT: {
+        case Code.IDENT: {
             String name = (String) expr[1];
             int pos = varsClosure.indexOf(name);
             if (pos >= 0) {
-                emit(LightScriptOpCodes.GET_CLOSURE);
+                emit(Code.GET_CLOSURE);
                 pushShort(pos);
             } else {
                 pos = varsLocals.indexOf(name);
@@ -1267,9 +1267,9 @@ final class LightScriptCompiler {
                     }
                 }
                 if (varsBoxed.contains(name)) {
-                    emit(LightScriptOpCodes.GET_BOXED);
+                    emit(Code.GET_BOXED);
                 } else {
-                    emit(LightScriptOpCodes.GET_LOCAL);
+                    emit(Code.GET_LOCAL);
                 }
                 pushShort(depth - pos - 1);
             }
@@ -1277,20 +1277,20 @@ final class LightScriptCompiler {
             hasResult = true;
             break;
         }
-        case LightScriptOpCodes.SET: {
+        case Code.SET: {
             assertLength(expr, 3);
             int targetType = childType(expr, 1);
             hasResult = true;
-            if (targetType == LightScriptOpCodes.IDENT) {
+            if (targetType == Code.IDENT) {
                 String name = (String) ((Object[]) expr[1])[1];
                 compile(expr[2], true);
                 compileSet(name);
-            } else if (targetType == LightScriptOpCodes.SUBSCRIPT) {
+            } else if (targetType == Code.SUBSCRIPT) {
                 Object[] subs = (Object[]) expr[1];
                 compile(subs[1], true);
                 compile(subs[2], true);
                 compile(expr[2], true);
-                emit(LightScriptOpCodes.PUT);
+                emit(Code.PUT);
                 addDepth(-2);
             } else {
                 if (LightScript.DEBUG_ENABLED) {
@@ -1300,37 +1300,37 @@ final class LightScriptCompiler {
             }
             break;
         }
-        case LightScriptOpCodes.PAREN: {
+        case Code.PAREN: {
             assertLength(expr, 2);
             compile(expr[1], yieldResult);
             hasResult = yieldResult;
             break;
         }
-        case LightScriptOpCodes.CALL_FUNCTION: {
-            boolean methodcall = (childType(expr, 1) == LightScriptOpCodes.SUBSCRIPT);
+        case Code.CALL_FUNCTION: {
+            boolean methodcall = (childType(expr, 1) == Code.SUBSCRIPT);
 
             // save program counter
-            emit(LightScriptOpCodes.SAVE_PC);
-            addDepth(LightScriptCode.RET_FRAME_SIZE);
+            emit(Code.SAVE_PC);
+            addDepth(Code.RET_FRAME_SIZE);
 
             // find the method/function
             if (methodcall) {
                 Object[] subs = (Object[]) expr[1];
                 compile(subs[1], true);
 
-                emit(LightScriptOpCodes.DUP);
+                emit(Code.DUP);
                 addDepth(1);
 
                 compile(subs[2], true);
-                emit(LightScriptOpCodes.SUBSCRIPT);
+                emit(Code.SUBSCRIPT);
                 addDepth(-1);
 
-                emit(LightScriptOpCodes.SWAP);
+                emit(Code.SWAP);
 
             } else {
                 compile(expr[1], true);
 
-                emit(LightScriptOpCodes.GLOBAL);
+                emit(Code.GLOBAL);
                 addDepth(1);
             }
 
@@ -1340,45 +1340,45 @@ final class LightScriptCompiler {
             }
 
             // call the function
-            emit(LightScriptOpCodes.CALL_FN);
+            emit(Code.CALL_FN);
             if (LightScript.DEBUG_ENABLED) {
                 if (expr.length > 129) {
                     throw new Error("too many parameters");
                 }
             }
             emit(expr.length - 2);
-            addDepth(1 - expr.length - LightScriptCode.RET_FRAME_SIZE);
+            addDepth(1 - expr.length - Code.RET_FRAME_SIZE);
 
             hasResult = true;
             break;
         }
-        case LightScriptOpCodes.BUILD_FUNCTION: {
-            Object[] vars = ((LightScriptCode) expr[1]).closure;
+        case Code.BUILD_FUNCTION: {
+            Object[] vars = ((Code) expr[1]).closure;
             for (int i = 0; i < vars.length; i++) {
                 String name = (String) vars[i];
                 if (varsClosure.contains(name)) {
-                    emit(LightScriptOpCodes.GET_BOXED_CLOSURE);
+                    emit(Code.GET_BOXED_CLOSURE);
                     pushShort(varsClosure.indexOf(name));
                 } else {
-                    emit(LightScriptOpCodes.GET_LOCAL);
+                    emit(Code.GET_LOCAL);
                     pushShort(depth - varsLocals.indexOf(name) - 1);
                 }
                 addDepth(1);
             }
-            emit(LightScriptOpCodes.LITERAL);
+            emit(Code.LITERAL);
             pushShort(constPoolId(expr[1]));
             addDepth(1);
-            emit(LightScriptOpCodes.BUILD_FN);
+            emit(Code.BUILD_FN);
             pushShort(vars.length);
             addDepth(-vars.length);
             hasResult = true;
             break;
 
         }
-        case LightScriptOpCodes.IF: {
+        case Code.IF: {
             int subtype = childType(expr, 2);
 
-            if (subtype == LightScriptOpCodes.ELSE) {
+            if (subtype == Code.ELSE) {
                 Object[] branch = (Object[]) expr[2];
 
                 //    code for condition
@@ -1393,7 +1393,7 @@ final class LightScriptCompiler {
                 // compile condition
                 compile(expr[1], true);
 
-                emit(LightScriptOpCodes.JUMP_IF_TRUE);
+                emit(Code.JUMP_IF_TRUE);
                 pushShort(0);
                 pos0 = code.length();
                 addDepth(-1);
@@ -1401,7 +1401,7 @@ final class LightScriptCompiler {
                 curlyToBlock(branch[2]);
                 compile(branch[2], yieldResult);
 
-                emit(LightScriptOpCodes.JUMP);
+                emit(Code.JUMP);
                 pushShort(0);
                 pos1 = code.length();
                 len = pos1 - pos0;
@@ -1422,7 +1422,7 @@ final class LightScriptCompiler {
 
                 compile(expr[1], true);
 
-                emit(LightScriptOpCodes.JUMP_IF_FALSE);
+                emit(Code.JUMP_IF_FALSE);
                 pushShort(0);
                 pos0 = code.length();
                 addDepth(-1);
@@ -1437,7 +1437,7 @@ final class LightScriptCompiler {
                 break;
             }
         }
-        case LightScriptOpCodes.FOR: {
+        case Code.FOR: {
             assertLength(expr, 3);
             Object[] args = (Object[]) expr[1];
             Object init, cond, step;
@@ -1446,13 +1446,13 @@ final class LightScriptCompiler {
                 cond = args[2];
                 step = args[3];
                 curlyToBlock(expr[2]);
-                compile(v(LightScriptOpCodes.BLOCK, init, v(LightScriptOpCodes.WHILE, cond,
-                          v(LightScriptOpCodes.BLOCK, expr[2], step))), yieldResult);
+                compile(v(Code.BLOCK, init, v(Code.WHILE, cond,
+                          v(Code.BLOCK, expr[2], step))), yieldResult);
                 hasResult = yieldResult;
                 break;
             } else {
                 assertLength(args, 3);
-                doAssert(getType(args) == LightScriptOpCodes.IN);
+                doAssert(getType(args) == Code.IN);
                 // for(a in b) c
                 //
                 //   evalute b
@@ -1482,17 +1482,17 @@ final class LightScriptCompiler {
                 // evaluate b
                 compile(in[2], true);
 
-                emit(LightScriptOpCodes.NEW_ITER);
+                emit(Code.NEW_ITER);
                 pos0 = code.length();
                 // get next
-                emit(LightScriptOpCodes.NEXT);
+                emit(Code.NEXT);
                 addDepth(1);
 
                 // store value in variable
                 compileSet(name);
 
                 // exit if done
-                emit(LightScriptOpCodes.JUMP_IF_UNDEFINED);
+                emit(Code.JUMP_IF_UNDEFINED);
                 pushShort(0);
                 pos1 = code.length();
                 addDepth(-1);
@@ -1501,13 +1501,13 @@ final class LightScriptCompiler {
                 curlyToBlock(expr[2]);
                 compile(expr[2], false);
 
-                emit(LightScriptOpCodes.JUMP);
+                emit(Code.JUMP);
                 pushShort(0);
 
                 setShort(pos1, code.length() - pos1);
                 setShort(code.length(), pos0 - code.length());
 
-                emit(LightScriptOpCodes.DROP);
+                emit(Code.DROP);
                 addDepth(-1);
                 hasResult = false;
 
@@ -1515,25 +1515,25 @@ final class LightScriptCompiler {
             }
 
         }
-        case LightScriptOpCodes.SEP: {
+        case Code.SEP: {
             assertLength(expr, 1);
             hasResult = false;
             break;
         }
-        case LightScriptOpCodes.AND: {
+        case Code.AND: {
             assertLength(expr, 3);
             int pos0, pos1, len;
 
             compile(expr[1], true);
 
-            emit(LightScriptOpCodes.JUMP_IF_TRUE);
+            emit(Code.JUMP_IF_TRUE);
             pushShort(0);
             pos0 = code.length();
             addDepth(-1);
 
-            compile(v(LightScriptOpCodes.LITERAL, LightScript.UNDEFINED), true);
+            compile(v(Code.LITERAL, LightScript.UNDEFINED), true);
 
-            emit(LightScriptOpCodes.JUMP);
+            emit(Code.JUMP);
             pushShort(0);
             pos1 = code.length();
             len = pos1 - pos0;
@@ -1546,21 +1546,21 @@ final class LightScriptCompiler {
             hasResult = true;
             break;
         }
-        case LightScriptOpCodes.OR: {
+        case Code.OR: {
             assertLength(expr, 3);
             int pos0, pos1, len;
 
             compile(expr[1], true);
 
-            emit(LightScriptOpCodes.DUP);
+            emit(Code.DUP);
             addDepth(1);
 
-            emit(LightScriptOpCodes.JUMP_IF_TRUE);
+            emit(Code.JUMP_IF_TRUE);
             pushShort(0);
             pos0 = code.length();
             addDepth(-1);
 
-            emit(LightScriptOpCodes.DROP);
+            emit(Code.DROP);
             addDepth(-1);
 
             compile(expr[2], true);
@@ -1573,14 +1573,14 @@ final class LightScriptCompiler {
 
             break;
         }
-        case LightScriptOpCodes.LIST_LITERAL: {
-            emit(LightScriptOpCodes.NEW_LIST);
+        case Code.LIST_LITERAL: {
+            emit(Code.NEW_LIST);
             addDepth(1);
 
             for (int i = 1; i < expr.length; i++) {
-                if (childType(expr, i) != LightScriptOpCodes.SEP) {
+                if (childType(expr, i) != Code.SEP) {
                     compile(expr[i], true);
-                    emit(LightScriptOpCodes.PUSH);
+                    emit(Code.PUSH);
                     addDepth(-1);
                 }
             }
@@ -1588,8 +1588,8 @@ final class LightScriptCompiler {
 
             break;
         }
-        case LightScriptOpCodes.CURLY: {
-            emit(LightScriptOpCodes.NEW_DICT);
+        case Code.CURLY: {
+            emit(Code.NEW_DICT);
             addDepth(1);
 
             int i = 0;
@@ -1598,21 +1598,21 @@ final class LightScriptCompiler {
                 compile(expr[i], true);
                 ++i;
                 compile(expr[i], true);
-                emit(LightScriptOpCodes.PUT);
+                emit(Code.PUT);
                 addDepth(-2);
             }
             hasResult = true;
 
             break;
         }
-        case LightScriptOpCodes.THROW: {
+        case Code.THROW: {
             compile(expr[1], true);
-            emit(LightScriptOpCodes.THROW);
+            emit(Code.THROW);
             addDepth(-1);
             hasResult = false;
             break;
         }
-        case LightScriptOpCodes.TRY: {
+        case Code.TRY: {
             //   try -> labelHandle;
             //   ... body
             //   untry
@@ -1625,18 +1625,18 @@ final class LightScriptCompiler {
 
             Object[] catchExpr = (Object[]) expr[2];
 
-            emit(LightScriptOpCodes.TRY);
+            emit(Code.TRY);
             pushShort(0);
             pos0 = code.length();
-            addDepth(LightScriptCode.TRY_FRAME_SIZE);
+            addDepth(Code.TRY_FRAME_SIZE);
 
             curlyToBlock(expr[1]);
             compile(expr[1], false);
 
-            emit(LightScriptOpCodes.UNTRY);
-            addDepth(-LightScriptCode.TRY_FRAME_SIZE);
+            emit(Code.UNTRY);
+            addDepth(-Code.TRY_FRAME_SIZE);
 
-            emit(LightScriptOpCodes.JUMP);
+            emit(Code.JUMP);
             pushShort(0);
             pos1 = code.length();
 
@@ -1647,7 +1647,7 @@ final class LightScriptCompiler {
             Object name = ((Object[]) ((Object[]) catchExpr[1])[1])[1];
 
             compileSet(name);
-            emit(LightScriptOpCodes.DROP);
+            emit(Code.DROP);
             addDepth(-1);
 
             curlyToBlock(catchExpr[2]);
@@ -1660,7 +1660,7 @@ final class LightScriptCompiler {
             break;
 
         }
-        case LightScriptOpCodes.WHILE: {
+        case Code.WHILE: {
             // top:
             //   code for condition
             //   jump if false -> labelExit
@@ -1676,7 +1676,7 @@ final class LightScriptCompiler {
             pos0 = code.length();
 
             compile(expr[1], true);
-            emit(LightScriptOpCodes.JUMP_IF_FALSE);
+            emit(Code.JUMP_IF_FALSE);
             pushShort(0);
             pos1 = code.length();
             addDepth(-1);
@@ -1685,14 +1685,14 @@ final class LightScriptCompiler {
             curlyToBlock(expr[2]);
             compile(expr[2], false);
 
-            emit(LightScriptOpCodes.JUMP);
+            emit(Code.JUMP);
             pushShort(pos0 - code.length() - 2);
 
             setShort(pos1, code.length() - pos1);
             hasResult = false;
             break;
         }
-        case LightScriptOpCodes.DO: {
+        case Code.DO: {
             int pos0;
             pos0 = code.length();
 
@@ -1700,20 +1700,20 @@ final class LightScriptCompiler {
             compile(expr[1], false);
 
             compile(((Object[]) expr[2])[1], true);
-            emit(LightScriptOpCodes.JUMP_IF_TRUE);
+            emit(Code.JUMP_IF_TRUE);
             pushShort(pos0 - code.length() - 2);
             addDepth(-1);
             hasResult = false;
             break;
         }
-        case LightScriptOpCodes.DEC: {
-            compile(v(LightScriptOpCodes.SET, expr[1], v(LightScriptOpCodes.SUB, expr[1],
-                      v(LightScriptOpCodes.LITERAL, StdLib.integerOne))), yieldResult);
+        case Code.DEC: {
+            compile(v(Code.SET, expr[1], v(Code.SUB, expr[1],
+                      v(Code.LITERAL, StdLib.integerOne))), yieldResult);
             return;
         }
-        case LightScriptOpCodes.INC: {
-            compile(v(LightScriptOpCodes.SET, expr[1], v(LightScriptOpCodes.ADD, expr[1],
-                      v(LightScriptOpCodes.LITERAL, StdLib.integerOne))), yieldResult);
+        case Code.INC: {
+            compile(v(Code.SET, expr[1], v(Code.ADD, expr[1],
+                      v(Code.LITERAL, StdLib.integerOne))), yieldResult);
             return;
         }
         default:
@@ -1725,10 +1725,10 @@ final class LightScriptCompiler {
         }
 
         if (hasResult && !yieldResult) {
-            emit(LightScriptOpCodes.DROP);
+            emit(Code.DROP);
             addDepth(-1);
         } else if (yieldResult && !hasResult) {
-            compile(v(LightScriptOpCodes.LITERAL, LightScript.UNDEFINED), true);
+            compile(v(Code.LITERAL, LightScript.UNDEFINED), true);
         }
     }
     //</editor-fold>

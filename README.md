@@ -22,6 +22,19 @@ Features include:
 - Exceptions, object literals
 - Good integration with Java
 
+
+Language Reference
+==================
+
+Data types
+----------
+
+Builtin operations
+------------------
+
+Incompatibilities with JavaScript
+---------------------------------
+
 Library Reference
 =================
 
@@ -88,29 +101,7 @@ Midp1 library (api not stabilised)
 - Storage.get(key)
 
 
-Language Reference
-==================
 
-Data types
-----------
+Embedding LightScript in Java
+=============================
 
-Builtin operations
-------------------
-
-Incompatibilities with JavaScript
----------------------------------
-
-Implementation details
-======================
-
-Type system
------------
-
-Exception handling
-------------------
-
-Implementation internals
-------------------------
-
-Optimisation for Java Mobile Edition
-------------------------------------
