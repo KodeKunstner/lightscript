@@ -1,0 +1,81 @@
+Expressions:
+- set / assignments
+- while loops
+- for-in loops
+- cond
+- comment
+- return
+- catch
+- function literals
+- array literals
+- object literals
+- strings
+- numbers
+- identifiers
+- function calls
+- and
+- or
+- (macros)
+
+Special identifiers:
+- []      (subscript)
+- []=     (put)
+- .()     (methodcall)
+- throw
+- + - * / < <= === !== 
+- ! -
+- true false undefined
+- arguments
+
+
+AST:
+{
+    expr: assignment|while|for-in|cond|comment|return|catch|function|array|object|string|number|id|call|and|or|macro|begin
+    val: undefined|some value,
+    exprs: [...]
+}
+
+
+
+Parser/printer
+==============
+
+Source file structure:
+- General utility functions
+- Parse utility functions
+- Print utility functions
+- Syntax definition
+
+
+Parsing:
+- Top-down operator precedence -> rough source tree
+- tree-map with dispatch table 
+
+
+
+Expressions
+- Function definitions
+- Literals
+    - array 
+    - dict / object
+    - string
+    - number
+- identifier / variable name
+- conditional and / or
+- Function call
+    - Method call
+    - Function call
+    - Builtin function level 0
+        - add
+        - eq
+        - less
+        - neg
+        - neq
+        - not
+        - put
+    - Builtin functions level 1
+        - throw
+        - leq
+        - geq
+        - greater
+
