@@ -30,9 +30,9 @@ Special identifiers:
 
 AST:
 {
-    expr: assignment|while|for-in|cond|comment|return|catch|function|array|object|string|number|id|call|and|or|macro|begin
+    name: set|while|for-in|cond|comment|return|catch|function|array|object|string|number|identifier|call|and|or|macro|begin
     val: undefined|some value,
-    exprs: [...]
+    child: [...]
 }
 
 

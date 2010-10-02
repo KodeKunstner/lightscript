@@ -12,14 +12,14 @@ getch = (function() {
     var pos;
     var newl = 0;
     return function() {
-        ++pos;
+        pos = pos + 1;
         if (line[pos] !== undefined) {
             newl= 0;
             return line[pos];
         } else {
             pos = -1;
             line = readline();
-            ++newl;
+            newl = newl + 1;
             if (newl > 10) {
                 return undefined;
             } else {
@@ -42,7 +42,7 @@ function deepcopy(o) {
         i = 0;
         while (i < o.length) {
             result.push(deepcopy(o[i]));
-            ++i;
+            i = i + 1;
         }
         return result;
     } else {
@@ -258,15 +258,6 @@ var opassign = function(id) {
     };
 };
 
-var prefixop = function(id) {
-    tok(id).op = id.substring(0, id.length - 1);
-    tok(id).nud = function() {
-        var t = parse();
-        return {name: '=', 
-                child: [t, applymacros({name: this.op, child: [deepcopy(t), {name: 'number', val: '1', child: []}]}) ]};
-    };
-};
-
 //
 // Parser
 //
@@ -290,7 +281,26 @@ parse = function(rbp) {
     return left;
 };
 
-/////////////////////////////////////////////////////
+
+// return a function, that if the first expression argument is a subscript
+// changes the expression to a function call, and otherwise changes the expression type
+// to a given name.
+function subscriptFunctionOrName(fn, name) {
+    return function(expr) {
+        if(expr.child[0].name == '[]') {
+            expr.child.unshift(expr.child[0].child[0]);
+            expr.child[1] = expr.child[1].child[1];
+            expr.name = fn;
+            fnMacro(expr);
+        } else {
+            expr.name = name;
+        }
+    };
+};
+
+//
+// Syntax definitions
+//
 // Definition of operator precedence and type
 //
 infix('.', 700, function(expr) {
@@ -298,17 +308,7 @@ infix('.', 700, function(expr) {
     expr.name = '[]';
 });
 
-infixlist('(', ')', 600, function(expr) {
-    if(expr.child[0].name == '[]') {
-        expr.child.unshift(expr.child[0].child[0]);
-        expr.child[1] = expr.child[1].child[1];
-        expr.name = ".()";
-        fnMacro(expr);
-    } else {
-        expr.name = 'call';
-    }
-});
-
+infixlist('(', ')', 600, subscriptFunctionOrName(".()", "call"));
 infixlist('[', ']', 600, function(expr) { expr.name = '[]'; });
 
 infix('*', 500); 
@@ -328,19 +328,10 @@ infix('<', 300);
 infixswap('>=', '<=', 300);
 infixswap('>', '<', 300);
 
-infixr('&&', 200);
-infixr('||', 200);
+infixr('&&', 200); // TODO
+infixr('||', 200); // TODO
 
-infix('=', 100, function(expr) {
-    if(expr.child[0].name == '[]') {
-        expr.child.unshift(expr.child[0].child[0]);
-        expr.child[1] = expr.child[1].child[1];
-        expr.name = "[]=";
-        fnMacro(expr);
-    } else {
-        expr.name = 'set';
-    }
-}); 
+infix('=', 100, subscriptFunctionOrName("[]=", "set"));
 
 infix('in', 50, identity);
 
@@ -361,6 +352,7 @@ prefix('-');
 prefix('!'); 
 macros['!'] = fnMacro;
 prefix('throw'); 
+macros['throw'] = fnMacro;
 atom('undefined'); 
 atom('null'); 
 atom(']');
@@ -381,8 +373,6 @@ prefix2('for'); // TODO
 prefix2('function'); // TODO
 prefix2('try'); // TODO
 prefix2('catch'); //TODO
-prefixop('--');
-prefixop('++');
 
 //////////////////////////////////////////
 // Build parse tree
