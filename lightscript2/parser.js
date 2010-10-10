@@ -247,14 +247,23 @@ prefix2 = function(id) {
 };
 
 literal = function(id) {
-    tok(id).nud = function() { return {name: this.id, 'val': this.val, 'child': []}; }
-}
+    tok(id).nud = function() { 
+        return {
+            name: this.id, 
+            'val': this.val, 
+            'child': []}; 
+    };
+};
 
 var opassign = function(id) {
     tok(id).op = id.substring(0, id.length - 1);
     tok(id).bp = 100;
     tok(id).led = function(left) {
-        return {name: '=', child: [left, applymacros({name: this.op, child: [deepcopy(left), parse(this.bp)]})]};
+        return {
+            name: '=', 
+            child: [left, applymacros({
+                name: this.op, 
+                child: [deepcopy(left), parse(this.bp)]})]};
     };
 };
 
@@ -264,7 +273,8 @@ var opassign = function(id) {
 macros = { default: identity};
 
 applymacros = function(expr) {
-    (macros[expr.name] || macros.default)(expr);
+    (macros[expr.name] 
+        || macros.default)(expr);
     return expr;
 }
 
@@ -273,11 +283,12 @@ parse = function(rbp) {
     var t = token;
     token = next_token();
     var left = applymacros(t.nud());
-    while (rbp < token.bp && !t.sep) {
+    while (rbp < token.bp 
+            && !t.sep) {
         t = token;
         token = next_token();
         left = applymacros(t.led(left));
-    }
+    };
     return left;
 };
 
@@ -287,14 +298,16 @@ parse = function(rbp) {
 // to a given name.
 function subscriptFunctionOrName(fn, name) {
     return function(expr) {
-        if(expr.child[0].name == '[]') {
-            expr.child.unshift(expr.child[0].child[0]);
-            expr.child[1] = expr.child[1].child[1];
+        if (expr.child[0].name == 'call' 
+                && expr.child[0].child[0].name == 'identifier'
+                && expr.child[0].child[0].val == '[]') {
+            expr.child.unshift(expr.child[0].child[1]);
+            expr.child[1] = expr.child[1].child[2];
             expr.name = fn;
             fnMacro(expr);
         } else {
             expr.name = name;
-        }
+        };
     };
 };
 
@@ -306,10 +319,15 @@ function subscriptFunctionOrName(fn, name) {
 infix('.', 700, function(expr) {
     expr.child[1].name = 'string';
     expr.name = '[]';
+    fnMacro(expr);
 });
 
 infixlist('(', ')', 600, subscriptFunctionOrName(".()", "call"));
-infixlist('[', ']', 600, function(expr) { expr.name = '[]'; });
+
+infixlist('[', ']', 600, function(expr) { 
+    expr.name = '[]'; 
+    fnMacro(expr); 
+}); 
 
 infix('*', 500); 
 infix('%', 500);
@@ -345,6 +363,15 @@ sep(';');
 sep(',');
 list('(', ')', 'paren');
 list('{', '}', 'object');
+macros['object'] = function(expr) {
+    var i = 0;
+    while(i < expr.child.length) {
+        if(expr.child[i].name === 'identifier') {
+            expr.child[i].name = 'string';
+        }
+        i = i + 2;
+    };
+};
 list('[', ']', 'array');
 list('var', ';', 'locals'); 
 prefix('return'); 
