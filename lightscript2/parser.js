@@ -242,8 +242,10 @@ prefix = function(id) {
     tok(id).nud = function() { return {name: this.id, 'child': [parse()] }; }
 };
 
-prefix2 = function(id) {
+prefix2 = function(id, macro) {
+    macro = macro || identity;
     tok(id).nud = function() { return {name: this.id, 'child': [parse(), parse()]}; }
+    macros[id] = macro;
 };
 
 literal = function(id) {
@@ -346,8 +348,10 @@ infix('<', 300);
 infixswap('>=', '<=', 300);
 infixswap('>', '<', 300);
 
-infixr('&&', 200); // TODO
-infixr('||', 200); // TODO
+infixr('&&', 200); 
+tok('&&').id = 'and';
+infixr('||', 200); 
+tok('||').id = 'or';
 
 infix('=', 100, subscriptFunctionOrName("[]=", "set"));
 
@@ -393,10 +397,23 @@ literal('identifier');
 literal('string');
 literal('number');
 literal('comment');
-infixr('else', 200); //TODO
-prefix2('while'); //TODO
-prefix2('if'); //TODO
-prefix2('for'); // TODO
+infixr('else', 200);
+
+prefix2('while', function(node) {
+    // assume node.child[0] === { name:'paren', child:[?]}
+    node.child[0] = node.child[0].child[0];
+    // assume node.child[1] is curlybraces
+    node.child[1].name = 'block';
+}); 
+prefix2('for', function(node) {
+    // assume node.child[0] === { name:'paren', child:[{name:'in', child:[?, ?]}]}
+    node.child.unshift(node.child[0].child[0].child[0]);
+    node.child[0] = node.child[1].child[0].child[0];
+    node.child[1] = node.child[1].child[0].child[1];
+    node.child[2].name = 'block';
+    node.name = "for-in"
+}); 
+prefix2('if');
 prefix2('function'); // TODO
 prefix2('try'); // TODO
 prefix2('catch'); //TODO
