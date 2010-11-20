@@ -29,11 +29,11 @@ getch = (function() {
     }
 })();
 
-var isArray = function(o) {
+function isArray(o) {
     return o.constructor === Array;
 };
 
-var deepcopy = function(o) {
+function deepcopy(o) {
     var i, result;
     if (typeof(o) === 'string') {
         return o;
@@ -61,17 +61,18 @@ var identity = function(x) { return x; };
 //
 var c = ' ';
 var str = '';
-var char_is = function(str) {
+function char_is(str) {
     return str.indexOf(c) !== -1;
 };
-var skip_char = function() {
+var skip_char, push_char, pop_string;
+skip_char = function() {
     c = getch();
 }
-var push_char = function() {
+push_char = function() {
     str += c;
     skip_char();
 }
-var pop_string = function() {
+pop_string = function() {
     var result = str;
     str = '';
     return result;
@@ -80,7 +81,7 @@ var symb = '=!<>&|/*+-%';
 var num = '1234567890';
 var alphanum = num + '_qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
 
-var next_token = function() {
+next_token = function() {
     while (char_is(' \n\r\t')) {
         skip_char();
     }
@@ -297,7 +298,7 @@ parse = function(rbp) {
 // return a function, that if the first expression argument is a subscript
 // changes the expression to a function call, and otherwise changes the expression type
 // to a given name.
-var subscriptFunctionOrName = function(fn, name) {
+function subscriptFunctionOrName(fn, name) {
     return function(expr) {
         if (expr.child[0].name == 'call' 
                 && expr.child[0].child[0].name == 'identifier'
@@ -376,7 +377,7 @@ macros['object'] = function(expr) {
     };
 };
 list('[', ']', 'array');
-list('var', ';', 'locals'); 
+list('var', ';', 'var'); 
 prefix('return'); 
 prefix('-'); 
 prefix('!'); 
@@ -412,8 +413,22 @@ prefix2('for', function(node) {
     node.child[2].name = 'block';
     node.name = "for-in"
 }); 
-prefix2('if');
-prefix2('function'); // TODO
+prefix2('if', function(node) {
+    // assume node.child[0] === { name:'paren', child:[?]}
+    var node.child[0] = node.child[0].child[0];
+
+    //
+    if(node.child[1].name === 'else') {
+        node.child[2] = node.child[1].child[1];
+        node.child[1] = node.child[1].child[0];
+    } else {
+        node.child[2] = {name: 'block', child: []};
+    }
+});
+
+prefix2('function', function(node) {
+}); // TODO
+
 prefix2('try'); // TODO
 prefix2('catch'); //TODO
 
