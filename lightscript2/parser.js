@@ -245,35 +245,10 @@ prefix2('function');
 prefix2('try');
 prefix2('catch');
 
-//////////////////////////////////////////
-// Build parse tree
-
-//
 // dump
 //
 
-var isArray = function(o) {
-        return o.constructor === Array;
-};
-
-var list2str = function(o) {
-    if(isArray(o)) {
-        var i = 0;
-        var result = [];
-        while(i < o.length) {
-            result.push(list2str(o[i]));
-           i = i + 1;
-        }
-        return "[" + result.join(", ") + "]";
-    } else {
-        return uneval(o);
-    }
-};
-//while((token = next_token())[0] != '(eof)') {
-//   print(token);
-//}
-
 token = next_token();
 while((x = parse()) !== EOF) {
-    print(list2str(x));
+    print(uneval(x));
 }
