@@ -66,16 +66,16 @@ var char_is = function(str) {
 };
 var skip_char = function() {
     c = getch();
-}
+};
 var push_char = function() {
-    str += c;
+    str = str + c;
     skip_char();
-}
+};
 var pop_string = function() {
     var result = str;
     str = '';
     return result;
-}
+};
 var symb = '=!<>&|/*+-%';
 var num = '1234567890';
 var alphanum = num + '_qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
@@ -192,13 +192,6 @@ var infix = function(id, bp, fn) {
     macros[id] = fn || fnMacro;
 };
 
-var infixswap = function(id, newid, bp) {
-    tok(id).bp = bp;
-    tok(id).led = function(left) { return {name: this.id, 'child': [parse(this.bp), left] }; };
-    tok(id).id = newid;
-};
-
-
 var infixr = function(id, bp) {
     tok(id).bp = bp;
     tok(id).led = function(left) { return {name: this.id, 'child': [left, parse(this.bp - 1)] }; };
@@ -253,18 +246,6 @@ literal = function(id) {
             name: this.id, 
             'val': this.val, 
             'child': []}; 
-    };
-};
-
-var opassign = function(id) {
-    tok(id).op = id.substring(0, id.length - 1);
-    tok(id).bp = 100;
-    tok(id).led = function(left) {
-        return {
-            name: '=', 
-            child: [left, applymacros({
-                name: this.op, 
-                child: [deepcopy(left), parse(this.bp)]})]};
     };
 };
 
@@ -337,30 +318,20 @@ infix('+', 400);
 infix('-', 400);
 infix('===', 300);
 infix('==', 300);
-tok('==').id = '===';
 infix('!==', 300); 
 infix('!=', 300);
-tok('!=').id = '!==';
 infix('<=', 300); 
 infix('<', 300);
 
-infixswap('>=', '<=', 300);
-infixswap('>', '<', 300);
-
+infix('>=', 300);
+infix('>', 300);
 infixr('&&', 200); 
-tok('&&').id = 'and';
 infixr('||', 200); 
-tok('||').id = 'or';
 
-infix('=', 100, subscriptFunctionOrName("[]=", "set"));
+infix('=', 100);
 
-infix('in', 50, identity);
+infix('in', 50);
 
-opassign('+=');
-opassign('-=');
-opassign('*=');
-opassign('/=');
-opassign('%=');
 sep(':');
 sep(';');
 sep(',');
