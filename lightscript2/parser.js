@@ -23,9 +23,9 @@ var getch = (function() {
     }
 })();
 
-same = function(a, b) {
+var same = function(a, b) {
     return uneval(a) === uneval(b);
-}
+};
 
 
 /////////////////////////////////////////////
@@ -116,19 +116,113 @@ var next_token = function() {
     }
 };
 
+//////////////////////////////////////
+// Pretty printer
+//
+
+var pp = {};
+var indentinc = 4;
+var indentstr = function(n) {
+    var i = 0;
+    var result = "";
+    while(i < n) {
+        result = result + " ";
+        i = i + 1;
+    }
+    return result;
+};
+var joinstr = function(node, indent, str) {
+    return node.map(function(node) {
+        return prettyprint(node, indent);
+    }).join(str);
+};
+var blockstr = function(node, indent) {
+    if(node[0] !== "list{") {
+        return prettyprint(node, indent);
+    } else {
+        var ind = indent + indentinc;
+        return " {" + node.slice(1).map(function(node) {
+            return "\n" + indentstr(ind) + prettyprint(node, ind) + ";";
+        }).join("") + "\n" + indentstr(indent) + "}";
+    }
+};
+var strescape = function(str) {
+    return str.replace("\\", "\\\\").replace("\n", "\\n").replace('\t', '\\t').replace('"', '\\"') + '"'; 
+}
+pp["listvar"] = function(node, indent) {
+    return "var " + node.slice(1).map(function(elem) {
+        return prettyprint(elem, indent);
+    }).join(",\n    " + indentstr(indent))
+};
+pp["id"] = function(node) { 
+    return node[1]; 
+};
+pp["number"] = pp["id"];
+pp["string"] = function(node) { 
+    return '"' + node[1].replace("\\", "\\\\").replace("\n", "\\n").replace('\t', '\\t').replace('"', '\\"') + '"'; 
+};
+pp["comment"] = function(node) { 
+    return "//" + node[1]; 
+};
+pp["apply("] = function(node, indent) {
+    return prettyprint(node[1], indent) + "(" + joinstr(node.slice(2), indent, ", ") + ")";
+};
+pp["function"] = function(node, indent) {
+    return "function(" + joinstr(node[1].slice(1), indent, ", ") + ")" + blockstr(node[2], indent);
+};
+pp["-"] = function(node, indent) {
+    if(node.length === 2) {
+        return "-" + prettyprint(node[1], indent);
+    } else {
+        pp["+"](node, indent);
+    }
+};
+pp["list("] = function(node, indent) {
+    return "(" + joinstr(node.slice(1), indent, ", ") + ")";
+};
+pp["list["] = function(node, indent) {
+    return "[" + joinstr(node.slice(1), indent, ", ") + "]";
+}
+pp["list{"] = function(node, indent) {
+    var i = 1;
+    var t = [];
+    print("NODE", uneval(node));
+    while(i < node.length) {
+        // guard until implemented...
+        if(node[i+1] && typeof(node[i][1]) == "string") {
+            t.push("\"" + strescape(node[i][1]) + "\" : " + prettyprint(node[i+1], indent+indentinc*2));
+        }
+        i = i + 1;
+    }
+    return "XXXX" + "{" + t.join(",\n"+indentstr(indent+indentinc)) + "}"
+}
+
+var prettyprint = function(node, indent) {
+    indent = indent || 0;
+    fn = pp[node[0]];
+    if(fn) {
+        return fn(node, indent);
+    } else {
+        return "" + node[0];
+    }
+};
+
 ///////////////////////////////////////
 // Operator constructors
 //
 
-bp = {};
-led = {};
-nud = {};
+var bp = {};
+var led = {};
+var nud = {};
 
 var infix = function(id, prio) {
     bp[id] = prio;
     led[id] = function(left, token) { 
         return [id, left, parse(prio)];
     };
+    pp[id] = pp[id] || function(node, indent) {
+        return prettyprint(node[1], indent) + " " + node[0] + " " + prettyprint(node[2], indent);
+    }
 };
 
 var infixr = function(id, prio) {
@@ -136,6 +230,9 @@ var infixr = function(id, prio) {
     led[id] = function(left, token) { 
         return [id, left, parse(prio - 1)];
     };
+    pp[id] = pp[id] || function(node, indent) {
+        return prettyprint(node[1], indent) + " " + node[0] + " " + prettyprint(node[2], indent);
+    }
 };
 
 var infixlist = function(id, endsymb, prio) {
@@ -167,10 +264,16 @@ var passthrough = function(id) {
 
 var prefix = function(id) {
     nud[id] = function() { return [id, parse()]; };
+    pp[id] = pp[id] || function(node, indent) { 
+        return node[0] + " " + prettyprint(node[1], indent); 
+    };
 };
 
 var prefix2 = function(id) {
     nud[id] = function() { return [id, parse(), parse()]}; 
+    pp[id] = pp[id] || function(node, indent) { 
+        return node[0] + " " + prettyprint(node[1], indent) + " " + prettyprint(node[2], indent); 
+    };
 };
 
 //
@@ -178,7 +281,7 @@ var prefix2 = function(id) {
 //
 var default_nud= function(o) { o.unshift("id"); return o;};
 
-parse = function(rbp) {
+var parse = function(rbp) {
     rbp = rbp || 0;
     var t = token;
     token = next_token();
@@ -245,10 +348,13 @@ prefix2('function');
 prefix2('try');
 prefix2('catch');
 
+//
 // dump
 //
 
 token = next_token();
-while((x = parse()) !== EOF) {
-    print(uneval(x));
+t = readlist(['list{'], '');
+for (elem in t) {
+//    print(prettyprint(t[elem]));
 }
+print(blockstr(t, -4));
