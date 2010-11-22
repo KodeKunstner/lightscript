@@ -266,14 +266,23 @@ infix('>=', 300);
 infix('>', 300);
 infixr('&&', 200); 
 infixr('||', 200); 
+infixr('else', 200);
 infix('=', 100);
 infix('in', 50);
 list('(', ')');
 list('{', '}');
 list('[', ']');
-prefix('var');
-prefix('return'); 
-prefix('-'); 
+['var', 'return', '-', '!', 'throw'].map(prefix);
+['while', 'for', 'if', 'function', 'try', 'catch'].map(prefix2);
+['undefined', 'null', ';', ':', ',', ')', '}', '(eof)', 'false', 'true', 'id', 'string', 'number', 'comment'].map(passthrough);
+
+// pretty printing
+pp["string"] = function(node) { 
+    return '"' + node[1].replace("\\", "\\\\").replace("\n", "\\n").replace('\t', '\\t').replace('"', '\\"') + '"'; 
+};
+pp["comment"] = function(node) { 
+    return "//" + node[1]; 
+};
 pp["-"] = function(node, indent) {
     if(node.length === 2) {
         return "-" + prettyprint(node[1], indent);
@@ -281,35 +290,6 @@ pp["-"] = function(node, indent) {
         pp["+"](node, indent);
     }
 };
-prefix('!'); 
-prefix('throw'); 
-passthrough('undefined'); 
-passthrough('null'); 
-passthrough(';');
-passthrough(':');
-passthrough(',');
-passthrough(')');
-passthrough('}');
-passthrough('(eof)');
-passthrough('true'); 
-passthrough('false'); 
-passthrough('id');
-passthrough('string');
-pp["string"] = function(node) { 
-    return '"' + node[1].replace("\\", "\\\\").replace("\n", "\\n").replace('\t', '\\t').replace('"', '\\"') + '"'; 
-};
-passthrough('number');
-passthrough('comment');
-pp["comment"] = function(node) { 
-    return "//" + node[1]; 
-};
-infixr('else', 200);
-prefix2('while'); 
-prefix2('for'); 
-prefix2('if');
-prefix2('function');
-prefix2('try');
-prefix2('catch');
 
 //
 // dump
