@@ -167,7 +167,7 @@ var infix = function(id, prio) {
     led[id] = function(left, token) { 
         return [id, left, parse(prio)];
     };
-    pp[id] = pp[id] || infixstr;
+    pp[id] = infixstr;
 };
 
 var infixr = function(id, prio) {
@@ -175,7 +175,7 @@ var infixr = function(id, prio) {
     led[id] = function(left, token) { 
         return [id, left, parse(prio - 1)];
     };
-    pp[id] = pp[id] || infixstr;
+    pp[id] = infixstr;
 };
 
 var infixlist = function(id, endsymb, prio) {
@@ -183,35 +183,35 @@ var infixlist = function(id, endsymb, prio) {
     led[id] = function(left, token) { 
         return readlist(["apply" + id, left], endsymb);
     };
-    pp["apply" + id] = pp[id] || function(node, indent) {
+    pp["apply" + id] = function(node, indent) {
         return prettyprint(node[1], indent) + id + tailstr(node.slice(1), indent, ", ") + endsymb;
     };
 };
 
 var list = function(id, endsymb) {
     nud[id] = function() { return readlist(["list" + id], endsymb); };
-    pp["list" + id] = pp[id] || function(node, indent) {
+    pp["list" + id] = function(node, indent) {
         return id + tailstr(node, indent, ", ") + endsymb;
     }
 };
 
 var passthrough = function(id) {
     nud[id] = function(token) { return token; };
-    pp[id] = pp[id] || function(node, indent) {
+    pp[id] = function(node, indent) {
         return node[node.length - 1];
     }
 };
 
 var prefix = function(id) {
     nud[id] = function() { return [id, parse()]; };
-    pp[id] = pp[id] || function(node, indent) {
+    pp[id] = function(node, indent) {
         return node[0] + " " + tailstr(node, indent, " ");
     };
 };
 
 var prefix2 = function(id) {
     nud[id] = function() { return [id, parse(), parse()]}; 
-    pp[id] = pp[id] || function(node, indent) {
+    pp[id] = function(node, indent) {
         return node[0] + " " + tailstr(node, indent, " ");
     };
 };
