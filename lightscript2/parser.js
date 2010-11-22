@@ -130,10 +130,7 @@ var tailstr = function(node, indent, str) {
 };
 var infixstr = function(node, indent) {
         return prettyprint(node[1], indent) + " " + node[0] + " " + prettyprint(node[2], indent);
-}
-var prefixstr = function(node, indent) {
-        return node[0] + " " + tailstr(node, indent, " ");
-}
+};
 
 var prettyprint = function(node, indent) {
     indent = indent || 0;
@@ -205,15 +202,18 @@ var passthrough = function(id) {
     }
 };
 
-
 var prefix = function(id) {
     nud[id] = function() { return [id, parse()]; };
-    pp[id] = pp[id] || prefixstr;
+    pp[id] = pp[id] || function(node, indent) {
+        return node[0] + " " + tailstr(node, indent, " ");
+    };
 };
 
 var prefix2 = function(id) {
     nud[id] = function() { return [id, parse(), parse()]}; 
-    pp[id] = pp[id] || prefixstr;
+    pp[id] = pp[id] || function(node, indent) {
+        return node[0] + " " + tailstr(node, indent, " ");
+    };
 };
 
 /////////////////////////////////////////
