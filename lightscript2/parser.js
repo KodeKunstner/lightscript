@@ -131,7 +131,22 @@ var tailstr = function(node, indent, str) {
 var infixstr = function(node, indent) {
         return prettyprint(node[1], indent) + " " + node[0] + " " + prettyprint(node[2], indent);
 };
-
+var blockstr = function(node, indent) {
+    if(node[0] !== "list{") {
+        return prettyprint(node, indent);
+    } 
+    var acc = "{"
+    var i = 1;
+    var prevcomment = false;
+    while(i<node.length) {
+        acc = acc  + "\n" + indentstr(indent + indentinc) + prettyprint(node[i], indent + indentinc);
+        if(node[i][0] !== "comment") {
+            acc = acc + ";"
+        } 
+        i = i + 1;
+    }
+    return acc + "\n" + indentstr(indent) + "}";
+};
 var prettyprint = function(node, indent) {
     indent = indent || 0;
     fn = pp[node[0]];
@@ -205,14 +220,14 @@ var passthrough = function(id) {
 var prefix = function(id) {
     nud[id] = function() { return [id, parse()]; };
     pp[id] = function(node, indent) {
-        return node[0] + " " + tailstr(node, indent, " ");
+        return node[0] + " " + prettyprint(node[1], indent);
     };
 };
 
 var prefix2 = function(id) {
     nud[id] = function() { return [id, parse(), parse()]}; 
     pp[id] = function(node, indent) {
-        return node[0] + " " + tailstr(node, indent, " ");
+        return node[0] + " " + prettyprint(node[1], indent) + " " + blockstr(node[2], indent);
     };
 };
 
@@ -272,6 +287,9 @@ list('[', ']');
 ['undefined', 'null', ';', ':', ',', ')', '}', '(eof)', 'false', 'true', 'id', 'string', 'number', 'comment'].map(passthrough);
 
 // pretty printing
+pp["else"] = function(node, indent) { 
+        return blockstr(node[1], indent) + " else " + blockstr(node[2], indent);
+}
 pp["string"] = function(node) { 
     return '"' + node[1].replace("\\", "\\\\").replace("\n", "\\n").replace('\t', '\\t').replace('"', '\\"') + '"'; 
 };
@@ -282,7 +300,7 @@ pp["-"] = function(node, indent) {
     if(node.length === 2) {
         return "-" + prettyprint(node[1], indent);
     } else {
-        pp["+"](node, indent);
+        return prettyprint(node[1], indent) + " - " + blockstr(node[2], indent);
     }
 };
 
@@ -292,6 +310,11 @@ pp["-"] = function(node, indent) {
 
 token = next_token();
 t = readlist(['list{'], '');
-for (elem in t) {
-    print(prettyprint(t[elem]));
-}
+//for (elem in t) {
+//    print(prettyprint(t[elem]));
+//}
+//while((t = parse()) !== EOF) {
+//    print(uneval(t));
+//    print(prettyprint(t));
+//};
+print(blockstr(t).slice(2, -2));
