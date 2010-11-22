@@ -23,11 +23,6 @@ var getch = (function() {
     }
 })();
 
-var same = function(a, b) {
-    return uneval(a) === uneval(b);
-};
-
-
 /////////////////////////////////////////////
 // Tokeniser
 //
@@ -192,7 +187,7 @@ var infixlist = function(id, endsymb, prio) {
         return readlist(["apply" + id, left], endsymb);
     };
     pp["apply" + id] = pp[id] || function(node, indent) {
-        return id + tailstr(node, indent, ", ") + endsymb;
+        return prettyprint(node[1], indent) + id + tailstr(node.slice(1), indent, ", ") + endsymb;
     };
 };
 
@@ -221,7 +216,7 @@ var prefix2 = function(id) {
     pp[id] = pp[id] || prefixstr;
 };
 
-//
+/////////////////////////////////////////
 // Parser
 //
 var default_nud= function(o) { o.unshift("id"); return o;};
