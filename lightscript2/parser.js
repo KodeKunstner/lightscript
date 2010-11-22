@@ -51,7 +51,6 @@ var pop_string = function() {
 var symb = '=!<>&|/*+-%';
 var num = '1234567890';
 var alphanum = num + '_qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
-var separator = ';,:';
 
 var EOF = ["(eof)"];
 
@@ -105,9 +104,6 @@ var next_token = function() {
             push_char();
         }
         return [pop_string()];
-    } else if (char_is(separator)) {
-        push_char();
-        return ['(sep)', pop_string()];
     } else if (c === undefined) {
         return EOF;
     } else  {
@@ -163,9 +159,9 @@ var nud = {};
 
 // utility functions
 var readlist = function(acc, endsymb) {
-    while (!same(token, endsymb) && token !== EOF) {
+    while (token[0] !== endsymb && token !== EOF) {
         var t = parse();
-        if(t[0] !== "(sep)") {
+        if(!is_separator(t[0])) {
             acc.push(t);
         }
     }
@@ -196,7 +192,7 @@ var infixlist = function(id, endsymb, prio) {
         return readlist(["apply" + id, left], endsymb);
     };
     pp["apply" + id] = pp[id] || function(node, indent) {
-        return id + tailstr(node, indent, ", ") + endsymb[0];
+        return id + tailstr(node, indent, ", ") + endsymb;
     };
 };
 
@@ -236,7 +232,7 @@ var parse = function(rbp) {
     token = next_token();
     var left = (nud[t[0]] || default_nud)(t);
     while (rbp < (bp[token[0]] || 0)
-            && t[0] !== "(sep)") {
+            && !is_separator(t[0])) {
         t = token;
         token = next_token();
         left = led[t[0]](left, t);
@@ -249,9 +245,12 @@ var parse = function(rbp) {
 //
 // Definition of operator precedence and type
 //
+var is_separator = function(c) {
+    return ";,:".indexOf(c) !== -1;
+}
 infix('.', 700);
-infixlist('(', [')'], 600);
-infixlist('[', [']'], 600);
+infixlist('(', ')', 600);
+infixlist('[', ']', 600);
 infix('*', 500); 
 infix('%', 500);
 infix('/', 500);
@@ -269,9 +268,9 @@ infixr('&&', 200);
 infixr('||', 200); 
 infix('=', 100);
 infix('in', 50);
-list('(', [')']);
-list('{', ['}']);
-list('[', [']']);
+list('(', ')');
+list('{', '}');
+list('[', ']');
 prefix('var');
 prefix('return'); 
 prefix('-'); 
@@ -286,7 +285,9 @@ prefix('!');
 prefix('throw'); 
 passthrough('undefined'); 
 passthrough('null'); 
-passthrough('(sep)');
+passthrough(';');
+passthrough(':');
+passthrough(',');
 passthrough(')');
 passthrough('}');
 passthrough('(eof)');
