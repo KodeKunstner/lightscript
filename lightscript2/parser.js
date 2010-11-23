@@ -22,7 +22,6 @@ var getch = (function() {
         }
     }
 })();
-
 /////////////////////////////////////////////
 // Tokeniser
 //
@@ -46,9 +45,7 @@ var pop_string = function() {
 var symb = '=!<>&|/*+-%';
 var num = '1234567890';
 var alphanum = num + '_qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
-
 var EOF = ["(eof)"];
-
 var next_token = function() {
     while (char_is(' \n\r\t')) {
         skip_char();
@@ -63,6 +60,8 @@ var next_token = function() {
                     c = '\n';
                 } else if (c === 't') {
                     c = '\t';
+                } else if (c === 'r') {
+                    c = '\r';
                 }
             }
             push_char();
@@ -291,7 +290,28 @@ pp["else"] = function(node, indent) {
         return blockstr(node[1], indent) + " else " + blockstr(node[2], indent);
 }
 pp["string"] = function(node) { 
-    return '"' + node[1].replace("\\", "\\\\").replace("\n", "\\n").replace('\t', '\\t').replace('"', '\\"') + '"'; 
+    var str = node[1];
+    var result = ['"'];
+    var i = 0;
+    while(i < str.length) {
+        var c = str[i];
+        if(c == "\\") {
+            result.push("\\\\");
+        } else if(c == "\n") {
+            result.push("\\n");
+        } else if(c == "\r") {
+            result.push("\\r");
+        } else if(c == "\t") {
+            result.push("\\t");
+        } else if(c == "\"") {
+            result.push("\\\"");
+        } else {
+            result.push(c);
+        }
+        i = i + 1;
+    }
+    result.push('"');
+    return result.join("");
 };
 pp["comment"] = function(node) { 
     return "//" + node[1]; 
