@@ -1,3 +1,24 @@
+///////////////////////////////////////////
+// rhino compatibility
+//
+GLOBAL = (function () {
+    return this;
+})();
+if (! GLOBAL . readline) {
+    readline = (function () {
+        importPackage(java . io);
+        importPackage(java . lang);
+        stream = BufferedReader(InputStreamReader(System["in"]));
+        return function () {
+            var line = stream . readLine();
+            if (line !== null) {
+                return "" + line;
+            } else {
+                return "";
+            };
+        };
+    })();
+};
 ////////////////////////////////////////////
 // Utility functions
 //
